@@ -17,7 +17,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$cb_base = content_url( 'uploads/checkedbags' );
+/**
+ * Final photos, already living in the Media Library (uploaded 2026-07).
+ * Pointed at directly rather than duplicated into uploads/checkedbags/images/
+ * — one source of truth, no risk of the two copies drifting out of sync.
+ * If you ever replace a photo, just update its URL here (or better: keep
+ * the same filename when you re-upload the replacement in Media Library,
+ * and this won't need to change at all).
+ */
+$cb_images = array(
+	'sunset'   => 'https://bagsandvibes.com/wp-content/uploads/2026/07/1-Sunset-Mountian-scaled.png',
+	'cabin'    => 'https://bagsandvibes.com/wp-content/uploads/2026/07/2-Porthole-Red-Room-scaled.png',
+	'beach'    => 'https://bagsandvibes.com/wp-content/uploads/2026/07/3-Couple-on-island-scaled.png',
+	'packing'  => 'https://bagsandvibes.com/wp-content/uploads/2026/07/4-woman-packing-bag-scaled.png',
+	'dancing'  => 'https://bagsandvibes.com/wp-content/uploads/2026/07/5-couple-dancing-on-beach-scaled.png',
+	'boarding' => 'https://bagsandvibes.com/wp-content/uploads/2026/07/6-blue-private-jet-scaled.png',
+);
 ?><!DOCTYPE html>
 <html <?php language_attributes(); ?>>
 <head>
@@ -54,7 +69,7 @@ $cb_base = content_url( 'uploads/checkedbags' );
     <div class="layer-stack" id="layer-stack">
 
       <div class="image-layer" data-phase="sunset" style="--fallback-a:#1B3A4B; --fallback-b:#FF6B4A;">
-        <div class="image-layer-media" style="--img:url('<?php echo esc_url( "$cb_base/images/image-01-sunset.jpg" ); ?>');"></div>
+        <div class="image-layer-media" style="--img:url('<?php echo esc_url( $cb_images['sunset'] ); ?>');"></div>
         <div class="hero-overlay" id="hero-overlay">
           <p class="hero-welcome">Welcome</p>
           <p class="hero-scroll">Scroll <span class="hero-arrow" aria-hidden="true">&#8595;</span></p>
@@ -62,23 +77,23 @@ $cb_base = content_url( 'uploads/checkedbags' );
       </div>
 
       <div class="image-layer" data-phase="cabin" style="--fallback-a:#2E7D6E; --fallback-b:#1B3A4B;">
-        <div class="image-layer-media" style="--img:url('<?php echo esc_url( "$cb_base/images/image-02-cruise-cabin.jpg" ); ?>');"></div>
+        <div class="image-layer-media" style="--img:url('<?php echo esc_url( $cb_images['cabin'] ); ?>');"></div>
       </div>
 
       <div class="image-layer" data-phase="beach" style="--fallback-a:#F4A94A; --fallback-b:#FF6B4A;">
-        <div class="image-layer-media" style="--img:url('<?php echo esc_url( "$cb_base/images/image-03-beach-couple.jpg" ); ?>');"></div>
+        <div class="image-layer-media" style="--img:url('<?php echo esc_url( $cb_images['beach'] ); ?>');"></div>
       </div>
 
       <div class="image-layer" data-phase="packing" style="--fallback-a:#16232B; --fallback-b:#2E7D6E;">
-        <div class="image-layer-media" style="--img:url('<?php echo esc_url( "$cb_base/images/image-04-packing.jpg" ); ?>');"></div>
+        <div class="image-layer-media" style="--img:url('<?php echo esc_url( $cb_images['packing'] ); ?>');"></div>
       </div>
 
       <div class="image-layer" data-phase="dancing" style="--fallback-a:#E8A94E; --fallback-b:#1B3A4B;">
-        <div class="image-layer-media" style="--img:url('<?php echo esc_url( "$cb_base/images/image-05-dancing.jpg" ); ?>');"></div>
+        <div class="image-layer-media" style="--img:url('<?php echo esc_url( $cb_images['dancing'] ); ?>');"></div>
       </div>
 
       <div class="image-layer" data-phase="boarding" style="--fallback-a:#1B3A4B; --fallback-b:#FF6B4A;">
-        <div class="image-layer-media" style="--img:url('<?php echo esc_url( "$cb_base/images/image-06-boarding-plane.jpg" ); ?>');"></div>
+        <div class="image-layer-media" style="--img:url('<?php echo esc_url( $cb_images['boarding'] ); ?>');"></div>
       </div>
 
       <!-- CTA layer, crossfades in after final phase -->
