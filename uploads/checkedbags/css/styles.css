@@ -19,12 +19,11 @@
   --header-h: 84px;
   --edge: clamp(20px, 5vw, 64px);
 
-  /* Motion timing (used by JS-driven inline styles as a fallback reference) */
   --ease-standard: cubic-bezier(.22,.61,.36,1);
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: auto; }
+html { scroll-behavior: smooth; } /* native smooth-scroll for nav anchor jumps, no JS needed */
 
 body {
   margin: 0;
@@ -36,7 +35,7 @@ body {
 
 a { color: inherit; }
 
-img, .image-layer-media { user-select: none; -webkit-user-drag: none; }
+img { user-select: none; -webkit-user-drag: none; }
 
 :focus-visible {
   outline: 2px solid var(--gold);
@@ -91,29 +90,23 @@ img, .image-layer-media { user-select: none; -webkit-user-drag: none; }
   padding: 0;
 }
 
-.phase-nav-list button {
+.phase-nav-list a {
+  display: inline-block;
   font-family: var(--font-mono);
   font-size: 0.72rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  background: none;
-  border: none;
+  text-decoration: none;
   color: var(--sand);
   opacity: 0.75;
-  cursor: pointer;
   padding: 0.35rem 0;
   border-bottom: 1px solid transparent;
   transition: opacity 0.2s var(--ease-standard), border-color 0.2s var(--ease-standard);
 }
-.phase-nav-list button:hover,
-.phase-nav-list button:focus-visible {
+.phase-nav-list a:hover,
+.phase-nav-list a:focus-visible {
   opacity: 1;
   border-bottom-color: var(--coral);
-}
-.phase-nav-list button[aria-current="true"] {
-  opacity: 1;
-  color: var(--gold);
-  border-bottom-color: var(--gold);
 }
 
 .btn {
@@ -156,60 +149,51 @@ img, .image-layer-media { user-select: none; -webkit-user-drag: none; }
 }
 
 /* ==========================================================================
-   Scrollytelling — pinned layer stack
+   Static photo sections — stacked in normal page flow, no JS required.
+   Each section is a full-bleed photo with a soft ink-colored gradient at
+   the top and bottom edge, so adjacent sections blend at the seam instead
+   of cutting hard from one photo straight into the next.
    ========================================================================== */
-.scrollytelling {
+.photo-section {
   position: relative;
-  height: 100vh;
-  overflow: hidden;
-  background: var(--ink);
-}
-
-.layer-stack {
-  position: absolute;
-  inset: 0;
-}
-
-.image-layer {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  will-change: opacity;
-}
-.image-layer[data-phase="sunset"] { opacity: 1; } /* first phase visible on load / no-js */
-
-.image-layer-media {
-  position: absolute;
-  inset: 0;
+  min-height: 100vh;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  /* Fallback gradient shows if the JPG hasn't been dropped in yet */
-  background-image:
-    var(--img, none),
-    linear-gradient(150deg, var(--fallback-a), var(--fallback-b));
-  transform: scale(var(--scale, 1));
-  transform-origin: var(--origin, 50% 50%);
-  will-change: transform;
-}
-/* Darken images slightly so overlay type stays legible */
-.image-layer-media::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, rgba(22,35,43,0.35) 0%, rgba(22,35,43,0) 22%, rgba(22,35,43,0) 70%, rgba(22,35,43,0.45) 100%);
-}
-
-/* Hero overlay text */
-.hero-overlay {
-  position: absolute;
-  inset: 0;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
+  overflow: hidden;
+}
+/* Fallback gradient shows if a photo URL is ever missing/broken */
+.photo-section {
+  background-image: var(--img, none), linear-gradient(150deg, var(--fallback-a, var(--horizon)), var(--fallback-b, var(--coral)));
+}
+.photo-section::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 20%;
+  background: linear-gradient(to bottom, var(--ink) 0%, rgba(22,35,43,0) 100%);
+  pointer-events: none;
+}
+.photo-section::after {
+  content: "";
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 26%;
+  background: linear-gradient(to top, var(--ink) 0%, rgba(22,35,43,0) 100%);
+  pointer-events: none;
+}
+
+/* Hero text, centered over the first photo */
+.hero-overlay {
+  position: relative;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .hero-welcome {
   font-family: var(--font-display);
@@ -236,8 +220,12 @@ img, .image-layer-media { user-select: none; -webkit-user-drag: none; }
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(6px); }
 }
+@media (prefers-reduced-motion: reduce) {
+  .hero-arrow { animation: none; }
+}
 
-/* Boarding-pass phase tag — the signature element */
+/* Boarding-pass style phase tag — the signature element, now a plain
+   always-visible static label per section instead of a JS-driven one. */
 .phase-tag {
   position: absolute;
   left: var(--edge);
@@ -252,8 +240,6 @@ img, .image-layer-media { user-select: none; -webkit-user-drag: none; }
   border-radius: 3px;
   transform: rotate(-2.5deg);
   box-shadow: 0 10px 24px rgba(0,0,0,0.28);
-  opacity: 0;
-  transition: opacity 0.3s var(--ease-standard);
 }
 .phase-tag::before {
   content: "";
@@ -265,7 +251,6 @@ img, .image-layer-media { user-select: none; -webkit-user-drag: none; }
     -3px 0 0 -2px var(--sand),
     3px 0 0 -2px var(--sand);
 }
-.phase-tag.is-visible { opacity: 1; }
 .phase-tag-gate {
   font-family: var(--font-mono);
   font-size: 0.68rem;
@@ -281,20 +266,17 @@ img, .image-layer-media { user-select: none; -webkit-user-drag: none; }
   padding-left: 0.65rem;
 }
 
-/* CTA layer */
-.cta-layer {
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  opacity: 0;
+/* CTA section */
+.cta-section {
+  position: relative;
+  min-height: 70vh;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
   background: linear-gradient(135deg, var(--horizon) 0%, var(--coral) 55%, var(--gold) 100%);
-  will-change: opacity;
 }
-.cta-content { max-width: 640px; padding: 0 var(--edge); }
+.cta-content { max-width: 640px; padding: 3rem var(--edge); }
 .cta-eyebrow {
   font-family: var(--font-mono);
   font-size: 0.75rem;
@@ -336,6 +318,7 @@ img, .image-layer-media { user-select: none; -webkit-user-drag: none; }
   color: var(--ink);
   padding: 0.85rem 1.6rem 0.85rem 2.1rem;
   font-weight: 700;
+  text-decoration: none;
 }
 .btn-ticket:hover { transform: translateY(-2px); }
 .ticket-notch {
@@ -428,27 +411,3 @@ img, .image-layer-media { user-select: none; -webkit-user-drag: none; }
   .footer-inner { flex-direction: column; }
   .footer-meta { text-align: left; }
 }
-
-/* ==========================================================================
-   Reduced motion — disable zoom/pin choreography, keep simple crossfades
-   ========================================================================== */
-@media (prefers-reduced-motion: reduce) {
-  .hero-arrow { animation: none; }
-  .image-layer-media { transition: opacity 0.6s ease; }
-}
-.reduced-motion .image-layer-media { transform: none !important; }
-.reduced-motion .scrollytelling { height: auto; }
-.reduced-motion .layer-stack { position: static; }
-.reduced-motion .image-layer {
-  position: relative;
-  inset: auto;
-  height: 100vh;
-  opacity: 1 !important;
-}
-.reduced-motion .cta-layer {
-  position: relative;
-  inset: auto;
-  height: 100vh;
-  opacity: 1 !important;
-}
-.reduced-motion .phase-tag { display: none; }
