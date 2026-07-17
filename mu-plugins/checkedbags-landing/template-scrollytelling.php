@@ -13,15 +13,6 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
-$cb_images = array(
-	'sunset'   => 'https://bagsandvibes.com/wp-content/uploads/2026/07/1-Sunset-Mountian-Beach-scaled.png',
-	'cabin'    => 'https://bagsandvibes.com/wp-content/uploads/2026/07/2-Ship-Porthole-Red-Room-scaled.png',
-	'beach'    => 'https://bagsandvibes.com/wp-content/uploads/2026/07/3-Couple-on-island-Beach-scaled.png',
-	'packing'  => 'https://bagsandvibes.com/wp-content/uploads/2026/07/4-woman-packing-bag-coral-room-scaled.png',
-	'dancing'  => 'https://bagsandvibes.com/wp-content/uploads/2026/07/5-couple-dancing-on-beach-at-night-scaled.png',
-	'boarding' => 'https://bagsandvibes.com/wp-content/uploads/2026/07/6-couple-blue-private-jet-scaled.png',
-);
 ?><!DOCTYPE html>
 <html <?php language_attributes(); ?>>
 <head>
@@ -56,68 +47,14 @@ $cb_images = array(
 </header>
 
 <main id="top">
-
-  <section class="photo-section" id="sunset" style="--img:url('<?php echo esc_url( $cb_images['sunset'] ); ?>'); --fallback-a:#1B3A4B; --fallback-b:#FF6B4A;">
-    <div class="hero-overlay">
-      <p class="hero-welcome">Welcome</p>
-      <p class="hero-scroll">Scroll <span class="hero-arrow" aria-hidden="true">&#8595;</span></p>
-    </div>
-    <div class="phase-tag" aria-hidden="true">
-      <span class="phase-tag-gate">GATE 01</span>
-      <span class="phase-tag-label">First Light</span>
-    </div>
-  </section>
-
-  <section class="photo-section" id="cabin" style="--img:url('<?php echo esc_url( $cb_images['cabin'] ); ?>'); --fallback-a:#2E7D6E; --fallback-b:#1B3A4B;">
-    <div class="phase-tag" aria-hidden="true">
-      <span class="phase-tag-gate">GATE 02</span>
-      <span class="phase-tag-label">Cabin Views</span>
-    </div>
-  </section>
-
-  <section class="photo-section" id="beach" style="--img:url('<?php echo esc_url( $cb_images['beach'] ); ?>'); --fallback-a:#F4A94A; --fallback-b:#FF6B4A;">
-    <div class="phase-tag" aria-hidden="true">
-      <span class="phase-tag-gate">GATE 03</span>
-      <span class="phase-tag-label">Shore Leave</span>
-    </div>
-  </section>
-
-  <section class="photo-section" id="packing" style="--img:url('<?php echo esc_url( $cb_images['packing'] ); ?>'); --fallback-a:#16232B; --fallback-b:#2E7D6E;">
-    <div class="phase-tag" aria-hidden="true">
-      <span class="phase-tag-gate">GATE 04</span>
-      <span class="phase-tag-label">Pack List: Vibes Only</span>
-    </div>
-  </section>
-
-  <section class="photo-section" id="dancing" style="--img:url('<?php echo esc_url( $cb_images['dancing'] ); ?>'); --fallback-a:#E8A94E; --fallback-b:#1B3A4B;">
-    <div class="phase-tag" aria-hidden="true">
-      <span class="phase-tag-gate">GATE 05</span>
-      <span class="phase-tag-label">Golden Hour Encore</span>
-    </div>
-  </section>
-
-  <section class="photo-section" id="boarding" style="--img:url('<?php echo esc_url( $cb_images['boarding'] ); ?>'); --fallback-a:#1B3A4B; --fallback-b:#FF6B4A;">
-    <div class="phase-tag" aria-hidden="true">
-      <span class="phase-tag-gate">GATE 06</span>
-      <span class="phase-tag-label">Final Boarding</span>
-    </div>
-  </section>
-
-  <section class="cta-section">
-    <div class="cta-content">
-      <p class="cta-eyebrow">Ready when you are</p>
-      <h2 class="cta-headline">Join Us</h2>
-      <p class="cta-sub">Group trips, planned together.</p>
-      <div class="cta-actions">
-        <a href="#" class="btn btn-outline-light">Members Login</a>
-        <a href="#" class="btn btn-ticket">
-          <span class="ticket-notch" aria-hidden="true"></span>
-          Request to Join
-        </a>
-      </div>
-    </div>
-  </section>
-
+<?php
+if ( have_posts() ) :
+	while ( have_posts() ) :
+		the_post();
+		the_content();
+	endwhile;
+endif;
+?>
 </main>
 
 <!-- ============ FOOTER ============ -->
