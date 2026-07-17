@@ -53,14 +53,8 @@ add_filter(
 
 /**
  * 3. Only on that same page, enqueue: Google Fonts, our own styles.css,
- *    and GSAP core + ScrollTrigger + ScrollToPlugin + app.js in the exact
- *    dependency order the scroll timeline relies on.
- *
- *    NOTE: If SiteGround Speed Optimizer's JS "Combine" or "Defer" settings
- *    are on, they can sometimes reorder scripts and break GSAP's load order.
- *    If the pinned zoom doesn't animate on the live site, check Speed
- *    Optimizer's exclusion list first and exclude the "gsap-*" and
- *    "checkedbags-app" handles.
+ *    and app.js (mobile nav toggle only — no GSAP dependency at all in
+ *    the static version, so no script load-order concerns to worry about).
  */
 add_action(
 	'wp_enqueue_scripts',
@@ -82,35 +76,14 @@ add_action(
 			'checkedbags-styles',
 			"$base/css/styles.css",
 			array(),
-			'1.0.0'
+			'2.0.0'
 		);
 
 		wp_enqueue_script(
-			'gsap-core',
-			'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js',
-			array(),
-			'3.12.5',
-			true
-		);
-		wp_enqueue_script(
-			'gsap-scrolltrigger',
-			'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js',
-			array( 'gsap-core' ),
-			'3.12.5',
-			true
-		);
-		wp_enqueue_script(
-			'gsap-scrolltoplugin',
-			'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js',
-			array( 'gsap-core' ),
-			'3.12.5',
-			true
-		);
-		wp_enqueue_script(
 			'checkedbags-app',
 			"$base/js/app.js",
-			array( 'gsap-core', 'gsap-scrolltrigger', 'gsap-scrolltoplugin' ),
-			'1.0.0',
+			array(),
+			'2.0.0',
 			true
 		);
 	}
