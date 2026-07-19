@@ -326,14 +326,15 @@ img { user-select: none; -webkit-user-drag: none; }
 .nudge-down { margin-top: 96px; } /* roughly 1 inch */
 
 /* Forces a headline onto a single line regardless of length — widens the
-   card to fit-content instead of wrapping within the usual max-width. */
+   card to fit-content instead of wrapping within the usual max-width.
+   Font size stays the same as every other gate's headline; only the
+   wrapping behavior changes. */
 .phase-copy--nowrap {
-  max-width: none;
+  max-width: calc(100vw - 2 * var(--edge));
   width: max-content;
 }
 .phase-copy--nowrap .phase-copy-headline {
   white-space: nowrap;
-  font-size: clamp(1.4rem, 3vw, 2.75rem) !important;
 }
 
 /* On small screens, absolute per-photo placement gets cramped — fall back
