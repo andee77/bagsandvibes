@@ -2,17 +2,20 @@
    Checked Bags & Good Vibes — Design Tokens
    ========================================================================== */
 :root {
-  --ink:        #16232B;
-  --horizon:    #1B3A4B;
-  --coral:      #FF6B4A;
-  --gold:       #E8A94E;
-  --sand:       #FBF3E7;
-  --teal:       #2E7D6E;
+  /* Color */
+  --ink:        #16232B;   /* near-black navy, primary text / dark chrome */
+  --horizon:    #1B3A4B;   /* deep navy blue, header scrim / secondary dark */
+  --coral:      #FF6B4A;   /* primary accent */
+  --gold:       #E8A94E;   /* warm gold, luxury footer + tag stamps */
+  --sand:       #FBF3E7;   /* cream, text on dark surfaces */
+  --teal:       #2E7D6E;   /* secondary accent */
 
+  /* Type */
   --font-display: 'Fraunces', serif;
   --font-body:    'Work Sans', sans-serif;
   --font-mono:    'Space Mono', monospace;
 
+  /* Layout */
   --header-h: 84px;
   --edge: clamp(20px, 5vw, 64px);
 
@@ -20,7 +23,7 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; } /* native smooth-scroll for nav anchor jumps, no JS needed */
 
 body {
   margin: 0;
@@ -39,6 +42,9 @@ img { user-select: none; -webkit-user-drag: none; }
   outline-offset: 3px;
 }
 
+/* ==========================================================================
+   Header
+   ========================================================================== */
 .site-header {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -47,7 +53,7 @@ img { user-select: none; -webkit-user-drag: none; }
   display: flex;
   align-items: center;
   background: linear-gradient(to bottom, rgba(22,35,43,0.75) 0%, rgba(22,35,43,0) 100%);
-  pointer-events: none;
+  pointer-events: none; /* re-enabled on interactive children below */
 }
 .site-header * { pointer-events: auto; }
 
@@ -142,6 +148,12 @@ img { user-select: none; -webkit-user-drag: none; }
   box-shadow: 0 5px 0 var(--sand), 0 -5px 0 var(--sand);
 }
 
+/* ==========================================================================
+   Static photo sections — stacked in normal page flow, no JS required.
+   Each section is a full-bleed photo with a soft ink-colored gradient at
+   the top and bottom edge, so adjacent sections blend at the seam instead
+   of cutting hard from one photo straight into the next.
+   ========================================================================== */
 .photo-section {
   position: relative;
   min-height: 100vh !important;
@@ -154,6 +166,7 @@ img { user-select: none; -webkit-user-drag: none; }
   text-align: center;
   overflow: hidden;
 }
+/* Fallback gradient shows if a photo URL is ever missing/broken */
 .photo-section {
   background-image: var(--img, none), linear-gradient(150deg, var(--fallback-a, var(--horizon)), var(--fallback-b, var(--coral))) !important;
 }
@@ -174,6 +187,7 @@ img { user-select: none; -webkit-user-drag: none; }
   pointer-events: none;
 }
 
+/* Hero text, centered over the first photo */
 .hero-overlay {
   position: relative;
   z-index: 2;
@@ -210,6 +224,8 @@ img { user-select: none; -webkit-user-drag: none; }
   .hero-arrow { animation: none; }
 }
 
+/* Boarding-pass style phase tag — the signature element, now a plain
+   always-visible static label per section instead of a JS-driven one. */
 .phase-tag {
   position: absolute;
   left: var(--edge);
@@ -250,6 +266,7 @@ img { user-select: none; -webkit-user-drag: none; }
   padding-left: 0.65rem;
 }
 
+/* CTA section */
 .cta-section {
   position: relative;
   min-height: 70vh !important;
@@ -313,6 +330,9 @@ img { user-select: none; -webkit-user-drag: none; }
   background: var(--coral);
 }
 
+/* ==========================================================================
+   Footer
+   ========================================================================== */
 .site-footer {
   background: var(--ink);
   border-top: 1px solid rgba(232,169,78,0.35);
@@ -356,6 +376,9 @@ img { user-select: none; -webkit-user-drag: none; }
 .footer-meta p { margin: 0.2rem 0; }
 .footer-stamp { color: var(--gold); }
 
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
 @media (max-width: 860px) {
   .primary-nav {
     position: fixed;
