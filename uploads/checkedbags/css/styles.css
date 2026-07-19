@@ -306,12 +306,20 @@ img { user-select: none; -webkit-user-drag: none; }
 }
 
 /* Per-photo placement — pick whichever sits over the calmest part of
-   that specific image. Applied alongside .phase-copy or .itinerary-card. */
-.is-top-left    { top: 14%; left: var(--edge); text-align: left; }
-.is-top-right   { top: 14%; right: var(--edge); text-align: right; }
-.is-top-center  { top: 12%; left: 50%; transform: translateX(-50%); text-align: center; }
-.is-right       { top: 50%; right: var(--edge); transform: translateY(-50%); text-align: right; }
-.is-left        { top: 50%; left: var(--edge); transform: translateY(-50%); text-align: left; }
+   that specific image. Applied alongside .phase-copy or .itinerary-card.
+   Full 3x3 grid so future adjustments are just a class swap. */
+.is-top-left     { top: 14%; left: var(--edge); text-align: left; }
+.is-top-center   { top: 12%; left: 50%; transform: translateX(-50%); text-align: center; }
+.is-top-right    { top: 14%; right: var(--edge); text-align: right; }
+
+.is-mid-left     { top: 50%; left: var(--edge); transform: translateY(-50%); text-align: left; }
+.is-mid-center   { top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+.is-mid-right    { top: 50%; right: var(--edge); transform: translateY(-50%); text-align: right; }
+
+/* bottom-left gets extra clearance since the phase-tag always lives there */
+.is-bottom-left   { bottom: calc(var(--edge) + 76px); left: var(--edge); text-align: left; }
+.is-bottom-center { bottom: var(--edge); left: 50%; transform: translateX(-50%); text-align: center; }
+.is-bottom-right  { bottom: var(--edge); right: var(--edge); text-align: right; }
 
 /* On small screens, absolute per-photo placement gets cramped — fall back
    to plain centered flow (relying on .photo-section's flex centering). */
@@ -422,7 +430,7 @@ img { user-select: none; -webkit-user-drag: none; }
   position: relative;
   background: var(--sand);
   color: var(--ink);
-  padding: 0.85rem 1.6rem 0.85rem 2.1rem;
+  padding: 0.85rem 1.6rem 0.85rem 1.4rem;
   font-weight: 700;
   text-decoration: none;
 }
