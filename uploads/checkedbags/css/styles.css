@@ -541,3 +541,94 @@ img { user-select: none; -webkit-user-drag: none; }
   .footer-inner { flex-direction: column; }
   .footer-meta { text-align: left; }
 }
+
+/* ==========================================================================
+   Member Dashboard shell
+   ========================================================================== */
+body.checkedbags-dashboard {
+  background: var(--ink);
+}
+
+.member-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dashboard-main {
+  padding-top: calc(var(--header-h) + 3rem);
+  padding-bottom: 4rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-left: var(--edge);
+  padding-right: var(--edge);
+}
+
+.dashboard-hero {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+.dashboard-hero-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0 0 0.5rem;
+}
+.dashboard-hero-name {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  color: var(--sand);
+  margin: 0 0 0.75rem;
+}
+.dashboard-hero-sub {
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  color: rgba(251,243,231,0.75);
+  margin: 0;
+}
+
+.gate-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
+}
+
+.gate-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: var(--horizon);
+  border: 1px solid rgba(232,169,78,0.25);
+  border-radius: 6px;
+  padding: 1.75rem;
+  text-decoration: none;
+  transition: transform 0.2s var(--ease-standard), border-color 0.2s var(--ease-standard);
+}
+.gate-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--gold);
+}
+.gate-card-number {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--coral);
+}
+.gate-card-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.5rem;
+  color: var(--sand);
+}
+.gate-card-desc {
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  color: rgba(251,243,231,0.7);
+  line-height: 1.5;
+}
