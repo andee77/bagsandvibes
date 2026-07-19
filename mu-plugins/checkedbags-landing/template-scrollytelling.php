@@ -41,7 +41,7 @@ if ( ! defined( 'ABSPATH' ) ) {
         <li><a href="#dancing">Golden Hour</a></li>
         <li><a href="#boarding">Final Boarding</a></li>
       </ul>
-      <a href="#" class="btn btn-ghost btn-signin">Members Sign In</a>
+      <a href="https://bagsandvibes.com/login/" class="btn btn-ghost btn-signin">Members Sign In</a>
     </nav>
   </div>
 </header>
