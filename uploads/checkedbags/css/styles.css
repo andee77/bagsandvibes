@@ -321,6 +321,21 @@ img { user-select: none; -webkit-user-drag: none; }
 .is-bottom-center { bottom: var(--edge); left: 50%; transform: translateX(-50%); text-align: center; }
 .is-bottom-right  { bottom: var(--edge); right: var(--edge); text-align: right; }
 
+/* Combinable nudges — stack with any position class above instead of
+   needing a brand new class for every small adjustment. */
+.nudge-down { margin-top: 96px; } /* roughly 1 inch */
+
+/* Forces a headline onto a single line regardless of length — widens the
+   card to fit-content instead of wrapping within the usual max-width. */
+.phase-copy--nowrap {
+  max-width: none;
+  width: max-content;
+}
+.phase-copy--nowrap .phase-copy-headline {
+  white-space: nowrap;
+  font-size: clamp(1.4rem, 3vw, 2.75rem) !important;
+}
+
 /* On small screens, absolute per-photo placement gets cramped — fall back
    to plain centered flow (relying on .photo-section's flex centering). */
 @media (max-width: 640px) {
@@ -430,18 +445,18 @@ img { user-select: none; -webkit-user-drag: none; }
   position: relative;
   background: var(--sand);
   color: var(--ink);
-  padding: 0.85rem 1.6rem 0.85rem 1.4rem;
+  padding: 0.85rem 1.6rem;
   font-weight: 700;
   text-decoration: none;
+  gap: 0.4rem;
 }
 .btn-ticket:hover { transform: translateY(-2px); }
 .ticket-notch {
-  position: absolute;
-  left: 0.9rem; top: 50%;
-  transform: translateY(-50%);
+  display: inline-block;
   width: 6px; height: 6px;
   border-radius: 50%;
   background: var(--coral);
+  flex-shrink: 0;
 }
 
 /* ==========================================================================
