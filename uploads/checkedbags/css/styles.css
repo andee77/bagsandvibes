@@ -775,3 +775,13 @@ body.checkedbags-dashboard {
   border-left: 2px solid var(--coral);
   padding-left: 1rem;
 }
+
+.cb-empty {
+  color: var(--ink);
+  opacity: 0.75;
+  padding: 2rem 0;
+}
+.cb-empty a {
+  color: var(--coral);
+  text-decoration: underline;
+}
