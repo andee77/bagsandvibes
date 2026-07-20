@@ -76,12 +76,12 @@ function cb_trip_type_icon( $term_slug ) {
 // To change a photo later, just update the URL below and redeploy this file.
 function cb_trip_type_photo( $term_slug ) {
 	$map = array(
-		'cruise'      => 'http://bagsandvibes.com/wp-content/uploads/2026/07/2-Ship-Porthole-Red-Room-scaled.png',
-		'destination' => 'http://bagsandvibes.com/wp-content/uploads/2026/07/staning-on-cliff-over-water-morning-scaled.jpg',
-		'flight'      => 'http://bagsandvibes.com/wp-content/uploads/2026/07/jet-inside-scaled.jpg',
-		'train'       => 'http://bagsandvibes.com/wp-content/uploads/2026/07/Train-Ride.avif',
-		'resort'      => 'http://bagsandvibes.com/wp-content/uploads/2026/07/feet-in-the-pool-scaled.jpg',
-		'other'       => 'http://bagsandvibes.com/wp-content/uploads/2026/07/river-fall-leaves-scaled.jpg',
+		'cruise'      => 'https://bagsandvibes.com/wp-content/uploads/2026/07/2-Ship-Porthole-Red-Room-scaled.png',
+		'destination' => 'https://bagsandvibes.com/wp-content/uploads/2026/07/staning-on-cliff-over-water-morning-scaled.jpg',
+		'flight'      => 'https://bagsandvibes.com/wp-content/uploads/2026/07/jet-inside-scaled.jpg',
+		'train'       => 'https://bagsandvibes.com/wp-content/uploads/2026/07/Train-Ride.avif',
+		'resort'      => 'https://bagsandvibes.com/wp-content/uploads/2026/07/feet-in-the-pool-scaled.jpg',
+		'other'       => 'https://bagsandvibes.com/wp-content/uploads/2026/07/river-fall-leaves-scaled.jpg',
 	);
 	return isset( $map[ $term_slug ] ) ? $map[ $term_slug ] : $map['other'];
 }
