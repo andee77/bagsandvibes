@@ -27,10 +27,13 @@ html { scroll-behavior: smooth; } /* native smooth-scroll for nav anchor jumps, 
 
 body {
   margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+body.checkedbags-landing,
+body.checkedbags-dashboard {
   font-family: var(--font-body);
   color: var(--sand);
   background: var(--ink);
-  -webkit-font-smoothing: antialiased;
 }
 
 a { color: inherit; }
