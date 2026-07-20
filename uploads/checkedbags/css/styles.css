@@ -678,3 +678,97 @@ body.checkedbags-dashboard {
   letter-spacing: 0.04em;
   color: rgba(251,243,231,0.6);
 }
+
+/* ==========================================================================
+   Gate 07 — Vacations (trip cards + detail)
+   ========================================================================== */
+.trip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
+}
+.trip-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  background: var(--horizon);
+  border: 1px solid rgba(232,169,78,0.25);
+  border-radius: 6px;
+  padding: 1.5rem;
+}
+.trip-card-type {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--coral);
+}
+.trip-card-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.3rem;
+  color: var(--sand);
+  margin: 0.15rem 0;
+}
+.trip-card-dates,
+.trip-card-price,
+.trip-card-spots {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: rgba(251,243,231,0.75);
+  margin: 0;
+}
+.trip-card-actions {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+.trip-card-actions .btn[disabled] {
+  opacity: 0.5;
+  cursor: default;
+}
+.trip-detail {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.trip-detail-type {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.trip-detail-section h3 {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.2rem;
+  color: var(--sand);
+  margin: 0 0 0.5rem;
+}
+.trip-roster-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.trip-roster-list li {
+  background: rgba(251,243,231,0.08);
+  border-radius: 4px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.85rem;
+}
+.trip-detail-min-notice {
+  font-size: 0.85rem;
+  color: var(--gold);
+  margin-top: 0.5rem;
+}
+.trip-detail-rules {
+  border-left: 2px solid var(--coral);
+  padding-left: 1rem;
+}
