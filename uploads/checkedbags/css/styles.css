@@ -785,3 +785,13 @@ body.checkedbags-dashboard {
   color: var(--coral);
   text-decoration: underline;
 }
+
+.trip-card {
+  overflow: hidden;
+}
+.trip-card-photo {
+  height: 140px;
+  margin: -1.5rem -1.5rem 0.75rem;
+  background-size: cover;
+  background-position: center;
+}
