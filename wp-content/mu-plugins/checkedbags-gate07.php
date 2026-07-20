@@ -66,9 +66,24 @@ function cb_trip_type_icon( $term_slug ) {
 		'destination' => 'ti-map-pin',
 		'flight'      => 'ti-plane',
 		'train'       => 'ti-train',
+		'resort'      => 'ti-pool',
 		'other'       => 'ti-compass',
 	);
 	return isset( $map[ $term_slug ] ) ? $map[ $term_slug ] : 'ti-compass';
+}
+
+// Default photo per trip type, used when a trip has no featured image set.
+// To change a photo later, just update the URL below and redeploy this file.
+function cb_trip_type_photo( $term_slug ) {
+	$map = array(
+		'cruise'      => 'http://bagsandvibes.com/wp-content/uploads/2026/07/2-Ship-Porthole-Red-Room-scaled.png',
+		'destination' => 'http://bagsandvibes.com/wp-content/uploads/2026/07/staning-on-cliff-over-water-morning-scaled.jpg',
+		'flight'      => 'http://bagsandvibes.com/wp-content/uploads/2026/07/jet-inside-scaled.jpg',
+		'train'       => 'http://bagsandvibes.com/wp-content/uploads/2026/07/Train-Ride.avif',
+		'resort'      => 'http://bagsandvibes.com/wp-content/uploads/2026/07/feet-in-the-pool-scaled.jpg',
+		'other'       => 'http://bagsandvibes.com/wp-content/uploads/2026/07/river-fall-leaves-scaled.jpg',
+	);
+	return isset( $map[ $term_slug ] ) ? $map[ $term_slug ] : $map['other'];
 }
 
 function cb_format_date_range( $start, $end ) {
@@ -172,7 +187,9 @@ add_shortcode( 'cb_gate_vacations', function () {
 			$already_in = in_array( $current_user_id, $roster, true );
 			$is_full    = ( $spots !== null && $spots <= 0 );
 			?>
+			<?php $photo_url = get_the_post_thumbnail_url( $trip->ID, 'medium_large' ) ?: cb_trip_type_photo( $type_slug ); ?>
 			<div class="trip-card">
+				<div class="trip-card-photo" style="background-image:url('<?php echo esc_url( $photo_url ); ?>');"></div>
 				<span class="trip-card-type"><i class="ti <?php echo esc_attr( $icon ); ?>" aria-hidden="true"></i> <?php echo esc_html( $type_label ); ?></span>
 				<h3 class="trip-card-title"><?php echo esc_html( get_the_title( $trip ) ); ?></h3>
 				<p class="trip-card-dates"><?php echo esc_html( cb_format_date_range( $start, $end ) ); ?></p>
