@@ -25,7 +25,7 @@ $gates = array(
 		'number' => 'GATE 07',
 		'title'  => 'All Planned Vacations',
 		'desc'   => "See every trip your crew has on the books, past and upcoming.",
-		'url'    => '#',
+		'url'    => 'https://bagsandvibes.com/gate-07-pre-planned-vacations/',
 	),
 	array(
 		'number' => 'GATE 08',
@@ -43,7 +43,7 @@ $gates = array(
 		'number' => 'GATE 10',
 		'title'  => 'Discussion Boards',
 		'desc'   => 'Talk logistics, split rooms, and settle itinerary debates.',
-		'url'    => '#',
+		'url'    => 'https://bagsandvibes.com/gate-10-discussion-boards/',
 	),
 	array(
 		'number' => 'GATE 11',
