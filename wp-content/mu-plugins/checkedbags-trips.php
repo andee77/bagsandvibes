@@ -385,6 +385,8 @@ add_action( 'save_post_cb_trip', function ( $post_id ) {
 		return;
 	}
 
+	$old_status = get_post_meta( $post_id, 'cb_status', true );
+
 	$text_fields = array(
 		'cb_status', 'cb_source', 'cb_start_date', 'cb_end_date',
 		'cb_gallery_privacy', 'cb_rules_addendum', 'cb_quote_notes',
@@ -392,6 +394,13 @@ add_action( 'save_post_cb_trip', function ( $post_id ) {
 	foreach ( $text_fields as $field ) {
 		if ( isset( $_POST[ $field ] ) ) {
 			update_post_meta( $post_id, $field, sanitize_text_field( wp_unslash( $_POST[ $field ] ) ) );
+		}
+	}
+
+	if ( isset( $_POST['cb_status'] ) ) {
+		$new_status = sanitize_text_field( wp_unslash( $_POST['cb_status'] ) );
+		if ( $new_status !== $old_status ) {
+			do_action( 'cb_trip_status_changed', $post_id, $old_status, $new_status );
 		}
 	}
 
