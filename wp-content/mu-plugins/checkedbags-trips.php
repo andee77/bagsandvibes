@@ -68,7 +68,7 @@ add_action( 'init', function () {
 		'label'        => 'Trip Type',
 		'public'       => true,
 		'show_in_rest' => true,
-		'hierarchical' => false,
+		'hierarchical' => true,
 	) );
 
 } );
