@@ -31,7 +31,7 @@ $gates = array(
 		'number' => 'GATE 08',
 		'title'  => 'Photo Gallery',
 		'desc'   => 'Shared photos from every trip, all in one place.',
-		'url'    => '#',
+		'url'    => 'https://bagsandvibes.com/gate-08-photo-gallery/',
 	),
 	array(
 		'number' => 'GATE 09',
