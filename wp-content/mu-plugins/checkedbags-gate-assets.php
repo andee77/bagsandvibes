@@ -53,6 +53,13 @@ add_action( 'wp_enqueue_scripts', function () {
 		null
 	);
 
+	wp_enqueue_style(
+		'cb-tabler-icons',
+		'https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/dist/tabler-icons.min.css',
+		array(),
+		'2.44.0'
+	);
+
 	$styles_path = WP_CONTENT_DIR . '/uploads/checkedbags/css/styles.css';
 	$styles_ver  = file_exists( $styles_path ) ? filemtime( $styles_path ) : '1.0.1';
 
