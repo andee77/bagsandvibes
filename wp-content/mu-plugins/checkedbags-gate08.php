@@ -149,6 +149,9 @@ function cb_render_photo_grid( $trip_id, $can_upload ) {
 					<i class="ti ti-heart<?php echo $liked ? '-filled' : ''; ?>" aria-hidden="true"></i>
 					<span class="photo-like-count"><?php echo esc_html( count( $likes ) ); ?></span>
 				</button>
+				<a href="<?php echo esc_url( $full ); ?>" download class="photo-download-btn" aria-label="Download photo">
+					<i class="ti ti-download" aria-hidden="true"></i>
+				</a>
 				<?php if ( (int) $photo->post_author === $user_id ) : ?>
 				<button class="photo-delete-btn" data-photo-id="<?php echo esc_attr( $photo->ID ); ?>" aria-label="Delete photo">
 					<i class="ti ti-trash" aria-hidden="true"></i>
