@@ -1078,3 +1078,192 @@ body.checkedbags-dashboard {
   opacity: 0.5;
   font-style: italic;
 }
+
+/* ==========================================================================
+   Gate 12 — Vacation Requests
+   ========================================================================== */
+.requests-section-title {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.6;
+  margin: 2rem 0 1rem;
+}
+.requests-divider {
+  border: none;
+  border-top: 1px solid rgba(22,35,43,0.15);
+  margin: 2.5rem 0;
+}
+.requests-empty {
+  color: var(--ink);
+  opacity: 0.6;
+  font-size: 0.9rem;
+}
+.suggestion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+.suggestion-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  background: var(--horizon);
+  border: 1px solid rgba(232,169,78,0.25);
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+}
+.suggestion-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.1rem;
+  color: var(--sand);
+}
+.suggestion-desc {
+  font-size: 0.85rem;
+  color: rgba(251,243,231,0.7);
+  margin: 0.25rem 0 0;
+}
+.suggestion-vote-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(251,243,231,0.08);
+  border: none;
+  border-radius: 6px;
+  color: var(--sand);
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.suggestion-vote-btn.is-voted {
+  background: var(--coral);
+}
+.suggestion-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 480px;
+  background: var(--horizon);
+  border: 1px solid rgba(232,169,78,0.25);
+  border-radius: 6px;
+  padding: 1.5rem;
+}
+.trip-request-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 600px;
+  background: var(--horizon);
+  border: 1px solid rgba(232,169,78,0.25);
+  border-radius: 6px;
+  padding: 1.75rem;
+}
+.trip-request-form fieldset {
+  border: none;
+  border-top: 1px solid rgba(251,243,231,0.15);
+  padding: 1.25rem 0 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.trip-request-form fieldset:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+.trip-request-form legend {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  padding: 0;
+  margin-bottom: 0.25rem;
+}
+.suggestion-form input, .suggestion-form textarea,
+.trip-request-form input, .trip-request-form select, .trip-request-form textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid rgba(251,243,231,0.3);
+  background: rgba(251,243,231,0.06);
+  color: var(--sand);
+  font-family: var(--font-body);
+}
+.trip-request-form label {
+  color: rgba(251,243,231,0.8);
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.trip-request-form label.check-row {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+.trip-request-form label.check-row input {
+  width: auto;
+}
+.requests-fine-print {
+  font-size: 0.78rem;
+  color: rgba(251,243,231,0.55);
+  font-style: italic;
+  line-height: 1.5;
+}
+.request-status-card {
+  background: var(--horizon);
+  border: 1px solid rgba(232,169,78,0.25);
+  border-radius: 6px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+.request-status-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.2rem;
+  color: var(--sand);
+  margin: 0 0 0.5rem;
+}
+.request-status-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  background: rgba(251,243,231,0.15);
+  color: var(--sand);
+}
+.request-status-badge.status-quoted { background: var(--gold); color: var(--ink); }
+.request-status-badge.status-accepted { background: var(--teal); color: var(--sand); }
+.request-status-badge.status-declined { background: rgba(255,107,74,0.3); }
+.request-quote-box {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(251,243,231,0.15);
+}
+.request-quote-price {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: var(--gold);
+  margin: 0 0 0.5rem;
+}
+.request-quote-notes {
+  color: rgba(251,243,231,0.8);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+.request-accepted-note {
+  color: var(--teal);
+  font-size: 0.9rem;
+}
+.request-accepted-note a { color: var(--gold); }
