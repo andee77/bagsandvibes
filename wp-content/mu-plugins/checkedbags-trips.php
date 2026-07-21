@@ -131,7 +131,9 @@ add_action( 'init', function () {
 			'single'            => true,
 			'default'           => $default,
 			'show_in_rest'      => true,
-			'sanitize_callback' => 'floatval',
+			'sanitize_callback' => function ( $value ) {
+				return floatval( $value );
+			},
 			'auth_callback'     => function () {
 				return current_user_can( 'edit_posts' );
 			},
