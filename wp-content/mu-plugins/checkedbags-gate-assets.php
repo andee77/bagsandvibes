@@ -28,7 +28,8 @@ function cb_is_gate_content_page() {
 		$post = get_post();
 		if ( $post && (
 			has_shortcode( $post->post_content, 'cb_gate_vacations' ) ||
-			has_shortcode( $post->post_content, 'cb_gate_boards' )
+			has_shortcode( $post->post_content, 'cb_gate_boards' ) ||
+			has_shortcode( $post->post_content, 'cb_gate_payments' )
 		) ) {
 			return true;
 		}
