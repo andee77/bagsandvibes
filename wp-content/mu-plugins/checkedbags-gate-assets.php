@@ -31,7 +31,8 @@ function cb_is_gate_content_page() {
 			has_shortcode( $post->post_content, 'cb_gate_boards' ) ||
 			has_shortcode( $post->post_content, 'cb_gate_payments' ) ||
 			has_shortcode( $post->post_content, 'cb_gate_gallery' ) ||
-			has_shortcode( $post->post_content, 'cb_gate_rules' )
+			has_shortcode( $post->post_content, 'cb_gate_rules' ) ||
+			has_shortcode( $post->post_content, 'cb_gate_requests' )
 		) ) {
 			return true;
 		}
