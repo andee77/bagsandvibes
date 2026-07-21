@@ -12,23 +12,6 @@
 
   document.addEventListener('submit', function (e) {
 
-    if (e.target.id === 'cb-suggestion-form') {
-      e.preventDefault();
-      var title = val('cb-suggestion-title');
-      var desc = val('cb-suggestion-desc');
-      if (!title.trim()) return;
-
-      fetch(cbGate12.restUrl + 'suggestions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': cbGate12.nonce },
-        body: JSON.stringify({ title: title, description: desc })
-      })
-        .then(function (res) { return res.json(); })
-        .then(function () { location.reload(); })
-        .catch(function () { alert('Something went wrong. Please try again.'); });
-      return;
-    }
-
     if (e.target.id === 'cb-trip-request-form') {
       e.preventDefault();
 
@@ -39,9 +22,9 @@
         organizer_role: val('req-organizer-role'),
         decision_style: val('req-decision-style'),
         group_size: val('req-group-size'),
-        adults: val('req-adults'),
-        children: val('req-children-note'),
-        seniors: val('req-seniors'),
+        ages_0_17: val('req-ages-0-17'),
+        ages_18_64: val('req-ages-18-64'),
+        ages_65_plus: val('req-ages-65-plus'),
         group_dynamic: val('req-group-dynamic'),
         rooming: val('req-rooming'),
         destination_pref: val('req-destination'),
@@ -78,6 +61,7 @@
         .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
         .then(function (result) {
           if (result.ok && result.data.trip_id) {
+            alert('Thanks! Your request has been submitted. We will review it and follow up with a quote soon.');
             location.reload();
           } else {
             submitBtn.disabled = false;
@@ -94,24 +78,6 @@
   });
 
   document.addEventListener('click', function (e) {
-    var voteBtn = e.target.closest('.suggestion-vote-btn');
-    if (voteBtn) {
-      var id = voteBtn.getAttribute('data-suggestion-id');
-      voteBtn.disabled = true;
-      fetch(cbGate12.restUrl + 'suggestions/' + id + '/vote', {
-        method: 'POST',
-        headers: { 'X-WP-Nonce': cbGate12.nonce }
-      })
-        .then(function (res) { return res.json(); })
-        .then(function (data) {
-          voteBtn.disabled = false;
-          voteBtn.classList.toggle('is-voted', data.voted);
-          voteBtn.querySelector('.suggestion-vote-count').textContent = data.count;
-        })
-        .catch(function () { voteBtn.disabled = false; });
-      return;
-    }
-
     var acceptBtn = e.target.closest('.cb-accept-quote-btn');
     if (acceptBtn) {
       if (!confirm('Accept this quote? You will be able to pay your deposit on the Payments page next.')) return;
