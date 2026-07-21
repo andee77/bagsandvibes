@@ -1011,3 +1011,70 @@ body.checkedbags-dashboard {
 .photo-download-btn:hover {
   background: var(--gold);
 }
+
+/* ==========================================================================
+   Gate 11 — Travel Rules
+   ========================================================================== */
+.rules-agreement {
+  margin: 1.5rem 0;
+  padding: 1.25rem;
+  background: var(--horizon);
+  border-radius: 6px;
+  border: 1px solid rgba(232,169,78,0.25);
+}
+.rules-agree-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--sand);
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+.rules-agreed-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--teal);
+  font-weight: 600;
+}
+.rules-section-title {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.6;
+  margin: 2rem 0 1rem;
+}
+.rules-trip-card {
+  background: var(--horizon);
+  border: 1px solid rgba(232,169,78,0.25);
+  border-radius: 6px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+.rules-trip-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.2rem;
+  color: var(--sand);
+  margin: 0 0 0.4rem;
+}
+.rules-group-size {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: rgba(251,243,231,0.6);
+  display: block;
+  margin-bottom: 0.75rem;
+}
+.rules-addendum-text {
+  color: rgba(251,243,231,0.85);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0;
+}
+.rules-addendum-none {
+  opacity: 0.5;
+  font-style: italic;
+}
