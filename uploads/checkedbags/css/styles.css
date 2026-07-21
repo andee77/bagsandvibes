@@ -961,3 +961,12 @@ body.checkedbags-dashboard {
   transition: border-color 0.2s var(--ease-standard), color 0.2s var(--ease-standard);
 }
 .cb-lightbox-close:hover { border-color: var(--gold); color: var(--gold); }
+
+.cb-upload-btn {
+  color: var(--ink);
+  border-color: rgba(22,35,43,0.35);
+}
+.cb-upload-btn:hover {
+  color: var(--coral);
+  border-color: var(--coral);
+}
