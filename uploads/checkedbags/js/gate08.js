@@ -110,6 +110,33 @@
     if (lightboxEl && (e.target.closest('.cb-lightbox-close') || e.target === lightboxEl)) {
       lightboxEl.classList.remove('is-open');
       lightboxEl.querySelector('img').src = '';
+      return;
+    }
+
+    var deleteBtn = e.target.closest('.photo-delete-btn');
+    if (deleteBtn) {
+      if (!confirm('Delete this photo? This cannot be undone.')) return;
+
+      var photoId = deleteBtn.getAttribute('data-photo-id');
+      deleteBtn.disabled = true;
+
+      fetch(cbGate08.restUrl + 'photos/' + photoId, {
+        method: 'DELETE',
+        headers: { 'X-WP-Nonce': cbGate08.nonce }
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data.deleted) {
+            deleteBtn.closest('.photo-tile').remove();
+          } else {
+            deleteBtn.disabled = false;
+            alert('Could not delete this photo.');
+          }
+        })
+        .catch(function () {
+          deleteBtn.disabled = false;
+          alert('Something went wrong. Please try again.');
+        });
     }
   });
 
