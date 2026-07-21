@@ -52,11 +52,14 @@ add_action( 'wp_enqueue_scripts', function () {
 		null
 	);
 
+	$styles_path = WP_CONTENT_DIR . '/uploads/checkedbags/css/styles.css';
+	$styles_ver  = file_exists( $styles_path ) ? filemtime( $styles_path ) : '1.0.1';
+
 	wp_enqueue_style(
 		'cb-gate-styles',
 		"$base/css/styles.css",
 		array(),
-		'1.0.1'
+		$styles_ver
 	);
 } );
 
