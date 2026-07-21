@@ -187,9 +187,7 @@ add_shortcode( 'cb_gate_vacations', function () {
 			$already_in = in_array( $current_user_id, $roster, true );
 			$is_full    = ( $spots !== null && $spots <= 0 );
 			?>
-			<?php $photo_url = get_the_post_thumbnail_url( $trip->ID, 'medium_large' ) ?: cb_trip_type_photo( $type_slug ); ?>
 			<div class="trip-card">
-				<div class="trip-card-photo" style="background-image:url('<?php echo esc_url( $photo_url ); ?>');"></div>
 				<span class="trip-card-type"><i class="ti <?php echo esc_attr( $icon ); ?>" aria-hidden="true"></i> <?php echo esc_html( $type_label ); ?></span>
 				<h3 class="trip-card-title"><?php echo esc_html( get_the_title( $trip ) ); ?></h3>
 				<p class="trip-card-dates"><?php echo esc_html( cb_format_date_range( $start, $end ) ); ?></p>
