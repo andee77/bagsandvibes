@@ -29,7 +29,8 @@ function cb_is_gate_content_page() {
 		if ( $post && (
 			has_shortcode( $post->post_content, 'cb_gate_vacations' ) ||
 			has_shortcode( $post->post_content, 'cb_gate_boards' ) ||
-			has_shortcode( $post->post_content, 'cb_gate_payments' )
+			has_shortcode( $post->post_content, 'cb_gate_payments' ) ||
+			has_shortcode( $post->post_content, 'cb_gate_gallery' )
 		) ) {
 			return true;
 		}
