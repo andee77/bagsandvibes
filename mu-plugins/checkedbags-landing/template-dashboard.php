@@ -55,7 +55,7 @@ $gates = array(
 		'number' => 'GATE 12',
 		'title'  => 'Vacation Request',
 		'desc'   => 'Pitch a new destination or start your own trip.',
-		'url'    => '#',
+		'url'    => 'https://bagsandvibes.com/gate-12-vacation-requests/',
 	),
 );
 ?><!DOCTYPE html>
