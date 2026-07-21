@@ -1267,3 +1267,38 @@ body.checkedbags-dashboard {
   font-size: 0.9rem;
 }
 .request-accepted-note a { color: var(--gold); }
+
+/* ==========================================================================
+   Trip detail — summary stats + request details (Gate 12 follow-up)
+   ========================================================================== */
+.trip-detail-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin: 1rem 0 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(22,35,43,0.12);
+}
+.trip-detail-stat {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+.trip-detail-stat strong {
+  color: var(--coral);
+}
+.request-detail-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.request-detail-list li {
+  font-size: 0.9rem;
+  color: rgba(251,243,231,0.85);
+}
+.request-detail-list li strong {
+  color: var(--gold);
+}
