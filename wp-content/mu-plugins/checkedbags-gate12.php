@@ -86,7 +86,7 @@ function cb_render_request_meta_box( $post ) {
 		'Organizer'              => trim( ( $d['organizer_name'] ?? '' ) . ' — ' . ( $d['organizer_email'] ?? '' ) . ' — ' . ( $d['organizer_phone'] ?? '' ) ),
 		'Organizer role'         => $d['organizer_role'] ?? '',
 		'Decision style'         => $d['decision_style'] ?? '',
-		'Group breakdown'        => trim( ( $d['adults'] ?? '' ) . ' adults, ' . ( $d['children'] ?? '0' ) . ' children, ' . ( $d['seniors'] ?? '0' ) . ' seniors' ),
+		'Group breakdown'        => trim( ( $d['ages_0_17'] ?? '0' ) . ' age 0–17, ' . ( $d['ages_18_64'] ?? '0' ) . ' age 18–64, ' . ( $d['ages_65_plus'] ?? '0' ) . ' age 65+' ),
 		'Group dynamic'          => $d['group_dynamic'] ?? '',
 		'Rooming preference'     => $d['rooming'] ?? '',
 		'Destination pref.'      => $d['destination_pref'] ?? '',
@@ -218,9 +218,9 @@ function cb_sanitize_request_details( $body ) {
 		'organizer_phone'    => $str( 'organizer_phone' ),
 		'organizer_role'     => $str( 'organizer_role' ),
 		'decision_style'     => $str( 'decision_style' ),
-		'adults'             => absint( $body['adults'] ?? 0 ),
-		'children'           => $str( 'children' ),
-		'seniors'            => absint( $body['seniors'] ?? 0 ),
+		'ages_0_17'          => absint( $body['ages_0_17'] ?? 0 ),
+		'ages_18_64'         => absint( $body['ages_18_64'] ?? 0 ),
+		'ages_65_plus'       => absint( $body['ages_65_plus'] ?? 0 ),
 		'group_dynamic'      => $str( 'group_dynamic' ),
 		'rooming'            => $str( 'rooming' ),
 		'destination_pref'   => $str( 'destination_pref' ),
@@ -322,41 +322,7 @@ add_shortcode( 'cb_gate_requests', function () {
 	$user_id = get_current_user_id();
 	ob_start();
 
-	$suggestions = get_posts( array( 'post_type' => 'cb_suggestion', 'numberposts' => -1 ) );
-	usort( $suggestions, function ( $a, $b ) {
-		$va = (array) get_post_meta( $a->ID, 'cb_suggestion_votes', true );
-		$vb = (array) get_post_meta( $b->ID, 'cb_suggestion_votes', true );
-		return count( $vb ) <=> count( $va );
-	} );
 	?>
-	<h3 class="requests-section-title">Suggest &amp; Vote</h3>
-	<div class="suggestion-list">
-		<?php foreach ( $suggestions as $s ) :
-			$votes = (array) get_post_meta( $s->ID, 'cb_suggestion_votes', true );
-			$voted = in_array( $user_id, $votes, true );
-			?>
-			<div class="suggestion-row">
-				<div>
-					<span class="suggestion-title"><?php echo esc_html( get_the_title( $s ) ); ?></span>
-					<?php if ( $s->post_content ) : ?><p class="suggestion-desc"><?php echo esc_html( $s->post_content ); ?></p><?php endif; ?>
-				</div>
-				<button class="suggestion-vote-btn <?php echo $voted ? 'is-voted' : ''; ?>" data-suggestion-id="<?php echo esc_attr( $s->ID ); ?>">
-					<i class="ti ti-chevron-up" aria-hidden="true"></i>
-					<span class="suggestion-vote-count"><?php echo esc_html( count( $votes ) ); ?></span>
-				</button>
-			</div>
-		<?php endforeach; ?>
-		<?php if ( empty( $suggestions ) ) : ?><p class="requests-empty">No suggestions yet — be the first!</p><?php endif; ?>
-	</div>
-
-	<form id="cb-suggestion-form" class="suggestion-form">
-		<input type="text" id="cb-suggestion-title" placeholder="Destination or trip idea" required>
-		<textarea id="cb-suggestion-desc" placeholder="Tell us more (optional)" rows="2"></textarea>
-		<button type="submit" class="btn btn-ghost">+ Suggest a trip</button>
-	</form>
-
-	<hr class="requests-divider">
-
 	<?php
 	$my_requests = get_posts( array(
 		'post_type'   => 'cb_trip',
@@ -412,9 +378,9 @@ add_shortcode( 'cb_gate_requests', function () {
 		<fieldset>
 			<legend>Group Size (minimum 4)</legend>
 			<label>Total travelers <input type="number" id="req-group-size" min="4" value="4"></label>
-			<label>Adults <input type="number" id="req-adults" min="0" value="4"></label>
-			<label>Children (with ages, if any) <input type="text" id="req-children-note" placeholder="e.g. 2 kids, ages 8 and 11"></label>
-			<label>Seniors <input type="number" id="req-seniors" min="0" value="0"></label>
+			<label>Travelers age 0–17 <input type="number" id="req-ages-0-17" min="0" value="0"></label>
+			<label>Travelers age 18–64 <input type="number" id="req-ages-18-64" min="0" value="4"></label>
+			<label>Travelers age 65+ <input type="number" id="req-ages-65-plus" min="0" value="0"></label>
 			<label>Group dynamic <select id="req-group-dynamic">
 				<option>All Couples</option><option>Single Friends</option>
 				<option>Multi-Generational Family</option><option>Active/Fitness Group</option><option>Other</option>
