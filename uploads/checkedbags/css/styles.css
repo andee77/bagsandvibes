@@ -990,3 +990,24 @@ body.checkedbags-dashboard {
 .photo-delete-btn:hover {
   background: var(--coral);
 }
+
+.photo-download-btn {
+  position: absolute;
+  top: 0.4rem;
+  right: 2.6rem;
+  background: rgba(22,35,43,0.6);
+  color: var(--sand);
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+.photo-download-btn:hover {
+  background: var(--gold);
+}
