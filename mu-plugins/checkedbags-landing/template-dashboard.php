@@ -49,7 +49,7 @@ $gates = array(
 		'number' => 'GATE 11',
 		'title'  => 'Travel Rules',
 		'desc'   => 'The house rules for group trips — read before you pack.',
-		'url'    => '#',
+		'url'    => 'https://bagsandvibes.com/gate-11-travel-rules/',
 	),
 	array(
 		'number' => 'GATE 12',
