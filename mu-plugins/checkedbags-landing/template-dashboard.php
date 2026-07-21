@@ -37,7 +37,7 @@ $gates = array(
 		'number' => 'GATE 09',
 		'title'  => 'Payment Section',
 		'desc'   => "Track deposits, balances, and who's paid what.",
-		'url'    => '#',
+		'url'    => 'https://bagsandvibes.com/gate-09-payments/',
 	),
 	array(
 		'number' => 'GATE 10',
