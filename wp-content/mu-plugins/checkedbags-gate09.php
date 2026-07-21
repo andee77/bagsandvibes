@@ -35,7 +35,9 @@ add_action( 'init', function () {
 		'single'            => true,
 		'default'           => 1,
 		'show_in_rest'      => true,
-		'sanitize_callback' => 'absint',
+		'sanitize_callback' => function ( $value ) {
+			return absint( $value );
+		},
 		'auth_callback'     => function () { return current_user_can( 'edit_posts' ); },
 	) );
 
