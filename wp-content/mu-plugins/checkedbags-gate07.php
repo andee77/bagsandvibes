@@ -233,10 +233,66 @@ add_filter( 'the_content', function ( $content ) {
 	$roster     = cb_trip_get_roster( $post->ID );
 	$min_ok     = cb_trip_meets_minimum_group_size( $post->ID );
 
+	$price    = (float) get_post_meta( $post->ID, 'cb_price', true );
+	$start    = get_post_meta( $post->ID, 'cb_start_date', true );
+	$end      = get_post_meta( $post->ID, 'cb_end_date', true );
+	$spots    = cb_trip_spots_remaining( $post->ID );
+	$source   = get_post_meta( $post->ID, 'cb_source', true );
+	$when     = get_post_meta( $post->ID, 'cb_when_notes', true );
+	$duration = get_post_meta( $post->ID, 'cb_duration_notes', true );
+
+	$request_raw = get_post_meta( $post->ID, 'cb_request_details', true );
+	$request     = $request_raw ? json_decode( $request_raw, true ) : null;
+
 	ob_start();
 	?>
 	<div class="trip-detail">
 		<p class="trip-detail-type"><?php echo esc_html( $type_label ); ?> trip</p>
+
+		<div class="trip-detail-summary">
+			<?php if ( $price > 0 ) : ?>
+				<span class="trip-detail-stat"><strong>$<?php echo esc_html( number_format( $price ) ); ?></strong> / person</span>
+			<?php endif; ?>
+			<?php if ( $start ) : ?>
+				<span class="trip-detail-stat"><?php echo esc_html( cb_format_date_range( $start, $end ) ); ?></span>
+			<?php elseif ( $when ) : ?>
+				<span class="trip-detail-stat"><?php echo esc_html( $when ); ?></span>
+			<?php endif; ?>
+			<?php if ( $duration ) : ?>
+				<span class="trip-detail-stat"><?php echo esc_html( $duration ); ?></span>
+			<?php endif; ?>
+			<?php if ( $spots !== null ) : ?>
+				<span class="trip-detail-stat"><?php echo esc_html( $spots ); ?> spot<?php echo $spots === 1 ? '' : 's'; ?> left</span>
+			<?php endif; ?>
+		</div>
+
+		<?php if ( $source === 'member_built' && $request ) : ?>
+		<div class="trip-detail-section trip-detail-request">
+			<h3>Your Request Details</h3>
+			<ul class="request-detail-list">
+				<?php
+				$request_rows = array(
+					'Group dynamic'      => $request['group_dynamic'] ?? '',
+					'Rooming preference' => $request['rooming'] ?? '',
+					'Trip category'      => implode( ', ', (array) ( $request['trip_category'] ?? array() ) ),
+					'Transport'          => implode( ', ', (array) ( $request['transport_modes'] ?? array() ) ),
+					'Departure city'     => $request['origin_city'] ?? '',
+					'Budget target'      => $request['budget_tier'] ?? '',
+					'Accommodation'      => $request['accommodation_type'] ?? '',
+					'Pace'               => $request['pace'] ?? '',
+					'Occasion'           => $request['occasion'] ?? '',
+					'Must-haves'         => $request['must_haves'] ?? '',
+					'Dietary'            => $request['dietary'] ?? '',
+					'Mobility/access'    => $request['mobility'] ?? '',
+				);
+				foreach ( $request_rows as $label => $value ) :
+					if ( empty( $value ) ) { continue; }
+					?>
+					<li><strong><?php echo esc_html( $label ); ?>:</strong> <?php echo esc_html( $value ); ?></li>
+				<?php endforeach; ?>
+			</ul>
+		</div>
+		<?php endif; ?>
 
 		<?php if ( $packing ) : ?>
 		<div class="trip-detail-section">
