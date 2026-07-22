@@ -1316,10 +1316,12 @@ body.checkedbags-dashboard {
 .site-header.is-solid {
   background: var(--ink);
 }
-.brand-logo-only img {
-  display: block;
-  height: 40px;
-  width: auto;
+.brand-logo-only img,
+.brand-logo-img {
+  display: block !important;
+  height: 40px !important;
+  width: auto !important;
+  max-width: none !important;
 }
 .gate-nav-list {
   list-style: none;
