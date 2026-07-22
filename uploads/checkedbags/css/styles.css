@@ -1632,6 +1632,8 @@ body.checkedbags-gate {
 }
 body.checkedbags-gate .gate-main {
   flex: 1 0 auto;
+  overflow: visible;
+  height: auto;
 }
 body.checkedbags-gate .site-footer {
   flex-shrink: 0;
