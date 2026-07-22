@@ -80,7 +80,10 @@ add_filter(
 		}
 
 		return $template;
-	}
+	},
+	20 // must run after bbPress's own template_include filter (priority 10),
+	   // so ours wins for forum/topic/reply pages instead of bbPress's
+	   // theme-compat layer forcing Kadence's default header/footer back in
 );
 
 /**
