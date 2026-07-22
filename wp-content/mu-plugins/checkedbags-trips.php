@@ -79,7 +79,7 @@ add_action( 'init', function () {
  * term_exists() short-circuits if it's already there.
  */
 add_action( 'init', function () {
-	$types = array( 'Cruise', 'Destination', 'Flight', 'Train', 'Other', 'Resort' );
+	$types = array( 'Cruise', 'Destination', 'Flight', 'Train', 'Other', 'Resort', 'Retreat' );
 	foreach ( $types as $type ) {
 		if ( ! term_exists( $type, 'cb_trip_type' ) ) {
 			wp_insert_term( $type, 'cb_trip_type' );
