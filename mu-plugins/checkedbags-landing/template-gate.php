@@ -90,7 +90,7 @@ $cb_current_gate = isset( $cb_gate_page_config[ get_the_ID() ] ) ? $cb_gate_page
 	</div>
 <?php endif; ?>
 
-<main class="gate-main <?php echo $cb_current_gate ? 'has-gate-bg gate-bg-' . esc_attr( $cb_current_gate['bg_style'] ) : ''; ?>">
+<main class="gate-main <?php echo $cb_current_gate ? 'has-gate-bg gate-bg-mode-' . esc_attr( $cb_current_gate['bg_style'] ) : ''; ?>">
 	<?php
 	if ( have_posts() ) :
 		while ( have_posts() ) :
