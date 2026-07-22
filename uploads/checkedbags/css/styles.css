@@ -1671,3 +1671,22 @@ body.checkedbags-gate .gate-main {
 @media (max-width: 1200px) {
   .gate-scatter-field { display: none; }
 }
+
+/* WPForms fields on our dark-themed pages (homepage/dashboard) need light
+   text/labels — WPForms' own defaults assume a light page background */
+body.checkedbags-landing .wpforms-container label,
+body.checkedbags-dashboard .wpforms-container label,
+body.checkedbags-landing .wpforms-container .wpforms-field-label,
+body.checkedbags-dashboard .wpforms-container .wpforms-field-label {
+  color: var(--sand) !important;
+}
+body.checkedbags-landing .wpforms-container input::placeholder,
+body.checkedbags-dashboard .wpforms-container input::placeholder,
+body.checkedbags-landing .wpforms-container textarea::placeholder,
+body.checkedbags-dashboard .wpforms-container textarea::placeholder {
+  color: rgba(22,35,43,0.5) !important;
+}
+body.checkedbags-landing .wpforms-container .wpforms-field-sublabel,
+body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
+  color: rgba(251,243,231,0.6) !important;
+}
