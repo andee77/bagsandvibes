@@ -91,7 +91,7 @@ add_filter(
 add_action(
 	'wp_enqueue_scripts',
 	function () {
-		$is_trip = is_singular( 'cb_trip' );
+		$is_trip = is_singular( array( 'cb_trip', 'forum', 'topic', 'reply' ) );
 		if ( ! $is_trip && ! is_page() ) {
 			return;
 		}
