@@ -71,6 +71,7 @@ $gates = array(
   <div class="header-inner">
     <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="brand">Checked Bags <span class="brand-amp">&amp;</span> Good Vibes</a>
     <nav class="member-nav" aria-label="Member navigation">
+      <a href="https://bagsandvibes.com/feed/" class="btn btn-ghost">Feed</a>
       <a href="https://bagsandvibes.com/account/" class="btn btn-ghost">My Account</a>
       <a href="https://bagsandvibes.com/logout/" class="btn btn-ghost">Log Out</a>
     </nav>
