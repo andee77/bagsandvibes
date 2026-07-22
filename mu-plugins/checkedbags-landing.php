@@ -91,11 +91,12 @@ add_filter(
 add_action(
 	'wp_enqueue_scripts',
 	function () {
-		if ( ! is_page() ) {
+		$is_trip = is_singular( 'cb_trip' );
+		if ( ! $is_trip && ! is_page() ) {
 			return;
 		}
 
-		$slug = get_page_template_slug();
+		$slug = $is_trip ? CB_GATE_TEMPLATE_SLUG : get_page_template_slug();
 		if ( $slug !== CB_LANDING_TEMPLATE_SLUG && $slug !== CB_DASHBOARD_TEMPLATE_SLUG && $slug !== CB_GATE_TEMPLATE_SLUG ) {
 			return;
 		}
