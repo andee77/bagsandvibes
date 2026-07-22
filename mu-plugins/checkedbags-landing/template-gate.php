@@ -38,8 +38,14 @@ $gate_nav = array(
 
 <header class="site-header is-solid" id="site-header">
   <div class="header-inner">
+    <?php
+    $cb_logo_id  = get_theme_mod( 'custom_logo' );
+    $cb_logo_url = $cb_logo_id ? wp_get_attachment_image_url( $cb_logo_id, 'medium' ) : '';
+    ?>
     <a href="<?php echo esc_url( home_url( '/dashboard/' ) ); ?>" class="brand brand-logo-only" aria-label="Dashboard">
-      <?php the_custom_logo(); ?>
+      <?php if ( $cb_logo_url ) : ?>
+        <img src="<?php echo esc_url( $cb_logo_url ); ?>" alt="Checked Bags &amp; Good Vibes" class="brand-logo-img">
+      <?php endif; ?>
     </a>
 
     <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="primary-nav">
