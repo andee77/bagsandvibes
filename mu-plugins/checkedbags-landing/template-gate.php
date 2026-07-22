@@ -104,6 +104,19 @@ $cb_current_gate = isset( $cb_gate_page_config[ get_the_ID() ] ) ? $cb_gate_page
 			<source src="<?php echo esc_url( $cb_current_gate['bg_url'] ); ?>" type="video/mp4">
 		</video>
 	</div>
+<?php elseif ( $cb_current_gate && $cb_current_gate['bg_style'] === 'scatter' ) : ?>
+	<div class="gate-scatter-field" aria-hidden="true">
+		<?php foreach ( $cb_current_gate['photos'] as $i => $photo_url ) : ?>
+			<div class="gate-scatter-item gate-scatter-photo scatter-pos-<?php echo esc_attr( $i + 1 ); ?>" style="background-image:url('<?php echo esc_url( $photo_url ); ?>');"></div>
+		<?php endforeach; ?>
+		<?php foreach ( $cb_current_gate['videos'] as $j => $video_url ) : ?>
+			<div class="gate-scatter-item gate-scatter-video scatter-pos-video-<?php echo esc_attr( $j + 1 ); ?>">
+				<video autoplay muted loop playsinline>
+					<source src="<?php echo esc_url( $video_url ); ?>" type="video/mp4">
+				</video>
+			</div>
+		<?php endforeach; ?>
+	</div>
 <?php endif; ?>
 
 <main class="gate-main <?php echo $cb_current_gate ? 'has-gate-bg gate-bg-mode-' . esc_attr( $cb_current_gate['bg_style'] ) : ''; ?>">
