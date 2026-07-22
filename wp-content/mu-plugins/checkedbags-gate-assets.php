@@ -20,8 +20,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * as later gates are built, so this same file keeps working for all of them.
  */
 function cb_is_gate_content_page() {
-	if ( is_singular( 'cb_trip' ) ) {
-		return false; // this now routes through the shared Gate template, which loads its own assets via checkedbags-landing.php
+	if ( is_singular( array( 'cb_trip', 'forum', 'topic', 'reply' ) ) ) {
+		return false; // these now route through the shared Gate template, which loads its own assets via checkedbags-landing.php
 	}
 	if ( defined( 'CB_GATE_TEMPLATE_SLUG' ) && get_page_template_slug() === CB_GATE_TEMPLATE_SLUG ) {
 		return false; // this page already loads styles.css via checkedbags-landing.php
