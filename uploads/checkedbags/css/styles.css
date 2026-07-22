@@ -1626,5 +1626,5 @@ body.checkedbags-dashboard {
 /* Sticky footer — footer always sits at the bottom of the viewport at
    minimum, even when page content is shorter than one screen */
 body.checkedbags-gate .gate-main {
-  min-height: calc(100vh - var(--header-h) - 220px);
+  min-height: calc(100vh - var(--header-h));
 }
