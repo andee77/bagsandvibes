@@ -25,7 +25,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 <!-- ============ HEADER ============ -->
 <header class="site-header" id="site-header">
   <div class="header-inner">
-    <a href="#top" class="brand">Checked Bags <span class="brand-amp">&amp;</span> Good Vibes</a>
+    <a href="#top" class="brand brand-logo-only" aria-label="Checked Bags & Good Vibes">
+      <?php the_custom_logo(); ?>
+    </a>
 
     <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="primary-nav">
       <span class="nav-toggle-label">Menu</span>
