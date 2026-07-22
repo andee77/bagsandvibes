@@ -1377,3 +1377,139 @@ body.checkedbags-dashboard {
   color: var(--sand);
   margin: 0.5rem 0 0;
 }
+
+/* ==========================================================================
+   Feed — upcoming trips, discussion, tips, destinations
+   ========================================================================== */
+.feed-section {
+  margin-bottom: 2.5rem;
+}
+.feed-section-title {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.6;
+  margin: 0 0 1rem;
+}
+.feed-trip-row {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+.feed-trip-card {
+  flex: 0 0 200px;
+  background: var(--horizon);
+  border: 1px solid rgba(232,169,78,0.25);
+  border-radius: 6px;
+  padding: 1.1rem;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.feed-trip-type {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--coral);
+}
+.feed-trip-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.05rem;
+  color: var(--sand);
+}
+.feed-trip-spots {
+  font-size: 0.8rem;
+  color: rgba(251,243,231,0.7);
+}
+.feed-topic-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.feed-topic-row {
+  display: flex;
+  justify-content: space-between;
+  background: var(--horizon);
+  border: 1px solid rgba(232,169,78,0.25);
+  border-radius: 6px;
+  padding: 0.85rem 1.1rem;
+  text-decoration: none;
+}
+.feed-topic-title {
+  color: var(--sand);
+  font-size: 0.92rem;
+}
+.feed-topic-forum {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: rgba(251,243,231,0.5);
+}
+.feed-tip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+.tip-card {
+  background: var(--horizon);
+  border: 1px solid rgba(232,169,78,0.25);
+  border-radius: 6px;
+  padding: 1.25rem;
+  text-align: center;
+}
+.tip-card-icon {
+  font-size: 1.6rem;
+  color: var(--gold);
+  margin-bottom: 0.5rem;
+  display: block;
+}
+.tip-card-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1rem;
+  color: var(--sand);
+  margin: 0 0 0.4rem;
+}
+.tip-card-text {
+  font-size: 0.82rem;
+  color: rgba(251,243,231,0.7);
+  margin: 0;
+}
+.destination-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+}
+.destination-card {
+  height: 140px;
+  border-radius: 6px;
+  background-size: cover;
+  background-position: center;
+  background-color: var(--horizon);
+  display: flex;
+  align-items: flex-end;
+  padding: 0.75rem;
+  position: relative;
+}
+.destination-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(22,35,43,0.7), transparent 60%);
+  border-radius: 6px;
+}
+.destination-card-name {
+  position: relative;
+  color: var(--sand);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1rem;
+}
