@@ -55,7 +55,7 @@ $gate_nav = array(
 
     <nav class="primary-nav" id="primary-nav" aria-label="Member navigation">
       <ul class="gate-nav-list">
-        <li><a href="https://bagsandvibes.com/feed/">Feed</a></li>
+        <li><a href="https://bagsandvibes.com/member-feed/">Feed</a></li>
         <li><a href="<?php echo esc_url( home_url( '/dashboard/' ) ); ?>">Dashboard</a></li>
         <li><a href="https://bagsandvibes.com/account/">Account</a></li>
         <li><a href="https://bagsandvibes.com/logout/">Logout</a></li>
