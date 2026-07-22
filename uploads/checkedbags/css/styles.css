@@ -743,13 +743,14 @@ body.checkedbags-dashboard {
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--gold);
+  margin: 0 0 0.5rem;
 }
 .trip-detail-section h3 {
   font-family: var(--font-display);
   font-style: italic;
   font-weight: 500;
   font-size: 1.2rem;
-  color: var(--sand);
+  color: var(--ink);
   margin: 0 0 0.5rem;
 }
 .trip-roster-list {
@@ -1275,7 +1276,7 @@ body.checkedbags-dashboard {
   display: flex;
   flex-wrap: wrap;
   gap: 1.5rem;
-  margin: 1rem 0 1.5rem;
+  margin: 0 0 1.5rem;
   padding-bottom: 1.25rem;
   border-bottom: 1px solid rgba(22,35,43,0.12);
 }
