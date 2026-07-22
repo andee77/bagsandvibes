@@ -74,8 +74,8 @@ endif;
     </div>
 
     <nav class="footer-links" aria-label="Footer">
-      <a href="#">Privacy</a>
-      <a href="#">Terms</a>
+      <a href="https://bagsandvibes.com/privacy-policy/">Privacy</a>
+      <a href="https://bagsandvibes.com/terms-of-service/">Terms</a>
       <a href="#">Contact</a>
     </nav>
 
