@@ -46,7 +46,7 @@ add_filter(
 add_filter(
 	'template_include',
 	function ( $template ) {
-		if ( is_singular( 'cb_trip' ) ) {
+		if ( is_singular( array( 'cb_trip', 'forum', 'topic', 'reply' ) ) ) {
 			$custom = __DIR__ . '/checkedbags-landing/template-gate.php';
 			if ( file_exists( $custom ) ) {
 				return $custom;
