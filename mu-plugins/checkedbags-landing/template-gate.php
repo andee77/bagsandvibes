@@ -146,8 +146,8 @@ $cb_current_gate = isset( $cb_gate_page_config[ get_the_ID() ] ) ? $cb_gate_page
       <p class="footer-tagline">A JourneyWell Global LLC brand.</p>
     </div>
     <nav class="footer-links" aria-label="Footer">
-      <a href="#">Privacy</a>
-      <a href="#">Terms</a>
+      <a href="https://bagsandvibes.com/privacy-policy/">Privacy</a>
+      <a href="https://bagsandvibes.com/terms-of-service/">Terms</a>
       <a href="#">Contact</a>
     </nav>
     <div class="footer-meta">
