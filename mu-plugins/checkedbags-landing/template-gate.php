@@ -75,6 +75,21 @@ $cb_gate_page_config = array(
 	134 => array( 'number' => 'GATE 08', 'bg_style' => 'left-video', 'bg_url' => 'https://bagsandvibes.com/wp-content/uploads/2026/07/now-loading-JET.mp4' ),
 	136 => array( 'number' => 'GATE 11', 'bg_style' => 'left-video', 'bg_url' => 'https://bagsandvibes.com/wp-content/uploads/2026/07/ship-view-from-above.mp4' ),
 	158 => array( 'number' => null, 'bg_style' => 'full', 'bg_url' => 'https://bagsandvibes.com/wp-content/uploads/2026/07/red-mountians.avif' ),
+	139 => array(
+		'number'   => 'GATE 12',
+		'bg_style' => 'scatter',
+		'photos'   => array(
+			'https://bagsandvibes.com/wp-content/uploads/2026/07/Running-thru-water.avif',
+			'https://bagsandvibes.com/wp-content/uploads/2026/07/walking-cliff-side-scaled.jpg',
+			'https://bagsandvibes.com/wp-content/uploads/2026/07/Diver-and-Octopus.jpg',
+			'https://bagsandvibes.com/wp-content/uploads/2026/07/Mountians-and-soak.avif',
+			'https://bagsandvibes.com/wp-content/uploads/2026/07/1-Sunset-Mountian-Beach-scaled.png',
+		),
+		'videos'   => array(
+			'https://bagsandvibes.com/wp-content/uploads/2026/07/ship-view-from-above.mp4',
+			'https://bagsandvibes.com/wp-content/uploads/2026/07/dance-on-the-beach.mp4',
+		),
+	),
 );
 $cb_current_gate = isset( $cb_gate_page_config[ get_the_ID() ] ) ? $cb_gate_page_config[ get_the_ID() ] : null;
 ?>
