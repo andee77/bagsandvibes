@@ -46,6 +46,12 @@ add_filter(
 add_filter(
 	'template_include',
 	function ( $template ) {
+		if ( is_singular( 'cb_trip' ) ) {
+			$custom = __DIR__ . '/checkedbags-landing/template-gate.php';
+			if ( file_exists( $custom ) ) {
+				return $custom;
+			}
+		}
 		if ( ! is_page() ) {
 			return $template;
 		}
