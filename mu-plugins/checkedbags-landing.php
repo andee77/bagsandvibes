@@ -23,6 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define( 'CB_LANDING_TEMPLATE_SLUG', 'checkedbags-scrollytelling.php' );
 define( 'CB_DASHBOARD_TEMPLATE_SLUG', 'checkedbags-dashboard.php' );
+define( 'CB_GATE_TEMPLATE_SLUG', 'checkedbags-gate.php' );
 
 /**
  * 1. Make both templates selectable in the Page Attributes > Template
@@ -33,6 +34,7 @@ add_filter(
 	function ( $templates ) {
 		$templates[ CB_LANDING_TEMPLATE_SLUG ]   = 'Scrollytelling Landing (Checked Bags & Good Vibes)';
 		$templates[ CB_DASHBOARD_TEMPLATE_SLUG ] = 'Member Dashboard (Checked Bags & Good Vibes)';
+		$templates[ CB_GATE_TEMPLATE_SLUG ]      = 'Gate Page (Checked Bags & Good Vibes)';
 		return $templates;
 	}
 );
@@ -64,6 +66,13 @@ add_filter(
 			}
 		}
 
+		if ( $slug === CB_GATE_TEMPLATE_SLUG ) {
+			$custom = __DIR__ . '/checkedbags-landing/template-gate.php';
+			if ( file_exists( $custom ) ) {
+				return $custom;
+			}
+		}
+
 		return $template;
 	}
 );
@@ -81,7 +90,7 @@ add_action(
 		}
 
 		$slug = get_page_template_slug();
-		if ( $slug !== CB_LANDING_TEMPLATE_SLUG && $slug !== CB_DASHBOARD_TEMPLATE_SLUG ) {
+		if ( $slug !== CB_LANDING_TEMPLATE_SLUG && $slug !== CB_DASHBOARD_TEMPLATE_SLUG && $slug !== CB_GATE_TEMPLATE_SLUG ) {
 			return;
 		}
 
@@ -101,7 +110,7 @@ add_action(
 			'3.0.0'
 		);
 
-		if ( $slug === CB_LANDING_TEMPLATE_SLUG ) {
+		if ( $slug === CB_LANDING_TEMPLATE_SLUG || $slug === CB_GATE_TEMPLATE_SLUG ) {
 			wp_enqueue_script(
 				'checkedbags-app',
 				"$base/js/app.js",
