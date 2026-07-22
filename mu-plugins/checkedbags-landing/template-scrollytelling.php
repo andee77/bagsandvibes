@@ -40,7 +40,8 @@ if ( ! defined( 'ABSPATH' ) ) {
       <span class="nav-toggle-bars" aria-hidden="true"></span>
     </button>
 
-    <nav class="primary-nav" id="primary-nav" aria-label="Trip phases">
+    <nav class="primary-nav" id="primary-nav" aria-label="<?php echo is_front_page() ? 'Trip phases' : 'Site navigation'; ?>">
+      <?php if ( is_front_page() ) : ?>
       <ul class="phase-nav-list">
         <li><a href="#sunset">First Light</a></li>
         <li><a href="#cabin">Cabin Views</a></li>
@@ -49,6 +50,14 @@ if ( ! defined( 'ABSPATH' ) ) {
         <li><a href="#dancing">Golden Hour</a></li>
         <li><a href="#boarding">Final Boarding</a></li>
       </ul>
+      <?php else : ?>
+      <ul class="phase-nav-list">
+        <li><a href="https://bagsandvibes.com/">Home</a></li>
+        <li><a href="https://bagsandvibes.com/privacy-policy/">Privacy</a></li>
+        <li><a href="https://bagsandvibes.com/terms-of-service/">Terms</a></li>
+        <li><a href="https://bagsandvibes.com/contact/">Contact</a></li>
+      </ul>
+      <?php endif; ?>
       <a href="https://bagsandvibes.com/login/" class="btn btn-ghost btn-signin">Members Sign In</a>
     </nav>
   </div>
