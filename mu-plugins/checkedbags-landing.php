@@ -43,6 +43,24 @@ add_filter(
  * 2. When a page has one of these templates selected, serve our own
  *    template file instead of anything from the active theme.
  */
+/**
+ * Default brand-new pages to the "Gate Page" template automatically,
+ * so future pages get our dark chrome without someone remembering to
+ * assign it manually. Only fires once, on the page's first save (when it
+ * has no template meta AND no revisions yet) — so deliberately choosing
+ * Kadence's "Default Template" afterward is never silently overridden.
+ */
+add_action( 'save_post_page', function ( $post_id, $post ) {
+	if ( wp_is_post_revision( $post_id ) || defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	$already_has_template = get_post_meta( $post_id, '_wp_page_template', true );
+	$has_prior_revisions   = ! empty( wp_get_post_revisions( $post_id ) );
+	if ( ! $already_has_template && ! $has_prior_revisions ) {
+		update_post_meta( $post_id, '_wp_page_template', CB_GATE_TEMPLATE_SLUG );
+	}
+}, 10, 2 );
+
 add_filter(
 	'template_include',
 	function ( $template ) {
