@@ -1628,3 +1628,46 @@ body.checkedbags-dashboard {
 body.checkedbags-gate .gate-main {
   min-height: calc(100vh - var(--header-h));
 }
+
+/* ==========================================================================
+   Gate 12 — scattered photo/video decoration (fixed, tilted, margin areas)
+   ========================================================================== */
+.gate-scatter-field {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.gate-scatter-item {
+  position: absolute;
+  width: 220px;
+  height: 160px;
+  background: var(--sand);
+  background-size: cover;
+  background-position: center;
+  border: 8px solid var(--sand);
+  box-shadow: 0 16px 32px rgba(0,0,0,0.22);
+  border-radius: 2px;
+}
+.gate-scatter-video {
+  border-color: var(--sand);
+}
+.gate-scatter-video video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.scatter-pos-1 { top: 6%;  left: 2%;  transform: rotate(-9deg); }
+.scatter-pos-2 { top: 24%; left: 1%;  transform: rotate(5deg); }
+.scatter-pos-3 { top: 44%; left: 2%;  transform: rotate(-4deg); }
+.scatter-pos-4 { top: 63%; left: 1%;  transform: rotate(7deg); }
+.scatter-pos-5 { top: 81%; left: 3%;  transform: rotate(-6deg); }
+
+.scatter-pos-video-1 { top: 14%; right: 2%; transform: rotate(4deg); width: 260px; height: 190px; }
+.scatter-pos-video-2 { top: 56%; right: 3%; transform: rotate(-7deg); width: 240px; height: 175px; }
+
+@media (max-width: 1200px) {
+  .gate-scatter-field { display: none; }
+}
