@@ -1291,14 +1291,19 @@ body.checkedbags-dashboard {
   list-style: none;
   padding: 0;
   margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem 1.5rem;
 }
 .request-detail-list li {
   font-size: 0.9rem;
-  color: rgba(251,243,231,0.85);
+  color: var(--ink);
 }
 .request-detail-list li strong {
-  color: var(--gold);
+  color: var(--coral);
+}
+@media (max-width: 640px) {
+  .request-detail-list {
+    grid-template-columns: 1fr;
+  }
 }
