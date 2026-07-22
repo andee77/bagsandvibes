@@ -243,7 +243,7 @@ function cb_sanitize_request_details( $body ) {
 
 function cb_create_trip_request( $request ) {
 	$body        = $request->get_json_params();
-	$destination = sanitize_text_field( $body['destination_pref'] ?? '' );
+	$destination = ucwords( sanitize_text_field( $body['destination_pref'] ?? '' ) );
 	$type        = sanitize_text_field( $body['type'] ?? '' );
 	$when        = sanitize_text_field( $body['when'] ?? '' );
 	$duration    = sanitize_text_field( $body['duration'] ?? '' );
