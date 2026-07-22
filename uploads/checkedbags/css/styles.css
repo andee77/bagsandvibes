@@ -1308,3 +1308,69 @@ body.checkedbags-dashboard {
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   Shared Gate Page template — solid dark header (no hero photo behind it),
+   logo-only branding, member nav list
+   ========================================================================== */
+.site-header.is-solid {
+  background: var(--ink);
+}
+.brand-logo-only img {
+  display: block;
+  height: 40px;
+  width: auto;
+}
+.gate-nav-list {
+  list-style: none;
+  display: flex;
+  gap: clamp(0.75rem, 1.8vw, 1.5rem);
+  margin: 0;
+  padding: 0;
+}
+.gate-nav-list a {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--sand);
+  opacity: 0.75;
+  transition: opacity 0.2s var(--ease-standard);
+}
+.gate-nav-list a:hover,
+.gate-nav-list a:focus-visible {
+  opacity: 1;
+  color: var(--gold);
+}
+.gate-main {
+  padding-top: calc(var(--header-h) + 3rem);
+  padding-bottom: 4rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-left: var(--edge);
+  padding-right: var(--edge);
+}
+.gate-page-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(2rem, 4vw, 3rem);
+  color: var(--ink);
+  text-align: center;
+  margin: 0 0 2.5rem;
+}
+@media (max-width: 860px) {
+  .gate-nav-list { flex-direction: column; gap: 0.85rem; }
+}
+
+/* ==========================================================================
+   Homepage hero — subtitle under "Welcome"
+   ========================================================================== */
+.hero-brand-sub {
+  font-family: var(--font-body);
+  font-size: clamp(0.9rem, 1.6vw, 1.15rem);
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  margin: 0.25rem 0 0;
+}
