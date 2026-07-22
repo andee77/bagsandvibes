@@ -108,7 +108,7 @@ $gates = array(
     <nav class="footer-links" aria-label="Footer">
       <a href="https://bagsandvibes.com/privacy-policy/">Privacy</a>
       <a href="https://bagsandvibes.com/terms-of-service/">Terms</a>
-      <a href="#">Contact</a>
+      <a href="https://bagsandvibes.com/contact/">Contact</a>
     </nav>
 
     <div class="footer-meta">
