@@ -67,13 +67,42 @@ $gate_nav = array(
   </div>
 </header>
 
-<main class="gate-main">
+<?php
+$cb_gate_page_config = array(
+	110 => array( 'number' => 'GATE 07', 'bg_style' => 'frame', 'bg_url' => 'https://bagsandvibes.com/wp-content/uploads/2026/07/Mountian-and-River-scaled.jpg' ),
+	132 => array( 'number' => 'GATE 09', 'bg_style' => 'frame', 'bg_url' => 'https://bagsandvibes.com/wp-content/uploads/2026/07/1-Sunset-Mountian-Beach-scaled.png' ),
+	114 => array( 'number' => 'GATE 10', 'bg_style' => 'frame', 'bg_url' => 'https://bagsandvibes.com/wp-content/uploads/2026/07/friends-at-rooftop-party-scaled.jpg' ),
+	136 => array( 'number' => 'GATE 11', 'bg_style' => 'left-video', 'bg_url' => 'https://bagsandvibes.com/wp-content/uploads/2026/07/ship-view-from-above.mp4' ),
+	158 => array( 'number' => null, 'bg_style' => 'full', 'bg_url' => 'https://bagsandvibes.com/wp-content/uploads/2026/07/red-mountians.avif' ),
+);
+$cb_current_gate = isset( $cb_gate_page_config[ get_the_ID() ] ) ? $cb_gate_page_config[ get_the_ID() ] : null;
+?>
+
+<?php if ( $cb_current_gate && $cb_current_gate['bg_style'] === 'frame' ) : ?>
+	<div class="gate-bg-frame" style="background-image:url('<?php echo esc_url( $cb_current_gate['bg_url'] ); ?>');"></div>
+<?php elseif ( $cb_current_gate && $cb_current_gate['bg_style'] === 'full' ) : ?>
+	<div class="gate-bg-full" style="background-image:url('<?php echo esc_url( $cb_current_gate['bg_url'] ); ?>');"></div>
+<?php elseif ( $cb_current_gate && $cb_current_gate['bg_style'] === 'left-video' ) : ?>
+	<div class="gate-bg-left-video">
+		<video autoplay muted loop playsinline>
+			<source src="<?php echo esc_url( $cb_current_gate['bg_url'] ); ?>" type="video/mp4">
+		</video>
+	</div>
+<?php endif; ?>
+
+<main class="gate-main <?php echo $cb_current_gate ? 'has-gate-bg gate-bg-' . esc_attr( $cb_current_gate['bg_style'] ) : ''; ?>">
 	<?php
 	if ( have_posts() ) :
 		while ( have_posts() ) :
 			the_post();
 			?>
-			<h1 class="gate-page-title"><?php the_title(); ?></h1>
+			<div class="gate-ribbon">
+				<?php if ( $cb_current_gate && $cb_current_gate['number'] ) : ?>
+					<span class="gate-ribbon-number"><?php echo esc_html( $cb_current_gate['number'] ); ?></span>
+					<span class="gate-ribbon-divider" aria-hidden="true"></span>
+				<?php endif; ?>
+				<span class="gate-ribbon-title"><?php the_title(); ?></span>
+			</div>
 			<div class="gate-page-content"><?php the_content(); ?></div>
 			<?php
 		endwhile;
