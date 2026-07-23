@@ -67,6 +67,7 @@ function cb_trip_type_icon( $term_slug ) {
 		'flight'      => 'ti-plane',
 		'train'       => 'ti-train',
 		'resort'      => 'ti-pool',
+		'retreat'     => 'ti-yoga',
 		'other'       => 'ti-compass',
 	);
 	return isset( $map[ $term_slug ] ) ? $map[ $term_slug ] : 'ti-compass';
