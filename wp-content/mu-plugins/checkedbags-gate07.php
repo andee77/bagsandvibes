@@ -162,11 +162,18 @@ add_shortcode( 'cb_gate_vacations', function () {
 
 	$current_user_id = get_current_user_id();
 
+	// Private trips (cb_visibility) are invite-only by design -- they must not
+	// be discoverable or joinable through open browsing here, same as they're
+	// already excluded from the public ?trip=CODE join path (Phase 2). A
+	// roster member who's already on a Private trip still sees/manages it via
+	// their dashboard's "Your Trips" section instead.
 	$trips = get_posts( array(
 		'post_type'   => 'cb_trip',
 		'numberposts' => -1,
-		'meta_key'    => 'cb_status',
-		'meta_value'  => 'active',
+		'meta_query'  => array(
+			array( 'key' => 'cb_status', 'value' => 'active' ),
+			array( 'key' => 'cb_visibility', 'value' => 'private', 'compare' => '!=' ),
+		),
 	) );
 
 	if ( empty( $trips ) ) {
