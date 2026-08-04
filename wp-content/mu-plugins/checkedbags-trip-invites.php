@@ -765,6 +765,7 @@ function cbv_render_user_meta_panel( $profile_user ) {
 	$invited_by_id = get_user_meta( $profile_user->ID, '_invited_by_user_id', true );
 	$invited_trip  = get_user_meta( $profile_user->ID, '_invited_by_trip_id', true );
 	$trip_interest = get_user_meta( $profile_user->ID, '_trip_interest', true );
+	$requested_membership_date = get_user_meta( $profile_user->ID, '_requested_full_membership_date', true );
 	?>
 	<h2>Trip-Invite Build — Field Status <span style="font-weight:normal;font-size:13px;">(read-only, for testing)</span></h2>
 	<table class="form-table" role="presentation">
@@ -833,6 +834,16 @@ function cbv_render_user_meta_panel( $profile_user ) {
 					<?php endif; ?>
 				<?php else : ?>
 					<em>None on file</em>
+				<?php endif; ?>
+			</td>
+		</tr>
+		<tr>
+			<th><label>Requested Full Membership</label></th>
+			<td>
+				<?php if ( $requested_membership_date ) : ?>
+					Requested <?php echo esc_html( date_i18n( 'M j, Y g:i a', strtotime( $requested_membership_date ) ) ); ?>
+				<?php else : ?>
+					<em>No request on file</em>
 				<?php endif; ?>
 			</td>
 		</tr>
@@ -1055,3 +1066,78 @@ function cbv_render_trip_agreement_prompt( $trip_id ) {
 	<?php
 	return ob_get_clean();
 }
+
+/* ==========================================================================
+   PHASE 5 — Dashboard changes (Guest scoped view + Full Member trip highlight)
+
+   The dashboard template itself (mu-plugins/checkedbags-landing/
+   template-dashboard.php) owns the actual markup change; this section is
+   just the shared mechanism it calls into, consistent with how Gate 07/11
+   were retrofitted in earlier phases.
+
+   Passport renewal flagging (spec §5.3) is deliberately NOT part of this
+   phase — there is no passport_expiration_date field anywhere yet (that's
+   part of Phase 8's expanded data-collection forms), so there is nothing
+   real to compare a trip's end date against. Building it now would just be
+   an inert stub with nothing to test.
+   ========================================================================== */
+
+/**
+ * Which trip (if any) a Full Member's dashboard should highlight on load:
+ * their public trip-interest code, or — if they were originally a Trip
+ * Guest later promoted to Full Member (Phase 7) — the trip they were
+ * invited to in the first place. Returns 0 once dismissed, or if neither
+ * applies.
+ */
+function cbv_get_dashboard_highlight_trip_id( $user_id ) {
+	if ( get_user_meta( $user_id, '_trip_interest_dismissed', true ) ) {
+		return 0;
+	}
+
+	$trip_interest = get_user_meta( $user_id, '_trip_interest', true );
+	if ( $trip_interest ) {
+		$trip_id = cbv_resolve_trip_code( $trip_interest );
+		if ( $trip_id ) {
+			return $trip_id;
+		}
+	}
+
+	$invited_trip_id = (int) get_user_meta( $user_id, '_invited_by_trip_id', true );
+	if ( $invited_trip_id && get_post( $invited_trip_id ) ) {
+		return $invited_trip_id;
+	}
+
+	return 0;
+}
+
+add_action( 'rest_api_init', function () {
+
+	register_rest_route( 'cb/v1', '/dismiss-trip-highlight', array(
+		'methods'             => 'POST',
+		'permission_callback' => function () {
+			return is_user_logged_in();
+		},
+		'callback'            => function () {
+			update_user_meta( get_current_user_id(), '_trip_interest_dismissed', 1 );
+			return array( 'dismissed' => true );
+		},
+	) );
+
+	/**
+	 * Records intent only — no automatic role change. Phase 7's back-office
+	 * screen is where an admin actually reviews and promotes; this just
+	 * gives them a signal to act on, surfaced in the admin usermeta panel
+	 * below and (in Phase 7) the dedicated Trip Guests list.
+	 */
+	register_rest_route( 'cb/v1', '/request-full-membership', array(
+		'methods'             => 'POST',
+		'permission_callback' => function () {
+			return is_user_logged_in();
+		},
+		'callback'            => function () {
+			update_user_meta( get_current_user_id(), '_requested_full_membership_date', current_time( 'mysql' ) );
+			return array( 'requested' => true );
+		},
+	) );
+
+} );

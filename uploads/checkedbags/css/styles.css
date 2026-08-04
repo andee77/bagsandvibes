@@ -1691,3 +1691,77 @@ body.checkedbags-landing .wpforms-container .wpforms-field-sublabel,
 body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
   color: rgba(251,243,231,0.6) !important;
 }
+
+/* ==========================================================================
+   Dashboard — Trip Guest scoped view + Full Member trip highlight
+   (Phase 5 of the trip-invite build)
+   ========================================================================== */
+.dashboard-highlight-banner {
+  background: var(--horizon);
+  border: 1px solid var(--coral);
+  border-radius: 6px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+}
+.dashboard-highlight-text {
+  font-family: var(--font-body);
+  color: var(--sand);
+  margin: 0;
+  flex: 1 1 240px;
+}
+.dashboard-highlight-text strong {
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--gold);
+  font-size: 1.1rem;
+}
+
+.dashboard-guest-trips {
+  margin-bottom: 2rem;
+}
+.dashboard-guest-trip-card {
+  background: var(--horizon);
+  border: 1px solid rgba(232,169,78,0.25);
+  border-radius: 6px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+.dashboard-guest-trip-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.4rem;
+  color: var(--sand);
+  margin: 0 0 0.75rem;
+}
+.dashboard-guest-trip-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+.dashboard-invite-result {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: rgba(251,243,231,0.75);
+  word-break: break-all;
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
+.dashboard-upgrade-cta {
+  background: var(--horizon);
+  border: 1px dashed rgba(232,169,78,0.4);
+  border-radius: 6px;
+  padding: 1.5rem;
+  text-align: center;
+}
+.dashboard-upgrade-cta p {
+  font-family: var(--font-body);
+  color: rgba(251,243,231,0.85);
+  margin: 0 0 1rem;
+}

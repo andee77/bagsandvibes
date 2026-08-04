@@ -3,10 +3,17 @@
  * Checked Bags & Good Vibes — Member Dashboard shell
  *
  * Only visible to logged-in members; logged-out visitors get redirected to
- * the login page. This is a shell for now — each gate card links to "#"
- * until that module actually gets built. Continues the "GATE" numbering
- * from the landing page's 6 scrollytelling phases (GATE 01-06), picking up
- * at GATE 07 for the member area.
+ * the login page. Continues the "GATE" numbering from the landing page's 6
+ * scrollytelling phases (GATE 01-06), picking up at GATE 07 for the member
+ * area.
+ *
+ * Phase 5 of the trip-invite build: Trip Guests get a scoped view (only
+ * their own trip(s), no Gates 07-12 grid, plus their own invite-link and
+ * full-membership-request actions) instead of the generic Full Member
+ * dashboard below. Full Members additionally get a one-time highlight
+ * banner pointing at whichever trip drew them here (public trip-interest
+ * code, or the trip they were originally invited to if later promoted from
+ * Trip Guest).
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -17,8 +24,9 @@ if ( ! is_user_logged_in() ) {
 	exit;
 }
 
-$current_user = wp_get_current_user();
-$display_name = $current_user->display_name ? $current_user->display_name : $current_user->user_login;
+$current_user  = wp_get_current_user();
+$display_name  = $current_user->display_name ? $current_user->display_name : $current_user->user_login;
+$is_trip_guest = in_array( 'trip_guest', (array) $current_user->roles, true );
 
 $gates = array(
 	array(
@@ -58,6 +66,23 @@ $gates = array(
 		'url'    => 'https://bagsandvibes.com/gate-12-vacation-requests/',
 	),
 );
+
+$my_trips       = array();
+$highlight_trip = null;
+
+if ( $is_trip_guest ) {
+	$my_trips = array_filter(
+		get_posts( array( 'post_type' => 'cb_trip', 'numberposts' => -1 ) ),
+		function ( $t ) use ( $current_user ) {
+			return in_array( $current_user->ID, cb_trip_get_roster( $t->ID ), true );
+		}
+	);
+} elseif ( function_exists( 'cbv_get_dashboard_highlight_trip_id' ) ) {
+	$highlight_trip_id = cbv_get_dashboard_highlight_trip_id( $current_user->ID );
+	if ( $highlight_trip_id ) {
+		$highlight_trip = get_post( $highlight_trip_id );
+	}
+}
 ?><!DOCTYPE html>
 <html <?php language_attributes(); ?>>
 <head>
@@ -83,18 +108,61 @@ $gates = array(
   <section class="dashboard-hero">
     <p class="dashboard-hero-eyebrow">Welcome back</p>
     <h1 class="dashboard-hero-name"><?php echo esc_html( $display_name ); ?></h1>
-    <p class="dashboard-hero-sub">Your crew, your calendar, your next great escape.</p>
+    <p class="dashboard-hero-sub">
+      <?php echo $is_trip_guest
+        ? 'Here&#8217;s the trip you&#8217;re part of.'
+        : 'Your crew, your calendar, your next great escape.'; ?>
+    </p>
   </section>
 
-  <section class="gate-grid">
-    <?php foreach ( $gates as $gate ) : ?>
-    <a class="gate-card" href="<?php echo esc_url( $gate['url'] ); ?>">
-      <span class="gate-card-number"><?php echo esc_html( $gate['number'] ); ?></span>
-      <span class="gate-card-title"><?php echo esc_html( $gate['title'] ); ?></span>
-      <span class="gate-card-desc"><?php echo esc_html( $gate['desc'] ); ?></span>
-    </a>
-    <?php endforeach; ?>
-  </section>
+  <?php if ( $is_trip_guest ) : ?>
+
+    <section class="dashboard-guest-trips">
+      <?php if ( empty( $my_trips ) ) : ?>
+        <p class="cb-empty">You don&#8217;t have any trips yet — check with whoever invited you.</p>
+      <?php else : ?>
+        <?php foreach ( $my_trips as $trip ) : ?>
+          <div class="dashboard-guest-trip-card">
+            <h3 class="dashboard-guest-trip-title"><?php echo esc_html( get_the_title( $trip ) ); ?></h3>
+            <div class="dashboard-guest-trip-actions">
+              <a href="<?php echo esc_url( get_permalink( $trip ) ); ?>" class="btn btn-ghost">View trip</a>
+              <button type="button" class="btn btn-ticket cbv-invite-btn" data-trip-id="<?php echo (int) $trip->ID; ?>">Generate invite link</button>
+            </div>
+            <div class="dashboard-invite-result" data-trip-id="<?php echo (int) $trip->ID; ?>"></div>
+          </div>
+        <?php endforeach; ?>
+      <?php endif; ?>
+    </section>
+
+    <section class="dashboard-upgrade-cta">
+      <p>Want full access to the site — discussion boards, photo galleries, and more?</p>
+      <button type="button" class="btn btn-ticket" id="cbv-request-membership-btn">Request Full Membership</button>
+      <div class="dashboard-invite-result" id="cbv-request-membership-result"></div>
+    </section>
+
+  <?php else : ?>
+
+    <?php if ( $highlight_trip ) : ?>
+      <section class="dashboard-highlight-banner" id="cbv-trip-highlight">
+        <p class="dashboard-highlight-text">
+          Welcome! Here&#8217;s the trip you were invited to: <strong><?php echo esc_html( get_the_title( $highlight_trip ) ); ?></strong>
+        </p>
+        <a href="<?php echo esc_url( get_permalink( $highlight_trip ) ); ?>" class="btn btn-ticket">View trip</a>
+        <button type="button" class="btn btn-ghost" id="cbv-dismiss-highlight-btn">Dismiss</button>
+      </section>
+    <?php endif; ?>
+
+    <section class="gate-grid">
+      <?php foreach ( $gates as $gate ) : ?>
+      <a class="gate-card" href="<?php echo esc_url( $gate['url'] ); ?>">
+        <span class="gate-card-number"><?php echo esc_html( $gate['number'] ); ?></span>
+        <span class="gate-card-title"><?php echo esc_html( $gate['title'] ); ?></span>
+        <span class="gate-card-desc"><?php echo esc_html( $gate['desc'] ); ?></span>
+      </a>
+      <?php endforeach; ?>
+    </section>
+
+  <?php endif; ?>
 
 </main>
 
@@ -117,6 +185,65 @@ $gates = array(
     </div>
   </div>
 </footer>
+
+<?php if ( $is_trip_guest || $highlight_trip ) : ?>
+<script>
+(function () {
+	var restUrl = <?php echo wp_json_encode( esc_url_raw( rest_url( 'cb/v1/' ) ) ); ?>;
+	var nonce   = <?php echo wp_json_encode( wp_create_nonce( 'wp_rest' ) ); ?>;
+
+	document.querySelectorAll( '.cbv-invite-btn' ).forEach( function ( btn ) {
+		btn.addEventListener( 'click', function () {
+			var tripId   = btn.getAttribute( 'data-trip-id' );
+			var resultEl = document.querySelector( '.dashboard-invite-result[data-trip-id="' + tripId + '"]' );
+			btn.disabled = true;
+			if ( resultEl ) { resultEl.textContent = 'Generating…'; }
+
+			fetch( restUrl + 'trips/' + tripId + '/invite-link', { method: 'POST', headers: { 'X-WP-Nonce': nonce } } )
+				.then( function ( r ) { return r.json().then( function ( body ) { return { ok: r.ok, body: body }; } ); } )
+				.then( function ( res ) {
+					btn.disabled = false;
+					if ( resultEl ) { resultEl.textContent = res.ok ? res.body.url : ( 'Error: ' + res.body.message ); }
+				} )
+				.catch( function () {
+					btn.disabled = false;
+					if ( resultEl ) { resultEl.textContent = 'Request failed — please try again.'; }
+				} );
+		} );
+	} );
+
+	var requestBtn = document.getElementById( 'cbv-request-membership-btn' );
+	if ( requestBtn ) {
+		requestBtn.addEventListener( 'click', function () {
+			requestBtn.disabled = true;
+			requestBtn.textContent = 'Sending…';
+
+			fetch( restUrl + 'request-full-membership', { method: 'POST', headers: { 'X-WP-Nonce': nonce } } )
+				.then( function ( r ) { return r.json(); } )
+				.then( function () {
+					requestBtn.textContent = 'Request sent!';
+				} )
+				.catch( function () {
+					requestBtn.disabled = false;
+					requestBtn.textContent = 'Request Full Membership';
+					var resultEl = document.getElementById( 'cbv-request-membership-result' );
+					if ( resultEl ) { resultEl.textContent = 'Something went wrong — please try again.'; }
+				} );
+		} );
+	}
+
+	var dismissBtn = document.getElementById( 'cbv-dismiss-highlight-btn' );
+	if ( dismissBtn ) {
+		dismissBtn.addEventListener( 'click', function () {
+			var banner = document.getElementById( 'cbv-trip-highlight' );
+			fetch( restUrl + 'dismiss-trip-highlight', { method: 'POST', headers: { 'X-WP-Nonce': nonce } } )
+				.then( function () { if ( banner ) { banner.remove(); } } )
+				.catch( function () { if ( banner ) { banner.remove(); } } );
+		} );
+	}
+})();
+</script>
+<?php endif; ?>
 
 <?php wp_footer(); ?>
 </body>
