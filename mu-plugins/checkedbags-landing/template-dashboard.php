@@ -106,15 +106,21 @@ if ( ! $is_trip_guest && function_exists( 'cbv_get_dashboard_highlight_trip_id' 
 
 <main class="dashboard-main">
 
-  <section class="dashboard-hero">
-    <p class="dashboard-hero-eyebrow">Welcome back</p>
-    <h1 class="dashboard-hero-name"><?php echo esc_html( $display_name ); ?></h1>
-    <p class="dashboard-hero-sub">
-      <?php echo $is_trip_guest
-        ? 'Here&#8217;s the trip you&#8217;re part of.'
-        : 'Your crew, your calendar, your next great escape.'; ?>
-    </p>
-  </section>
+  <div class="dashboard-hero-row">
+    <section class="dashboard-hero">
+      <p class="dashboard-hero-eyebrow">Welcome back</p>
+      <h1 class="dashboard-hero-name"><?php echo esc_html( $display_name ); ?></h1>
+      <p class="dashboard-hero-sub">
+        <?php echo $is_trip_guest
+          ? 'Here&#8217;s the trip you&#8217;re part of.'
+          : 'Your crew, your calendar, your next great escape.'; ?>
+      </p>
+    </section>
+
+    <?php if ( function_exists( 'cbv_render_my_trips_sticky_note' ) ) : ?>
+      <?php echo cbv_render_my_trips_sticky_note( $my_trips ); ?>
+    <?php endif; ?>
+  </div>
 
   <?php if ( $is_trip_guest ) : ?>
 
@@ -238,6 +244,31 @@ if ( ! $is_trip_guest && function_exists( 'cbv_get_dashboard_highlight_trip_id' 
 			fetch( restUrl + 'dismiss-trip-highlight', { method: 'POST', headers: { 'X-WP-Nonce': nonce } } )
 				.then( function () { if ( banner ) { banner.remove(); } } )
 				.catch( function () { if ( banner ) { banner.remove(); } } );
+		} );
+	}
+
+	// "My Trips" sticky note: collapse every trip card by default (progressive
+	// enhancement -- if this script never runs, all cards stay visible, same
+	// as before the sticky note existed), then expand + scroll to whichever
+	// one a note link points at.
+	var stickyLinks = document.querySelectorAll( '.sticky-note-trip-link' );
+	if ( stickyLinks.length ) {
+		document.querySelectorAll( '.dashboard-trip-card' ).forEach( function ( card ) {
+			card.classList.add( 'is-collapsed' );
+		} );
+
+		stickyLinks.forEach( function ( link ) {
+			link.addEventListener( 'click', function ( e ) {
+				e.preventDefault();
+				var card = document.getElementById( 'dashboard-trip-' + link.getAttribute( 'data-trip-id' ) );
+				if ( ! card ) { return; }
+
+				card.classList.remove( 'is-collapsed' );
+				card.scrollIntoView( { behavior: 'smooth', block: 'center' } );
+
+				stickyLinks.forEach( function ( l ) { l.classList.remove( 'is-active' ); } );
+				link.classList.add( 'is-active' );
+			} );
 		} );
 	}
 })();

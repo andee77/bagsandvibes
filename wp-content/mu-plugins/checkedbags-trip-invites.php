@@ -1152,7 +1152,7 @@ function cbv_render_dashboard_trip_cards( $trips ) {
 	ob_start();
 	foreach ( $trips as $trip ) :
 		?>
-		<div class="dashboard-trip-card">
+		<div class="dashboard-trip-card" id="dashboard-trip-<?php echo (int) $trip->ID; ?>">
 			<h3 class="dashboard-trip-card-title"><?php echo esc_html( get_the_title( $trip ) ); ?></h3>
 			<div class="dashboard-trip-card-actions">
 				<a href="<?php echo esc_url( get_permalink( $trip ) ); ?>" class="btn btn-ghost">View trip</a>
@@ -1162,5 +1162,54 @@ function cbv_render_dashboard_trip_cards( $trips ) {
 		</div>
 		<?php
 	endforeach;
+	return ob_get_clean();
+}
+
+/**
+ * "Full Member" has no distinct WP role (see Phase 2) -- it's just any
+ * logged-in user who isn't specifically a Trip Guest. Use this wherever a
+ * feature should be Full-Member-exclusive rather than merely "logged in",
+ * e.g. Gate 12's vacation-request/suggestion flow.
+ */
+function cbv_user_is_full_member( $user_id = 0 ) {
+	$user_id = $user_id ?: get_current_user_id();
+	if ( ! $user_id ) {
+		return false;
+	}
+	$user = get_userdata( $user_id );
+	if ( ! $user ) {
+		return false;
+	}
+	return ! in_array( 'trip_guest', (array) $user->roles, true );
+}
+
+/**
+ * The "My Trips" sticky-note widget — a clickable index of trip names that
+ * scrolls to/expands the matching card from cbv_render_dashboard_trip_cards()
+ * (see the shared JS in template-dashboard.php that collapses those cards
+ * by default and wires up these links). Shared by the Guest scoped view and
+ * the Full Member "Your Trips" section, same as the cards themselves.
+ */
+function cbv_render_my_trips_sticky_note( $trips ) {
+	if ( empty( $trips ) ) {
+		return '';
+	}
+
+	ob_start();
+	?>
+	<div class="dashboard-sticky-note" aria-label="My Trips">
+		<span class="sticky-note-pin" aria-hidden="true"></span>
+		<p class="sticky-note-heading">My Trips</p>
+		<ul class="sticky-note-list">
+			<?php foreach ( $trips as $trip ) : ?>
+				<li>
+					<a href="#dashboard-trip-<?php echo (int) $trip->ID; ?>" class="sticky-note-trip-link" data-trip-id="<?php echo (int) $trip->ID; ?>">
+						<?php echo esc_html( get_the_title( $trip ) ); ?>
+					</a>
+				</li>
+			<?php endforeach; ?>
+		</ul>
+	</div>
+	<?php
 	return ob_get_clean();
 }

@@ -122,29 +122,41 @@ function cb_render_request_meta_box( $post ) {
 /* ==========================================================================
    4. REST endpoints
    ========================================================================== */
+/**
+ * Gate 12 (idea board, "Build Your Own Trip" requests, quote acceptance) is
+ * Full-Member functionality -- a Trip Guest's access is scoped to the
+ * specific trip(s) they were invited to, not the ability to propose or vote
+ * on brand-new trips. Not being linked from the Guest dashboard isn't the
+ * same as not being reachable, so every route here checks the role
+ * directly rather than relying on is_user_logged_in() alone.
+ */
+function cbv_gate12_permission_check() {
+	return is_user_logged_in() && cbv_user_is_full_member();
+}
+
 add_action( 'rest_api_init', function () {
 
 	register_rest_route( 'cb/v1', '/suggestions', array(
 		'methods'             => 'POST',
-		'permission_callback' => function () { return is_user_logged_in(); },
+		'permission_callback' => 'cbv_gate12_permission_check',
 		'callback'            => 'cb_create_suggestion',
 	) );
 
 	register_rest_route( 'cb/v1', '/suggestions/(?P<id>\d+)/vote', array(
 		'methods'             => 'POST',
-		'permission_callback' => function () { return is_user_logged_in(); },
+		'permission_callback' => 'cbv_gate12_permission_check',
 		'callback'            => 'cb_toggle_suggestion_vote',
 	) );
 
 	register_rest_route( 'cb/v1', '/trip-requests', array(
 		'methods'             => 'POST',
-		'permission_callback' => function () { return is_user_logged_in(); },
+		'permission_callback' => 'cbv_gate12_permission_check',
 		'callback'            => 'cb_create_trip_request',
 	) );
 
 	register_rest_route( 'cb/v1', '/trips/(?P<id>\d+)/accept-quote', array(
 		'methods'             => 'POST',
-		'permission_callback' => function () { return is_user_logged_in(); },
+		'permission_callback' => 'cbv_gate12_permission_check',
 		'callback'            => 'cb_accept_trip_quote',
 	) );
 
@@ -317,6 +329,10 @@ add_shortcode( 'cb_gate_requests', function () {
 
 	if ( ! is_user_logged_in() ) {
 		return '<p class="cb-empty">Please <a href="' . esc_url( wp_login_url( get_permalink() ) ) . '">sign in</a> to suggest trips or build your own.</p>';
+	}
+
+	if ( ! cbv_user_is_full_member() ) {
+		return '<p class="cb-empty">This feature is available to Full Members.</p>';
 	}
 
 	$user_id = get_current_user_id();
