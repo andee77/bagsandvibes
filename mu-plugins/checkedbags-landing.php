@@ -131,11 +131,14 @@ add_action(
 			null
 		);
 
+		$styles_path = WP_CONTENT_DIR . '/uploads/checkedbags/css/styles.css';
+		$styles_ver  = file_exists( $styles_path ) ? filemtime( $styles_path ) : '3.0.0';
+
 		wp_enqueue_style(
 			'checkedbags-styles',
 			"$base/css/styles.css",
 			array(),
-			'3.0.0'
+			$styles_ver
 		);
 
 		if ( $slug === CB_LANDING_TEMPLATE_SLUG || $slug === CB_GATE_TEMPLATE_SLUG ) {
