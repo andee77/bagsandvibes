@@ -359,6 +359,9 @@ function cb_render_trip_meta_box( $post ) {
 	<hr>
 	<div class="cb-field">
 		<label>Roster (<?php echo count( $roster ); ?> member<?php echo count( $roster ) === 1 ? '' : 's'; ?>)</label>
+		<?php if ( isset( $_GET['cb_roster_removed'] ) ) : ?>
+			<p style="color:#2a7a2a;"><em>Member removed.</em></p>
+		<?php endif; ?>
 		<?php if ( empty( $roster ) ) : ?>
 			<p><em>No members yet.</em></p>
 		<?php else : ?>
@@ -367,13 +370,50 @@ function cb_render_trip_meta_box( $post ) {
 					$user = get_userdata( $user_id );
 					if ( ! $user ) { continue; }
 					?>
-					<li><?php echo esc_html( $user->display_name ); ?> (<?php echo esc_html( $user->user_email ); ?>)</li>
+					<li>
+						<?php echo esc_html( $user->display_name ); ?> (<?php echo esc_html( $user->user_email ); ?>)
+						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline;" onsubmit="return confirm( 'Remove ' + <?php echo wp_json_encode( $user->display_name ); ?> + ' from this trip’s roster?' );">
+							<?php wp_nonce_field( 'cb_remove_roster_member_' . $post->ID . '_' . $user_id, 'cb_remove_roster_nonce' ); ?>
+							<input type="hidden" name="action" value="cb_remove_roster_member">
+							<input type="hidden" name="trip_id" value="<?php echo (int) $post->ID; ?>">
+							<input type="hidden" name="user_id" value="<?php echo (int) $user_id; ?>">
+							<button type="submit" class="button-link" style="color:#b32d2e;margin-left:8px;">Remove</button>
+						</form>
+					</li>
 				<?php endforeach; ?>
 			</ul>
 		<?php endif; ?>
 	</div>
 	<?php
 }
+
+add_action( 'admin_post_cb_remove_roster_member', function () {
+	if ( ! current_user_can( 'edit_posts' ) ) {
+		wp_die( 'Insufficient permissions.' );
+	}
+
+	$trip_id = isset( $_POST['trip_id'] ) ? (int) $_POST['trip_id'] : 0;
+	$user_id = isset( $_POST['user_id'] ) ? (int) $_POST['user_id'] : 0;
+
+	if ( ! $trip_id || ! $user_id
+		|| ! isset( $_POST['cb_remove_roster_nonce'] )
+		|| ! wp_verify_nonce( $_POST['cb_remove_roster_nonce'], 'cb_remove_roster_member_' . $trip_id . '_' . $user_id )
+	) {
+		wp_die( 'Invalid request.' );
+	}
+
+	if ( ! current_user_can( 'edit_post', $trip_id ) ) {
+		wp_die( 'Insufficient permissions for this trip.' );
+	}
+
+	cb_trip_remove_member( $trip_id, $user_id );
+
+	wp_safe_redirect( add_query_arg(
+		array( 'post' => $trip_id, 'action' => 'edit', 'cb_roster_removed' => '1' ),
+		admin_url( 'post.php' )
+	) );
+	exit;
+} );
 
 add_action( 'save_post_cb_trip', function ( $post_id ) {
 
