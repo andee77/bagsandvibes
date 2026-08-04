@@ -475,3 +475,270 @@ add_action( 'rest_api_init', function () {
 		},
 	) );
 } );
+
+/* ==========================================================================
+   PHASE 3 — Membership Terms versioning + re-acceptance gate
+
+   Replaces checkedbags-gate11.php's old cb_agreed_to_rules mechanism (a
+   single global, unversioned "I agree" checkbox) — see the migration below
+   and the corresponding rewrite of checkedbags-gate11.php, which now shows
+   read-only acceptance status instead of its own separate checkbox.
+   ========================================================================== */
+
+function cbv_get_membership_terms() {
+	$default = array( 'version' => 1, 'content' => '', 'updated' => '' );
+	return wp_parse_args( get_option( 'cbv_membership_terms', $default ), $default );
+}
+
+function cbv_get_current_terms_version() {
+	return (int) cbv_get_membership_terms()['version'];
+}
+
+function cbv_get_current_terms_content() {
+	return cbv_get_membership_terms()['content'];
+}
+
+/**
+ * True if $user_id hasn't accepted the currently-published version (or has
+ * never accepted at all).
+ */
+function cbv_user_needs_terms_reaccept( $user_id ) {
+	$accepted = (int) get_user_meta( $user_id, '_accepted_terms_version', true );
+	return $accepted < cbv_get_current_terms_version();
+}
+
+/**
+ * One-time migration: anyone who already clicked the old Gate 11
+ * "I agree to the travel policy" checkbox (cb_agreed_to_rules, a bare
+ * timestamp) is carried over as having accepted version 1 of the new
+ * system, using that same timestamp as their acceptance date — so they
+ * aren't unexpectedly soft-locked the next time they log in. Gated by an
+ * option flag so it only ever runs once, regardless of how many times
+ * `init` fires.
+ */
+add_action( 'init', function () {
+	if ( get_option( 'cbv_terms_migration_done' ) ) {
+		return;
+	}
+
+	$legacy_user_ids = get_users( array(
+		'meta_key'     => 'cb_agreed_to_rules',
+		'meta_compare' => 'EXISTS',
+		'fields'       => 'ID',
+	) );
+
+	foreach ( $legacy_user_ids as $user_id ) {
+		if ( get_user_meta( $user_id, '_accepted_terms_version', true ) ) {
+			continue; // already on the new system somehow — don't clobber
+		}
+
+		$agreed_date = get_user_meta( $user_id, 'cb_agreed_to_rules', true );
+		update_user_meta( $user_id, '_accepted_terms_version', 1 );
+		update_user_meta( $user_id, '_accepted_terms_date', $agreed_date ?: current_time( 'mysql' ) );
+	}
+
+	update_option( 'cbv_terms_migration_done', true, false );
+}, 30 );
+
+/**
+ * Admin screen: Settings -> Membership Terms. Editing and saving bumps the
+ * version automatically — every member whose acceptance is now behind gets
+ * soft-locked to a re-acceptance screen on their next page load.
+ */
+add_action( 'admin_menu', function () {
+	add_options_page( 'Membership Terms', 'Membership Terms', 'manage_options', 'cbv-membership-terms', 'cbv_render_membership_terms_page' );
+} );
+
+function cbv_render_membership_terms_page() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	if ( isset( $_POST['cbv_terms_nonce'] ) && wp_verify_nonce( $_POST['cbv_terms_nonce'], 'cbv_save_terms' ) ) {
+		$terms       = cbv_get_membership_terms();
+		$new_content = isset( $_POST['cbv_terms_content'] ) ? wp_kses_post( wp_unslash( $_POST['cbv_terms_content'] ) ) : '';
+
+		if ( trim( $new_content ) !== trim( $terms['content'] ) ) {
+			$terms['version'] = $terms['version'] + 1;
+			$terms['content'] = $new_content;
+			$terms['updated'] = current_time( 'mysql' );
+			update_option( 'cbv_membership_terms', $terms, false );
+			echo '<div class="notice notice-success"><p>' . sprintf(
+				esc_html__( 'Saved as version %d. Anyone who already accepted an earlier version will be asked to re-accept before continuing to use their dashboard.', 'cbv' ),
+				(int) $terms['version']
+			) . '</p></div>';
+		} else {
+			echo '<div class="notice notice-info"><p>No changes — version unchanged.</p></div>';
+		}
+	}
+
+	$terms = cbv_get_membership_terms();
+	?>
+	<div class="wrap">
+		<h1>Membership Terms</h1>
+		<p>
+			Current version: <strong><?php echo (int) $terms['version']; ?></strong>
+			(last updated <?php echo esc_html( $terms['updated'] ?: 'never' ); ?>)
+		</p>
+		<?php if ( '' === trim( $terms['content'] ) ) : ?>
+			<div class="notice notice-warning"><p>No terms content has been entered yet — new signups currently see an empty agreement box. Add real content below before relying on this for new registrations.</p></div>
+		<?php endif; ?>
+		<p class="description">Saving with changed content automatically bumps the version and prompts re-acceptance from anyone already on an older version.</p>
+		<form method="post">
+			<?php wp_nonce_field( 'cbv_save_terms', 'cbv_terms_nonce' ); ?>
+			<textarea name="cbv_terms_content" rows="20" style="width:100%;max-width:800px;font-family:monospace;"><?php echo esc_textarea( $terms['content'] ); ?></textarea>
+			<p><button type="submit" class="button button-primary">Save &amp; publish new version</button></p>
+		</form>
+	</div>
+	<?php
+}
+
+/**
+ * Inject the required Membership Terms checkbox into UM's registration
+ * form. Priority 900 — before UM's own submit button, which hooks the same
+ * action at priority 1000 (um_add_submit_button_to_register).
+ */
+add_action( 'um_after_register_fields', function () {
+	$version = cbv_get_current_terms_version();
+	$content = cbv_get_current_terms_content();
+	?>
+	<div class="um-field cbv-terms-field" style="margin: 15px 0;">
+		<div style="max-height:150px;overflow-y:auto;border:1px solid #ddd;padding:10px;margin-bottom:8px;font-size:13px;">
+			<?php echo wp_kses_post( wpautop( $content ) ); ?>
+		</div>
+		<label>
+			<input type="checkbox" name="cbv_accept_terms" value="1">
+			<?php
+			printf(
+				/* translators: %d: Membership Terms version number */
+				esc_html__( 'I have read and agree to the Membership Terms (v%d).', 'cbv' ),
+				(int) $version
+			);
+			?>
+		</label>
+	</div>
+	<?php
+}, 900 );
+
+/**
+ * Block registration if the terms checkbox wasn't checked. Fires before the
+ * new user is created — um_submit_form_register() bails out entirely if any
+ * errors were added here.
+ */
+add_action( 'um_submit_form_errors_hook__registration', function ( $submitted_data ) {
+	if ( empty( $submitted_data['cbv_accept_terms'] ) ) {
+		UM()->form()->add_error( 'cbv_accept_terms', __( 'You must agree to the Membership Terms to create an account.', 'cbv' ) );
+	}
+} );
+
+/**
+ * Record acceptance at the version current at the moment of registration —
+ * validation above already guarantees the checkbox was checked to get here.
+ */
+add_action( 'um_registration_complete', function ( $user_id ) {
+	update_user_meta( $user_id, '_accepted_terms_version', cbv_get_current_terms_version() );
+	update_user_meta( $user_id, '_accepted_terms_date', current_time( 'mysql' ) );
+}, 10, 1 );
+
+/**
+ * Soft-lock: any logged-in user whose accepted version is behind current
+ * gets redirected to the re-acceptance screen on their next page load,
+ * except the screen itself and the logout link (so no one gets stuck).
+ */
+add_action( 'template_redirect', function () {
+	if ( ! is_user_logged_in() || is_page( 'reaccept-terms' ) || is_page( 'logout' ) ) {
+		return;
+	}
+
+	if ( cbv_user_needs_terms_reaccept( get_current_user_id() ) ) {
+		wp_safe_redirect( home_url( '/reaccept-terms/' ) );
+		exit;
+	}
+} );
+
+/**
+ * Re-acceptance screen — [cbv_reaccept_terms]. Put this on a page with the
+ * slug "reaccept-terms" (matches the is_page() checks above).
+ */
+add_shortcode( 'cbv_reaccept_terms', function () {
+	if ( ! is_user_logged_in() ) {
+		return '<p class="cb-empty">Please <a href="' . esc_url( wp_login_url( get_permalink() ) ) . '">sign in</a> to continue.</p>';
+	}
+
+	$user_id = get_current_user_id();
+	if ( ! cbv_user_needs_terms_reaccept( $user_id ) ) {
+		return '<p class="cb-empty">You&#8217;re all caught up. <a href="' . esc_url( home_url( '/dashboard/' ) ) . '">Go to your dashboard</a>.</p>';
+	}
+
+	$version = cbv_get_current_terms_version();
+	$content = cbv_get_current_terms_content();
+
+	ob_start();
+	?>
+	<div class="cbv-reaccept-terms">
+		<h2>Updated Membership Terms</h2>
+		<p>We&#8217;ve updated our Membership Terms (now version <?php echo (int) $version; ?>). Please review and re-accept to continue.</p>
+		<div style="max-height:300px;overflow-y:auto;border:1px solid #ddd;padding:15px;margin-bottom:12px;">
+			<?php echo wp_kses_post( wpautop( $content ) ); ?>
+		</div>
+		<label>
+			<input type="checkbox" id="cbv-reaccept-checkbox">
+			I have read and agree to the updated Membership Terms.
+		</label>
+		<p><button type="button" class="btn btn-ticket" id="cbv-reaccept-submit" disabled>Continue</button></p>
+		<div id="cbv-reaccept-result" style="margin-top:8px;"></div>
+	</div>
+	<script>
+	(function () {
+		var restUrl  = <?php echo wp_json_encode( esc_url_raw( rest_url( 'cb/v1/' ) ) ); ?>;
+		var nonce    = <?php echo wp_json_encode( wp_create_nonce( 'wp_rest' ) ); ?>;
+		var checkbox = document.getElementById( 'cbv-reaccept-checkbox' );
+		var submit   = document.getElementById( 'cbv-reaccept-submit' );
+		var result   = document.getElementById( 'cbv-reaccept-result' );
+
+		checkbox.addEventListener( 'change', function () { submit.disabled = ! checkbox.checked; } );
+
+		submit.addEventListener( 'click', function () {
+			submit.disabled = true;
+			submit.textContent = 'Saving…';
+
+			fetch( restUrl + 'accept-terms', { method: 'POST', headers: { 'X-WP-Nonce': nonce } } )
+				.then( function ( r ) { return r.json().then( function ( body ) { return { ok: r.ok, body: body }; } ); } )
+				.then( function ( res ) {
+					if ( res.ok && res.body.accepted ) {
+						window.location.href = <?php echo wp_json_encode( home_url( '/dashboard/' ) ); ?>;
+					} else {
+						submit.disabled = false;
+						submit.textContent = 'Continue';
+						result.textContent = 'Something went wrong — please try again.';
+					}
+				} )
+				.catch( function () {
+					submit.disabled = false;
+					submit.textContent = 'Continue';
+					result.textContent = 'Request failed — please try again.';
+				} );
+		} );
+	})();
+	</script>
+	<?php
+	return ob_get_clean();
+} );
+
+add_action( 'rest_api_init', function () {
+	register_rest_route( 'cb/v1', '/accept-terms', array(
+		'methods'             => 'POST',
+		'permission_callback' => function () {
+			return is_user_logged_in();
+		},
+		'callback'            => function () {
+			$user_id = get_current_user_id();
+			$version = cbv_get_current_terms_version();
+
+			update_user_meta( $user_id, '_accepted_terms_version', $version );
+			update_user_meta( $user_id, '_accepted_terms_date', current_time( 'mysql' ) );
+
+			return array( 'accepted' => true, 'version' => $version );
+		},
+	) );
+} );

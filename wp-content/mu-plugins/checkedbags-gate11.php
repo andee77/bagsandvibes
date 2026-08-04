@@ -1,12 +1,19 @@
 <?php
 /**
  * Plugin Name: Checked Bags & Good Vibes — Gate 11: Travel Rules
- * Description: "I agree" acknowledgment (stored as user meta) plus a
- *              per-member listing of trip-specific rules addendums, pulling
+ * Description: Per-member listing of trip-specific rules addendums, pulling
  *              from the existing cb_rules_addendum / cb_min_group_size
  *              meta already defined on cb_trip since checkedbags-trips.php.
  *              Base policy text is static content already living in the
  *              WordPress page itself, above the [cb_gate_rules] shortcode.
+ *
+ *              The site-wide "I agree" checkbox that used to live here
+ *              (cb_agreed_to_rules — a single global, unversioned
+ *              timestamp) was replaced by the versioned Membership Terms
+ *              system in checkedbags-trip-invites.php (Phase 3), which
+ *              gates registration and re-prompts on version changes
+ *              site-wide. This shortcode now just shows read-only
+ *              acceptance status pulled from that system.
  * Author:      Built with Claude for JourneyWell Global LLC
  *
  * WHERE THIS FILE GOES:
@@ -16,40 +23,29 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-add_action( 'rest_api_init', function () {
-	register_rest_route( 'cb/v1', '/agree-to-rules', array(
-		'methods'             => 'POST',
-		'permission_callback' => function () { return is_user_logged_in(); },
-		'callback'            => function () {
-			update_user_meta( get_current_user_id(), 'cb_agreed_to_rules', current_time( 'mysql' ) );
-			return array( 'agreed' => true, 'date' => current_time( 'mysql' ) );
-		},
-	) );
-} );
-
 add_shortcode( 'cb_gate_rules', function () {
 
 	if ( ! is_user_logged_in() ) {
 		return '<p class="cb-empty">Please <a href="' . esc_url( wp_login_url( get_permalink() ) ) . '">sign in</a> to view travel rules.</p>';
 	}
 
-	$user_id     = get_current_user_id();
-	$agreed_date = get_user_meta( $user_id, 'cb_agreed_to_rules', true );
+	$user_id       = get_current_user_id();
+	$terms_version = (int) get_user_meta( $user_id, '_accepted_terms_version', true );
+	$terms_date    = get_user_meta( $user_id, '_accepted_terms_date', true );
 
 	ob_start();
 	?>
 	<div class="rules-agreement">
-		<?php if ( $agreed_date ) : ?>
+		<?php if ( $terms_date && ! cbv_user_needs_terms_reaccept( $user_id ) ) : ?>
 			<span class="rules-agreed-badge">
 				<i class="ti ti-check" aria-hidden="true"></i>
-				Agreed on <?php echo esc_html( date_i18n( 'M j, Y', strtotime( $agreed_date ) ) ); ?>
+				Membership Terms (v<?php echo esc_html( $terms_version ); ?>) agreed on <?php echo esc_html( date_i18n( 'M j, Y', strtotime( $terms_date ) ) ); ?>
 			</span>
 		<?php else : ?>
-			<label class="rules-agree-checkbox">
-				<input type="checkbox" id="cb-agree-checkbox">
-				I have read and agree to the travel policy above.
-			</label>
-			<button class="btn btn-ticket" id="cb-agree-submit" disabled>Confirm agreement</button>
+			<p class="rules-addendum-none">
+				Your Membership Terms acceptance is out of date or missing.
+				<a href="<?php echo esc_url( home_url( '/reaccept-terms/' ) ); ?>">Review and accept the current terms</a>.
+			</p>
 		<?php endif; ?>
 	</div>
 
@@ -87,12 +83,4 @@ add_shortcode( 'cb_gate_rules', function () {
 	<?php
 
 	return ob_get_clean();
-} );
-
-add_action( 'wp_enqueue_scripts', function () {
-	wp_enqueue_script( 'cb-gate11', content_url( 'uploads/checkedbags/js/gate11.js' ), array(), '1.0.0', true );
-	wp_localize_script( 'cb-gate11', 'cbGate11', array(
-		'restUrl' => esc_url_raw( rest_url( 'cb/v1/' ) ),
-		'nonce'   => wp_create_nonce( 'wp_rest' ),
-	) );
 } );
