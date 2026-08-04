@@ -742,3 +742,100 @@ add_action( 'rest_api_init', function () {
 		},
 	) );
 } );
+
+/* ==========================================================================
+   Admin: read-only usermeta panel — trip-invite build fields
+
+   Shows what this build has recorded on a user so far (Membership Terms
+   acceptance, legacy-migration status, invite referral, trip interest).
+   Testing/visibility aid for now; Phase 7's Trip Guests back-office screen
+   will surface some of the same fields in a dedicated list view.
+   ========================================================================== */
+add_action( 'show_user_profile', 'cbv_render_user_meta_panel' );
+add_action( 'edit_user_profile', 'cbv_render_user_meta_panel' );
+
+function cbv_render_user_meta_panel( $profile_user ) {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	$terms_version = get_user_meta( $profile_user->ID, '_accepted_terms_version', true );
+	$terms_date    = get_user_meta( $profile_user->ID, '_accepted_terms_date', true );
+	$legacy_agreed = get_user_meta( $profile_user->ID, 'cb_agreed_to_rules', true );
+	$invited_by_id = get_user_meta( $profile_user->ID, '_invited_by_user_id', true );
+	$invited_trip  = get_user_meta( $profile_user->ID, '_invited_by_trip_id', true );
+	$trip_interest = get_user_meta( $profile_user->ID, '_trip_interest', true );
+	?>
+	<h2>Trip-Invite Build — Field Status <span style="font-weight:normal;font-size:13px;">(read-only, for testing)</span></h2>
+	<table class="form-table" role="presentation">
+		<tr>
+			<th><label>Membership Terms</label></th>
+			<td>
+				<?php if ( $terms_version ) : ?>
+					Version <strong><?php echo (int) $terms_version; ?></strong>
+					accepted <?php echo esc_html( $terms_date ? date_i18n( 'M j, Y g:i a', strtotime( $terms_date ) ) : '(no date on file)' ); ?>
+				<?php else : ?>
+					<em>Not yet accepted</em>
+				<?php endif; ?>
+			</td>
+		</tr>
+		<tr>
+			<th><label>Migration status</label></th>
+			<td>
+				<?php if ( $legacy_agreed ) : ?>
+					Migrated from the old Gate 11 agreement — original timestamp:
+					<strong><?php echo esc_html( date_i18n( 'M j, Y g:i a', strtotime( $legacy_agreed ) ) ); ?></strong>
+				<?php else : ?>
+					<em>No legacy cb_agreed_to_rules record</em>
+				<?php endif; ?>
+			</td>
+		</tr>
+		<tr>
+			<th><label>Invited by</label></th>
+			<td>
+				<?php if ( $invited_by_id ) :
+					$inviter = get_userdata( $invited_by_id );
+					?>
+					<?php if ( $inviter ) : ?>
+						<a href="<?php echo esc_url( get_edit_user_link( $invited_by_id ) ); ?>"><?php echo esc_html( $inviter->display_name ); ?></a>
+					<?php else : ?>
+						<em>User #<?php echo (int) $invited_by_id; ?> (no longer exists)</em>
+					<?php endif; ?>
+
+					<?php if ( $invited_trip ) :
+						$trip = get_post( $invited_trip );
+						?>
+						for
+						<?php if ( $trip && 'cb_trip' === $trip->post_type ) :
+							$trip_code = get_post_meta( $trip->ID, 'cb_trip_code', true );
+							?>
+							<a href="<?php echo esc_url( get_edit_post_link( $trip->ID ) ); ?>">
+								<?php echo esc_html( get_the_title( $trip ) ); ?><?php echo $trip_code ? ' (' . esc_html( $trip_code ) . ')' : ''; ?>
+							</a>
+						<?php else : ?>
+							<em>Trip #<?php echo (int) $invited_trip; ?> (no longer exists)</em>
+						<?php endif; ?>
+					<?php endif; ?>
+				<?php else : ?>
+					<em>Not invited — registered directly</em>
+				<?php endif; ?>
+			</td>
+		</tr>
+		<tr>
+			<th><label>Trip interest (public path)</label></th>
+			<td>
+				<?php if ( $trip_interest ) :
+					$interest_trip_id = cbv_resolve_trip_code( $trip_interest );
+					?>
+					Code <strong><?php echo esc_html( $trip_interest ); ?></strong>
+					<?php if ( $interest_trip_id ) : ?>
+						— <a href="<?php echo esc_url( get_edit_post_link( $interest_trip_id ) ); ?>"><?php echo esc_html( get_the_title( $interest_trip_id ) ); ?></a>
+					<?php endif; ?>
+				<?php else : ?>
+					<em>None on file</em>
+				<?php endif; ?>
+			</td>
+		</tr>
+	</table>
+	<?php
+}
