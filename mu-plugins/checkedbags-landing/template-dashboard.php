@@ -96,56 +96,6 @@ $gates = array(
     <?php endforeach; ?>
   </section>
 
-  <?php
-  // TEMPORARY — Phase 2 invite-link testing aid. Remove once the invite
-  // flow has been verified end-to-end; this is not part of the Phase 5
-  // dashboard build, just a quick way to exercise the REST endpoint with a
-  // real, correctly-localized nonce instead of hand-rolled devtools fetches.
-  $cbv_test_trips = array_filter(
-    get_posts( array( 'post_type' => 'cb_trip', 'numberposts' => -1 ) ),
-    function ( $t ) use ( $current_user ) {
-      return in_array( $current_user->ID, cb_trip_get_roster( $t->ID ), true );
-    }
-  );
-  ?>
-  <?php if ( ! empty( $cbv_test_trips ) ) : ?>
-  <section class="dashboard-invite-test" style="margin:2rem auto;max-width:640px;padding:1.5rem;border:2px dashed #999;">
-    <p style="font-weight:bold;margin-top:0;">TEMPORARY — Phase 2 invite-link testing (remove after verified)</p>
-    <?php foreach ( $cbv_test_trips as $t ) : ?>
-      <div style="margin-bottom:1rem;">
-        <strong><?php echo esc_html( get_the_title( $t ) ); ?></strong>
-        (ID <?php echo (int) $t->ID; ?>)
-        <button type="button" class="btn btn-ghost cbv-test-invite-btn" data-trip-id="<?php echo (int) $t->ID; ?>">Generate Invite Link</button>
-        <div class="cbv-test-invite-result" style="margin-top:.5rem;font-family:monospace;font-size:.85rem;word-break:break-all;"></div>
-      </div>
-    <?php endforeach; ?>
-  </section>
-  <script>
-  (function () {
-    var restUrl = <?php echo wp_json_encode( esc_url_raw( rest_url( 'cb/v1/' ) ) ); ?>;
-    var nonce   = <?php echo wp_json_encode( wp_create_nonce( 'wp_rest' ) ); ?>;
-
-    document.querySelectorAll( '.cbv-test-invite-btn' ).forEach( function ( btn ) {
-      btn.addEventListener( 'click', function () {
-        var tripId   = btn.getAttribute( 'data-trip-id' );
-        var resultEl = btn.parentElement.querySelector( '.cbv-test-invite-result' );
-        resultEl.textContent = 'Generating…';
-
-        fetch( restUrl + 'trips/' + tripId + '/invite-link', {
-          method: 'POST',
-          headers: { 'X-WP-Nonce': nonce }
-        } )
-          .then( function ( r ) { return r.json().then( function ( body ) { return { ok: r.ok, body: body }; } ); } )
-          .then( function ( res ) {
-            resultEl.textContent = res.ok ? res.body.url : ( 'Error: ' + res.body.message );
-          } )
-          .catch( function ( err ) { resultEl.textContent = 'Request failed: ' + err; } );
-      } );
-    } );
-  })();
-  </script>
-  <?php endif; ?>
-
 </main>
 
 <footer class="site-footer">
