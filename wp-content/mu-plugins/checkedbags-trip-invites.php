@@ -1141,3 +1141,26 @@ add_action( 'rest_api_init', function () {
 	) );
 
 } );
+
+/**
+ * Renders one card per trip — title, "View trip", "Generate invite link" —
+ * shared by the Trip Guest scoped dashboard and the Full Member "Your
+ * Trips" section. Same actions either way: any roster member, Guest or
+ * Full Member, can invite others to a trip they're already on.
+ */
+function cbv_render_dashboard_trip_cards( $trips ) {
+	ob_start();
+	foreach ( $trips as $trip ) :
+		?>
+		<div class="dashboard-trip-card">
+			<h3 class="dashboard-trip-card-title"><?php echo esc_html( get_the_title( $trip ) ); ?></h3>
+			<div class="dashboard-trip-card-actions">
+				<a href="<?php echo esc_url( get_permalink( $trip ) ); ?>" class="btn btn-ghost">View trip</a>
+				<button type="button" class="btn btn-ticket cbv-invite-btn" data-trip-id="<?php echo (int) $trip->ID; ?>">Generate invite link</button>
+			</div>
+			<div class="dashboard-invite-result" data-trip-id="<?php echo (int) $trip->ID; ?>"></div>
+		</div>
+		<?php
+	endforeach;
+	return ob_get_clean();
+}

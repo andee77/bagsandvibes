@@ -1720,17 +1720,26 @@ body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
   font-size: 1.1rem;
 }
 
-.dashboard-guest-trips {
+.dashboard-section-title {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0 0 1rem;
+}
+
+.dashboard-my-trips {
   margin-bottom: 2rem;
 }
-.dashboard-guest-trip-card {
+.dashboard-trip-card {
   background: var(--horizon);
   border: 1px solid rgba(232,169,78,0.25);
   border-radius: 6px;
   padding: 1.5rem;
   margin-bottom: 1rem;
 }
-.dashboard-guest-trip-title {
+.dashboard-trip-card-title {
   font-family: var(--font-display);
   font-style: italic;
   font-weight: 500;
@@ -1738,7 +1747,7 @@ body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
   color: var(--sand);
   margin: 0 0 0.75rem;
 }
-.dashboard-guest-trip-actions {
+.dashboard-trip-card-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;

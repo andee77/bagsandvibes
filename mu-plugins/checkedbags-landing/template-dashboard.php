@@ -67,17 +67,18 @@ $gates = array(
 	),
 );
 
-$my_trips       = array();
-$highlight_trip = null;
+// Any roster member -- Trip Guest or Full Member -- gets a "Your Trips"
+// list; it's just placed differently below (scoped view vs. alongside the
+// Gate 07-12 grid).
+$my_trips = array_filter(
+	get_posts( array( 'post_type' => 'cb_trip', 'numberposts' => -1 ) ),
+	function ( $t ) use ( $current_user ) {
+		return in_array( $current_user->ID, cb_trip_get_roster( $t->ID ), true );
+	}
+);
 
-if ( $is_trip_guest ) {
-	$my_trips = array_filter(
-		get_posts( array( 'post_type' => 'cb_trip', 'numberposts' => -1 ) ),
-		function ( $t ) use ( $current_user ) {
-			return in_array( $current_user->ID, cb_trip_get_roster( $t->ID ), true );
-		}
-	);
-} elseif ( function_exists( 'cbv_get_dashboard_highlight_trip_id' ) ) {
+$highlight_trip = null;
+if ( ! $is_trip_guest && function_exists( 'cbv_get_dashboard_highlight_trip_id' ) ) {
 	$highlight_trip_id = cbv_get_dashboard_highlight_trip_id( $current_user->ID );
 	if ( $highlight_trip_id ) {
 		$highlight_trip = get_post( $highlight_trip_id );
@@ -117,20 +118,11 @@ if ( $is_trip_guest ) {
 
   <?php if ( $is_trip_guest ) : ?>
 
-    <section class="dashboard-guest-trips">
+    <section class="dashboard-my-trips">
       <?php if ( empty( $my_trips ) ) : ?>
         <p class="cb-empty">You don&#8217;t have any trips yet — check with whoever invited you.</p>
       <?php else : ?>
-        <?php foreach ( $my_trips as $trip ) : ?>
-          <div class="dashboard-guest-trip-card">
-            <h3 class="dashboard-guest-trip-title"><?php echo esc_html( get_the_title( $trip ) ); ?></h3>
-            <div class="dashboard-guest-trip-actions">
-              <a href="<?php echo esc_url( get_permalink( $trip ) ); ?>" class="btn btn-ghost">View trip</a>
-              <button type="button" class="btn btn-ticket cbv-invite-btn" data-trip-id="<?php echo (int) $trip->ID; ?>">Generate invite link</button>
-            </div>
-            <div class="dashboard-invite-result" data-trip-id="<?php echo (int) $trip->ID; ?>"></div>
-          </div>
-        <?php endforeach; ?>
+        <?php echo cbv_render_dashboard_trip_cards( $my_trips ); ?>
       <?php endif; ?>
     </section>
 
@@ -149,6 +141,13 @@ if ( $is_trip_guest ) {
         </p>
         <a href="<?php echo esc_url( get_permalink( $highlight_trip ) ); ?>" class="btn btn-ticket">View trip</a>
         <button type="button" class="btn btn-ghost" id="cbv-dismiss-highlight-btn">Dismiss</button>
+      </section>
+    <?php endif; ?>
+
+    <?php if ( ! empty( $my_trips ) ) : ?>
+      <section class="dashboard-my-trips">
+        <p class="dashboard-section-title">Your Trips</p>
+        <?php echo cbv_render_dashboard_trip_cards( $my_trips ); ?>
       </section>
     <?php endif; ?>
 
@@ -186,7 +185,7 @@ if ( $is_trip_guest ) {
   </div>
 </footer>
 
-<?php if ( $is_trip_guest || $highlight_trip ) : ?>
+<?php if ( $is_trip_guest || $highlight_trip || ! empty( $my_trips ) ) : ?>
 <script>
 (function () {
 	var restUrl = <?php echo wp_json_encode( esc_url_raw( rest_url( 'cb/v1/' ) ) ); ?>;
