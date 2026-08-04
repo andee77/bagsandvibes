@@ -839,3 +839,219 @@ function cbv_render_user_meta_panel( $profile_user ) {
 	</table>
 	<?php
 }
+
+/* ==========================================================================
+   PHASE 4 — Trip Agreement versioning + per-trip acceptance gate
+
+   Deliberately a dedicated field (cb_trip_agreement), not a repurposing of
+   cb_rules_addendum — see the Phase 1 reconciliation: cb_rules_addendum is
+   Gate 11's short informational "extra rules" blurb, already displayed
+   read-only with no acceptance gate; a binding, versioned Trip Agreement is
+   a different kind of content and would conflict if they shared one field.
+   ========================================================================== */
+
+function cbv_get_trip_agreement_version( $trip_id ) {
+	return (int) ( get_post_meta( $trip_id, 'cb_trip_agreement_version', true ) ?: 1 );
+}
+
+function cbv_get_trip_agreement_content( $trip_id ) {
+	return get_post_meta( $trip_id, 'cb_trip_agreement', true );
+}
+
+/**
+ * Stored as one meta value per trip (version + date together) per the
+ * spec's _trip_agreement_accepted_{trip_id} naming, rather than two
+ * separate meta keys.
+ */
+function cbv_user_accepted_trip_agreement_version( $user_id, $trip_id ) {
+	$accepted = get_user_meta( $user_id, '_trip_agreement_accepted_' . $trip_id, true );
+	return ( is_array( $accepted ) && isset( $accepted['version'] ) ) ? (int) $accepted['version'] : 0;
+}
+
+function cbv_user_accepted_trip_agreement_date( $user_id, $trip_id ) {
+	$accepted = get_user_meta( $user_id, '_trip_agreement_accepted_' . $trip_id, true );
+	return ( is_array( $accepted ) && isset( $accepted['date'] ) ) ? $accepted['date'] : '';
+}
+
+function cbv_user_needs_trip_agreement_reaccept( $user_id, $trip_id ) {
+	return cbv_user_accepted_trip_agreement_version( $user_id, $trip_id ) < cbv_get_trip_agreement_version( $trip_id );
+}
+
+/**
+ * The gate: roster membership AND this trip's current agreement version
+ * accepted. Everywhere a trip's actual details render (today: Gate 07's
+ * single-trip view) should check this before showing anything beyond
+ * "you don't have access yet." Per spec §6.1, the itinerary PDF download
+ * (Phase 6) is deliberately exempt from the agreement half of this check —
+ * roster membership alone is enough for that, since it's meant to inform
+ * the decision, not reward it.
+ */
+function cbv_user_can_view_trip( $user_id, $trip_id ) {
+	if ( ! in_array( (int) $user_id, cb_trip_get_roster( $trip_id ), true ) ) {
+		return false;
+	}
+	return ! cbv_user_needs_trip_agreement_reaccept( $user_id, $trip_id );
+}
+
+/**
+ * Per-trip agreement content + version, editable from the same cb_trip
+ * edit screen. Auto-bumps version when the saved content actually changes —
+ * same pattern as the site-wide Membership Terms screen (Phase 3), but
+ * scoped to this one trip rather than a global option.
+ */
+add_action( 'add_meta_boxes', function () {
+	add_meta_box(
+		'cbv_trip_agreement',
+		'Trip Agreement',
+		'cbv_render_trip_agreement_meta_box',
+		'cb_trip',
+		'normal',
+		'default'
+	);
+} );
+
+function cbv_render_trip_agreement_meta_box( $post ) {
+	wp_nonce_field( 'cbv_trip_agreement_save', 'cbv_trip_agreement_nonce' );
+
+	$content = cbv_get_trip_agreement_content( $post->ID );
+	$version = cbv_get_trip_agreement_version( $post->ID );
+	?>
+	<p>
+		Current version: <strong><?php echo (int) $version; ?></strong>.
+		Changing the text below and saving bumps the version automatically —
+		anyone who already accepted an older version (roster members, invited
+		Guests) will be asked to re-accept before they can see this trip's
+		details again.
+	</p>
+	<textarea name="cbv_trip_agreement_content" rows="12" style="width:100%;font-family:monospace;"><?php echo esc_textarea( $content ); ?></textarea>
+	<?php
+}
+
+add_action( 'save_post_cb_trip', function ( $post_id ) {
+
+	if ( ! isset( $_POST['cbv_trip_agreement_nonce'] ) || ! wp_verify_nonce( $_POST['cbv_trip_agreement_nonce'], 'cbv_trip_agreement_save' ) ) {
+		return;
+	}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+	if ( ! isset( $_POST['cbv_trip_agreement_content'] ) ) {
+		return;
+	}
+
+	$old_content = cbv_get_trip_agreement_content( $post_id );
+	$new_content = wp_kses_post( wp_unslash( $_POST['cbv_trip_agreement_content'] ) );
+
+	if ( trim( $new_content ) === trim( $old_content ) ) {
+		return; // unchanged — leave the version alone
+	}
+
+	update_post_meta( $post_id, 'cb_trip_agreement', $new_content );
+	update_post_meta( $post_id, 'cb_trip_agreement_version', cbv_get_trip_agreement_version( $post_id ) + 1 );
+} );
+
+/**
+ * Record acceptance of a specific trip's current agreement version. 403s
+ * if the caller isn't actually on that trip's roster — accepting an
+ * agreement isn't itself how you gain access (cb_trip_add_member is), it's
+ * a precondition for viewing details once you already have access.
+ */
+add_action( 'rest_api_init', function () {
+	register_rest_route( 'cb/v1', '/trips/(?P<id>\d+)/accept-agreement', array(
+		'methods'             => 'POST',
+		'permission_callback' => function () {
+			return is_user_logged_in();
+		},
+		'callback'            => function ( $request ) {
+			$trip_id = (int) $request['id'];
+			$user_id = get_current_user_id();
+
+			if ( ! in_array( $user_id, cb_trip_get_roster( $trip_id ), true ) ) {
+				return new WP_Error( 'cbv_no_access', 'You need access to this trip before you can accept its agreement.', array( 'status' => 403 ) );
+			}
+
+			$version = cbv_get_trip_agreement_version( $trip_id );
+			update_user_meta( $user_id, '_trip_agreement_accepted_' . $trip_id, array(
+				'version' => $version,
+				'date'    => current_time( 'mysql' ),
+			) );
+
+			return array( 'accepted' => true, 'version' => $version );
+		},
+	) );
+} );
+
+/**
+ * Inline "accept this trip's agreement" prompt, shared by any surface that
+ * gates on cbv_user_can_view_trip()/cbv_user_needs_trip_agreement_reaccept()
+ * — today that's Gate 07's single-trip detail view.
+ */
+function cbv_render_trip_agreement_prompt( $trip_id ) {
+	$version = cbv_get_trip_agreement_version( $trip_id );
+	$content = cbv_get_trip_agreement_content( $trip_id );
+
+	ob_start();
+	?>
+	<div class="trip-detail-section trip-agreement-gate">
+		<h3>Trip Agreement</h3>
+		<?php if ( '' === trim( $content ) ) : ?>
+			<p><em>No agreement text has been added for this trip yet — contact us if you have questions before continuing.</em></p>
+			<p><button type="button" class="btn btn-ticket cbv-accept-agreement-btn" data-trip-id="<?php echo (int) $trip_id; ?>">Continue to trip details</button></p>
+		<?php else : ?>
+			<div style="max-height:300px;overflow-y:auto;border:1px solid #ddd;padding:15px;margin-bottom:12px;">
+				<?php echo wp_kses_post( wpautop( $content ) ); ?>
+			</div>
+			<label>
+				<input type="checkbox" class="cbv-agreement-checkbox">
+				I have read and agree to this trip&#8217;s agreement (v<?php echo (int) $version; ?>).
+			</label>
+			<p><button type="button" class="btn btn-ticket cbv-accept-agreement-btn" data-trip-id="<?php echo (int) $trip_id; ?>" disabled>Continue to trip details</button></p>
+		<?php endif; ?>
+		<div class="cbv-agreement-result" style="margin-top:8px;"></div>
+	</div>
+	<script>
+	(function () {
+		var restUrl  = <?php echo wp_json_encode( esc_url_raw( rest_url( 'cb/v1/' ) ) ); ?>;
+		var nonce    = <?php echo wp_json_encode( wp_create_nonce( 'wp_rest' ) ); ?>;
+		var checkbox = document.querySelector( '.cbv-agreement-checkbox' );
+		var button   = document.querySelector( '.cbv-accept-agreement-btn' );
+		var result   = document.querySelector( '.cbv-agreement-result' );
+
+		if ( checkbox && button ) {
+			checkbox.addEventListener( 'change', function () { button.disabled = ! checkbox.checked; } );
+		}
+
+		if ( button ) {
+			button.addEventListener( 'click', function () {
+				button.disabled = true;
+				button.textContent = 'Saving…';
+
+				fetch( restUrl + 'trips/' + button.getAttribute( 'data-trip-id' ) + '/accept-agreement', {
+					method: 'POST',
+					headers: { 'X-WP-Nonce': nonce }
+				} )
+					.then( function ( r ) { return r.json().then( function ( body ) { return { ok: r.ok, body: body }; } ); } )
+					.then( function ( res ) {
+						if ( res.ok && res.body.accepted ) {
+							location.reload();
+						} else {
+							button.disabled = false;
+							button.textContent = 'Continue to trip details';
+							if ( result ) result.textContent = 'Something went wrong — please try again.';
+						}
+					} )
+					.catch( function () {
+						button.disabled = false;
+						button.textContent = 'Continue to trip details';
+						if ( result ) result.textContent = 'Request failed — please try again.';
+					} );
+			} );
+		}
+	})();
+	</script>
+	<?php
+	return ob_get_clean();
+}

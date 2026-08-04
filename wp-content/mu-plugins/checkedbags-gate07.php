@@ -227,6 +227,20 @@ add_filter( 'the_content', function ( $content ) {
 	}
 
 	global $post;
+	$viewer_id = get_current_user_id();
+
+	// Access gate (Phase 4 of the trip-invite build): roster membership,
+	// then this trip's own agreement — being logged in alone used to be
+	// enough to see any trip's full roster/packing notes/request details,
+	// regardless of whether the viewer was actually on that trip.
+	if ( ! in_array( $viewer_id, cb_trip_get_roster( $post->ID ), true ) ) {
+		return $content . '<p class="cb-empty">You don&#8217;t have access to this trip&#8217;s details yet — join it from <a href="' . esc_url( home_url( '/gate-07-pre-planned-vacations/' ) ) . '">All Planned Vacations</a> first.</p>';
+	}
+
+	if ( cbv_user_needs_trip_agreement_reaccept( $viewer_id, $post->ID ) ) {
+		return $content . cbv_render_trip_agreement_prompt( $post->ID );
+	}
+
 	$terms      = get_the_terms( $post->ID, 'cb_trip_type' );
 	$type_label = ( $terms && ! is_wp_error( $terms ) ) ? $terms[0]->name : 'Trip';
 	$packing    = get_post_meta( $post->ID, 'cb_packing_notes', true );
