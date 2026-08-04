@@ -243,7 +243,9 @@ add_shortcode( 'cb_gate_gallery', function () {
    4. Front-end JS
    ========================================================================== */
 add_action( 'wp_enqueue_scripts', function () {
-	wp_enqueue_script( 'cb-gate08', content_url( 'uploads/checkedbags/js/gate08.js' ), array(), '1.0.0', true );
+	$cb_gate08_js_path = WP_CONTENT_DIR . '/uploads/checkedbags/js/gate08.js';
+	$cb_gate08_js_ver  = file_exists( $cb_gate08_js_path ) ? filemtime( $cb_gate08_js_path ) : '1.0.0';
+	wp_enqueue_script( 'cb-gate08', content_url( 'uploads/checkedbags/js/gate08.js' ), array(), $cb_gate08_js_ver, true );
 	wp_localize_script( 'cb-gate08', 'cbGate08', array(
 		'restUrl' => esc_url_raw( rest_url( 'cb/v1/' ) ),
 		'nonce'   => wp_create_nonce( 'wp_rest' ),

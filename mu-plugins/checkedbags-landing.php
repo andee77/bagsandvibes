@@ -142,11 +142,14 @@ add_action(
 		);
 
 		if ( $slug === CB_LANDING_TEMPLATE_SLUG || $slug === CB_GATE_TEMPLATE_SLUG ) {
+			$app_js_path = WP_CONTENT_DIR . '/uploads/checkedbags/js/app.js';
+			$app_js_ver  = file_exists( $app_js_path ) ? filemtime( $app_js_path ) : '2.0.0';
+
 			wp_enqueue_script(
 				'checkedbags-app',
 				"$base/js/app.js",
 				array(),
-				'2.0.0',
+				$app_js_ver,
 				true
 			);
 		}

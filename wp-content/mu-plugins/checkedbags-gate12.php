@@ -481,7 +481,9 @@ add_shortcode( 'cb_gate_requests', function () {
    6. Front-end JS enqueue
    ========================================================================== */
 add_action( 'wp_enqueue_scripts', function () {
-	wp_enqueue_script( 'cb-gate12', content_url( 'uploads/checkedbags/js/gate12.js' ), array(), '1.0.0', true );
+	$cb_gate12_js_path = WP_CONTENT_DIR . '/uploads/checkedbags/js/gate12.js';
+	$cb_gate12_js_ver  = file_exists( $cb_gate12_js_path ) ? filemtime( $cb_gate12_js_path ) : '1.0.0';
+	wp_enqueue_script( 'cb-gate12', content_url( 'uploads/checkedbags/js/gate12.js' ), array(), $cb_gate12_js_ver, true );
 	wp_localize_script( 'cb-gate12', 'cbGate12', array(
 		'restUrl' => esc_url_raw( rest_url( 'cb/v1/' ) ),
 		'nonce'   => wp_create_nonce( 'wp_rest' ),
