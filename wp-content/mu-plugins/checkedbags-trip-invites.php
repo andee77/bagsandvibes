@@ -1364,11 +1364,26 @@ function cbv_render_cover_pdf_meta_box( $post ) {
 
 	<script>
 	(function () {
+		// Programmatically setting .value never fires a native change/input
+		// event -- but the Block Editor's legacy-meta-box compatibility layer
+		// (which POSTs these fields via its own separate meta-box-loader
+		// request, since Gutenberg doesn't submit the classic #post form at
+		// all) relies on exactly those events to know a field changed and
+		// needs including in that save. Without dispatching them here, the
+		// preview updates on screen but the actual value never reaches the
+		// server -- confirmed the hard way on Test Trip 5.
+		function setFieldValue( id, value ) {
+			var el = document.getElementById( id );
+			el.value = value;
+			el.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+			el.dispatchEvent( new Event( 'change', { bubbles: true } ) );
+		}
+
 		function openPicker( inputId, previewId, removeBtnId, type, renderPreview ) {
 			var frame = wp.media( { title: 'Select ' + ( type === 'image' ? 'Image' : 'PDF' ), library: { type: type }, multiple: false } );
 			frame.on( 'select', function () {
 				var attachment = frame.state().get( 'selection' ).first().toJSON();
-				document.getElementById( inputId ).value = attachment.id;
+				setFieldValue( inputId, attachment.id );
 				document.getElementById( previewId ).innerHTML = renderPreview( attachment );
 				document.getElementById( removeBtnId ).style.display = '';
 			} );
@@ -1384,7 +1399,7 @@ function cbv_render_cover_pdf_meta_box( $post ) {
 		} );
 		document.getElementById( 'cbv-remove-cover' ).addEventListener( 'click', function ( e ) {
 			e.preventDefault();
-			document.getElementById( 'cbv_cover_photo_id' ).value = '0';
+			setFieldValue( 'cbv_cover_photo_id', '0' );
 			document.getElementById( 'cbv-cover-preview' ).innerHTML = '<p style="color:#888;"><em>No cover photo set.</em></p>';
 			this.style.display = 'none';
 		} );
@@ -1397,7 +1412,7 @@ function cbv_render_cover_pdf_meta_box( $post ) {
 		} );
 		document.getElementById( 'cbv-remove-pdf' ).addEventListener( 'click', function ( e ) {
 			e.preventDefault();
-			document.getElementById( 'cbv_itinerary_pdf_id' ).value = '0';
+			setFieldValue( 'cbv_itinerary_pdf_id', '0' );
 			document.getElementById( 'cbv-pdf-preview' ).innerHTML = '<p style="color:#888;"><em>No PDF attached.</em></p>';
 			this.style.display = 'none';
 		} );
