@@ -738,6 +738,12 @@ body.checkedbags-dashboard {
   flex-direction: column;
   gap: 1.5rem;
 }
+.trip-detail-cover {
+  height: 280px;
+  border-radius: 8px;
+  background-size: cover;
+  background-position: center;
+}
 .trip-detail-type {
   font-family: var(--font-mono);
   font-size: 0.75rem;

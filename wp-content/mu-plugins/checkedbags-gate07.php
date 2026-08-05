@@ -281,9 +281,14 @@ add_filter( 'the_content', function ( $content ) {
 	$request_raw = get_post_meta( $post->ID, 'cb_request_details', true );
 	$request     = $request_raw ? json_decode( $request_raw, true ) : null;
 
+	$cover_url = function_exists( 'cbv_get_trip_cover_photo_url' ) ? cbv_get_trip_cover_photo_url( $post->ID, 'large' ) : '';
+
 	ob_start();
 	?>
 	<div class="trip-detail">
+		<?php if ( $cover_url ) : ?>
+			<div class="trip-detail-cover" style="background-image:url('<?php echo esc_url( $cover_url ); ?>');"></div>
+		<?php endif; ?>
 		<p class="trip-detail-type"><?php echo esc_html( $type_label ); ?> trip</p>
 
 		<div class="trip-detail-summary">
