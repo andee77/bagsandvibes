@@ -1426,6 +1426,31 @@ function cbv_render_cover_pdf_meta_box( $post ) {
 // cover-photo fields even reaches WordPress at all (vs. being intercepted
 // earlier -- a core nonce check, or something entirely outside WordPress
 // like Cloudflare/SG Security).
+// TEMPORARY diagnostic -- muplugins_loaded is the earliest hook any plugin
+// (mu- or regular) can attach to; it fires before themes, regular plugins,
+// or any part of WordPress's normal admin bootstrap. Unconditional and
+// broad on purpose: if this doesn't log for a request containing
+// cbv_cover_photo_id anywhere in the URL or raw POST body, the request is
+// not reaching PHP/WordPress execution on this server at all for that
+// request, which points outside WordPress entirely (Cloudflare, SG
+// Security, or some other edge/security layer).
+add_action( 'muplugins_loaded', function () {
+	$raw_post = file_get_contents( 'php://input' );
+	if ( strpos( $raw_post, 'cbv_cover_photo_id' ) === false
+		&& strpos( isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '', 'post.php' ) === false
+	) {
+		return;
+	}
+	error_log( sprintf(
+		'[cbv-muplugins-loaded-debug] uri=%s method=%s raw_post_len=%d raw_post_has_cover_field=%s remote_addr=%s',
+		isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : 'n/a',
+		isset( $_SERVER['REQUEST_METHOD'] ) ? $_SERVER['REQUEST_METHOD'] : 'n/a',
+		strlen( $raw_post ),
+		strpos( $raw_post, 'cbv_cover_photo_id' ) !== false ? 'yes' : 'no',
+		isset( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : 'n/a'
+	) );
+}, 1 );
+
 add_action( 'admin_init', function () {
 	if ( empty( $_POST ) && empty( $_GET['meta-box-loader'] ) ) {
 		return;
