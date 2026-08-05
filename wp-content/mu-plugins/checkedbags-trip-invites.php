@@ -1628,3 +1628,122 @@ add_action( 'rest_api_init', function () {
 	) );
 
 } );
+
+/* ==========================================================================
+   PHASE 7 — Back-office Trip Guests screen + promote action
+
+   A single list view of every Trip Guest, instead of checking users one at
+   a time via the read-only panel above. "Promote to Full Member" is purely
+   additive: it swaps the trip_guest role for subscriber (WP's normal
+   baseline role, same as any directly-registered member gets) and touches
+   nothing else -- roster membership, invite history, and trip access all
+   stay exactly as they were, since none of that is gated on the role name
+   itself (see cbv_user_is_full_member() and cb_trip_get_roster() above).
+   ========================================================================== */
+add_action( 'admin_menu', function () {
+	add_users_page(
+		'Trip Guests',
+		'Trip Guests',
+		'manage_options',
+		'cbv-trip-guests',
+		'cbv_render_trip_guests_page'
+	);
+} );
+
+function cbv_render_trip_guests_page() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	$guests = get_users( array(
+		'role'    => 'trip_guest',
+		'orderby' => 'registered',
+		'order'   => 'DESC',
+	) );
+	?>
+	<div class="wrap">
+		<h1>Trip Guests</h1>
+
+		<?php if ( isset( $_GET['cbv_promoted'] ) ) : ?>
+			<div class="notice notice-success is-dismissible"><p>That guest has been promoted to Full Member.</p></div>
+		<?php endif; ?>
+
+		<?php if ( empty( $guests ) ) : ?>
+			<p><em>No Trip Guests right now.</em></p>
+		<?php else : ?>
+			<table class="wp-list-table widefat fixed striped">
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>Email</th>
+						<th>Trip</th>
+						<th>Invited by</th>
+						<th>Join date</th>
+						<th>Action</th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach ( $guests as $guest ) :
+						$invited_by_id = get_user_meta( $guest->ID, '_invited_by_user_id', true );
+						$invited_trip  = get_user_meta( $guest->ID, '_invited_by_trip_id', true );
+						$inviter       = $invited_by_id ? get_userdata( $invited_by_id ) : false;
+						$trip          = $invited_trip ? get_post( $invited_trip ) : false;
+						?>
+						<tr>
+							<td><a href="<?php echo esc_url( get_edit_user_link( $guest->ID ) ); ?>"><?php echo esc_html( $guest->display_name ); ?></a></td>
+							<td><?php echo esc_html( $guest->user_email ); ?></td>
+							<td>
+								<?php if ( $trip && 'cb_trip' === $trip->post_type ) : ?>
+									<a href="<?php echo esc_url( get_edit_post_link( $trip->ID ) ); ?>"><?php echo esc_html( get_the_title( $trip ) ); ?></a>
+								<?php else : ?>
+									<em>&#8212;</em>
+								<?php endif; ?>
+							</td>
+							<td>
+								<?php if ( $inviter ) : ?>
+									<a href="<?php echo esc_url( get_edit_user_link( $inviter->ID ) ); ?>"><?php echo esc_html( $inviter->display_name ); ?></a>
+								<?php else : ?>
+									<em>&#8212;</em>
+								<?php endif; ?>
+							</td>
+							<td><?php echo esc_html( date_i18n( 'M j, Y', strtotime( $guest->user_registered ) ) ); ?></td>
+							<td>
+								<a class="button button-small" href="<?php echo esc_url( wp_nonce_url(
+									admin_url( 'admin-post.php?action=cbv_promote_trip_guest&user_id=' . $guest->ID ),
+									'cbv_promote_trip_guest_' . $guest->ID
+								) ); ?>">Promote to Full Member</a>
+							</td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+		<?php endif; ?>
+	</div>
+	<?php
+}
+
+add_action( 'admin_post_cbv_promote_trip_guest', function () {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( 'Insufficient permissions.' );
+	}
+
+	$user_id = isset( $_GET['user_id'] ) ? (int) $_GET['user_id'] : 0;
+
+	if ( ! $user_id || ! wp_verify_nonce( $_GET['_wpnonce'] ?? '', 'cbv_promote_trip_guest_' . $user_id ) ) {
+		wp_die( 'Invalid request.' );
+	}
+
+	$user = get_userdata( $user_id );
+	if ( $user ) {
+		$user->remove_role( 'trip_guest' );
+		if ( ! in_array( 'subscriber', (array) $user->roles, true ) ) {
+			$user->add_role( 'subscriber' );
+		}
+	}
+
+	wp_safe_redirect( add_query_arg(
+		'cbv_promoted', '1',
+		admin_url( 'users.php?page=cbv-trip-guests' )
+	) );
+	exit;
+} );
