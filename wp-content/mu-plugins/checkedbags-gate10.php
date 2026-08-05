@@ -92,13 +92,22 @@ add_shortcode( 'cb_gate_boards', function () {
 	}
 
 	$lounge_id = cb_ensure_lounge_forum();
+	$user_id   = get_current_user_id();
 
-	$trips = get_posts( array(
-		'post_type'   => 'cb_trip',
-		'numberposts' => -1,
-		'meta_key'    => 'cb_status',
-		'meta_value'  => 'active',
-	) );
+	// The Lounge is deliberately open to everyone (see its own description
+	// above, "open to every member") -- only the per-trip boards need a
+	// roster check, since each one is that trip's private planning space.
+	$trips = array_filter(
+		get_posts( array(
+			'post_type'   => 'cb_trip',
+			'numberposts' => -1,
+			'meta_key'    => 'cb_status',
+			'meta_value'  => 'active',
+		) ),
+		function ( $t ) use ( $user_id ) {
+			return in_array( $user_id, cb_trip_get_roster( $t->ID ), true );
+		}
+	);
 
 	ob_start();
 	?>
