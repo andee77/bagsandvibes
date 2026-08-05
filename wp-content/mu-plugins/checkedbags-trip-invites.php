@@ -1421,6 +1421,30 @@ function cbv_render_cover_pdf_meta_box( $post ) {
 	<?php
 }
 
+// TEMPORARY diagnostic -- fires on every single admin-side request, before
+// anything else, so we can see whether a meta-box-loader POST for our
+// cover-photo fields even reaches WordPress at all (vs. being intercepted
+// earlier -- a core nonce check, or something entirely outside WordPress
+// like Cloudflare/SG Security).
+add_action( 'admin_init', function () {
+	if ( empty( $_POST ) && empty( $_GET['meta-box-loader'] ) ) {
+		return;
+	}
+	if ( ! isset( $_POST['cbv_cover_photo_id'] ) && ! isset( $_GET['meta-box-loader'] ) ) {
+		return;
+	}
+	error_log( sprintf(
+		'[cbv-admin-init-debug] uri=%s method=%s meta_box_loader_get=%s post_keys=%s cover_id=%s pdf_id=%s user=%d',
+		isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : 'n/a',
+		isset( $_SERVER['REQUEST_METHOD'] ) ? $_SERVER['REQUEST_METHOD'] : 'n/a',
+		isset( $_GET['meta-box-loader'] ) ? 'yes' : 'no',
+		implode( ',', array_keys( $_POST ) ),
+		isset( $_POST['cbv_cover_photo_id'] ) ? $_POST['cbv_cover_photo_id'] : 'unset',
+		isset( $_POST['cbv_itinerary_pdf_id'] ) ? $_POST['cbv_itinerary_pdf_id'] : 'unset',
+		get_current_user_id()
+	) );
+}, 1 );
+
 add_action( 'save_post_cb_trip', function ( $post_id ) {
 	// TEMPORARY diagnostic -- remove once the picker-save bug is confirmed
 	// fixed. Logs every checkpoint so we can see exactly where a real
