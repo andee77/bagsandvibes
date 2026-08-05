@@ -1421,99 +1421,21 @@ function cbv_render_cover_pdf_meta_box( $post ) {
 	<?php
 }
 
-// TEMPORARY diagnostic -- fires on every single admin-side request, before
-// anything else, so we can see whether a meta-box-loader POST for our
-// cover-photo fields even reaches WordPress at all (vs. being intercepted
-// earlier -- a core nonce check, or something entirely outside WordPress
-// like Cloudflare/SG Security).
-// TEMPORARY diagnostic -- muplugins_loaded is the earliest hook any plugin
-// (mu- or regular) can attach to; it fires before themes, regular plugins,
-// or any part of WordPress's normal admin bootstrap. Unconditional and
-// broad on purpose: if this doesn't log for a request containing
-// cbv_cover_photo_id anywhere in the URL or raw POST body, the request is
-// not reaching PHP/WordPress execution on this server at all for that
-// request, which points outside WordPress entirely (Cloudflare, SG
-// Security, or some other edge/security layer).
-add_action( 'muplugins_loaded', function () {
-	$raw_post = file_get_contents( 'php://input' );
-	if ( strpos( $raw_post, 'cbv_cover_photo_id' ) === false
-		&& strpos( isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '', 'post.php' ) === false
-	) {
-		return;
-	}
-	error_log( sprintf(
-		'[cbv-muplugins-loaded-debug] uri=%s method=%s raw_post_len=%d raw_post_has_cover_field=%s remote_addr=%s',
-		isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : 'n/a',
-		isset( $_SERVER['REQUEST_METHOD'] ) ? $_SERVER['REQUEST_METHOD'] : 'n/a',
-		strlen( $raw_post ),
-		strpos( $raw_post, 'cbv_cover_photo_id' ) !== false ? 'yes' : 'no',
-		isset( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : 'n/a'
-	) );
-}, 1 );
-
-add_action( 'admin_init', function () {
-	if ( empty( $_POST ) && empty( $_GET['meta-box-loader'] ) ) {
-		return;
-	}
-	if ( ! isset( $_POST['cbv_cover_photo_id'] ) && ! isset( $_GET['meta-box-loader'] ) ) {
-		return;
-	}
-	error_log( sprintf(
-		'[cbv-admin-init-debug] uri=%s method=%s meta_box_loader_get=%s post_keys=%s cover_id=%s pdf_id=%s user=%d',
-		isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : 'n/a',
-		isset( $_SERVER['REQUEST_METHOD'] ) ? $_SERVER['REQUEST_METHOD'] : 'n/a',
-		isset( $_GET['meta-box-loader'] ) ? 'yes' : 'no',
-		implode( ',', array_keys( $_POST ) ),
-		isset( $_POST['cbv_cover_photo_id'] ) ? $_POST['cbv_cover_photo_id'] : 'unset',
-		isset( $_POST['cbv_itinerary_pdf_id'] ) ? $_POST['cbv_itinerary_pdf_id'] : 'unset',
-		get_current_user_id()
-	) );
-}, 1 );
-
 add_action( 'save_post_cb_trip', function ( $post_id ) {
-	// TEMPORARY, unmissable marker -- if this doesn't halt execution and show
-	// up as the literal response body on the next save, the server is still
-	// running old code regardless of what's confirmed on disk. Remove this
-	// die() immediately once that's settled either way.
-	if ( isset( $_POST['cbv_cover_photo_id'] ) || isset( $_POST['cbv_itinerary_pdf_id'] ) ) {
-		die( 'CBV_DIAGNOSTIC_MARKER_XYZ123' );
-	}
-
-	// TEMPORARY diagnostic -- remove once the picker-save bug is confirmed
-	// fixed. Logs every checkpoint so we can see exactly where a real
-	// browser-driven save diverges from the working direct simulation.
-	error_log( sprintf(
-		'[cbv-cover-pdf-debug] post_id=%d nonce_present=%s nonce_valid=%s is_autosave=%s can_edit=%s cover_present=%s pdf_present=%s doing_ajax=%s request_uri=%s',
-		$post_id,
-		isset( $_POST['cbv_cover_pdf_nonce'] ) ? 'yes(' . $_POST['cbv_cover_pdf_nonce'] . ')' : 'no',
-		isset( $_POST['cbv_cover_pdf_nonce'] ) ? ( wp_verify_nonce( $_POST['cbv_cover_pdf_nonce'], 'cbv_cover_pdf_save' ) ? 'yes' : 'no' ) : 'n/a',
-		( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) ? 'yes' : 'no',
-		current_user_can( 'edit_post', $post_id ) ? 'yes' : 'no',
-		isset( $_POST['cbv_cover_photo_id'] ) ? 'yes(' . $_POST['cbv_cover_photo_id'] . ')' : 'no',
-		isset( $_POST['cbv_itinerary_pdf_id'] ) ? 'yes(' . $_POST['cbv_itinerary_pdf_id'] . ')' : 'no',
-		( defined( 'DOING_AJAX' ) && DOING_AJAX ) ? 'yes' : 'no',
-		isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : 'n/a'
-	) );
-
 	if ( ! isset( $_POST['cbv_cover_pdf_nonce'] ) || ! wp_verify_nonce( $_POST['cbv_cover_pdf_nonce'], 'cbv_cover_pdf_save' ) ) {
-		error_log( '[cbv-cover-pdf-debug] EXIT: nonce check failed' );
 		return;
 	}
 	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-		error_log( '[cbv-cover-pdf-debug] EXIT: DOING_AUTOSAVE' );
 		return;
 	}
 	if ( ! current_user_can( 'edit_post', $post_id ) ) {
-		error_log( '[cbv-cover-pdf-debug] EXIT: cannot edit_post' );
 		return;
 	}
 	if ( isset( $_POST['cbv_cover_photo_id'] ) ) {
-		$result = update_post_meta( $post_id, 'cb_cover_photo', absint( $_POST['cbv_cover_photo_id'] ) );
-		error_log( '[cbv-cover-pdf-debug] update_post_meta cb_cover_photo result=' . var_export( $result, true ) . ' now=' . get_post_meta( $post_id, 'cb_cover_photo', true ) );
+		update_post_meta( $post_id, 'cb_cover_photo', absint( $_POST['cbv_cover_photo_id'] ) );
 	}
 	if ( isset( $_POST['cbv_itinerary_pdf_id'] ) ) {
-		$result = update_post_meta( $post_id, 'cb_itinerary_pdf', absint( $_POST['cbv_itinerary_pdf_id'] ) );
-		error_log( '[cbv-cover-pdf-debug] update_post_meta cb_itinerary_pdf result=' . var_export( $result, true ) . ' now=' . get_post_meta( $post_id, 'cb_itinerary_pdf', true ) );
+		update_post_meta( $post_id, 'cb_itinerary_pdf', absint( $_POST['cbv_itinerary_pdf_id'] ) );
 	}
 } );
 
