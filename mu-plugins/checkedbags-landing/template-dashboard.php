@@ -271,6 +271,70 @@ if ( ! $is_trip_guest && function_exists( 'cbv_get_dashboard_highlight_trip_id' 
 			} );
 		} );
 	}
+
+	// Cover photo picker (Phase 6): toggle the panel, then either pick a
+	// preset or upload a new photo -- both reload on success so the card's
+	// thumbnail and button label ("Add" vs "Change") reflect the new state.
+	document.querySelectorAll( '.cbv-cover-toggle-btn' ).forEach( function ( btn ) {
+		btn.addEventListener( 'click', function () {
+			var picker = document.getElementById( 'cbv-cover-picker-' + btn.getAttribute( 'data-trip-id' ) );
+			if ( picker ) {
+				picker.style.display = picker.style.display === 'none' ? '' : 'none';
+			}
+		} );
+	} );
+
+	function cbvSetCoverFromAttachment( tripId, attachmentId, resultEl ) {
+		if ( resultEl ) { resultEl.textContent = 'Saving…'; }
+		fetch( restUrl + 'trips/' + tripId + '/cover-photo', {
+			method: 'POST',
+			headers: { 'X-WP-Nonce': nonce, 'Content-Type': 'application/json' },
+			body: JSON.stringify( { attachment_id: attachmentId } )
+		} )
+			.then( function ( r ) { return r.json().then( function ( body ) { return { ok: r.ok, body: body }; } ); } )
+			.then( function ( res ) {
+				if ( res.ok && res.body.success ) {
+					location.reload();
+				} else if ( resultEl ) {
+					resultEl.textContent = 'Error: ' + ( res.body.message || 'Something went wrong.' );
+				}
+			} )
+			.catch( function () { if ( resultEl ) { resultEl.textContent = 'Request failed — please try again.'; } } );
+	}
+
+	document.querySelectorAll( '.dashboard-cover-preset-btn' ).forEach( function ( btn ) {
+		btn.addEventListener( 'click', function () {
+			var tripId   = btn.getAttribute( 'data-trip-id' );
+			var resultEl = document.querySelector( '.dashboard-cover-result[data-trip-id="' + tripId + '"]' );
+			cbvSetCoverFromAttachment( tripId, btn.getAttribute( 'data-attachment-id' ), resultEl );
+		} );
+	} );
+
+	document.querySelectorAll( '.dashboard-cover-upload-input' ).forEach( function ( input ) {
+		input.addEventListener( 'change', function () {
+			if ( ! input.files || ! input.files[0] ) { return; }
+			var tripId   = input.getAttribute( 'data-trip-id' );
+			var resultEl = document.querySelector( '.dashboard-cover-result[data-trip-id="' + tripId + '"]' );
+			var formData = new FormData();
+			formData.append( 'photo', input.files[0] );
+			if ( resultEl ) { resultEl.textContent = 'Uploading…'; }
+
+			fetch( restUrl + 'trips/' + tripId + '/cover-photo/upload', {
+				method: 'POST',
+				headers: { 'X-WP-Nonce': nonce },
+				body: formData
+			} )
+				.then( function ( r ) { return r.json().then( function ( body ) { return { ok: r.ok, body: body }; } ); } )
+				.then( function ( res ) {
+					if ( res.ok && res.body.success ) {
+						location.reload();
+					} else if ( resultEl ) {
+						resultEl.textContent = 'Error: ' + ( res.body.message || 'Something went wrong.' );
+					}
+				} )
+				.catch( function () { if ( resultEl ) { resultEl.textContent = 'Upload failed — please try again.'; } } );
+		} );
+	} );
 })();
 </script>
 <?php endif; ?>

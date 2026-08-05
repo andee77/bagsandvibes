@@ -1149,16 +1149,47 @@ add_action( 'rest_api_init', function () {
  * Full Member, can invite others to a trip they're already on.
  */
 function cbv_render_dashboard_trip_cards( $trips ) {
+	$presets = function_exists( 'cbv_get_cover_photo_presets' ) ? cbv_get_cover_photo_presets() : array();
+
 	ob_start();
 	foreach ( $trips as $trip ) :
+		$cover_url = function_exists( 'cbv_get_trip_cover_photo_url' ) ? cbv_get_trip_cover_photo_url( $trip->ID, 'medium' ) : '';
 		?>
 		<div class="dashboard-trip-card" id="dashboard-trip-<?php echo (int) $trip->ID; ?>">
+			<?php if ( $cover_url ) : ?>
+				<div class="dashboard-trip-cover" style="background-image:url('<?php echo esc_url( $cover_url ); ?>');"></div>
+			<?php endif; ?>
 			<h3 class="dashboard-trip-card-title"><?php echo esc_html( get_the_title( $trip ) ); ?></h3>
 			<div class="dashboard-trip-card-actions">
 				<a href="<?php echo esc_url( get_permalink( $trip ) ); ?>" class="btn btn-ghost">View trip</a>
 				<button type="button" class="btn btn-ticket cbv-invite-btn" data-trip-id="<?php echo (int) $trip->ID; ?>">Generate invite link</button>
+				<button type="button" class="btn btn-ghost cbv-cover-toggle-btn" data-trip-id="<?php echo (int) $trip->ID; ?>">
+					<?php echo $cover_url ? 'Change cover photo' : 'Add a cover photo'; ?>
+				</button>
 			</div>
 			<div class="dashboard-invite-result" data-trip-id="<?php echo (int) $trip->ID; ?>"></div>
+
+			<div class="dashboard-cover-picker" id="cbv-cover-picker-<?php echo (int) $trip->ID; ?>" style="display:none;">
+				<?php if ( ! empty( $presets ) ) : ?>
+					<p class="dashboard-cover-picker-label">Choose a preset:</p>
+					<div class="dashboard-cover-picker-grid">
+						<?php foreach ( $presets as $preset_id ) :
+							$thumb = wp_get_attachment_image_url( $preset_id, 'thumbnail' );
+							if ( ! $thumb ) {
+								continue;
+							}
+							?>
+							<button type="button" class="dashboard-cover-preset-btn" data-trip-id="<?php echo (int) $trip->ID; ?>" data-attachment-id="<?php echo (int) $preset_id; ?>" style="background-image:url('<?php echo esc_url( $thumb ); ?>');" aria-label="Use this preset"></button>
+						<?php endforeach; ?>
+					</div>
+				<?php endif; ?>
+				<p class="dashboard-cover-picker-label">Or upload your own:</p>
+				<label class="btn btn-ghost dashboard-cover-upload-label">
+					Upload photo
+					<input type="file" accept="image/*" class="dashboard-cover-upload-input" data-trip-id="<?php echo (int) $trip->ID; ?>" hidden>
+				</label>
+				<div class="dashboard-cover-result" data-trip-id="<?php echo (int) $trip->ID; ?>"></div>
+			</div>
 		</div>
 		<?php
 	endforeach;
@@ -1213,3 +1244,372 @@ function cbv_render_my_trips_sticky_note( $trips ) {
 	<?php
 	return ob_get_clean();
 }
+
+/* ==========================================================================
+   PHASE 6 — Cover photo picker + Trip Itinerary PDF
+   ========================================================================== */
+
+define( 'CBV_COVER_PHOTO_MAX_BYTES', 8 * 1024 * 1024 ); // 8 MB
+
+add_action( 'init', function () {
+	register_post_meta( 'cb_trip', 'cb_cover_photo', array(
+		'type'              => 'integer',
+		'single'            => true,
+		'default'           => 0,
+		'show_in_rest'      => true,
+		'sanitize_callback' => 'absint',
+		'auth_callback'     => function () {
+			return current_user_can( 'edit_posts' );
+		},
+	) );
+
+	register_post_meta( 'cb_trip', 'cb_itinerary_pdf', array(
+		'type'              => 'integer',
+		'single'            => true,
+		'default'           => 0,
+		'show_in_rest'      => true,
+		'sanitize_callback' => 'absint',
+		'auth_callback'     => function () {
+			return current_user_can( 'edit_posts' );
+		},
+	) );
+} );
+
+function cbv_get_trip_cover_photo_url( $trip_id, $size = 'large' ) {
+	$attachment_id = (int) get_post_meta( $trip_id, 'cb_cover_photo', true );
+	if ( ! $attachment_id ) {
+		return '';
+	}
+	return wp_get_attachment_image_url( $attachment_id, $size ) ?: '';
+}
+
+function cbv_get_trip_itinerary_pdf_url( $trip_id ) {
+	$attachment_id = (int) get_post_meta( $trip_id, 'cb_itinerary_pdf', true );
+	if ( ! $attachment_id ) {
+		return '';
+	}
+	return wp_get_attachment_url( $attachment_id ) ?: '';
+}
+
+/**
+ * Admin-curated pool of stock cover images, managed on its own settings
+ * screen below. Per spec: "or a flat grid if the pool is small" -- there
+ * are no real stock photos to seed this with yet, so this ships as the
+ * flat-grid variant; category grouping can be layered on later once admin
+ * has actually populated a pool worth grouping.
+ */
+function cbv_get_cover_photo_presets() {
+	$presets = get_option( 'cbv_cover_photo_presets', array() );
+	return is_array( $presets ) ? array_map( 'absint', $presets ) : array();
+}
+
+/* --------------------------------------------------------------------------
+   Admin: cover photo + itinerary PDF meta box on the cb_trip edit screen,
+   using the native WP media library picker (wp.media) rather than a raw
+   file upload -- lets admin reuse an already-uploaded image/PDF instead of
+   re-uploading, consistent with how WP handles featured images.
+   -------------------------------------------------------------------------- */
+add_action( 'add_meta_boxes', function () {
+	add_meta_box( 'cbv_cover_pdf', 'Cover Photo & Itinerary PDF', 'cbv_render_cover_pdf_meta_box', 'cb_trip', 'side', 'default' );
+} );
+
+add_action( 'admin_enqueue_scripts', function ( $hook ) {
+	global $post;
+	if ( in_array( $hook, array( 'post.php', 'post-new.php' ), true ) && $post && $post->post_type === 'cb_trip' ) {
+		wp_enqueue_media();
+	}
+	if ( $hook === 'settings_page_cbv-cover-presets' ) {
+		wp_enqueue_media();
+	}
+} );
+
+function cbv_render_cover_pdf_meta_box( $post ) {
+	wp_nonce_field( 'cbv_cover_pdf_save', 'cbv_cover_pdf_nonce' );
+
+	$cover_id  = (int) get_post_meta( $post->ID, 'cb_cover_photo', true );
+	$pdf_id    = (int) get_post_meta( $post->ID, 'cb_itinerary_pdf', true );
+	$cover_url = $cover_id ? wp_get_attachment_image_url( $cover_id, 'medium' ) : '';
+	$pdf_url   = $pdf_id ? wp_get_attachment_url( $pdf_id ) : '';
+	$pdf_name  = $pdf_id ? basename( get_attached_file( $pdf_id ) ) : '';
+	?>
+	<p><strong>Cover photo</strong></p>
+	<div id="cbv-cover-preview" style="margin-bottom:8px;">
+		<?php if ( $cover_url ) : ?>
+			<img src="<?php echo esc_url( $cover_url ); ?>" style="max-width:100%;height:auto;border-radius:4px;">
+		<?php else : ?>
+			<p style="color:#888;"><em>No cover photo set.</em></p>
+		<?php endif; ?>
+	</div>
+	<input type="hidden" name="cbv_cover_photo_id" id="cbv_cover_photo_id" value="<?php echo esc_attr( $cover_id ); ?>">
+	<p>
+		<button type="button" class="button" id="cbv-select-cover">Select image</button>
+		<button type="button" class="button" id="cbv-remove-cover" style="<?php echo $cover_id ? '' : 'display:none;'; ?>">Remove</button>
+	</p>
+
+	<hr>
+
+	<p><strong>Itinerary PDF</strong></p>
+	<div id="cbv-pdf-preview" style="margin-bottom:8px;">
+		<?php if ( $pdf_url ) : ?>
+			<a href="<?php echo esc_url( $pdf_url ); ?>" target="_blank" rel="noopener"><?php echo esc_html( $pdf_name ); ?></a>
+		<?php else : ?>
+			<p style="color:#888;"><em>No PDF attached.</em></p>
+		<?php endif; ?>
+	</div>
+	<input type="hidden" name="cbv_itinerary_pdf_id" id="cbv_itinerary_pdf_id" value="<?php echo esc_attr( $pdf_id ); ?>">
+	<p>
+		<button type="button" class="button" id="cbv-select-pdf">Select PDF</button>
+		<button type="button" class="button" id="cbv-remove-pdf" style="<?php echo $pdf_id ? '' : 'display:none;'; ?>">Remove</button>
+	</p>
+
+	<script>
+	(function () {
+		function openPicker( inputId, previewId, removeBtnId, type, renderPreview ) {
+			var frame = wp.media( { title: 'Select ' + ( type === 'image' ? 'Image' : 'PDF' ), library: { type: type }, multiple: false } );
+			frame.on( 'select', function () {
+				var attachment = frame.state().get( 'selection' ).first().toJSON();
+				document.getElementById( inputId ).value = attachment.id;
+				document.getElementById( previewId ).innerHTML = renderPreview( attachment );
+				document.getElementById( removeBtnId ).style.display = '';
+			} );
+			frame.open();
+		}
+
+		document.getElementById( 'cbv-select-cover' ).addEventListener( 'click', function ( e ) {
+			e.preventDefault();
+			openPicker( 'cbv_cover_photo_id', 'cbv-cover-preview', 'cbv-remove-cover', 'image', function ( a ) {
+				var url = ( a.sizes && a.sizes.medium ) ? a.sizes.medium.url : a.url;
+				return '<img src="' + url + '" style="max-width:100%;height:auto;border-radius:4px;">';
+			} );
+		} );
+		document.getElementById( 'cbv-remove-cover' ).addEventListener( 'click', function ( e ) {
+			e.preventDefault();
+			document.getElementById( 'cbv_cover_photo_id' ).value = '0';
+			document.getElementById( 'cbv-cover-preview' ).innerHTML = '<p style="color:#888;"><em>No cover photo set.</em></p>';
+			this.style.display = 'none';
+		} );
+
+		document.getElementById( 'cbv-select-pdf' ).addEventListener( 'click', function ( e ) {
+			e.preventDefault();
+			openPicker( 'cbv_itinerary_pdf_id', 'cbv-pdf-preview', 'cbv-remove-pdf', 'application/pdf', function ( a ) {
+				return '<a href="' + a.url + '" target="_blank" rel="noopener">' + a.filename + '</a>';
+			} );
+		} );
+		document.getElementById( 'cbv-remove-pdf' ).addEventListener( 'click', function ( e ) {
+			e.preventDefault();
+			document.getElementById( 'cbv_itinerary_pdf_id' ).value = '0';
+			document.getElementById( 'cbv-pdf-preview' ).innerHTML = '<p style="color:#888;"><em>No PDF attached.</em></p>';
+			this.style.display = 'none';
+		} );
+	})();
+	</script>
+	<?php
+}
+
+add_action( 'save_post_cb_trip', function ( $post_id ) {
+	if ( ! isset( $_POST['cbv_cover_pdf_nonce'] ) || ! wp_verify_nonce( $_POST['cbv_cover_pdf_nonce'], 'cbv_cover_pdf_save' ) ) {
+		return;
+	}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+	if ( isset( $_POST['cbv_cover_photo_id'] ) ) {
+		update_post_meta( $post_id, 'cb_cover_photo', absint( $_POST['cbv_cover_photo_id'] ) );
+	}
+	if ( isset( $_POST['cbv_itinerary_pdf_id'] ) ) {
+		update_post_meta( $post_id, 'cb_itinerary_pdf', absint( $_POST['cbv_itinerary_pdf_id'] ) );
+	}
+} );
+
+/* --------------------------------------------------------------------------
+   Admin: Settings -> Cover Photo Presets -- the curated pool members pick
+   from on their dashboard, separate from uploading their own.
+   -------------------------------------------------------------------------- */
+add_action( 'admin_menu', function () {
+	add_options_page( 'Cover Photo Presets', 'Cover Photo Presets', 'manage_options', 'cbv-cover-presets', 'cbv_render_cover_presets_page' );
+} );
+
+function cbv_render_cover_presets_page() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	if ( isset( $_POST['cbv_presets_nonce'] ) && wp_verify_nonce( $_POST['cbv_presets_nonce'], 'cbv_save_presets' ) ) {
+		$raw = isset( $_POST['cbv_preset_ids'] ) ? wp_unslash( $_POST['cbv_preset_ids'] ) : '';
+		$ids = array_values( array_filter( array_map( 'absint', explode( ',', $raw ) ) ) );
+		update_option( 'cbv_cover_photo_presets', $ids, false );
+		echo '<div class="notice notice-success"><p>' . sprintf( esc_html__( 'Saved %d preset image(s).', 'cbv' ), count( $ids ) ) . '</p></div>';
+	}
+
+	$presets = cbv_get_cover_photo_presets();
+	?>
+	<div class="wrap">
+		<h1>Cover Photo Presets</h1>
+		<p class="description">Members picking a cover photo for their trip from the dashboard can choose from this curated pool instead of uploading their own.</p>
+		<form method="post">
+			<?php wp_nonce_field( 'cbv_save_presets', 'cbv_presets_nonce' ); ?>
+			<div id="cbv-presets-grid" style="display:flex;flex-wrap:wrap;gap:10px;margin:15px 0;">
+				<?php foreach ( $presets as $id ) :
+					$url = wp_get_attachment_image_url( $id, 'thumbnail' );
+					if ( ! $url ) {
+						continue;
+					}
+					?>
+					<div class="cbv-preset-item" data-id="<?php echo esc_attr( $id ); ?>" style="position:relative;">
+						<img src="<?php echo esc_url( $url ); ?>" style="width:120px;height:90px;object-fit:cover;border-radius:4px;">
+						<button type="button" class="button cbv-remove-preset" style="position:absolute;top:2px;right:2px;padding:0 4px;line-height:1.6;">&times;</button>
+					</div>
+				<?php endforeach; ?>
+			</div>
+			<input type="hidden" name="cbv_preset_ids" id="cbv_preset_ids" value="<?php echo esc_attr( implode( ',', $presets ) ); ?>">
+			<p>
+				<button type="button" class="button" id="cbv-add-presets">Add images</button>
+				<button type="submit" class="button button-primary">Save presets</button>
+			</p>
+		</form>
+	</div>
+	<script>
+	(function () {
+		function syncHidden() {
+			var ids = Array.prototype.map.call( document.querySelectorAll( '.cbv-preset-item' ), function ( el ) { return el.getAttribute( 'data-id' ); } );
+			document.getElementById( 'cbv_preset_ids' ).value = ids.join( ',' );
+		}
+		document.getElementById( 'cbv-presets-grid' ).addEventListener( 'click', function ( e ) {
+			if ( e.target.classList.contains( 'cbv-remove-preset' ) ) {
+				e.target.closest( '.cbv-preset-item' ).remove();
+				syncHidden();
+			}
+		} );
+		document.getElementById( 'cbv-add-presets' ).addEventListener( 'click', function ( e ) {
+			e.preventDefault();
+			var frame = wp.media( { title: 'Select preset images', library: { type: 'image' }, multiple: true } );
+			frame.on( 'select', function () {
+				var grid = document.getElementById( 'cbv-presets-grid' );
+				frame.state().get( 'selection' ).each( function ( attachment ) {
+					var a = attachment.toJSON();
+					var url = ( a.sizes && a.sizes.thumbnail ) ? a.sizes.thumbnail.url : a.url;
+					var div = document.createElement( 'div' );
+					div.className = 'cbv-preset-item';
+					div.setAttribute( 'data-id', a.id );
+					div.style.position = 'relative';
+					div.innerHTML = '<img src="' + url + '" style="width:120px;height:90px;object-fit:cover;border-radius:4px;">' +
+						'<button type="button" class="button cbv-remove-preset" style="position:absolute;top:2px;right:2px;padding:0 4px;line-height:1.6;">&times;</button>';
+					grid.appendChild( div );
+				} );
+				syncHidden();
+			} );
+			frame.open();
+		} );
+	})();
+	</script>
+	<?php
+}
+
+/* --------------------------------------------------------------------------
+   REST: client-facing cover photo selection/upload, and the preset list.
+   -------------------------------------------------------------------------- */
+add_action( 'rest_api_init', function () {
+
+	register_rest_route( 'cb/v1', '/cover-photo-presets', array(
+		'methods'             => 'GET',
+		'permission_callback' => function () {
+			return is_user_logged_in();
+		},
+		'callback'            => function () {
+			$presets = cbv_get_cover_photo_presets();
+			return array_values( array_filter( array_map( function ( $id ) {
+				$url = wp_get_attachment_image_url( $id, 'medium' );
+				return $url ? array( 'id' => $id, 'url' => $url ) : null;
+			}, $presets ) ) );
+		},
+	) );
+
+	register_rest_route( 'cb/v1', '/trips/(?P<id>\d+)/cover-photo', array(
+		'methods'             => 'POST',
+		'permission_callback' => function () {
+			return is_user_logged_in();
+		},
+		'callback'            => function ( $request ) {
+			$trip_id       = (int) $request['id'];
+			$user_id       = get_current_user_id();
+			$attachment_id = (int) $request->get_param( 'attachment_id' );
+
+			if ( ! in_array( $user_id, cb_trip_get_roster( $trip_id ), true ) ) {
+				return new WP_Error( 'cbv_no_access', 'You need access to this trip to change its cover photo.', array( 'status' => 403 ) );
+			}
+			if ( ! $attachment_id || ! wp_get_attachment_image_url( $attachment_id, 'thumbnail' ) ) {
+				return new WP_Error( 'cbv_invalid_attachment', 'That image could not be found.', array( 'status' => 400 ) );
+			}
+
+			// Only allow admin-curated presets or an attachment this same
+			// member uploaded themselves -- not an arbitrary attachment ID
+			// belonging to someone else's media.
+			$presets       = cbv_get_cover_photo_presets();
+			$is_preset     = in_array( $attachment_id, $presets, true );
+			$attachment    = get_post( $attachment_id );
+			$is_own_upload = $attachment && (int) $attachment->post_author === $user_id;
+
+			if ( ! $is_preset && ! $is_own_upload ) {
+				return new WP_Error( 'cbv_not_allowed', 'You can only use preset images or your own uploads.', array( 'status' => 403 ) );
+			}
+
+			update_post_meta( $trip_id, 'cb_cover_photo', $attachment_id );
+
+			return array( 'success' => true, 'url' => wp_get_attachment_image_url( $attachment_id, 'large' ) );
+		},
+	) );
+
+	register_rest_route( 'cb/v1', '/trips/(?P<id>\d+)/cover-photo/upload', array(
+		'methods'             => 'POST',
+		'permission_callback' => function () {
+			return is_user_logged_in();
+		},
+		'callback'            => function ( $request ) {
+			$trip_id = (int) $request['id'];
+			$user_id = get_current_user_id();
+
+			if ( ! in_array( $user_id, cb_trip_get_roster( $trip_id ), true ) ) {
+				return new WP_Error( 'cbv_no_access', 'You need access to this trip to change its cover photo.', array( 'status' => 403 ) );
+			}
+
+			$files = $request->get_file_params();
+			if ( empty( $files['photo'] ) ) {
+				return new WP_Error( 'cbv_no_file', 'No photo was received.', array( 'status' => 400 ) );
+			}
+			if ( (int) $files['photo']['size'] > CBV_COVER_PHOTO_MAX_BYTES ) {
+				return new WP_Error( 'cbv_file_too_large', 'That image is too large — please use a file under 8 MB.', array( 'status' => 400 ) );
+			}
+
+			require_once ABSPATH . 'wp-admin/includes/image.php';
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			require_once ABSPATH . 'wp-admin/includes/media.php';
+
+			// Explicit mimes override -- media_handle_upload() alone only
+			// enforces WP's sitewide "not a dangerous extension" allowlist
+			// (which includes non-image types like PDFs/zips/docs), not
+			// "must be an image." This restricts wp_handle_upload()'s own
+			// validation to just these image types, rejecting anything else
+			// before the file is even moved into the uploads directory.
+			$attachment_id = media_handle_upload( 'photo', $trip_id, array(), array(
+				'test_form' => false,
+				'mimes'     => array(
+					'jpg|jpeg|jpe' => 'image/jpeg',
+					'gif'          => 'image/gif',
+					'png'          => 'image/png',
+					'webp'         => 'image/webp',
+				),
+			) );
+			if ( is_wp_error( $attachment_id ) ) {
+				return new WP_Error( 'cbv_upload_failed', $attachment_id->get_error_message(), array( 'status' => 400 ) );
+			}
+
+			update_post_meta( $trip_id, 'cb_cover_photo', $attachment_id );
+
+			return array( 'success' => true, 'url' => wp_get_attachment_image_url( $attachment_id, 'large' ) );
+		},
+	) );
+
+} );

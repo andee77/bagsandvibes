@@ -1887,3 +1887,59 @@ body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
     transform: rotate(2deg);
   }
 }
+
+/* ==========================================================================
+   Cover photo picker on dashboard trip cards (Phase 6)
+   ========================================================================== */
+.dashboard-trip-cover {
+  height: 120px;
+  border-radius: 4px;
+  background-size: cover;
+  background-position: center;
+  margin-bottom: 0.75rem;
+}
+
+.dashboard-cover-picker {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(232,169,78,0.25);
+}
+.dashboard-cover-picker-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(251,243,231,0.6);
+  margin: 0 0 0.5rem;
+}
+.dashboard-cover-picker-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.dashboard-cover-preset-btn {
+  width: 72px;
+  height: 54px;
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+  padding: 0;
+  transition: border-color 0.2s var(--ease-standard);
+}
+.dashboard-cover-preset-btn:hover,
+.dashboard-cover-preset-btn:focus-visible {
+  border-color: var(--gold);
+}
+.dashboard-cover-upload-label {
+  display: inline-flex;
+  cursor: pointer;
+}
+.dashboard-cover-result {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: rgba(251,243,231,0.75);
+  margin-top: 0.5rem;
+}

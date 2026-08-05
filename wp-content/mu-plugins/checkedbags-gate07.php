@@ -246,8 +246,21 @@ add_filter( 'the_content', function ( $content ) {
 		return $content . '<p class="cb-empty">You don&#8217;t have access to this trip&#8217;s details yet — join it from <a href="' . esc_url( home_url( '/gate-07-pre-planned-vacations/' ) ) . '">All Planned Vacations</a> first.</p>';
 	}
 
+	// Itinerary PDF (Phase 6): deliberately available to any roster member
+	// regardless of agreement acceptance -- per spec §6.1 it's meant to help
+	// someone still deciding whether to commit, so it must be visible
+	// *before* that acceptance step, not gated behind it. No PDF attached =
+	// simply no button, not a broken link.
+	$pdf_html = '';
+	if ( function_exists( 'cbv_get_trip_itinerary_pdf_url' ) ) {
+		$pdf_url = cbv_get_trip_itinerary_pdf_url( $post->ID );
+		if ( $pdf_url ) {
+			$pdf_html = '<div class="trip-detail-section"><a class="btn btn-ticket" href="' . esc_url( $pdf_url ) . '" target="_blank" rel="noopener">Download Full Itinerary PDF <i class="ti ti-download" aria-hidden="true"></i></a></div>';
+		}
+	}
+
 	if ( cbv_user_needs_trip_agreement_reaccept( $viewer_id, $post->ID ) ) {
-		return $content . cbv_render_trip_agreement_prompt( $post->ID );
+		return $content . $pdf_html . cbv_render_trip_agreement_prompt( $post->ID );
 	}
 
 	$terms      = get_the_terms( $post->ID, 'cb_trip_type' );
@@ -349,5 +362,5 @@ add_filter( 'the_content', function ( $content ) {
 		</div>
 	</div>
 	<?php
-	return $content . ob_get_clean();
+	return $content . $pdf_html . ob_get_clean();
 }, 20 );
