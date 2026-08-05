@@ -1422,20 +1422,41 @@ function cbv_render_cover_pdf_meta_box( $post ) {
 }
 
 add_action( 'save_post_cb_trip', function ( $post_id ) {
+	// TEMPORARY diagnostic -- remove once the picker-save bug is confirmed
+	// fixed. Logs every checkpoint so we can see exactly where a real
+	// browser-driven save diverges from the working direct simulation.
+	error_log( sprintf(
+		'[cbv-cover-pdf-debug] post_id=%d nonce_present=%s nonce_valid=%s is_autosave=%s can_edit=%s cover_present=%s pdf_present=%s doing_ajax=%s request_uri=%s',
+		$post_id,
+		isset( $_POST['cbv_cover_pdf_nonce'] ) ? 'yes(' . $_POST['cbv_cover_pdf_nonce'] . ')' : 'no',
+		isset( $_POST['cbv_cover_pdf_nonce'] ) ? ( wp_verify_nonce( $_POST['cbv_cover_pdf_nonce'], 'cbv_cover_pdf_save' ) ? 'yes' : 'no' ) : 'n/a',
+		( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) ? 'yes' : 'no',
+		current_user_can( 'edit_post', $post_id ) ? 'yes' : 'no',
+		isset( $_POST['cbv_cover_photo_id'] ) ? 'yes(' . $_POST['cbv_cover_photo_id'] . ')' : 'no',
+		isset( $_POST['cbv_itinerary_pdf_id'] ) ? 'yes(' . $_POST['cbv_itinerary_pdf_id'] . ')' : 'no',
+		( defined( 'DOING_AJAX' ) && DOING_AJAX ) ? 'yes' : 'no',
+		isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : 'n/a'
+	) );
+
 	if ( ! isset( $_POST['cbv_cover_pdf_nonce'] ) || ! wp_verify_nonce( $_POST['cbv_cover_pdf_nonce'], 'cbv_cover_pdf_save' ) ) {
+		error_log( '[cbv-cover-pdf-debug] EXIT: nonce check failed' );
 		return;
 	}
 	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		error_log( '[cbv-cover-pdf-debug] EXIT: DOING_AUTOSAVE' );
 		return;
 	}
 	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		error_log( '[cbv-cover-pdf-debug] EXIT: cannot edit_post' );
 		return;
 	}
 	if ( isset( $_POST['cbv_cover_photo_id'] ) ) {
-		update_post_meta( $post_id, 'cb_cover_photo', absint( $_POST['cbv_cover_photo_id'] ) );
+		$result = update_post_meta( $post_id, 'cb_cover_photo', absint( $_POST['cbv_cover_photo_id'] ) );
+		error_log( '[cbv-cover-pdf-debug] update_post_meta cb_cover_photo result=' . var_export( $result, true ) . ' now=' . get_post_meta( $post_id, 'cb_cover_photo', true ) );
 	}
 	if ( isset( $_POST['cbv_itinerary_pdf_id'] ) ) {
-		update_post_meta( $post_id, 'cb_itinerary_pdf', absint( $_POST['cbv_itinerary_pdf_id'] ) );
+		$result = update_post_meta( $post_id, 'cb_itinerary_pdf', absint( $_POST['cbv_itinerary_pdf_id'] ) );
+		error_log( '[cbv-cover-pdf-debug] update_post_meta cb_itinerary_pdf result=' . var_export( $result, true ) . ' now=' . get_post_meta( $post_id, 'cb_itinerary_pdf', true ) );
 	}
 } );
 
