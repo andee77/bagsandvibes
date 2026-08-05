@@ -160,6 +160,13 @@ add_filter( 'the_content', function ( $content ) {
 		return $content;
 	}
 
+	// Same access gate Gate 07 already enforces on this page's own content
+	// (Phase 4) -- otherwise a visitor Gate 07 just told "you don't have
+	// access" would still get a working link into this trip's private board.
+	if ( function_exists( 'cbv_user_can_view_trip' ) && ! cbv_user_can_view_trip( get_current_user_id(), $post->ID ) ) {
+		return $content;
+	}
+
 	$link = '<div class="trip-detail-section"><a class="btn btn-ghost" href="' . esc_url( bbp_get_forum_permalink( $forum_id ) ) . '">Discuss this trip <i class="ti ti-arrow-right" aria-hidden="true"></i></a></div>';
 
 	return $content . $link;
