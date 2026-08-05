@@ -1446,6 +1446,14 @@ add_action( 'admin_init', function () {
 }, 1 );
 
 add_action( 'save_post_cb_trip', function ( $post_id ) {
+	// TEMPORARY, unmissable marker -- if this doesn't halt execution and show
+	// up as the literal response body on the next save, the server is still
+	// running old code regardless of what's confirmed on disk. Remove this
+	// die() immediately once that's settled either way.
+	if ( isset( $_POST['cbv_cover_photo_id'] ) || isset( $_POST['cbv_itinerary_pdf_id'] ) ) {
+		die( 'CBV_DIAGNOSTIC_MARKER_XYZ123' );
+	}
+
 	// TEMPORARY diagnostic -- remove once the picker-save bug is confirmed
 	// fixed. Logs every checkpoint so we can see exactly where a real
 	// browser-driven save diverges from the working direct simulation.
