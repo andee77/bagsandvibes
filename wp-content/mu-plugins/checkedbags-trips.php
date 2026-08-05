@@ -372,16 +372,58 @@ function cb_render_trip_meta_box( $post ) {
 					?>
 					<li>
 						<?php echo esc_html( $user->display_name ); ?> (<?php echo esc_html( $user->user_email ); ?>)
-						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline;" onsubmit="return confirm( 'Remove ' + <?php echo wp_json_encode( $user->display_name ); ?> + ' from this trip’s roster?' );">
-							<?php wp_nonce_field( 'cb_remove_roster_member_' . $post->ID . '_' . $user_id, 'cb_remove_roster_nonce' ); ?>
-							<input type="hidden" name="action" value="cb_remove_roster_member">
-							<input type="hidden" name="trip_id" value="<?php echo (int) $post->ID; ?>">
-							<input type="hidden" name="user_id" value="<?php echo (int) $user_id; ?>">
-							<button type="submit" class="button-link" style="color:#b32d2e;margin-left:8px;">Remove</button>
-						</form>
+						<button
+							type="button"
+							class="button-link cb-roster-remove-btn"
+							style="color:#b32d2e;margin-left:8px;"
+							data-trip-id="<?php echo (int) $post->ID; ?>"
+							data-user-id="<?php echo (int) $user_id; ?>"
+							data-nonce="<?php echo esc_attr( wp_create_nonce( 'cb_remove_roster_member_' . $post->ID . '_' . $user_id ) ); ?>"
+							data-confirm="<?php echo esc_attr( sprintf( "Remove %s from this trip's roster?", $user->display_name ) ); ?>"
+						>Remove</button>
 					</li>
 				<?php endforeach; ?>
 			</ul>
+			<script>
+			/*
+			 * A real nested <form> here gets silently collapsed by the browser's
+			 * HTML parser (this meta box already sits inside Gutenberg's own
+			 * metabox-location-normal <form>), leaving its hidden inputs as loose
+			 * elements that Gutenberg's meta-box-loader then sweeps into ITS
+			 * serialization on every Update click — including a colliding
+			 * name="action" field that stomps WordPress's own action=editpost
+			 * and breaks the Update save entirely. Building a detached form at
+			 * click-time and appending it straight to <body> avoids that.
+			 */
+			document.addEventListener( 'click', function ( e ) {
+				var btn = e.target.closest( '.cb-roster-remove-btn' );
+				if ( ! btn ) { return; }
+				e.preventDefault();
+				if ( ! window.confirm( btn.getAttribute( 'data-confirm' ) ) ) { return; }
+
+				var form = document.createElement( 'form' );
+				form.method = 'post';
+				form.action = <?php echo wp_json_encode( admin_url( 'admin-post.php' ) ); ?>;
+				form.style.display = 'none';
+
+				var fields = {
+					action: 'cb_remove_roster_member',
+					trip_id: btn.getAttribute( 'data-trip-id' ),
+					user_id: btn.getAttribute( 'data-user-id' ),
+					cb_remove_roster_nonce: btn.getAttribute( 'data-nonce' )
+				};
+				Object.keys( fields ).forEach( function ( name ) {
+					var input = document.createElement( 'input' );
+					input.type = 'hidden';
+					input.name = name;
+					input.value = fields[ name ];
+					form.appendChild( input );
+				} );
+
+				document.body.appendChild( form );
+				form.submit();
+			} );
+			</script>
 		<?php endif; ?>
 	</div>
 	<?php
