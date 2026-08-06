@@ -127,17 +127,61 @@ function cb_feed_upcoming_trips( $limit = 6 ) {
 	) );
 }
 
+/**
+ * True if $user_id may see topics in $forum_id -- the shared Lounge is open
+ * to everyone (per its own description in checkedbags-gate10.php); a
+ * per-trip board requires roster membership on the trip it belongs to. An
+ * orphaned/unrecognized forum defaults to NOT visible, not leaked.
+ */
+function cb_feed_user_can_view_forum( $forum_id, $user_id ) {
+	if ( ! $forum_id ) {
+		return false;
+	}
+	if ( function_exists( 'cb_ensure_lounge_forum' ) && (int) $forum_id === (int) cb_ensure_lounge_forum() ) {
+		return true;
+	}
+
+	$trip_ids = get_posts( array(
+		'post_type'      => 'cb_trip',
+		'posts_per_page' => 1,
+		'meta_key'       => 'cb_forum_id',
+		'meta_value'     => $forum_id,
+		'fields'         => 'ids',
+	) );
+
+	if ( empty( $trip_ids ) ) {
+		return false;
+	}
+
+	return in_array( (int) $user_id, cb_trip_get_roster( $trip_ids[0] ), true );
+}
+
 function cb_feed_recent_topics( $limit = 5 ) {
 	if ( ! function_exists( 'bbp_get_topic_permalink' ) ) {
 		return array();
 	}
-	return get_posts( array(
+
+	$user_id = get_current_user_id();
+
+	// Over-fetch and filter in PHP -- there's no meta_query for "forums this
+	// user has access to," only a per-topic _bbp_forum_id to check against
+	// roster membership. A recent-activity teaser, not paginated, so this
+	// may show fewer than $limit if most recent topics aren't visible to
+	// this viewer -- acceptable for a lightweight feed widget.
+	$candidates = get_posts( array(
 		'post_type'   => 'topic',
 		'post_status' => 'publish',
-		'numberposts' => $limit,
+		'numberposts' => $limit * 4,
 		'orderby'     => 'date',
 		'order'       => 'DESC',
 	) );
+
+	$visible = array_filter( $candidates, function ( $topic ) use ( $user_id ) {
+		$forum_id = get_post_meta( $topic->ID, '_bbp_forum_id', true );
+		return cb_feed_user_can_view_forum( $forum_id, $user_id );
+	} );
+
+	return array_slice( array_values( $visible ), 0, $limit );
 }
 
 /* ==========================================================================
