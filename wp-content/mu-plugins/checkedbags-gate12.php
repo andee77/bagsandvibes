@@ -626,7 +626,13 @@ add_shortcode( 'cb_gate_requests', function () {
 			<label>Pre and post cruise nights <select id="req-pre-post-cruise-nights">
 				<option value="">—</option><option value="Yes">Yes</option><option value="No">No</option>
 			</select></label>
-			<label>Cabin class <input type="text" id="req-cruise-cabin-class"></label>
+			<label>Cabin class <select id="req-cruise-cabin-class">
+				<option value="">—</option>
+				<option value="Interior">Interior</option>
+				<option value="Oceanview">Oceanview</option>
+				<option value="Balcony">Balcony</option>
+				<option value="Suite">Suite</option>
+			</select></label>
 			<label>Beverage plan <select id="req-beverage-plan">
 				<option value="">—</option><option value="Yes">Yes</option><option value="No">No</option>
 			</select></label>
