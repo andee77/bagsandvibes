@@ -1786,6 +1786,8 @@ add_filter( 'um_account_content_hook_travel-profile', function ( $output, $args 
 
 	$legal_name    = get_user_meta( $user_id, '_legal_name', true );
 	$dob           = get_user_meta( $user_id, '_date_of_birth', true );
+	$phone         = get_user_meta( $user_id, '_phone', true );
+	$address       = get_user_meta( $user_id, '_address', true );
 	$ec_name       = get_user_meta( $user_id, '_emergency_contact_name', true );
 	$ec_phone      = get_user_meta( $user_id, '_emergency_contact_phone', true );
 	$has_passport  = get_user_meta( $user_id, '_has_passport', true );
@@ -1804,6 +1806,8 @@ add_filter( 'um_account_content_hook_travel-profile', function ( $output, $args 
 			<legend>Personal Details</legend>
 			<label>Full legal name <input type="text" id="cbv-tp-legal-name" value="<?php echo esc_attr( $legal_name ); ?>"></label>
 			<label>Date of birth <input type="date" id="cbv-tp-dob" value="<?php echo esc_attr( $dob ); ?>"></label>
+			<label>Phone <input type="tel" id="cbv-tp-phone" value="<?php echo esc_attr( $phone ); ?>"></label>
+			<label>Address <textarea id="cbv-tp-address" rows="2"><?php echo esc_textarea( $address ); ?></textarea></label>
 		</fieldset>
 
 		<fieldset>
@@ -1859,6 +1863,8 @@ add_filter( 'um_account_content_hook_travel-profile', function ( $output, $args 
 			var payload = {
 				legal_name: document.getElementById( 'cbv-tp-legal-name' ).value,
 				date_of_birth: document.getElementById( 'cbv-tp-dob' ).value,
+				phone: document.getElementById( 'cbv-tp-phone' ).value,
+				address: document.getElementById( 'cbv-tp-address' ).value,
 				emergency_contact_name: document.getElementById( 'cbv-tp-ec-name' ).value,
 				emergency_contact_phone: document.getElementById( 'cbv-tp-ec-phone' ).value,
 				has_passport: document.getElementById( 'cbv-tp-has-passport' ).value,
@@ -1928,6 +1934,8 @@ function cbv_save_member_profile( $request ) {
 
 	update_user_meta( $user_id, '_legal_name', $str( 'legal_name' ) );
 	update_user_meta( $user_id, '_date_of_birth', $str( 'date_of_birth' ) );
+	update_user_meta( $user_id, '_phone', $str( 'phone' ) );
+	update_user_meta( $user_id, '_address', $txt( 'address' ) );
 	update_user_meta( $user_id, '_emergency_contact_name', $str( 'emergency_contact_name' ) );
 	update_user_meta( $user_id, '_emergency_contact_phone', $str( 'emergency_contact_phone' ) );
 
