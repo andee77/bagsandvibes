@@ -43,6 +43,16 @@ add_action( 'init', function () {
 
 /* ==========================================================================
    2. cb_trip extra meta
+
+   cb_request_details (the old single JSON blob) is kept registered and
+   still READ everywhere below, but is no longer WRITTEN to by new
+   submissions (see cb_save_trip_request_fields()) -- it's now purely a
+   fallback so trips created before Phase 8 still display correctly. Every
+   field it used to hold is now its own cb_req_{key} post meta key instead,
+   matching the Customer Information Form's own section layout (Air
+   Travel / Cruise Vacation / Hotel and Resort Vacation / Car Rental /
+   Package Tour) so Phase 9's spreadsheet export can read plain columns
+   instead of parsing JSON.
    ========================================================================== */
 add_action( 'init', function () {
 	foreach ( array( 'cb_when_notes', 'cb_duration_notes' ) as $key ) {
@@ -64,7 +74,143 @@ add_action( 'init', function () {
 		'sanitize_callback' => 'sanitize_text_field',
 		'auth_callback'     => function () { return current_user_can( 'edit_posts' ); },
 	) );
+
+	foreach ( cbv_trip_request_field_defs() as $key => $def ) {
+		if ( 'array' === $def['type'] ) {
+			register_post_meta( 'cb_trip', 'cb_req_' . $key, array(
+				'type'          => 'array',
+				'single'        => true,
+				'default'       => array(),
+				'show_in_rest'  => array( 'schema' => array( 'type' => 'array', 'items' => array( 'type' => 'string' ) ) ),
+				'auth_callback' => function () { return current_user_can( 'edit_posts' ); },
+			) );
+		} else {
+			register_post_meta( 'cb_trip', 'cb_req_' . $key, array(
+				'type'              => 'string',
+				'single'            => true,
+				'default'           => '',
+				'show_in_rest'      => true,
+				'sanitize_callback' => 'sanitize_text_field',
+				'auth_callback'     => function () { return current_user_can( 'edit_posts' ); },
+			) );
+		}
+	}
 } );
+
+/**
+ * Every individual Trip Request field, old and new, in one place -- both
+ * the meta registration above and the save function below loop over this
+ * instead of listing each key twice. Field names are unchanged from the
+ * old cb_request_details JSON keys where they already existed, so
+ * cbv_get_trip_request_field()'s fallback to that old blob just works.
+ */
+function cbv_trip_request_field_defs() {
+	return array(
+		// Group Leader / Group Size / Destination & Timing (already existed)
+		'organizer_name'     => array( 'type' => 'text' ),
+		'organizer_email'    => array( 'type' => 'email' ),
+		'organizer_phone'    => array( 'type' => 'text' ),
+		'organizer_role'     => array( 'type' => 'text' ),
+		'decision_style'     => array( 'type' => 'text' ),
+		'client_address'     => array( 'type' => 'textarea' ), // new -- CIF's "Address"
+		'ages_0_17'          => array( 'type' => 'text' ),
+		'ages_18_64'         => array( 'type' => 'text' ),
+		'ages_65_plus'       => array( 'type' => 'text' ),
+		'group_dynamic'      => array( 'type' => 'text' ),
+		'rooming'            => array( 'type' => 'text' ),
+		'destination_pref'   => array( 'type' => 'text' ),
+		'date_flexibility'   => array( 'type' => 'text' ),
+		'trip_category'      => array( 'type' => 'array' ),
+		'transport_modes'    => array( 'type' => 'array' ),
+		'origin_city'        => array( 'type' => 'text' ),
+		'special_transit'    => array( 'type' => 'textarea' ),
+		'budget_tier'        => array( 'type' => 'text' ),
+		'payment_logistics'  => array( 'type' => 'text' ),
+		'accommodation_type' => array( 'type' => 'text' ),
+		'pace'               => array( 'type' => 'text' ),
+		'occasion'           => array( 'type' => 'text' ),
+		'must_haves'         => array( 'type' => 'textarea' ),
+		'dietary'            => array( 'type' => 'textarea' ),
+		'mobility'           => array( 'type' => 'textarea' ),
+		'special_requests'   => array( 'type' => 'textarea' ),
+
+		// Air Travel (CIF section) -- shown when "Flight" is checked
+		'airline_preference' => array( 'type' => 'text' ),
+		'seat_preference'    => array( 'type' => 'array' ),
+
+		// Cruise Vacation (CIF section) -- shown when "Cruise" is checked
+		'cruise_preferences'     => array( 'type' => 'text' ),
+		'cruise_itinerary'       => array( 'type' => 'text' ),
+		'cruise_length'          => array( 'type' => 'text' ),
+		'pre_post_cruise_nights' => array( 'type' => 'text' ),
+		'cruise_cabin_class'     => array( 'type' => 'text' ),
+		'beverage_plan'          => array( 'type' => 'text' ),
+		'beverage_plan_type'     => array( 'type' => 'text' ),
+
+		// Hotel and Resort Vacation (CIF section) -- shown when "Hotel/Resort" is checked
+		'hotel_nights'            => array( 'type' => 'text' ),
+		'hotel_preferences'       => array( 'type' => 'text' ),
+		'hotel_rooms_arrangement' => array( 'type' => 'text' ),
+		'hotel_room_type'         => array( 'type' => 'array' ),
+		'hotel_features'          => array( 'type' => 'array' ),
+		'hotel_concierge_notes'   => array( 'type' => 'text' ),
+
+		// Car Rental (CIF section) -- shown when "Car Rental" is checked
+		'car_preferences' => array( 'type' => 'text' ),
+		'car_addons'      => array( 'type' => 'text' ),
+		'car_category'    => array( 'type' => 'array' ),
+
+		// Package Tour (CIF section) -- shown when "Package Tour" is checked
+		'package_countries'      => array( 'type' => 'text' ),
+		'package_style'          => array( 'type' => 'array' ),
+		'package_activity_level' => array( 'type' => 'text' ),
+	);
+}
+
+/**
+ * Reads one Trip Request field, falling back to the old cb_request_details
+ * JSON blob for trips created before Phase 8 restructured this into
+ * individual meta keys. Field names are identical between the two, by
+ * design, so this fallback needs no key-renaming logic.
+ */
+function cbv_get_trip_request_field( $trip_id, $key, $default = '' ) {
+	$value = get_post_meta( $trip_id, 'cb_req_' . $key, true );
+	if ( '' !== $value && array() !== $value ) {
+		return $value;
+	}
+
+	$legacy_raw = get_post_meta( $trip_id, 'cb_request_details', true );
+	if ( ! $legacy_raw ) {
+		return $default;
+	}
+	$legacy = json_decode( $legacy_raw, true );
+	return ( is_array( $legacy ) && isset( $legacy[ $key ] ) ) ? $legacy[ $key ] : $default;
+}
+
+function cb_save_trip_request_fields( $trip_id, $body ) {
+	foreach ( cbv_trip_request_field_defs() as $key => $def ) {
+		if ( ! isset( $body[ $key ] ) ) {
+			continue;
+		}
+		$raw = $body[ $key ];
+
+		switch ( $def['type'] ) {
+			case 'email':
+				$value = sanitize_email( $raw );
+				break;
+			case 'textarea':
+				$value = sanitize_textarea_field( $raw );
+				break;
+			case 'array':
+				$value = is_array( $raw ) ? array_values( array_map( 'sanitize_text_field', $raw ) ) : array();
+				break;
+			default:
+				$value = sanitize_text_field( $raw );
+		}
+
+		update_post_meta( $trip_id, 'cb_req_' . $key, $value );
+	}
+}
 
 /* ==========================================================================
    3. Admin: formatted read-only view of the full intake
@@ -74,44 +220,84 @@ add_action( 'add_meta_boxes', function () {
 } );
 
 function cb_render_request_meta_box( $post ) {
-	$raw = get_post_meta( $post->ID, 'cb_request_details', true );
-	$d   = $raw ? json_decode( $raw, true ) : null;
+	$f = function ( $key ) use ( $post ) { return cbv_get_trip_request_field( $post->ID, $key ); };
+	$list = function ( $key ) use ( $post ) { return implode( ', ', (array) cbv_get_trip_request_field( $post->ID, $key, array() ) ); };
 
-	if ( ! $d ) {
+	$has_any = $f( 'organizer_name' ) || $f( 'destination_pref' ) || get_post_meta( $post->ID, 'cb_request_details', true );
+	if ( ! $has_any ) {
 		echo '<p><em>No custom request details on file for this trip (either a curated trip, or submitted before this field existed).</em></p>';
 		return;
 	}
 
 	$rows = array(
-		'Organizer'              => trim( ( $d['organizer_name'] ?? '' ) . ' — ' . ( $d['organizer_email'] ?? '' ) . ' — ' . ( $d['organizer_phone'] ?? '' ) ),
-		'Organizer role'         => $d['organizer_role'] ?? '',
-		'Decision style'         => $d['decision_style'] ?? '',
-		'Group breakdown'        => trim( ( $d['ages_0_17'] ?? '0' ) . ' age 0–17, ' . ( $d['ages_18_64'] ?? '0' ) . ' age 18–64, ' . ( $d['ages_65_plus'] ?? '0' ) . ' age 65+' ),
-		'Group dynamic'          => $d['group_dynamic'] ?? '',
-		'Rooming preference'     => $d['rooming'] ?? '',
-		'Destination pref.'      => $d['destination_pref'] ?? '',
-		'Date flexibility'       => $d['date_flexibility'] ?? '',
-		'Trip category'          => implode( ', ', (array) ( $d['trip_category'] ?? array() ) ),
-		'Transport modes'        => implode( ', ', (array) ( $d['transport_modes'] ?? array() ) ),
-		'Origin city(ies)'       => $d['origin_city'] ?? '',
-		'Special transit'        => $d['special_transit'] ?? '',
-		'Budget tier'            => $d['budget_tier'] ?? '',
-		'Payment logistics'      => $d['payment_logistics'] ?? '',
-		'Accommodation type'     => $d['accommodation_type'] ?? '',
-		'Pace of travel'         => $d['pace'] ?? '',
-		'Occasion'               => $d['occasion'] ?? '',
-		'Must-have experiences'  => $d['must_haves'] ?? '',
-		'Dietary restrictions'   => $d['dietary'] ?? '',
-		'Mobility/accessibility' => $d['mobility'] ?? '',
-		'Special requests'       => $d['special_requests'] ?? '',
+		'Organizer'              => trim( $f( 'organizer_name' ) . ' — ' . $f( 'organizer_email' ) . ' — ' . $f( 'organizer_phone' ) ),
+		'Organizer role'         => $f( 'organizer_role' ),
+		'Decision style'         => $f( 'decision_style' ),
+		'Address'                => $f( 'client_address' ),
+		'Group breakdown'        => trim( ( $f( 'ages_0_17' ) ?: '0' ) . ' age 0–17, ' . ( $f( 'ages_18_64' ) ?: '0' ) . ' age 18–64, ' . ( $f( 'ages_65_plus' ) ?: '0' ) . ' age 65+' ),
+		'Group dynamic'          => $f( 'group_dynamic' ),
+		'Rooming preference'     => $f( 'rooming' ),
+		'Destination pref.'      => $f( 'destination_pref' ),
+		'Date flexibility'       => $f( 'date_flexibility' ),
+		'Trip category'          => $list( 'trip_category' ),
+		'Trip elements'          => $list( 'transport_modes' ),
+		'Origin city(ies)'       => $f( 'origin_city' ),
+		'Special transit'        => $f( 'special_transit' ),
+		'Budget tier'            => $f( 'budget_tier' ),
+		'Payment logistics'      => $f( 'payment_logistics' ),
+		'Accommodation type'     => $f( 'accommodation_type' ),
+		'Pace of travel'         => $f( 'pace' ),
+		'Occasion'               => $f( 'occasion' ),
+		'Must-have experiences'  => $f( 'must_haves' ),
+		'Dietary restrictions'   => $f( 'dietary' ),
+		'Mobility/accessibility' => $f( 'mobility' ),
+		'Special requests'       => $f( 'special_requests' ),
+
+		'— Air Travel —'         => '',
+		'Airline preference'     => $f( 'airline_preference' ),
+		'Seat preference'        => $list( 'seat_preference' ),
+
+		'— Cruise Vacation —'    => '',
+		'Cruise preferences'     => $f( 'cruise_preferences' ),
+		'Cruise itinerary'       => $f( 'cruise_itinerary' ),
+		'Cruise length'          => $f( 'cruise_length' ),
+		'Pre/post cruise nights' => $f( 'pre_post_cruise_nights' ),
+		'Cabin class'            => $f( 'cruise_cabin_class' ),
+		'Beverage plan'          => $f( 'beverage_plan' ),
+		'Beverage plan type'     => $f( 'beverage_plan_type' ),
+
+		'— Hotel and Resort Vacation —' => '',
+		'# of nights'            => $f( 'hotel_nights' ),
+		'Hotel preferences'      => $f( 'hotel_preferences' ),
+		'# of rooms/arrangement' => $f( 'hotel_rooms_arrangement' ),
+		'Room type'              => $list( 'hotel_room_type' ),
+		'Features'               => $list( 'hotel_features' ),
+		'Concierge notes'        => $f( 'hotel_concierge_notes' ),
+
+		'— Car Rental —'         => '',
+		'Car preferences'        => $f( 'car_preferences' ),
+		'Add-ons'                => $f( 'car_addons' ),
+		'Car category'           => $list( 'car_category' ),
+
+		'— Package Tour —'       => '',
+		'Countries of interest'  => $f( 'package_countries' ),
+		'Style'                  => $list( 'package_style' ),
+		'Activity level'         => $f( 'package_activity_level' ),
 	);
 	?>
 	<table class="widefat striped">
 		<tbody>
-			<?php foreach ( $rows as $label => $value ) : if ( empty( $value ) ) { continue; } ?>
+			<?php foreach ( $rows as $label => $value ) :
+				$is_heading = ( '' === $value && str_starts_with( $label, '—' ) );
+				if ( empty( $value ) && ! $is_heading ) { continue; }
+				?>
 				<tr>
-					<td style="width:220px;"><strong><?php echo esc_html( $label ); ?></strong></td>
-					<td><?php echo esc_html( $value ); ?></td>
+					<?php if ( $is_heading ) : ?>
+						<td colspan="2"><strong><?php echo esc_html( $label ); ?></strong></td>
+					<?php else : ?>
+						<td style="width:220px;"><strong><?php echo esc_html( $label ); ?></strong></td>
+						<td><?php echo esc_html( $value ); ?></td>
+					<?php endif; ?>
 				</tr>
 			<?php endforeach; ?>
 		</tbody>
@@ -210,53 +396,29 @@ function cb_toggle_suggestion_vote( $request ) {
 	return array( 'voted' => $voted, 'count' => count( $votes ) );
 }
 
-function cb_sanitize_request_details( $body ) {
-	$str = function ( $key ) use ( $body ) {
-		return isset( $body[ $key ] ) ? sanitize_text_field( $body[ $key ] ) : '';
-	};
-	$txt = function ( $key ) use ( $body ) {
-		return isset( $body[ $key ] ) ? sanitize_textarea_field( $body[ $key ] ) : '';
-	};
-	$arr = function ( $key ) use ( $body ) {
-		if ( empty( $body[ $key ] ) || ! is_array( $body[ $key ] ) ) {
-			return array();
-		}
-		return array_map( 'sanitize_text_field', $body[ $key ] );
-	};
-
-	return array(
-		'organizer_name'     => $str( 'organizer_name' ),
-		'organizer_email'    => sanitize_email( $body['organizer_email'] ?? '' ),
-		'organizer_phone'    => $str( 'organizer_phone' ),
-		'organizer_role'     => $str( 'organizer_role' ),
-		'decision_style'     => $str( 'decision_style' ),
-		'ages_0_17'          => absint( $body['ages_0_17'] ?? 0 ),
-		'ages_18_64'         => absint( $body['ages_18_64'] ?? 0 ),
-		'ages_65_plus'       => absint( $body['ages_65_plus'] ?? 0 ),
-		'group_dynamic'      => $str( 'group_dynamic' ),
-		'rooming'            => $str( 'rooming' ),
-		'destination_pref'   => $str( 'destination_pref' ),
-		'date_flexibility'   => $str( 'date_flexibility' ),
-		'trip_category'      => $arr( 'trip_category' ),
-		'transport_modes'    => $arr( 'transport_modes' ),
-		'origin_city'        => $str( 'origin_city' ),
-		'special_transit'    => $txt( 'special_transit' ),
-		'budget_tier'        => $str( 'budget_tier' ),
-		'payment_logistics'  => $str( 'payment_logistics' ),
-		'accommodation_type' => $str( 'accommodation_type' ),
-		'pace'               => $str( 'pace' ),
-		'occasion'           => $str( 'occasion' ),
-		'must_haves'         => $txt( 'must_haves' ),
-		'dietary'            => $txt( 'dietary' ),
-		'mobility'           => $txt( 'mobility' ),
-		'special_requests'   => $txt( 'special_requests' ),
+/**
+ * Maps a checked "Trip Elements" value to an existing cb_trip_type term
+ * (Cruise, Destination, Flight, Train, Other, Resort, Retreat -- see
+ * checkedbags-trips.php). Without this, wp_set_object_terms() would
+ * silently CREATE a new taxonomy term for any unmapped value (e.g. "Hotel/
+ * Resort", "Car Rental") the first time someone checked it, since WP
+ * auto-creates terms that don't already exist by that name.
+ */
+function cbv_map_request_type_to_trip_type( $type ) {
+	$map = array(
+		'Flight'       => 'Flight',
+		'Cruise'       => 'Cruise',
+		'Hotel/Resort' => 'Resort',
+		'Train'        => 'Train',
+		'Package Tour' => 'Destination',
 	);
+	return isset( $map[ $type ] ) ? $map[ $type ] : 'Other';
 }
 
 function cb_create_trip_request( $request ) {
 	$body        = $request->get_json_params();
 	$destination = ucwords( sanitize_text_field( $body['destination_pref'] ?? '' ) );
-	$type        = sanitize_text_field( $body['type'] ?? '' );
+	$type        = cbv_map_request_type_to_trip_type( sanitize_text_field( $body['type'] ?? '' ) );
 	$when        = sanitize_text_field( $body['when'] ?? '' );
 	$duration    = sanitize_text_field( $body['duration'] ?? '' );
 	$group_size  = absint( $body['group_size'] ?? 0 );
@@ -286,7 +448,7 @@ function cb_create_trip_request( $request ) {
 	update_post_meta( $trip_id, 'cb_min_group_size', 4 );
 	update_post_meta( $trip_id, 'cb_when_notes', $when );
 	update_post_meta( $trip_id, 'cb_duration_notes', $duration );
-	update_post_meta( $trip_id, 'cb_request_details', wp_json_encode( cb_sanitize_request_details( $body ) ) );
+	cb_save_trip_request_fields( $trip_id, $body );
 
 	if ( $type ) {
 		wp_set_object_terms( $trip_id, $type, 'cb_trip_type' );
@@ -389,6 +551,7 @@ add_shortcode( 'cb_gate_requests', function () {
 				<option value="I'm paying for the whole group">I'm paying for the whole group</option>
 				<option value="Each member pays individually">Each member pays individually</option>
 			</select></label>
+			<label>Address <textarea id="req-client-address" rows="2"></textarea></label>
 		</fieldset>
 
 		<fieldset>
@@ -427,13 +590,94 @@ add_shortcode( 'cb_gate_requests', function () {
 		</fieldset>
 
 		<fieldset>
-			<legend>Transportation (check all that apply)</legend>
+			<legend>Trip Elements (check all that apply)</legend>
 			<label class="check-row"><input type="checkbox" name="transport_modes" value="Flight"> Flight needed</label>
 			<label class="check-row"><input type="checkbox" name="transport_modes" value="Cruise"> Cruise</label>
+			<label class="check-row"><input type="checkbox" name="transport_modes" value="Hotel/Resort"> Hotel/Resort stay</label>
+			<label class="check-row"><input type="checkbox" name="transport_modes" value="Car Rental"> Car rental</label>
+			<label class="check-row"><input type="checkbox" name="transport_modes" value="Package Tour"> Package tour</label>
 			<label class="check-row"><input type="checkbox" name="transport_modes" value="Bus/Motorcoach"> Bus / motorcoach</label>
 			<label class="check-row"><input type="checkbox" name="transport_modes" value="Train"> Train</label>
 			<label>Departure city(ies) <input type="text" id="req-origin-city" placeholder="One city, or list if members fly from different airports"></label>
 			<label>Special transit needs <input type="text" id="req-special-transit" placeholder="e.g. sleeper cabins, wheelchair-accessible bus"></label>
+		</fieldset>
+
+		<fieldset id="req-section-air" class="req-conditional-section" style="display:none;">
+			<legend>Air Travel</legend>
+			<label>Airline preference / frequent flyer programs <input type="text" id="req-airline-preference"></label>
+			<p class="requests-check-group-label">Seat preference (check all that apply):</p>
+			<label class="check-row"><input type="checkbox" name="seat_preference" value="Economy"> Economy</label>
+			<label class="check-row"><input type="checkbox" name="seat_preference" value="Extra Leg Room/Premium"> Extra Leg Room/Premium</label>
+			<label class="check-row"><input type="checkbox" name="seat_preference" value="Business Class"> Business Class</label>
+			<label class="check-row"><input type="checkbox" name="seat_preference" value="First Class"> First Class</label>
+			<label class="check-row"><input type="checkbox" name="seat_preference" value="Aisle"> Aisle</label>
+			<label class="check-row"><input type="checkbox" name="seat_preference" value="Middle"> Middle</label>
+			<label class="check-row"><input type="checkbox" name="seat_preference" value="Window"> Window</label>
+			<label class="check-row"><input type="checkbox" name="seat_preference" value="Bulkhead"> Bulkhead</label>
+			<label class="check-row"><input type="checkbox" name="seat_preference" value="Forward"> Forward</label>
+			<label class="check-row"><input type="checkbox" name="seat_preference" value="Wing"> Wing</label>
+		</fieldset>
+
+		<fieldset id="req-section-cruise" class="req-conditional-section" style="display:none;">
+			<legend>Cruise Vacation</legend>
+			<label>Cruise preferences / frequent cruiser programs <input type="text" id="req-cruise-preferences"></label>
+			<label>Cruise itinerary <input type="text" id="req-cruise-itinerary"></label>
+			<label>Cruise length <input type="text" id="req-cruise-length"></label>
+			<label>Pre and post cruise nights <select id="req-pre-post-cruise-nights">
+				<option value="">—</option><option value="Yes">Yes</option><option value="No">No</option>
+			</select></label>
+			<label>Cabin class <input type="text" id="req-cruise-cabin-class"></label>
+			<label>Beverage plan <select id="req-beverage-plan">
+				<option value="">—</option><option value="Yes">Yes</option><option value="No">No</option>
+			</select></label>
+			<label>Beverage plan type <input type="text" id="req-beverage-plan-type"></label>
+		</fieldset>
+
+		<fieldset id="req-section-hotel" class="req-conditional-section" style="display:none;">
+			<legend>Hotel and Resort Vacation</legend>
+			<label># of nights <input type="text" id="req-hotel-nights"></label>
+			<label>Hotel preferences / frequent guest programs <input type="text" id="req-hotel-preferences"></label>
+			<label># of rooms/arrangement <input type="text" id="req-hotel-rooms-arrangement"></label>
+			<p class="requests-check-group-label">Room (check all that apply):</p>
+			<label class="check-row"><input type="checkbox" name="hotel_room_type" value="Standard Room"> Standard Room</label>
+			<label class="check-row"><input type="checkbox" name="hotel_room_type" value="Garden View"> Garden View</label>
+			<label class="check-row"><input type="checkbox" name="hotel_room_type" value="Ocean View/Front"> Ocean View/Front</label>
+			<label class="check-row"><input type="checkbox" name="hotel_room_type" value="Other"> Other</label>
+			<p class="requests-check-group-label">Features (check all that apply):</p>
+			<label class="check-row"><input type="checkbox" name="hotel_features" value="All Inclusive"> All Inclusive</label>
+			<label class="check-row"><input type="checkbox" name="hotel_features" value="Adults Only"> Adults Only</label>
+			<label class="check-row"><input type="checkbox" name="hotel_features" value="Family Friendly"> Family Friendly</label>
+			<label class="check-row"><input type="checkbox" name="hotel_features" value="Concierge Level"> Concierge Level</label>
+			<label class="check-row"><input type="checkbox" name="hotel_features" value="Suite/Jr Suite"> Suite/Jr Suite</label>
+			<label class="check-row"><input type="checkbox" name="hotel_features" value="On the Beach"> On the Beach</label>
+			<label class="check-row"><input type="checkbox" name="hotel_features" value="Near City Center"> Near City Center</label>
+			<label class="check-row"><input type="checkbox" name="hotel_features" value="Kids Club"> Kids Club</label>
+			<label class="check-row"><input type="checkbox" name="hotel_features" value="Near Air/Cruise Port"> Near Air/Cruise Port</label>
+			<label class="check-row"><input type="checkbox" name="hotel_features" value="Luxury Resort"> Luxury Resort</label>
+			<label class="check-row"><input type="checkbox" name="hotel_features" value="Activities On-Site"> Activities On-Site</label>
+			<label class="check-row"><input type="checkbox" name="hotel_features" value="Standard View"> Standard View</label>
+			<label class="check-row"><input type="checkbox" name="hotel_features" value="Ocean View"> Ocean View</label>
+			<label>Concierge level notes <input type="text" id="req-hotel-concierge-notes"></label>
+		</fieldset>
+
+		<fieldset id="req-section-car" class="req-conditional-section" style="display:none;">
+			<legend>Car Rental</legend>
+			<label>Car preferences / frequent renter programs <input type="text" id="req-car-preferences"></label>
+			<label>Add-ons <input type="text" id="req-car-addons"></label>
+			<p class="requests-check-group-label">Car category (check all that apply):</p>
+			<label class="check-row"><input type="checkbox" name="car_category" value="Compact"> Compact</label>
+			<label class="check-row"><input type="checkbox" name="car_category" value="Mid Size"> Mid Size</label>
+			<label class="check-row"><input type="checkbox" name="car_category" value="Full Size"> Full Size</label>
+			<label class="check-row"><input type="checkbox" name="car_category" value="Luxury"> Luxury</label>
+			<label class="check-row"><input type="checkbox" name="car_category" value="Other"> Other</label>
+		</fieldset>
+
+		<fieldset id="req-section-package" class="req-conditional-section" style="display:none;">
+			<legend>Package Tour</legend>
+			<label>Country or countries of interest <input type="text" id="req-package-countries"></label>
+			<label class="check-row"><input type="checkbox" name="package_style" value="Escorted"> Escorted</label>
+			<label class="check-row"><input type="checkbox" name="package_style" value="Independent"> Independent</label>
+			<label>Activity level <input type="text" id="req-package-activity-level"></label>
 		</fieldset>
 
 		<fieldset>

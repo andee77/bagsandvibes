@@ -1225,6 +1225,11 @@ body.checkedbags-dashboard {
   font-style: italic;
   line-height: 1.5;
 }
+.requests-check-group-label {
+  font-size: 0.8rem;
+  color: rgba(251,243,231,0.7);
+  margin: 0.25rem 0 -0.25rem;
+}
 .request-status-card {
   background: var(--horizon);
   border: 1px solid rgba(232,169,78,0.25);

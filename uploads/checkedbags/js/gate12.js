@@ -21,6 +21,7 @@
         organizer_phone: val('req-organizer-phone'),
         organizer_role: val('req-organizer-role'),
         decision_style: val('req-decision-style'),
+        client_address: val('req-client-address'),
         group_size: val('req-group-size'),
         ages_0_17: val('req-ages-0-17'),
         ages_18_64: val('req-ages-18-64'),
@@ -44,7 +45,38 @@
         dietary: val('req-dietary'),
         mobility: val('req-mobility'),
         special_requests: val('req-special-requests'),
-        type: (checkedValues('transport_modes')[0] || 'Other')
+        type: (checkedValues('transport_modes')[0] || 'Other'),
+
+        // Air Travel
+        airline_preference: val('req-airline-preference'),
+        seat_preference: checkedValues('seat_preference'),
+
+        // Cruise Vacation
+        cruise_preferences: val('req-cruise-preferences'),
+        cruise_itinerary: val('req-cruise-itinerary'),
+        cruise_length: val('req-cruise-length'),
+        pre_post_cruise_nights: val('req-pre-post-cruise-nights'),
+        cruise_cabin_class: val('req-cruise-cabin-class'),
+        beverage_plan: val('req-beverage-plan'),
+        beverage_plan_type: val('req-beverage-plan-type'),
+
+        // Hotel and Resort Vacation
+        hotel_nights: val('req-hotel-nights'),
+        hotel_preferences: val('req-hotel-preferences'),
+        hotel_rooms_arrangement: val('req-hotel-rooms-arrangement'),
+        hotel_room_type: checkedValues('hotel_room_type'),
+        hotel_features: checkedValues('hotel_features'),
+        hotel_concierge_notes: val('req-hotel-concierge-notes'),
+
+        // Car Rental
+        car_preferences: val('req-car-preferences'),
+        car_addons: val('req-car-addons'),
+        car_category: checkedValues('car_category'),
+
+        // Package Tour
+        package_countries: val('req-package-countries'),
+        package_style: checkedValues('package_style'),
+        package_activity_level: val('req-package-activity-level')
       };
 
       if (!payload.destination_pref.trim()) return;
@@ -76,6 +108,35 @@
         });
     }
   });
+
+  // Show only the Air/Cruise/Hotel/Car/Package Tour section(s) that match
+  // whichever "Trip Elements" boxes are currently checked -- a request can
+  // involve more than one (e.g. a flight to a cruise port), so this is
+  // additive, not a single fixed "type" toggle.
+  var SECTION_BY_ELEMENT = {
+    'Flight': 'req-section-air',
+    'Cruise': 'req-section-cruise',
+    'Hotel/Resort': 'req-section-hotel',
+    'Car Rental': 'req-section-car',
+    'Package Tour': 'req-section-package'
+  };
+
+  function updateConditionalSections() {
+    var checked = checkedValues('transport_modes');
+    Object.keys(SECTION_BY_ELEMENT).forEach(function (element) {
+      var section = document.getElementById(SECTION_BY_ELEMENT[element]);
+      if (!section) { return; }
+      section.style.display = checked.indexOf(element) !== -1 ? '' : 'none';
+    });
+  }
+
+  var tripElementBoxes = document.querySelectorAll('input[name="transport_modes"]');
+  if (tripElementBoxes.length) {
+    tripElementBoxes.forEach(function (box) {
+      box.addEventListener('change', updateConditionalSections);
+    });
+    updateConditionalSections();
+  }
 
   document.addEventListener('click', function (e) {
     var acceptBtn = e.target.closest('.cb-accept-quote-btn');

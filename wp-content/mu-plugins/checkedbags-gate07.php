@@ -278,8 +278,8 @@ add_filter( 'the_content', function ( $content ) {
 	$when     = get_post_meta( $post->ID, 'cb_when_notes', true );
 	$duration = get_post_meta( $post->ID, 'cb_duration_notes', true );
 
-	$request_raw = get_post_meta( $post->ID, 'cb_request_details', true );
-	$request     = $request_raw ? json_decode( $request_raw, true ) : null;
+	$has_request_details = function_exists( 'cbv_get_trip_request_field' )
+		&& ( cbv_get_trip_request_field( $post->ID, 'organizer_name' ) || cbv_get_trip_request_field( $post->ID, 'destination_pref' ) || get_post_meta( $post->ID, 'cb_request_details', true ) );
 
 	$cover_url = function_exists( 'cbv_get_trip_cover_photo_url' ) ? cbv_get_trip_cover_photo_url( $post->ID, 'large' ) : '';
 
@@ -308,24 +308,42 @@ add_filter( 'the_content', function ( $content ) {
 			<?php endif; ?>
 		</div>
 
-		<?php if ( $source === 'member_built' && $request ) : ?>
+		<?php if ( $source === 'member_built' && $has_request_details ) : ?>
 		<div class="trip-detail-section trip-detail-request">
 			<h3>Your Request Details</h3>
 			<ul class="request-detail-list">
 				<?php
+				$f    = function ( $key ) use ( $post ) { return cbv_get_trip_request_field( $post->ID, $key ); };
+				$list = function ( $key ) use ( $post ) { return implode( ', ', (array) cbv_get_trip_request_field( $post->ID, $key, array() ) ); };
+
 				$request_rows = array(
-					'Group dynamic'      => $request['group_dynamic'] ?? '',
-					'Rooming preference' => $request['rooming'] ?? '',
-					'Trip category'      => implode( ', ', (array) ( $request['trip_category'] ?? array() ) ),
-					'Transport'          => implode( ', ', (array) ( $request['transport_modes'] ?? array() ) ),
-					'Departure city'     => $request['origin_city'] ?? '',
-					'Budget target'      => $request['budget_tier'] ?? '',
-					'Accommodation'      => $request['accommodation_type'] ?? '',
-					'Pace'               => $request['pace'] ?? '',
-					'Occasion'           => $request['occasion'] ?? '',
-					'Must-haves'         => $request['must_haves'] ?? '',
-					'Dietary'            => $request['dietary'] ?? '',
-					'Mobility/access'    => $request['mobility'] ?? '',
+					'Group dynamic'          => $f( 'group_dynamic' ),
+					'Rooming preference'     => $f( 'rooming' ),
+					'Trip category'          => $list( 'trip_category' ),
+					'Trip elements'          => $list( 'transport_modes' ),
+					'Departure city'         => $f( 'origin_city' ),
+					'Budget target'          => $f( 'budget_tier' ),
+					'Accommodation'          => $f( 'accommodation_type' ),
+					'Pace'                   => $f( 'pace' ),
+					'Occasion'               => $f( 'occasion' ),
+					'Must-haves'             => $f( 'must_haves' ),
+					'Dietary'                => $f( 'dietary' ),
+					'Mobility/access'        => $f( 'mobility' ),
+					'Airline preference'     => $f( 'airline_preference' ),
+					'Seat preference'        => $list( 'seat_preference' ),
+					'Cruise preferences'     => $f( 'cruise_preferences' ),
+					'Cruise itinerary'       => $f( 'cruise_itinerary' ),
+					'Cruise length'          => $f( 'cruise_length' ),
+					'Cruise cabin class'     => $f( 'cruise_cabin_class' ),
+					'Beverage plan'          => $f( 'beverage_plan' ),
+					'Hotel # of nights'      => $f( 'hotel_nights' ),
+					'Hotel preferences'      => $f( 'hotel_preferences' ),
+					'Hotel room type'        => $list( 'hotel_room_type' ),
+					'Hotel features'         => $list( 'hotel_features' ),
+					'Car preferences'        => $f( 'car_preferences' ),
+					'Car category'           => $list( 'car_category' ),
+					'Package tour countries' => $f( 'package_countries' ),
+					'Package tour style'     => $list( 'package_style' ),
 				);
 				foreach ( $request_rows as $label => $value ) :
 					if ( empty( $value ) ) { continue; }
