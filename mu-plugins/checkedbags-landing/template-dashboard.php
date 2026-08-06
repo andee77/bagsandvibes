@@ -84,6 +84,12 @@ if ( ! $is_trip_guest && function_exists( 'cbv_get_dashboard_highlight_trip_id' 
 		$highlight_trip = get_post( $highlight_trip_id );
 	}
 }
+
+// Travel Profile nudge -- account-level, so shown to Guests and Full
+// Members alike, unlike the trip-highlight banner above.
+$needs_profile_nudge = function_exists( 'cbv_user_profile_is_complete' )
+	&& ! cbv_user_profile_is_complete( $current_user->ID )
+	&& ! get_user_meta( $current_user->ID, '_profile_nudge_dismissed', true );
 ?><!DOCTYPE html>
 <html <?php language_attributes(); ?>>
 <head>
@@ -121,6 +127,16 @@ if ( ! $is_trip_guest && function_exists( 'cbv_get_dashboard_highlight_trip_id' 
       <?php echo cbv_render_my_trips_sticky_note( $my_trips ); ?>
     <?php endif; ?>
   </div>
+
+  <?php if ( $needs_profile_nudge ) : ?>
+    <section class="dashboard-highlight-banner" id="cbv-profile-nudge">
+      <p class="dashboard-highlight-text">
+        Complete your Travel Profile so we have what we need before your next trip.
+      </p>
+      <a href="<?php echo esc_url( function_exists( 'UM' ) ? UM()->account()->tab_link( 'travel-profile' ) : home_url( '/account/' ) ); ?>" class="btn btn-ticket">Complete profile</a>
+      <button type="button" class="btn btn-ghost" id="cbv-dismiss-profile-nudge-btn">Dismiss</button>
+    </section>
+  <?php endif; ?>
 
   <?php if ( $is_trip_guest ) : ?>
 
@@ -242,6 +258,16 @@ if ( ! $is_trip_guest && function_exists( 'cbv_get_dashboard_highlight_trip_id' 
 		dismissBtn.addEventListener( 'click', function () {
 			var banner = document.getElementById( 'cbv-trip-highlight' );
 			fetch( restUrl + 'dismiss-trip-highlight', { method: 'POST', headers: { 'X-WP-Nonce': nonce } } )
+				.then( function () { if ( banner ) { banner.remove(); } } )
+				.catch( function () { if ( banner ) { banner.remove(); } } );
+		} );
+	}
+
+	var dismissProfileNudgeBtn = document.getElementById( 'cbv-dismiss-profile-nudge-btn' );
+	if ( dismissProfileNudgeBtn ) {
+		dismissProfileNudgeBtn.addEventListener( 'click', function () {
+			var banner = document.getElementById( 'cbv-profile-nudge' );
+			fetch( restUrl + 'dismiss-profile-nudge', { method: 'POST', headers: { 'X-WP-Nonce': nonce } } )
 				.then( function () { if ( banner ) { banner.remove(); } } )
 				.catch( function () { if ( banner ) { banner.remove(); } } );
 		} );

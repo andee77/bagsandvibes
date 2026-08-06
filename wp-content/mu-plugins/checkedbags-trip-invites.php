@@ -1747,3 +1747,204 @@ add_action( 'admin_post_cbv_promote_trip_guest', function () {
 	) );
 	exit;
 } );
+
+/* ==========================================================================
+   PHASE 8a — Member Profile (one-time, account-level, not trip-specific)
+
+   Lives as a custom tab on UM's existing /account/ page rather than a new
+   page -- "wherever makes sense on the member's account area" is literally
+   the account area UM already provides. UM wraps every tab's content in
+   ONE shared <form> for the whole page (see templates/account.php), so this
+   tab's markup deliberately has NO <form> of its own and no name= attributes
+   on its inputs -- exactly the nested-form trap that broke the roster
+   Remove button earlier in this build. Fields are read by id and posted via
+   fetch(), matching every other REST-backed form in this codebase.
+
+   Storage: plain usermeta, unregistered -- same convention as
+   _invited_by_user_id / _accepted_terms_version elsewhere in this file.
+   No passport number field, ever (per spec).
+   ========================================================================== */
+define( 'CBV_ACTIVITY_INTERESTS', array(
+	'Sightseeing/History', 'Culture/Arts', 'Beach/Sun', 'Active/Sports', 'Wine/Culinary', 'Shopping', 'Spa',
+) );
+
+add_filter( 'um_account_page_default_tabs_hook', function ( $tabs ) {
+	$tabs[250]['travel-profile'] = array(
+		'icon'   => 'um-faicon-suitcase',
+		'title'  => 'Travel Profile',
+		'custom' => true,
+	);
+	return $tabs;
+} );
+
+function cbv_user_profile_is_complete( $user_id ) {
+	return (bool) get_user_meta( $user_id, '_legal_name', true );
+}
+
+add_filter( 'um_account_content_hook_travel-profile', function ( $output, $args ) {
+	$user_id = get_current_user_id();
+
+	$legal_name    = get_user_meta( $user_id, '_legal_name', true );
+	$dob           = get_user_meta( $user_id, '_date_of_birth', true );
+	$ec_name       = get_user_meta( $user_id, '_emergency_contact_name', true );
+	$ec_phone      = get_user_meta( $user_id, '_emergency_contact_phone', true );
+	$has_passport  = get_user_meta( $user_id, '_has_passport', true );
+	$passport_country = get_user_meta( $user_id, '_passport_country', true );
+	$passport_exp  = get_user_meta( $user_id, '_passport_expiration', true );
+	$dietary       = get_user_meta( $user_id, '_dietary_restrictions', true );
+	$medical       = get_user_meta( $user_id, '_medical_mobility_needs', true );
+	$travel_history = get_user_meta( $user_id, '_travel_history', true );
+	$interests     = get_user_meta( $user_id, '_activity_interests', true );
+	$interests     = is_array( $interests ) ? $interests : array();
+
+	ob_start();
+	?>
+	<div class="cbv-travel-profile">
+		<fieldset>
+			<legend>Personal Details</legend>
+			<label>Full legal name <input type="text" id="cbv-tp-legal-name" value="<?php echo esc_attr( $legal_name ); ?>"></label>
+			<label>Date of birth <input type="date" id="cbv-tp-dob" value="<?php echo esc_attr( $dob ); ?>"></label>
+		</fieldset>
+
+		<fieldset>
+			<legend>Emergency Contact</legend>
+			<label>Name <input type="text" id="cbv-tp-ec-name" value="<?php echo esc_attr( $ec_name ); ?>"></label>
+			<label>Phone <input type="tel" id="cbv-tp-ec-phone" value="<?php echo esc_attr( $ec_phone ); ?>"></label>
+		</fieldset>
+
+		<fieldset>
+			<legend>Passport</legend>
+			<label>Do you have a valid passport?
+				<select id="cbv-tp-has-passport">
+					<option value="" <?php selected( $has_passport, '' ); ?>>—</option>
+					<option value="yes" <?php selected( $has_passport, 'yes' ); ?>>Yes</option>
+					<option value="no" <?php selected( $has_passport, 'no' ); ?>>No</option>
+				</select>
+			</label>
+			<label>Issuing country <input type="text" id="cbv-tp-passport-country" value="<?php echo esc_attr( $passport_country ); ?>"></label>
+			<label>Expiration date <input type="date" id="cbv-tp-passport-exp" value="<?php echo esc_attr( $passport_exp ); ?>"></label>
+			<p class="description">We never ask for or store your passport number.</p>
+		</fieldset>
+
+		<fieldset>
+			<legend>Health &amp; Accessibility</legend>
+			<label>Dietary restrictions / allergies <textarea id="cbv-tp-dietary" rows="2"><?php echo esc_textarea( $dietary ); ?></textarea></label>
+			<label>Medical or mobility needs <textarea id="cbv-tp-medical" rows="2"><?php echo esc_textarea( $medical ); ?></textarea></label>
+		</fieldset>
+
+		<fieldset>
+			<legend>Travel Preferences</legend>
+			<label>Hotels/cruiselines you've enjoyed before <textarea id="cbv-tp-travel-history" rows="2"><?php echo esc_textarea( $travel_history ); ?></textarea></label>
+			<p class="description">Activities you enjoy when traveling:</p>
+			<?php foreach ( CBV_ACTIVITY_INTERESTS as $option ) : ?>
+				<label class="check-row">
+					<input type="checkbox" class="cbv-tp-interest" value="<?php echo esc_attr( $option ); ?>" <?php checked( in_array( $option, $interests, true ) ); ?>>
+					<?php echo esc_html( $option ); ?>
+				</label>
+			<?php endforeach; ?>
+		</fieldset>
+
+		<button type="button" class="btn btn-ticket" id="cbv-tp-save">Save Travel Profile</button>
+		<span id="cbv-tp-result" style="margin-left:10px;"></span>
+	</div>
+	<script>
+	(function () {
+		var btn = document.getElementById( 'cbv-tp-save' );
+		if ( ! btn ) { return; }
+		btn.addEventListener( 'click', function () {
+			var interests = Array.prototype.map.call(
+				document.querySelectorAll( '.cbv-tp-interest:checked' ),
+				function ( el ) { return el.value; }
+			);
+			var payload = {
+				legal_name: document.getElementById( 'cbv-tp-legal-name' ).value,
+				date_of_birth: document.getElementById( 'cbv-tp-dob' ).value,
+				emergency_contact_name: document.getElementById( 'cbv-tp-ec-name' ).value,
+				emergency_contact_phone: document.getElementById( 'cbv-tp-ec-phone' ).value,
+				has_passport: document.getElementById( 'cbv-tp-has-passport' ).value,
+				passport_country: document.getElementById( 'cbv-tp-passport-country' ).value,
+				passport_expiration: document.getElementById( 'cbv-tp-passport-exp' ).value,
+				dietary_restrictions: document.getElementById( 'cbv-tp-dietary' ).value,
+				medical_mobility_needs: document.getElementById( 'cbv-tp-medical' ).value,
+				travel_history: document.getElementById( 'cbv-tp-travel-history' ).value,
+				activity_interests: interests
+			};
+			btn.disabled = true;
+			btn.textContent = 'Saving...';
+			fetch( <?php echo wp_json_encode( esc_url_raw( rest_url( 'cb/v1/profile' ) ) ); ?>, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': <?php echo wp_json_encode( wp_create_nonce( 'wp_rest' ) ); ?> },
+				body: JSON.stringify( payload )
+			} )
+				.then( function ( res ) { return res.json(); } )
+				.then( function ( data ) {
+					btn.disabled = false;
+					btn.textContent = 'Save Travel Profile';
+					document.getElementById( 'cbv-tp-result' ).textContent = data.saved ? 'Saved!' : 'Could not save.';
+				} )
+				.catch( function () {
+					btn.disabled = false;
+					btn.textContent = 'Save Travel Profile';
+					document.getElementById( 'cbv-tp-result' ).textContent = 'Something went wrong.';
+				} );
+		} );
+	})();
+	</script>
+	<?php
+	return ob_get_clean();
+}, 10, 2 );
+
+add_action( 'rest_api_init', function () {
+	register_rest_route( 'cb/v1', '/profile', array(
+		'methods'             => 'POST',
+		'permission_callback' => function () {
+			return is_user_logged_in();
+		},
+		'callback'            => 'cbv_save_member_profile',
+	) );
+
+	register_rest_route( 'cb/v1', '/dismiss-profile-nudge', array(
+		'methods'             => 'POST',
+		'permission_callback' => function () {
+			return is_user_logged_in();
+		},
+		'callback'            => function () {
+			update_user_meta( get_current_user_id(), '_profile_nudge_dismissed', 1 );
+			return array( 'dismissed' => true );
+		},
+	) );
+} );
+
+function cbv_save_member_profile( $request ) {
+	$body    = $request->get_json_params();
+	$user_id = get_current_user_id();
+
+	$str = function ( $key ) use ( $body ) {
+		return isset( $body[ $key ] ) ? sanitize_text_field( $body[ $key ] ) : '';
+	};
+	$txt = function ( $key ) use ( $body ) {
+		return isset( $body[ $key ] ) ? sanitize_textarea_field( $body[ $key ] ) : '';
+	};
+
+	update_user_meta( $user_id, '_legal_name', $str( 'legal_name' ) );
+	update_user_meta( $user_id, '_date_of_birth', $str( 'date_of_birth' ) );
+	update_user_meta( $user_id, '_emergency_contact_name', $str( 'emergency_contact_name' ) );
+	update_user_meta( $user_id, '_emergency_contact_phone', $str( 'emergency_contact_phone' ) );
+
+	$has_passport = $str( 'has_passport' );
+	update_user_meta( $user_id, '_has_passport', in_array( $has_passport, array( 'yes', 'no' ), true ) ? $has_passport : '' );
+	update_user_meta( $user_id, '_passport_country', $str( 'passport_country' ) );
+	update_user_meta( $user_id, '_passport_expiration', $str( 'passport_expiration' ) );
+
+	update_user_meta( $user_id, '_dietary_restrictions', $txt( 'dietary_restrictions' ) );
+	update_user_meta( $user_id, '_medical_mobility_needs', $txt( 'medical_mobility_needs' ) );
+	update_user_meta( $user_id, '_travel_history', $txt( 'travel_history' ) );
+
+	$submitted_interests = isset( $body['activity_interests'] ) && is_array( $body['activity_interests'] )
+		? array_map( 'sanitize_text_field', $body['activity_interests'] )
+		: array();
+	$valid_interests = array_values( array_intersect( $submitted_interests, CBV_ACTIVITY_INTERESTS ) );
+	update_user_meta( $user_id, '_activity_interests', $valid_interests );
+
+	return array( 'saved' => true );
+}
