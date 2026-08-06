@@ -1948,3 +1948,170 @@ function cbv_save_member_profile( $request ) {
 
 	return array( 'saved' => true );
 }
+
+/* ==========================================================================
+   PHASE 8c — Per-Traveler Trip Intake (once a user is on a trip's roster)
+
+   One record per (user, trip) pair, stored as a JSON blob on usermeta --
+   same pattern as _trip_agreement_accepted_{trip_id} elsewhere in this
+   file. Gated on roster membership only, not agreement re-acceptance --
+   booking logistics like seat/cabin preference and the insurance decision
+   aren't a legal-terms concern, so an unrelated Agreement version bump
+   shouldn't block filling this in.
+
+   The Credit Card Authorization form and the Allianz Insurance Waiver are
+   NOT collected on this site at all: the CC auth form asks for the full
+   card number, CVV, and a photo of the physical card, and the Allianz
+   waiver needs a wet signature plus agent-computed dollar figures (amount
+   at risk, plan cost) that only make sense filled in by hand per booking.
+   Both are hosted as static downloads; this form only tracks whether each
+   was downloaded, completed, and returned.
+   ========================================================================== */
+function cbv_get_traveler_intake( $user_id, $trip_id ) {
+	$raw  = get_user_meta( $user_id, '_traveler_intake_' . $trip_id, true );
+	$data = $raw ? json_decode( $raw, true ) : array();
+	return is_array( $data ) ? $data : array();
+}
+
+add_action( 'rest_api_init', function () {
+	register_rest_route( 'cb/v1', '/trips/(?P<id>\d+)/traveler-intake', array(
+		'methods'             => 'POST',
+		'permission_callback' => function ( $request ) {
+			$trip_id = (int) $request['id'];
+			return is_user_logged_in() && in_array( get_current_user_id(), cb_trip_get_roster( $trip_id ), true );
+		},
+		'callback'            => function ( $request ) {
+			$trip_id = (int) $request['id'];
+			$user_id = get_current_user_id();
+			$body    = $request->get_json_params();
+
+			$str = function ( $key ) use ( $body ) {
+				return isset( $body[ $key ] ) ? sanitize_text_field( $body[ $key ] ) : '';
+			};
+
+			$insurance_decision = $str( 'insurance_decision' );
+
+			$data = array(
+				'seat_preference'         => $str( 'seat_preference' ),
+				'departure_airport'       => $str( 'departure_airport' ),
+				'cabin_class'             => $str( 'cabin_class' ),
+				'insurance_decision'      => in_array( $insurance_decision, array( 'accepted', 'declined' ), true ) ? $insurance_decision : '',
+				'allianz_waiver_returned' => ! empty( $body['allianz_waiver_returned'] ),
+				'cc_auth_completed'       => ! empty( $body['cc_auth_completed'] ),
+				'additional_adults'       => absint( $body['additional_adults'] ?? 0 ),
+				'additional_children'     => absint( $body['additional_children'] ?? 0 ),
+				'children_ages'           => $str( 'children_ages' ),
+			);
+
+			update_user_meta( $user_id, '_traveler_intake_' . $trip_id, wp_json_encode( $data ) );
+
+			return array( 'saved' => true );
+		},
+	) );
+} );
+
+/**
+ * Renders the per-traveler intake section for one trip. Called from Gate
+ * 07's single trip detail page for any current roster member. No <form>
+ * element -- plain button + fetch(), same pattern used throughout this
+ * build, id-only fields (no name= attributes) so nothing here could ever
+ * bleed into an unrelated form even if this markup were ever reused
+ * somewhere with an ambient wrapping form.
+ */
+function cbv_render_traveler_intake_form( $trip_id ) {
+	$user_id = get_current_user_id();
+	$intake  = cbv_get_traveler_intake( $user_id, $trip_id );
+
+	$cc_auth_url = content_url( 'uploads/checkedbags/documents/CC_authorization.pdf' );
+	$waiver_url  = content_url( 'uploads/checkedbags/documents/Allianz_Waiver_form.pdf' );
+	$insurance   = $intake['insurance_decision'] ?? '';
+
+	ob_start();
+	?>
+	<div class="trip-detail-section trip-detail-traveler-intake" id="cbv-traveler-intake">
+		<h3>Your Travel Details for This Trip</h3>
+
+		<div class="cbv-intake-field">
+			<label>Seat preference <input type="text" id="cbv-intake-seat-preference" value="<?php echo esc_attr( $intake['seat_preference'] ?? '' ); ?>"></label>
+			<label>Departure airport <input type="text" id="cbv-intake-departure-airport" value="<?php echo esc_attr( $intake['departure_airport'] ?? '' ); ?>"></label>
+			<label>Cabin class / room type preference <input type="text" id="cbv-intake-cabin-class" value="<?php echo esc_attr( $intake['cabin_class'] ?? '' ); ?>"></label>
+		</div>
+
+		<div class="cbv-intake-field">
+			<label>Travel insurance
+				<select id="cbv-intake-insurance-decision">
+					<option value="" <?php selected( $insurance, '' ); ?>>—</option>
+					<option value="accepted" <?php selected( $insurance, 'accepted' ); ?>>Accepted</option>
+					<option value="declined" <?php selected( $insurance, 'declined' ); ?>>Declined</option>
+				</select>
+			</label>
+			<div id="cbv-intake-waiver-row" <?php echo ( 'declined' !== $insurance ) ? 'style="display:none;"' : ''; ?>>
+				<p><a href="<?php echo esc_url( $waiver_url ); ?>" target="_blank" rel="noopener">Download the Allianz Waiver of Travel Insurance form</a>. Print, sign, and email or fax it back to us.</p>
+				<label class="check-row"><input type="checkbox" id="cbv-intake-waiver-returned" <?php checked( ! empty( $intake['allianz_waiver_returned'] ) ); ?>> I have downloaded, completed, and returned the signed waiver.</label>
+			</div>
+		</div>
+
+		<div class="cbv-intake-field">
+			<p><a href="<?php echo esc_url( $cc_auth_url ); ?>" target="_blank" rel="noopener">Download the Credit Card Authorization form</a>. This is required for every trip — print, fill out, sign, and email or fax it back to us. We never collect card details on this site.</p>
+			<label class="check-row"><input type="checkbox" id="cbv-intake-cc-auth-completed" <?php checked( ! empty( $intake['cc_auth_completed'] ) ); ?>> I have downloaded, completed, and returned this form.</label>
+		</div>
+
+		<div class="cbv-intake-field">
+			<label>Additional adults traveling with you <input type="number" id="cbv-intake-additional-adults" min="0" value="<?php echo esc_attr( $intake['additional_adults'] ?? 0 ); ?>"></label>
+			<label>Additional children traveling with you <input type="number" id="cbv-intake-additional-children" min="0" value="<?php echo esc_attr( $intake['additional_children'] ?? 0 ); ?>"></label>
+			<label>Children's ages, if any <input type="text" id="cbv-intake-children-ages" placeholder="e.g. 5, 8, 12" value="<?php echo esc_attr( $intake['children_ages'] ?? '' ); ?>"></label>
+		</div>
+
+		<button type="button" class="btn btn-ticket" id="cbv-intake-save-btn" data-trip-id="<?php echo (int) $trip_id; ?>">Save Travel Details</button>
+		<span id="cbv-intake-result" style="margin-left:10px;"></span>
+	</div>
+	<script>
+	(function () {
+		var insuranceSelect = document.getElementById( 'cbv-intake-insurance-decision' );
+		var waiverRow = document.getElementById( 'cbv-intake-waiver-row' );
+		if ( insuranceSelect && waiverRow ) {
+			insuranceSelect.addEventListener( 'change', function () {
+				waiverRow.style.display = ( insuranceSelect.value === 'declined' ) ? '' : 'none';
+			} );
+		}
+
+		var saveBtn = document.getElementById( 'cbv-intake-save-btn' );
+		if ( saveBtn ) {
+			saveBtn.addEventListener( 'click', function () {
+				var tripId = saveBtn.getAttribute( 'data-trip-id' );
+				var payload = {
+					seat_preference: document.getElementById( 'cbv-intake-seat-preference' ).value,
+					departure_airport: document.getElementById( 'cbv-intake-departure-airport' ).value,
+					cabin_class: document.getElementById( 'cbv-intake-cabin-class' ).value,
+					insurance_decision: document.getElementById( 'cbv-intake-insurance-decision' ).value,
+					allianz_waiver_returned: document.getElementById( 'cbv-intake-waiver-returned' ).checked,
+					cc_auth_completed: document.getElementById( 'cbv-intake-cc-auth-completed' ).checked,
+					additional_adults: document.getElementById( 'cbv-intake-additional-adults' ).value,
+					additional_children: document.getElementById( 'cbv-intake-additional-children' ).value,
+					children_ages: document.getElementById( 'cbv-intake-children-ages' ).value
+				};
+				saveBtn.disabled = true;
+				saveBtn.textContent = 'Saving...';
+				fetch( <?php echo wp_json_encode( esc_url_raw( rest_url( 'cb/v1/' ) ) ); ?> + 'trips/' + tripId + '/traveler-intake', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': <?php echo wp_json_encode( wp_create_nonce( 'wp_rest' ) ); ?> },
+					body: JSON.stringify( payload )
+				} )
+					.then( function ( res ) { return res.json(); } )
+					.then( function ( data ) {
+						saveBtn.disabled = false;
+						saveBtn.textContent = 'Save Travel Details';
+						document.getElementById( 'cbv-intake-result' ).textContent = data.saved ? 'Saved!' : 'Could not save.';
+					} )
+					.catch( function () {
+						saveBtn.disabled = false;
+						saveBtn.textContent = 'Save Travel Details';
+						document.getElementById( 'cbv-intake-result' ).textContent = 'Something went wrong.';
+					} );
+			} );
+		}
+	})();
+	</script>
+	<?php
+	return ob_get_clean();
+}

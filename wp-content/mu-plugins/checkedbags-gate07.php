@@ -259,8 +259,13 @@ add_filter( 'the_content', function ( $content ) {
 		}
 	}
 
+	// Per-Traveler Trip Intake (Phase 8c): same reasoning as the PDF above --
+	// roster membership is the gate, not agreement re-acceptance. Seat/cabin
+	// preference and the insurance decision aren't a legal-terms concern.
+	$intake_html = function_exists( 'cbv_render_traveler_intake_form' ) ? cbv_render_traveler_intake_form( $post->ID ) : '';
+
 	if ( cbv_user_needs_trip_agreement_reaccept( $viewer_id, $post->ID ) ) {
-		return $content . $pdf_html . cbv_render_trip_agreement_prompt( $post->ID );
+		return $content . $pdf_html . $intake_html . cbv_render_trip_agreement_prompt( $post->ID );
 	}
 
 	$terms      = get_the_terms( $post->ID, 'cb_trip_type' );
@@ -385,5 +390,5 @@ add_filter( 'the_content', function ( $content ) {
 		</div>
 	</div>
 	<?php
-	return $content . $pdf_html . ob_get_clean();
+	return $content . $pdf_html . $intake_html . ob_get_clean();
 }, 20 );
