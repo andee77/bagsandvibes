@@ -2065,3 +2065,12 @@ body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
   color: var(--sand);
   margin: 0.5rem 0 0.25rem;
 }
+.cbv-checkbox-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin-bottom: 0.25rem;
+}
+.cbv-checkbox-row .check-row {
+  margin: 0;
+}

@@ -52,9 +52,14 @@
         seat_preference: checkedValues('seat_preference'),
 
         // Cruise Vacation
-        cruise_preferences: val('req-cruise-preferences'),
+        cruise_company: val('req-cruise-company'),
+        cruise_program_number: val('req-cruise-program-number'),
         cruise_itinerary: val('req-cruise-itinerary'),
-        cruise_length: val('req-cruise-length'),
+        cruise_start_date: val('req-cruise-start-date'),
+        cruise_end_date: val('req-cruise-end-date'),
+        cruise_duration: val('req-cruise-duration'),
+        cruise_region: val('req-cruise-region'),
+        cruise_departure_port: val('req-cruise-departure-port'),
         pre_post_cruise_nights: val('req-pre-post-cruise-nights'),
         cruise_cabin_class: val('req-cruise-cabin-class'),
         beverage_plan: val('req-beverage-plan'),

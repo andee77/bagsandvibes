@@ -138,10 +138,23 @@ function cbv_trip_request_field_defs() {
 		'airline_preference' => array( 'type' => 'text' ),
 		'seat_preference'    => array( 'type' => 'array' ),
 
-		// Cruise Vacation (CIF section) -- shown when "Cruise" is checked
+		// Cruise Vacation (CIF section) -- shown when "Cruise" is checked.
+		// cruise_preferences and cruise_length are legacy -- no longer a
+		// form input on this or the Per-Traveler Intake form, replaced by
+		// cruise_company/cruise_program_number and cruise_duration
+		// respectively, but kept registered here so any already-stored
+		// data stays readable (see cbv_get_trip_request_field()'s fallback
+		// and cbv_build_trip_roster_export_data()).
 		'cruise_preferences'     => array( 'type' => 'text' ),
+		'cruise_company'         => array( 'type' => 'text' ),
+		'cruise_program_number'  => array( 'type' => 'text' ),
 		'cruise_itinerary'       => array( 'type' => 'text' ),
+		'cruise_start_date'      => array( 'type' => 'text' ),
+		'cruise_end_date'        => array( 'type' => 'text' ),
 		'cruise_length'          => array( 'type' => 'text' ),
+		'cruise_duration'        => array( 'type' => 'text' ),
+		'cruise_region'          => array( 'type' => 'text' ),
+		'cruise_departure_port'  => array( 'type' => 'text' ),
 		'pre_post_cruise_nights' => array( 'type' => 'text' ),
 		'cruise_cabin_class'     => array( 'type' => 'text' ),
 		'beverage_plan'          => array( 'type' => 'text' ),
@@ -258,13 +271,20 @@ function cb_render_request_meta_box( $post ) {
 		'Seat preference'        => $list( 'seat_preference' ),
 
 		'— Cruise Vacation —'    => '',
-		'Cruise preferences'     => $f( 'cruise_preferences' ),
+		'Cruise company'         => $f( 'cruise_company' ),
+		'Cruise program number'  => $f( 'cruise_program_number' ),
 		'Cruise itinerary'       => $f( 'cruise_itinerary' ),
-		'Cruise length'          => $f( 'cruise_length' ),
+		'Cruise start date'      => $f( 'cruise_start_date' ),
+		'Cruise end date'        => $f( 'cruise_end_date' ),
+		'Cruise duration'        => $f( 'cruise_duration' ),
+		'Cruise region'          => $f( 'cruise_region' ),
+		'Cruise departure port'  => $f( 'cruise_departure_port' ),
 		'Pre/post cruise nights' => $f( 'pre_post_cruise_nights' ),
 		'Cabin class'            => $f( 'cruise_cabin_class' ),
 		'Beverage plan'          => $f( 'beverage_plan' ),
 		'Beverage plan type'     => $f( 'beverage_plan_type' ),
+		'Cruise preferences (legacy)' => $f( 'cruise_preferences' ),
+		'Cruise length (legacy)'      => $f( 'cruise_length' ),
 
 		'— Hotel and Resort Vacation —' => '',
 		'# of nights'            => $f( 'hotel_nights' ),
@@ -620,9 +640,25 @@ add_shortcode( 'cb_gate_requests', function () {
 
 		<fieldset id="req-section-cruise" class="req-conditional-section" style="display:none;">
 			<legend>Cruise Vacation</legend>
-			<label>Cruise preferences / frequent cruiser programs <input type="text" id="req-cruise-preferences"></label>
+			<label>Cruise company <input type="text" id="req-cruise-company"></label>
+			<label>Cruise program number <input type="text" id="req-cruise-program-number"></label>
 			<label>Cruise itinerary <input type="text" id="req-cruise-itinerary"></label>
-			<label>Cruise length <input type="text" id="req-cruise-length"></label>
+			<label>Cruise start date <input type="date" id="req-cruise-start-date"></label>
+			<label>Cruise end date <input type="date" id="req-cruise-end-date"></label>
+			<label>Cruise duration <select id="req-cruise-duration">
+				<option value="">—</option>
+				<?php foreach ( CBV_CRUISE_DURATIONS as $option ) : ?>
+					<option value="<?php echo esc_attr( $option ); ?>"><?php echo esc_html( $option ); ?></option>
+				<?php endforeach; ?>
+			</select></label>
+			<label>Cruise region <select id="req-cruise-region">
+				<option value="">—</option>
+				<?php cbv_render_optgroup_options( CBV_CRUISE_REGIONS, '' ); ?>
+			</select></label>
+			<label>Cruise departure port <select id="req-cruise-departure-port">
+				<option value="">—</option>
+				<?php cbv_render_optgroup_options( CBV_CRUISE_DEPARTURE_PORTS, '' ); ?>
+			</select></label>
 			<label>Pre and post cruise nights <select id="req-pre-post-cruise-nights">
 				<option value="">—</option><option value="Yes">Yes</option><option value="No">No</option>
 			</select></label>
@@ -650,19 +686,25 @@ add_shortcode( 'cb_gate_requests', function () {
 			<label class="check-row"><input type="checkbox" name="hotel_room_type" value="Ocean View/Front"> Ocean View/Front</label>
 			<label class="check-row"><input type="checkbox" name="hotel_room_type" value="Other"> Other</label>
 			<p class="requests-check-group-label">Features (check all that apply):</p>
-			<label class="check-row"><input type="checkbox" name="hotel_features" value="All Inclusive"> All Inclusive</label>
-			<label class="check-row"><input type="checkbox" name="hotel_features" value="Adults Only"> Adults Only</label>
-			<label class="check-row"><input type="checkbox" name="hotel_features" value="Family Friendly"> Family Friendly</label>
-			<label class="check-row"><input type="checkbox" name="hotel_features" value="Concierge Level"> Concierge Level</label>
-			<label class="check-row"><input type="checkbox" name="hotel_features" value="Suite/Jr Suite"> Suite/Jr Suite</label>
-			<label class="check-row"><input type="checkbox" name="hotel_features" value="On the Beach"> On the Beach</label>
-			<label class="check-row"><input type="checkbox" name="hotel_features" value="Near City Center"> Near City Center</label>
-			<label class="check-row"><input type="checkbox" name="hotel_features" value="Kids Club"> Kids Club</label>
-			<label class="check-row"><input type="checkbox" name="hotel_features" value="Near Air/Cruise Port"> Near Air/Cruise Port</label>
-			<label class="check-row"><input type="checkbox" name="hotel_features" value="Luxury Resort"> Luxury Resort</label>
-			<label class="check-row"><input type="checkbox" name="hotel_features" value="Activities On-Site"> Activities On-Site</label>
-			<label class="check-row"><input type="checkbox" name="hotel_features" value="Standard View"> Standard View</label>
-			<label class="check-row"><input type="checkbox" name="hotel_features" value="Ocean View"> Ocean View</label>
+			<div class="cbv-checkbox-row">
+				<label class="check-row"><input type="checkbox" name="hotel_features" value="All Inclusive"> All Inclusive</label>
+				<label class="check-row"><input type="checkbox" name="hotel_features" value="Adults Only"> Adults Only</label>
+				<label class="check-row"><input type="checkbox" name="hotel_features" value="Family Friendly"> Family Friendly</label>
+				<label class="check-row"><input type="checkbox" name="hotel_features" value="Concierge Level"> Concierge Level</label>
+			</div>
+			<div class="cbv-checkbox-row">
+				<label class="check-row"><input type="checkbox" name="hotel_features" value="Suite/Jr Suite"> Suite/Jr Suite</label>
+				<label class="check-row"><input type="checkbox" name="hotel_features" value="On the Beach"> On the Beach</label>
+				<label class="check-row"><input type="checkbox" name="hotel_features" value="Near City Center"> Near City Center</label>
+				<label class="check-row"><input type="checkbox" name="hotel_features" value="Kids Club"> Kids Club</label>
+			</div>
+			<div class="cbv-checkbox-row">
+				<label class="check-row"><input type="checkbox" name="hotel_features" value="Near Air/Cruise Port"> Near Air/Cruise Port</label>
+				<label class="check-row"><input type="checkbox" name="hotel_features" value="Luxury Resort"> Luxury Resort</label>
+				<label class="check-row"><input type="checkbox" name="hotel_features" value="Activities On-Site"> Activities On-Site</label>
+				<label class="check-row"><input type="checkbox" name="hotel_features" value="Standard View"> Standard View</label>
+				<label class="check-row"><input type="checkbox" name="hotel_features" value="Ocean View"> Ocean View</label>
+			</div>
 			<label>Concierge level notes <input type="text" id="req-hotel-concierge-notes"></label>
 		</fieldset>
 

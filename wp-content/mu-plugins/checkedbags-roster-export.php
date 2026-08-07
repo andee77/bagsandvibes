@@ -215,7 +215,9 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 		// Accommodation & Trip-Type Preferences
 		'Hotel Preferences', 'Hotel Room Type', 'Hotel Features',
 		'Hotel Nights', 'Hotel Rooms/Arrangement', 'Hotel Concierge Notes',
-		'Cruise Preferences', 'Cruise Itinerary', 'Cruise Length', 'Pre/Post Cruise Nights',
+		'Cruise Company', 'Cruise Program Number', 'Cruise Itinerary',
+		'Cruise Start Date', 'Cruise End Date', 'Cruise Duration', 'Cruise Region',
+		'Cruise Departure Port', 'Pre/Post Cruise Nights',
 		'Cruise Cabin Class', 'Beverage Plan', 'Beverage Plan Type',
 		'Car Preferences', 'Car Add-ons', 'Car Category',
 		'Package Tour Countries', 'Package Tour Style', 'Package Activity Level',
@@ -275,9 +277,27 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 		$hotel_rooms_arrangement = $merge( $intake['hotel_rooms_arrangement'] ?? '', $req( 'hotel_rooms_arrangement' ) );
 		$hotel_concierge_notes   = $merge( $intake['hotel_concierge_notes'] ?? '', $req( 'hotel_concierge_notes' ) );
 
-		$cruise_preferences     = $merge( $intake['cruise_preferences'] ?? '', $req( 'cruise_preferences' ) );
-		$cruise_itinerary       = $merge( $intake['cruise_itinerary'] ?? '', $req( 'cruise_itinerary' ) );
-		$cruise_length          = $merge( $intake['cruise_length'] ?? '', $req( 'cruise_length' ) );
+		$cruise_company        = $merge( $intake['cruise_company'] ?? '', $req( 'cruise_company' ) );
+		$cruise_program_number = $merge( $intake['cruise_program_number'] ?? '', $req( 'cruise_program_number' ) );
+		$cruise_itinerary      = $merge( $intake['cruise_itinerary'] ?? '', $req( 'cruise_itinerary' ) );
+		$cruise_start_date     = $merge( $intake['cruise_start_date'] ?? '', $req( 'cruise_start_date' ) );
+		$cruise_end_date       = $merge( $intake['cruise_end_date'] ?? '', $req( 'cruise_end_date' ) );
+		$cruise_region         = $merge( $intake['cruise_region'] ?? '', $req( 'cruise_region' ) );
+		$cruise_departure_port = $merge( $intake['cruise_departure_port'] ?? '', $req( 'cruise_departure_port' ) );
+
+		// Cruise Duration replaces the old free-text Cruise Length going
+		// forward (neither is a form input on either form anymore for
+		// Cruise Length); if no Duration value exists at either level,
+		// fall back to whatever old Cruise Length data is on file, clearly
+		// marked as legacy so it's never mistaken for the new dropdown format.
+		$cruise_duration = $merge( $intake['cruise_duration'] ?? '', $req( 'cruise_duration' ) );
+		if ( '' === $cruise_duration ) {
+			$legacy_cruise_length = $merge( $intake['cruise_length'] ?? '', $req( 'cruise_length' ) );
+			if ( '' !== $legacy_cruise_length ) {
+				$cruise_duration = $legacy_cruise_length . ' (legacy format)';
+			}
+		}
+
 		$pre_post_cruise_nights = $merge( $intake['pre_post_cruise_nights'] ?? '', $req( 'pre_post_cruise_nights' ) );
 		$cruise_cabin_class     = $merge( $intake['cruise_cabin_class'] ?? '', $req( 'cruise_cabin_class' ) );
 		$beverage_plan          = $merge( $intake['beverage_plan'] ?? '', $req( 'beverage_plan' ) );
@@ -358,9 +378,14 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 			$hotel_nights,
 			$hotel_rooms_arrangement,
 			$hotel_concierge_notes,
-			$cruise_preferences,
+			$cruise_company,
+			$cruise_program_number,
 			$cruise_itinerary,
-			$cruise_length,
+			$cruise_start_date,
+			$cruise_end_date,
+			$cruise_duration,
+			$cruise_region,
+			$cruise_departure_port,
 			$pre_post_cruise_nights,
 			$cruise_cabin_class,
 			$beverage_plan,

@@ -1789,6 +1789,77 @@ define( 'CBV_FLIGHT_CABIN_CLASSES', array( 'Economy', 'Extra Leg Room/Premium', 
 // them is meaningful (see the " *" marking in cbv_build_trip_roster_export_data()).
 define( 'CBV_CRUISE_CABIN_CLASSES', array( 'Interior', 'Oceanview', 'Balcony', 'Suite' ) );
 
+// Cruise Duration replaces the old free-text Cruise Length field going
+// forward on both Gate 12 and Per-Traveler Intake -- Cruise Length is no
+// longer a form input on either, but its stored data (old cb_req_ meta and
+// any old per-traveler intake values) stays readable as a fallback, see
+// cbv_build_trip_roster_export_data().
+define( 'CBV_CRUISE_DURATIONS', array( '3–5 days', '7 days', '10–21 days', '30 days' ) );
+
+define( 'CBV_CRUISE_REGIONS', array(
+	'The Caribbean, Bahamas & Mexico' => array(
+		'Western Caribbean (4–7 Nights)',
+		'Eastern Caribbean (7 Nights)',
+		'Southern Caribbean (7–14 Nights)',
+		'Mexican Riviera (3–7 Nights)',
+	),
+	'Alaska & The Pacific Northwest' => array(
+		'Inside Passage Roundtrip (7 Nights)',
+		'Gulf of Alaska / One-Way (7 Nights)',
+	),
+	'Europe & The Mediterranean' => array(
+		'Western Mediterranean (7–10 Nights)',
+		'Eastern Mediterranean & Greek Isles (7–11 Nights)',
+		'Northern Europe & Norwegian Fjords (7–14 Nights)',
+	),
+) );
+
+define( 'CBV_CRUISE_DEPARTURE_PORTS', array(
+	'North America & The Caribbean' => array(
+		'Miami, Florida (Port Miami)',
+		'Port Canaveral (Orlando area)',
+		'San Juan, Puerto Rico',
+		'New York City, New York',
+		'Los Angeles, California',
+		'Seattle, Washington',
+		'Vancouver, British Columbia, Canada',
+		'Port of Nassau',
+		'Port of Galveston (Texas)',
+		'Port Everglades (Fort Lauderdale)',
+		'Port of Cozumel',
+	),
+	'Europe & The Mediterranean' => array(
+		'Barcelona, Spain',
+		'Athens (Piraeus), Greece',
+		'Rome (Civitavecchia), Italy',
+		'Portsmouth, United Kingdom',
+		'Port of Southampton',
+		'Port of Marseille',
+		'Reykjavik, Iceland',
+	),
+	'Australia & The South Pacific' => array(
+		'Sydney, Australia',
+		'Melbourne, Australia',
+		'Auckland, New Zealand',
+	),
+) );
+
+/** Renders <optgroup>/<option> markup for a grouped dropdown array. */
+function cbv_render_optgroup_options( $groups, $selected ) {
+	foreach ( $groups as $group_label => $options ) {
+		echo '<optgroup label="' . esc_attr( $group_label ) . '">';
+		foreach ( $options as $option ) {
+			echo '<option value="' . esc_attr( $option ) . '" ' . selected( $selected, $option, false ) . '>' . esc_html( $option ) . '</option>';
+		}
+		echo '</optgroup>';
+	}
+}
+
+/** Flattens a grouped dropdown array into a plain list of valid values. */
+function cbv_flatten_grouped_options( $groups ) {
+	return array_merge( ...array_values( $groups ) );
+}
+
 /**
  * Whether this trip has a specific cb_trip_type term assigned (matched by
  * term name, e.g. 'Cruise', 'Flight', 'Resort' -- see checkedbags-trips.php).
@@ -2117,12 +2188,15 @@ add_action( 'rest_api_init', function () {
 				return ( ! empty( $body[ $key ] ) && is_array( $body[ $key ] ) ) ? array_values( array_map( 'sanitize_text_field', $body[ $key ] ) ) : array();
 			};
 
-			$insurance_decision = $str( 'insurance_decision' );
-			$seat_preference    = $str( 'seat_preference' );
-			$flight_cabin_class = $str( 'flight_cabin_class' );
-			$cruise_cabin_class = $str( 'cruise_cabin_class' );
-			$pre_post_nights    = $str( 'pre_post_cruise_nights' );
-			$beverage_plan      = $str( 'beverage_plan' );
+			$insurance_decision   = $str( 'insurance_decision' );
+			$seat_preference      = $str( 'seat_preference' );
+			$flight_cabin_class   = $str( 'flight_cabin_class' );
+			$cruise_cabin_class   = $str( 'cruise_cabin_class' );
+			$pre_post_nights      = $str( 'pre_post_cruise_nights' );
+			$beverage_plan        = $str( 'beverage_plan' );
+			$cruise_duration      = $str( 'cruise_duration' );
+			$cruise_region        = $str( 'cruise_region' );
+			$cruise_departure_port = $str( 'cruise_departure_port' );
 
 			$data = array(
 				// Air Travel
@@ -2133,9 +2207,14 @@ add_action( 'rest_api_init', function () {
 				'frequent_flyer_number'   => $str( 'frequent_flyer_number' ),
 
 				// Cruise Vacation
-				'cruise_preferences'      => $str( 'cruise_preferences' ),
+				'cruise_company'          => $str( 'cruise_company' ),
+				'cruise_program_number'   => $str( 'cruise_program_number' ),
 				'cruise_itinerary'        => $str( 'cruise_itinerary' ),
-				'cruise_length'           => $str( 'cruise_length' ),
+				'cruise_start_date'       => $str( 'cruise_start_date' ),
+				'cruise_end_date'         => $str( 'cruise_end_date' ),
+				'cruise_duration'         => in_array( $cruise_duration, CBV_CRUISE_DURATIONS, true ) ? $cruise_duration : '',
+				'cruise_region'           => in_array( $cruise_region, cbv_flatten_grouped_options( CBV_CRUISE_REGIONS ), true ) ? $cruise_region : '',
+				'cruise_departure_port'   => in_array( $cruise_departure_port, cbv_flatten_grouped_options( CBV_CRUISE_DEPARTURE_PORTS ), true ) ? $cruise_departure_port : '',
 				'pre_post_cruise_nights'  => in_array( $pre_post_nights, array( 'Yes', 'No' ), true ) ? $pre_post_nights : '',
 				'cruise_cabin_class'      => in_array( $cruise_cabin_class, CBV_CRUISE_CABIN_CLASSES, true ) ? $cruise_cabin_class : '',
 				'beverage_plan'           => in_array( $beverage_plan, array( 'Yes', 'No' ), true ) ? $beverage_plan : '',
@@ -2218,13 +2297,16 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 
 	$cc_auth_url = content_url( 'uploads/checkedbags/documents/CC_authorization.pdf' );
 	$waiver_url  = content_url( 'uploads/checkedbags/documents/Allianz_Waiver_form.pdf' );
-	$insurance          = $intake['insurance_decision'] ?? '';
-	$seat_pref          = $intake['seat_preference'] ?? '';
-	$flight_cabin_class = $intake['flight_cabin_class'] ?? '';
-	$cruise_cabin_class = $intake['cruise_cabin_class'] ?? '';
-	$pre_post_nights    = $intake['pre_post_cruise_nights'] ?? '';
-	$beverage_plan      = $intake['beverage_plan'] ?? '';
-	$hotel_room_type    = (array) ( $intake['hotel_room_type'] ?? array() );
+	$insurance            = $intake['insurance_decision'] ?? '';
+	$seat_pref            = $intake['seat_preference'] ?? '';
+	$flight_cabin_class   = $intake['flight_cabin_class'] ?? '';
+	$cruise_cabin_class   = $intake['cruise_cabin_class'] ?? '';
+	$pre_post_nights      = $intake['pre_post_cruise_nights'] ?? '';
+	$beverage_plan        = $intake['beverage_plan'] ?? '';
+	$cruise_duration      = $intake['cruise_duration'] ?? '';
+	$cruise_region        = $intake['cruise_region'] ?? '';
+	$cruise_departure_port = $intake['cruise_departure_port'] ?? '';
+	$hotel_room_type      = (array) ( $intake['hotel_room_type'] ?? array() );
 	$hotel_features     = (array) ( $intake['hotel_features'] ?? array() );
 	$car_category       = (array) ( $intake['car_category'] ?? array() );
 	$package_style      = (array) ( $intake['package_style'] ?? array() );
@@ -2235,6 +2317,7 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 		<h3>Your Travel Details for This Trip</h3>
 
 		<?php if ( $show_air ) : ?>
+		<h4>Air Travel</h4>
 		<div class="cbv-intake-field cbv-intake-field-row">
 			<label>Seat preference
 				<select id="cbv-intake-seat-preference">
@@ -2262,11 +2345,40 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 		<?php endif; ?>
 
 		<?php if ( $show_cruise ) : ?>
+		<h4>Cruise Vacation</h4>
 		<div class="cbv-intake-field">
-			<label>Cruise preferences / frequent cruiser programs <input type="text" id="cbv-intake-cruise-preferences" value="<?php echo esc_attr( $intake['cruise_preferences'] ?? '' ); ?>"></label>
+			<div class="cbv-intake-field-row">
+				<label>Cruise company <input type="text" id="cbv-intake-cruise-company" value="<?php echo esc_attr( $intake['cruise_company'] ?? '' ); ?>"></label>
+				<label>Cruise program number <input type="text" id="cbv-intake-cruise-program-number" value="<?php echo esc_attr( $intake['cruise_program_number'] ?? '' ); ?>"></label>
+			</div>
 			<div class="cbv-intake-field-row">
 				<label>Cruise itinerary <input type="text" id="cbv-intake-cruise-itinerary" value="<?php echo esc_attr( $intake['cruise_itinerary'] ?? '' ); ?>"></label>
-				<label>Cruise length <input type="text" id="cbv-intake-cruise-length" value="<?php echo esc_attr( $intake['cruise_length'] ?? '' ); ?>"></label>
+				<label>Cruise start date <input type="date" id="cbv-intake-cruise-start-date" value="<?php echo esc_attr( $intake['cruise_start_date'] ?? '' ); ?>"></label>
+				<label>Cruise end date <input type="date" id="cbv-intake-cruise-end-date" value="<?php echo esc_attr( $intake['cruise_end_date'] ?? '' ); ?>"></label>
+			</div>
+			<div class="cbv-intake-field-row">
+				<label>Cruise duration
+					<select id="cbv-intake-cruise-duration">
+						<option value="" <?php selected( $cruise_duration, '' ); ?>>—</option>
+						<?php foreach ( CBV_CRUISE_DURATIONS as $option ) : ?>
+							<option value="<?php echo esc_attr( $option ); ?>" <?php selected( $cruise_duration, $option ); ?>><?php echo esc_html( $option ); ?></option>
+						<?php endforeach; ?>
+					</select>
+				</label>
+				<label>Cruise region
+					<select id="cbv-intake-cruise-region">
+						<option value="" <?php selected( $cruise_region, '' ); ?>>—</option>
+						<?php cbv_render_optgroup_options( CBV_CRUISE_REGIONS, $cruise_region ); ?>
+					</select>
+				</label>
+				<label>Cruise departure port
+					<select id="cbv-intake-cruise-departure-port">
+						<option value="" <?php selected( $cruise_departure_port, '' ); ?>>—</option>
+						<?php cbv_render_optgroup_options( CBV_CRUISE_DEPARTURE_PORTS, $cruise_departure_port ); ?>
+					</select>
+				</label>
+			</div>
+			<div class="cbv-intake-field-row">
 				<label>Pre/post cruise nights
 					<select id="cbv-intake-pre-post-cruise-nights">
 						<option value="" <?php selected( $pre_post_nights, '' ); ?>>—</option>
@@ -2274,8 +2386,6 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 						<option value="No" <?php selected( $pre_post_nights, 'No' ); ?>>No</option>
 					</select>
 				</label>
-			</div>
-			<div class="cbv-intake-field-row">
 				<label>Cabin class
 					<select id="cbv-intake-cruise-cabin-class">
 						<option value="" <?php selected( $cruise_cabin_class, '' ); ?>>—</option>
@@ -2297,6 +2407,7 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 		<?php endif; ?>
 
 		<?php if ( $show_hotel ) : ?>
+		<h4>Hotel and Resort Vacation</h4>
 		<div class="cbv-intake-field">
 			<div class="cbv-intake-field-row">
 				<label># of nights <input type="text" id="cbv-intake-hotel-nights" value="<?php echo esc_attr( $intake['hotel_nights'] ?? '' ); ?>"></label>
@@ -2309,9 +2420,21 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 			<label class="check-row"><input type="checkbox" name="cbv_intake_hotel_room_type" value="Ocean View/Front" <?php checked( in_array( 'Ocean View/Front', $hotel_room_type, true ) ); ?>> Ocean View/Front</label>
 			<label class="check-row"><input type="checkbox" name="cbv_intake_hotel_room_type" value="Other" <?php checked( in_array( 'Other', $hotel_room_type, true ) ); ?>> Other</label>
 			<p class="requests-check-group-label">Features (check all that apply):</p>
-			<?php foreach ( array( 'All Inclusive', 'Adults Only', 'Family Friendly', 'Concierge Level', 'Suite/Jr Suite', 'On the Beach', 'Near City Center', 'Kids Club', 'Near Air/Cruise Port', 'Luxury Resort', 'Activities On-Site', 'Standard View', 'Ocean View' ) as $feature ) : ?>
-				<label class="check-row"><input type="checkbox" name="cbv_intake_hotel_features" value="<?php echo esc_attr( $feature ); ?>" <?php checked( in_array( $feature, $hotel_features, true ) ); ?>> <?php echo esc_html( $feature ); ?></label>
-			<?php endforeach; ?>
+			<div class="cbv-checkbox-row">
+				<?php foreach ( array( 'All Inclusive', 'Adults Only', 'Family Friendly', 'Concierge Level' ) as $feature ) : ?>
+					<label class="check-row"><input type="checkbox" name="cbv_intake_hotel_features" value="<?php echo esc_attr( $feature ); ?>" <?php checked( in_array( $feature, $hotel_features, true ) ); ?>> <?php echo esc_html( $feature ); ?></label>
+				<?php endforeach; ?>
+			</div>
+			<div class="cbv-checkbox-row">
+				<?php foreach ( array( 'Suite/Jr Suite', 'On the Beach', 'Near City Center', 'Kids Club' ) as $feature ) : ?>
+					<label class="check-row"><input type="checkbox" name="cbv_intake_hotel_features" value="<?php echo esc_attr( $feature ); ?>" <?php checked( in_array( $feature, $hotel_features, true ) ); ?>> <?php echo esc_html( $feature ); ?></label>
+				<?php endforeach; ?>
+			</div>
+			<div class="cbv-checkbox-row">
+				<?php foreach ( array( 'Near Air/Cruise Port', 'Luxury Resort', 'Activities On-Site', 'Standard View', 'Ocean View' ) as $feature ) : ?>
+					<label class="check-row"><input type="checkbox" name="cbv_intake_hotel_features" value="<?php echo esc_attr( $feature ); ?>" <?php checked( in_array( $feature, $hotel_features, true ) ); ?>> <?php echo esc_html( $feature ); ?></label>
+				<?php endforeach; ?>
+			</div>
 			<label>Concierge level notes <input type="text" id="cbv-intake-hotel-concierge-notes" value="<?php echo esc_attr( $intake['hotel_concierge_notes'] ?? '' ); ?>"></label>
 		</div>
 		<?php endif; ?>
@@ -2405,9 +2528,14 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 					preferred_airline: fieldVal( 'cbv-intake-preferred-airline' ),
 					frequent_flyer_number: fieldVal( 'cbv-intake-frequent-flyer-number' ),
 
-					cruise_preferences: fieldVal( 'cbv-intake-cruise-preferences' ),
+					cruise_company: fieldVal( 'cbv-intake-cruise-company' ),
+					cruise_program_number: fieldVal( 'cbv-intake-cruise-program-number' ),
 					cruise_itinerary: fieldVal( 'cbv-intake-cruise-itinerary' ),
-					cruise_length: fieldVal( 'cbv-intake-cruise-length' ),
+					cruise_start_date: fieldVal( 'cbv-intake-cruise-start-date' ),
+					cruise_end_date: fieldVal( 'cbv-intake-cruise-end-date' ),
+					cruise_duration: fieldVal( 'cbv-intake-cruise-duration' ),
+					cruise_region: fieldVal( 'cbv-intake-cruise-region' ),
+					cruise_departure_port: fieldVal( 'cbv-intake-cruise-departure-port' ),
 					pre_post_cruise_nights: fieldVal( 'cbv-intake-pre-post-cruise-nights' ),
 					cruise_cabin_class: fieldVal( 'cbv-intake-cruise-cabin-class' ),
 					beverage_plan: fieldVal( 'cbv-intake-beverage-plan' ),
