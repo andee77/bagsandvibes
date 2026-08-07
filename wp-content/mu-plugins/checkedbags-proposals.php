@@ -269,3 +269,83 @@ add_action( 'save_post_cb_proposal', function ( $post_id ) {
 		update_post_meta( $post_id, 'cb_proposal_hero_photo', absint( $_POST['cb_proposal_hero_photo'] ) );
 	}
 } );
+
+/* ==========================================================================
+   5. Proposal Boilerplate settings page -- one universal version of each
+      static content block (What's Included, Why Travel Insurance Matters,
+      Uplift/FlexPay explainer, coordinator next-steps), reused as-is on
+      every proposal regardless of Template Style or which trip/vendor is
+      involved -- confirmed in scoping, no per-style or per-vendor variant.
+      Clone of the Membership Terms settings page
+      (checkedbags-trip-invites.php: cbv_render_membership_terms_page) --
+      single option, hand-rolled form, wp_kses_post on save, no WP Settings
+      API -- minus that page's version-bump/re-acceptance logic, which is
+      specific to its terms-of-service gate and doesn't apply here.
+   ========================================================================== */
+function cb_get_proposal_boilerplate() {
+	$defaults = array(
+		'whats_included'         => '',
+		'insurance_importance'   => '',
+		'payment_plan'           => '',
+		'coordinator_next_steps' => '',
+	);
+	return wp_parse_args( get_option( 'cb_proposal_boilerplate', $defaults ), $defaults );
+}
+
+add_action( 'admin_menu', function () {
+	add_submenu_page(
+		'edit.php?post_type=cb_proposal',
+		'Proposal Boilerplate',
+		'Boilerplate Content',
+		'manage_options',
+		'cb-proposal-boilerplate',
+		'cb_render_proposal_boilerplate_page'
+	);
+} );
+
+function cb_render_proposal_boilerplate_page() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	if ( isset( $_POST['cb_boilerplate_nonce'] ) && wp_verify_nonce( $_POST['cb_boilerplate_nonce'], 'cb_save_proposal_boilerplate' ) ) {
+		$boilerplate = array(
+			'whats_included'         => wp_kses_post( wp_unslash( $_POST['whats_included'] ?? '' ) ),
+			'insurance_importance'   => wp_kses_post( wp_unslash( $_POST['insurance_importance'] ?? '' ) ),
+			'payment_plan'           => wp_kses_post( wp_unslash( $_POST['payment_plan'] ?? '' ) ),
+			'coordinator_next_steps' => wp_kses_post( wp_unslash( $_POST['coordinator_next_steps'] ?? '' ) ),
+		);
+		update_option( 'cb_proposal_boilerplate', $boilerplate, false );
+		echo '<div class="notice notice-success"><p>Boilerplate content saved.</p></div>';
+	}
+
+	$boilerplate = cb_get_proposal_boilerplate();
+	?>
+	<div class="wrap">
+		<h1>Proposal Boilerplate</h1>
+		<p class="description">Reused as-is on every generated proposal, regardless of Template Style or which trip/vendor is involved.</p>
+		<form method="post">
+			<?php wp_nonce_field( 'cb_save_proposal_boilerplate', 'cb_boilerplate_nonce' ); ?>
+			<table class="form-table">
+				<tr>
+					<th><label for="whats_included">What's Included</label></th>
+					<td><textarea name="whats_included" id="whats_included" rows="6" class="large-text"><?php echo esc_textarea( $boilerplate['whats_included'] ); ?></textarea></td>
+				</tr>
+				<tr>
+					<th><label for="insurance_importance">Why Travel Insurance Matters</label></th>
+					<td><textarea name="insurance_importance" id="insurance_importance" rows="6" class="large-text"><?php echo esc_textarea( $boilerplate['insurance_importance'] ); ?></textarea></td>
+				</tr>
+				<tr>
+					<th><label for="payment_plan">Travel Now, Pay Later (Uplift / FlexPay)</label></th>
+					<td><textarea name="payment_plan" id="payment_plan" rows="6" class="large-text"><?php echo esc_textarea( $boilerplate['payment_plan'] ); ?></textarea></td>
+				</tr>
+				<tr>
+					<th><label for="coordinator_next_steps">Coordinator Role &amp; Next Steps</label></th>
+					<td><textarea name="coordinator_next_steps" id="coordinator_next_steps" rows="6" class="large-text"><?php echo esc_textarea( $boilerplate['coordinator_next_steps'] ); ?></textarea></td>
+				</tr>
+			</table>
+			<?php submit_button( 'Save Boilerplate Content' ); ?>
+		</form>
+	</div>
+	<?php
+}
