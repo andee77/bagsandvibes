@@ -778,6 +778,74 @@ function cb_render_trip_pricing_tiers_meta_box( $post ) {
 	<?php
 }
 
+/* ==========================================================================
+   3c. Internal Notes -- vendor contacts, margin/profit notes, coordinator
+       checklist. Gated stricter than the rest of Trip Details: everything
+       else on this screen only needs edit_post, this needs manage_options
+       specifically (rendered AND saved), since it's the source content for
+       Piece 5's Internal Data Sheet PDF and must never appear to anyone
+       who isn't cleared to see margin/vendor information.
+   ========================================================================== */
+add_action( 'add_meta_boxes', function () {
+	add_meta_box(
+		'cb_trip_internal_notes',
+		'Internal Notes (Admin Only)',
+		'cb_render_trip_internal_notes_meta_box',
+		'cb_trip',
+		'normal',
+		'default'
+	);
+} );
+
+function cb_trip_get_internal_notes( $trip_id ) {
+	return array(
+		'vendor_contacts'        => (string) get_post_meta( $trip_id, 'cb_internal_vendor_contacts', true ),
+		'margin_notes'           => (string) get_post_meta( $trip_id, 'cb_internal_margin_notes', true ),
+		'coordinator_checklist'  => (string) get_post_meta( $trip_id, 'cb_internal_coordinator_checklist', true ),
+	);
+}
+
+function cb_render_trip_internal_notes_meta_box( $post ) {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		echo '<p><em>Visible to administrators only.</em></p>';
+		return;
+	}
+	wp_nonce_field( 'cb_trip_internal_notes_save', 'cb_trip_internal_notes_nonce' );
+	$notes = cb_trip_get_internal_notes( $post->ID );
+	?>
+	<div class="cb-field">
+		<label for="cb_internal_vendor_contacts">Vendor Contacts</label>
+		<textarea name="cb_internal_vendor_contacts" id="cb_internal_vendor_contacts" rows="4" style="width:100%;max-width:700px;" placeholder="Names, emails, phone numbers, account/booking reference numbers..."><?php echo esc_textarea( $notes['vendor_contacts'] ); ?></textarea>
+	</div>
+	<div class="cb-field">
+		<label for="cb_internal_margin_notes">Margin / Profit Notes</label>
+		<textarea name="cb_internal_margin_notes" id="cb_internal_margin_notes" rows="4" style="width:100%;max-width:700px;" placeholder="Commission, net cost vs. quoted price, anything not meant for the client..."><?php echo esc_textarea( $notes['margin_notes'] ); ?></textarea>
+	</div>
+	<div class="cb-field">
+		<label for="cb_internal_coordinator_checklist">Coordinator Checklist</label>
+		<textarea name="cb_internal_coordinator_checklist" id="cb_internal_coordinator_checklist" rows="4" style="width:100%;max-width:700px;" placeholder="Deposit deadlines, final payment due dates, docs to collect, follow-up tasks..."><?php echo esc_textarea( $notes['coordinator_checklist'] ); ?></textarea>
+	</div>
+	<?php
+}
+
+add_action( 'save_post_cb_trip', function ( $post_id ) {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	if ( ! isset( $_POST['cb_trip_internal_notes_nonce'] ) || ! wp_verify_nonce( $_POST['cb_trip_internal_notes_nonce'], 'cb_trip_internal_notes_save' ) ) {
+		return;
+	}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	$fields = array( 'cb_internal_vendor_contacts', 'cb_internal_margin_notes', 'cb_internal_coordinator_checklist' );
+	foreach ( $fields as $field ) {
+		if ( isset( $_POST[ $field ] ) ) {
+			update_post_meta( $post_id, $field, sanitize_textarea_field( wp_unslash( $_POST[ $field ] ) ) );
+		}
+	}
+} );
+
 // Recursively treats a repeater row as blank only if every leaf value is an
 // empty string after trimming -- a legitimate "0" (e.g. a $0 Discount or
 // Insurance line, once Pricing Tiers/Occupancy Points reuse this) must NOT
