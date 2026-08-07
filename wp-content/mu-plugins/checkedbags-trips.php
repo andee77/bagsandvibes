@@ -274,6 +274,8 @@ function cb_render_trip_meta_box( $post ) {
 		.cb-field select,
 		.cb-field textarea { width: 100%; max-width: 420px; }
 		.cb-row { display: flex; gap: 24px; flex-wrap: wrap; }
+		.cb-roster-admin-fields { display: flex; gap: 16px; flex-wrap: wrap; margin: 6px 0 0 0; }
+		.cb-roster-admin-fields label { font-size: 12px; font-weight: 600; display: flex; flex-direction: column; gap: 2px; }
 	</style>
 
 	<div class="cb-row">
@@ -381,6 +383,36 @@ function cb_render_trip_meta_box( $post ) {
 							data-nonce="<?php echo esc_attr( wp_create_nonce( 'cb_remove_roster_member_' . $post->ID . '_' . $user_id ) ); ?>"
 							data-confirm="<?php echo esc_attr( sprintf( "Remove %s from this trip's roster?", $user->display_name ) ); ?>"
 						>Remove</button>
+						<?php
+						// Admin-only per-traveler status for THIS trip. Deliberately not
+						// exposed anywhere on the client-facing side -- only this back-
+						// office control can mark these, and only marking BOTH received
+						// fields true hides the client's "Your Travel Details" section
+						// (see cbv_render_traveler_intake_form() in checkedbags-trip-invites.php).
+						$paid_in_full        = get_user_meta( $user_id, '_paid_in_full_' . $post->ID, true ) ?: 'no';
+						$insurance_received  = get_user_meta( $user_id, '_insurance_waiver_received_' . $post->ID, true ) ?: 'no';
+						$cc_auth_received    = get_user_meta( $user_id, '_cc_auth_received_' . $post->ID, true ) ?: 'no';
+						?>
+						<span class="cb-roster-admin-fields">
+							<label>Paid in Full
+								<select name="cbv_paid_in_full[<?php echo (int) $user_id; ?>]">
+									<option value="no" <?php selected( $paid_in_full, 'no' ); ?>>No</option>
+									<option value="yes" <?php selected( $paid_in_full, 'yes' ); ?>>Yes</option>
+								</select>
+							</label>
+							<label>Insurance Waiver Received
+								<select name="cbv_insurance_waiver_received[<?php echo (int) $user_id; ?>]">
+									<option value="no" <?php selected( $insurance_received, 'no' ); ?>>No</option>
+									<option value="yes" <?php selected( $insurance_received, 'yes' ); ?>>Yes</option>
+								</select>
+							</label>
+							<label>CC Auth Received
+								<select name="cbv_cc_auth_received[<?php echo (int) $user_id; ?>]">
+									<option value="no" <?php selected( $cc_auth_received, 'no' ); ?>>No</option>
+									<option value="yes" <?php selected( $cc_auth_received, 'yes' ); ?>>Yes</option>
+								</select>
+							</label>
+						</span>
 					</li>
 				<?php endforeach; ?>
 			</ul>
@@ -495,6 +527,30 @@ add_action( 'save_post_cb_trip', function ( $post_id ) {
 	foreach ( $number_fields as $field ) {
 		if ( isset( $_POST[ $field ] ) ) {
 			update_post_meta( $post_id, $field, floatval( $_POST[ $field ] ) );
+		}
+	}
+
+	// Admin-only per-traveler-per-trip status (Paid in Full, Insurance
+	// Waiver Received, CC Auth Received) -- rendered as plain named inputs
+	// alongside the roster list above, submitted through this same form, so
+	// no separate button/form is needed. Only roster members on THIS trip
+	// are ever written, regardless of what a crafted request might include.
+	$roster = cb_trip_get_roster( $post_id );
+	$roster_admin_fields = array(
+		'cbv_paid_in_full'             => '_paid_in_full_',
+		'cbv_insurance_waiver_received' => '_insurance_waiver_received_',
+		'cbv_cc_auth_received'          => '_cc_auth_received_',
+	);
+	foreach ( $roster_admin_fields as $post_key => $meta_prefix ) {
+		if ( empty( $_POST[ $post_key ] ) || ! is_array( $_POST[ $post_key ] ) ) {
+			continue;
+		}
+		foreach ( $_POST[ $post_key ] as $roster_user_id => $value ) {
+			$roster_user_id = absint( $roster_user_id );
+			if ( ! in_array( $roster_user_id, $roster, true ) ) {
+				continue;
+			}
+			update_user_meta( $roster_user_id, $meta_prefix . $post_id, ( 'yes' === $value ) ? 'yes' : 'no' );
 		}
 	}
 

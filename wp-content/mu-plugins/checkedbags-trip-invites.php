@@ -1768,6 +1768,16 @@ define( 'CBV_ACTIVITY_INTERESTS', array(
 	'Sightseeing/History', 'Culture/Arts', 'Beach/Sun', 'Active/Sports', 'Wine/Culinary', 'Shopping', 'Spa',
 ) );
 
+// Same option set as Gate 12's Air Travel seat-preference checkboxes and
+// Cruise Vacation cabin-class dropdown -- kept identical on purpose so the
+// per-traveler answer and the trip-wide organizer answer are always
+// directly comparable (see cbv_build_trip_roster_export_data()'s " *"
+// fallback marking).
+define( 'CBV_SEAT_PREFERENCES', array(
+	'Economy', 'Extra Leg Room/Premium', 'Business Class', 'First Class', 'Aisle', 'Middle', 'Window', 'Bulkhead', 'Forward', 'Wing',
+) );
+define( 'CBV_CABIN_CLASSES', array( 'Interior', 'Oceanview', 'Balcony', 'Suite' ) );
+
 add_filter( 'um_account_page_default_tabs_hook', function ( $tabs ) {
 	$tabs[250]['travel-profile'] = array(
 		'icon'   => 'um-faicon-suitcase',
@@ -1777,17 +1787,71 @@ add_filter( 'um_account_page_default_tabs_hook', function ( $tabs ) {
 	return $tabs;
 } );
 
+/**
+ * Falls back to the legacy single _legal_name field for anyone who filled
+ * that in before First/Last Name replaced it, so nothing already entered
+ * gets silently lost.
+ */
+function cbv_get_member_full_name( $user_id ) {
+	$first = get_user_meta( $user_id, '_first_name', true );
+	$last  = get_user_meta( $user_id, '_last_name', true );
+	if ( $first || $last ) {
+		return trim( $first . ' ' . $last );
+	}
+	return get_user_meta( $user_id, '_legal_name', true );
+}
+
+/**
+ * @return array{0: string, 1: string} [first name, last name]. Falls back
+ * to a naive split of the legacy single _legal_name field (first word vs.
+ * the rest) for anyone who filled that in before this was two fields.
+ */
+function cbv_get_member_name_parts( $user_id ) {
+	$first = get_user_meta( $user_id, '_first_name', true );
+	$last  = get_user_meta( $user_id, '_last_name', true );
+	if ( $first || $last ) {
+		return array( $first, $last );
+	}
+	$legacy = trim( get_user_meta( $user_id, '_legal_name', true ) );
+	if ( ! $legacy ) {
+		return array( '', '' );
+	}
+	$parts = explode( ' ', $legacy, 2 );
+	return array( $parts[0], $parts[1] ?? '' );
+}
+
+/**
+ * @return array{0: string, 1: string, 2: string, 3: string} [street, city, state, zip].
+ * Falls back to putting the legacy single _address field entirely into
+ * "street" for anyone who filled that in before this was four fields --
+ * there's no reliable way to split a free-text address into parts.
+ */
+function cbv_get_member_address_parts( $user_id ) {
+	$street = get_user_meta( $user_id, '_address_street', true );
+	$city   = get_user_meta( $user_id, '_address_city', true );
+	$state  = get_user_meta( $user_id, '_address_state', true );
+	$zip    = get_user_meta( $user_id, '_address_zip', true );
+	if ( $street || $city || $state || $zip ) {
+		return array( $street, $city, $state, $zip );
+	}
+	return array( get_user_meta( $user_id, '_address', true ), '', '', '' );
+}
+
 function cbv_user_profile_is_complete( $user_id ) {
-	return (bool) get_user_meta( $user_id, '_legal_name', true );
+	return (bool) cbv_get_member_full_name( $user_id );
 }
 
 add_filter( 'um_account_content_hook_travel-profile', function ( $output, $args ) {
 	$user_id = get_current_user_id();
 
-	$legal_name    = get_user_meta( $user_id, '_legal_name', true );
+	$first_name    = get_user_meta( $user_id, '_first_name', true );
+	$last_name     = get_user_meta( $user_id, '_last_name', true );
 	$dob           = get_user_meta( $user_id, '_date_of_birth', true );
 	$phone         = get_user_meta( $user_id, '_phone', true );
-	$address       = get_user_meta( $user_id, '_address', true );
+	$address_street = get_user_meta( $user_id, '_address_street', true );
+	$address_city  = get_user_meta( $user_id, '_address_city', true );
+	$address_state = get_user_meta( $user_id, '_address_state', true );
+	$address_zip   = get_user_meta( $user_id, '_address_zip', true );
 	$ec_name       = get_user_meta( $user_id, '_emergency_contact_name', true );
 	$ec_phone      = get_user_meta( $user_id, '_emergency_contact_phone', true );
 	$has_passport  = get_user_meta( $user_id, '_has_passport', true );
@@ -1804,10 +1868,18 @@ add_filter( 'um_account_content_hook_travel-profile', function ( $output, $args 
 	<div class="cbv-travel-profile">
 		<fieldset>
 			<legend>Personal Details</legend>
-			<label>Full legal name <input type="text" id="cbv-tp-legal-name" value="<?php echo esc_attr( $legal_name ); ?>"></label>
+			<div class="cbv-tp-row">
+				<label>First name <input type="text" id="cbv-tp-first-name" value="<?php echo esc_attr( $first_name ); ?>"></label>
+				<label>Last name <input type="text" id="cbv-tp-last-name" value="<?php echo esc_attr( $last_name ); ?>"></label>
+			</div>
 			<label>Date of birth <input type="date" id="cbv-tp-dob" value="<?php echo esc_attr( $dob ); ?>"></label>
-			<label>Phone <input type="tel" id="cbv-tp-phone" value="<?php echo esc_attr( $phone ); ?>"></label>
-			<label>Address <textarea id="cbv-tp-address" rows="2"><?php echo esc_textarea( $address ); ?></textarea></label>
+			<label class="cbv-tp-inline">Phone <input type="tel" id="cbv-tp-phone" value="<?php echo esc_attr( $phone ); ?>"></label>
+			<label>Street address <input type="text" id="cbv-tp-address-street" value="<?php echo esc_attr( $address_street ); ?>"></label>
+			<div class="cbv-tp-row">
+				<label>City <input type="text" id="cbv-tp-address-city" value="<?php echo esc_attr( $address_city ); ?>"></label>
+				<label>State <input type="text" id="cbv-tp-address-state" value="<?php echo esc_attr( $address_state ); ?>"></label>
+				<label>Zip code <input type="text" id="cbv-tp-address-zip" value="<?php echo esc_attr( $address_zip ); ?>"></label>
+			</div>
 		</fieldset>
 
 		<fieldset>
@@ -1861,10 +1933,14 @@ add_filter( 'um_account_content_hook_travel-profile', function ( $output, $args 
 				function ( el ) { return el.value; }
 			);
 			var payload = {
-				legal_name: document.getElementById( 'cbv-tp-legal-name' ).value,
+				first_name: document.getElementById( 'cbv-tp-first-name' ).value,
+				last_name: document.getElementById( 'cbv-tp-last-name' ).value,
 				date_of_birth: document.getElementById( 'cbv-tp-dob' ).value,
 				phone: document.getElementById( 'cbv-tp-phone' ).value,
-				address: document.getElementById( 'cbv-tp-address' ).value,
+				address_street: document.getElementById( 'cbv-tp-address-street' ).value,
+				address_city: document.getElementById( 'cbv-tp-address-city' ).value,
+				address_state: document.getElementById( 'cbv-tp-address-state' ).value,
+				address_zip: document.getElementById( 'cbv-tp-address-zip' ).value,
 				emergency_contact_name: document.getElementById( 'cbv-tp-ec-name' ).value,
 				emergency_contact_phone: document.getElementById( 'cbv-tp-ec-phone' ).value,
 				has_passport: document.getElementById( 'cbv-tp-has-passport' ).value,
@@ -1932,10 +2008,14 @@ function cbv_save_member_profile( $request ) {
 		return isset( $body[ $key ] ) ? sanitize_textarea_field( $body[ $key ] ) : '';
 	};
 
-	update_user_meta( $user_id, '_legal_name', $str( 'legal_name' ) );
+	update_user_meta( $user_id, '_first_name', $str( 'first_name' ) );
+	update_user_meta( $user_id, '_last_name', $str( 'last_name' ) );
 	update_user_meta( $user_id, '_date_of_birth', $str( 'date_of_birth' ) );
 	update_user_meta( $user_id, '_phone', $str( 'phone' ) );
-	update_user_meta( $user_id, '_address', $txt( 'address' ) );
+	update_user_meta( $user_id, '_address_street', $str( 'address_street' ) );
+	update_user_meta( $user_id, '_address_city', $str( 'address_city' ) );
+	update_user_meta( $user_id, '_address_state', $str( 'address_state' ) );
+	update_user_meta( $user_id, '_address_zip', $str( 'address_zip' ) );
 	update_user_meta( $user_id, '_emergency_contact_name', $str( 'emergency_contact_name' ) );
 	update_user_meta( $user_id, '_emergency_contact_phone', $str( 'emergency_contact_phone' ) );
 
@@ -1996,13 +2076,21 @@ add_action( 'rest_api_init', function () {
 			$str = function ( $key ) use ( $body ) {
 				return isset( $body[ $key ] ) ? sanitize_text_field( $body[ $key ] ) : '';
 			};
+			$txt = function ( $key ) use ( $body ) {
+				return isset( $body[ $key ] ) ? sanitize_textarea_field( $body[ $key ] ) : '';
+			};
 
 			$insurance_decision = $str( 'insurance_decision' );
+			$seat_preference    = $str( 'seat_preference' );
+			$cabin_class        = $str( 'cabin_class' );
 
 			$data = array(
-				'seat_preference'         => $str( 'seat_preference' ),
+				'seat_preference'         => in_array( $seat_preference, CBV_SEAT_PREFERENCES, true ) ? $seat_preference : '',
 				'departure_airport'       => $str( 'departure_airport' ),
-				'cabin_class'             => $str( 'cabin_class' ),
+				'cabin_class'             => in_array( $cabin_class, CBV_CABIN_CLASSES, true ) ? $cabin_class : '',
+				'preferred_airline'       => $str( 'preferred_airline' ),
+				'frequent_flyer_number'   => $str( 'frequent_flyer_number' ),
+				'traveling_companions'    => $txt( 'traveling_companions' ),
 				'insurance_decision'      => in_array( $insurance_decision, array( 'accepted', 'declined' ), true ) ? $insurance_decision : '',
 				'allianz_waiver_returned' => ! empty( $body['allianz_waiver_returned'] ),
 				'cc_auth_completed'       => ! empty( $body['cc_auth_completed'] ),
@@ -2028,21 +2116,58 @@ add_action( 'rest_api_init', function () {
  */
 function cbv_render_traveler_intake_form( $trip_id ) {
 	$user_id = get_current_user_id();
-	$intake  = cbv_get_traveler_intake( $user_id, $trip_id );
+
+	// Once admin has marked BOTH received in the back office (roster screen
+	// in checkedbags-trips.php), this section disappears entirely for this
+	// traveler -- these are two separate admin-only flags, distinct from the
+	// client's own self-report checkboxes below, and are the ONLY thing that
+	// can trigger this.
+	$insurance_received = get_user_meta( $user_id, '_insurance_waiver_received_' . $trip_id, true );
+	$cc_auth_received   = get_user_meta( $user_id, '_cc_auth_received_' . $trip_id, true );
+	if ( 'yes' === $insurance_received && 'yes' === $cc_auth_received ) {
+		return '';
+	}
+
+	$intake = cbv_get_traveler_intake( $user_id, $trip_id );
 
 	$cc_auth_url = content_url( 'uploads/checkedbags/documents/CC_authorization.pdf' );
 	$waiver_url  = content_url( 'uploads/checkedbags/documents/Allianz_Waiver_form.pdf' );
 	$insurance   = $intake['insurance_decision'] ?? '';
+	$seat_pref   = $intake['seat_preference'] ?? '';
+	$cabin_class = $intake['cabin_class'] ?? '';
 
 	ob_start();
 	?>
 	<div class="trip-detail-section trip-detail-traveler-intake" id="cbv-traveler-intake">
 		<h3>Your Travel Details for This Trip</h3>
 
-		<div class="cbv-intake-field">
-			<label>Seat preference <input type="text" id="cbv-intake-seat-preference" value="<?php echo esc_attr( $intake['seat_preference'] ?? '' ); ?>"></label>
+		<div class="cbv-intake-field cbv-intake-field-row">
+			<label>Seat preference
+				<select id="cbv-intake-seat-preference">
+					<option value="" <?php selected( $seat_pref, '' ); ?>>—</option>
+					<?php foreach ( CBV_SEAT_PREFERENCES as $option ) : ?>
+						<option value="<?php echo esc_attr( $option ); ?>" <?php selected( $seat_pref, $option ); ?>><?php echo esc_html( $option ); ?></option>
+					<?php endforeach; ?>
+				</select>
+			</label>
 			<label>Departure airport <input type="text" id="cbv-intake-departure-airport" value="<?php echo esc_attr( $intake['departure_airport'] ?? '' ); ?>"></label>
-			<label>Cabin class / room type preference <input type="text" id="cbv-intake-cabin-class" value="<?php echo esc_attr( $intake['cabin_class'] ?? '' ); ?>"></label>
+			<label>Cabin class / room type
+				<select id="cbv-intake-cabin-class">
+					<option value="" <?php selected( $cabin_class, '' ); ?>>—</option>
+					<?php foreach ( CBV_CABIN_CLASSES as $option ) : ?>
+						<option value="<?php echo esc_attr( $option ); ?>" <?php selected( $cabin_class, $option ); ?>><?php echo esc_html( $option ); ?></option>
+					<?php endforeach; ?>
+				</select>
+			</label>
+		</div>
+
+		<div class="cbv-intake-field cbv-intake-field-row">
+			<label>Preferred airline <input type="text" id="cbv-intake-preferred-airline" value="<?php echo esc_attr( $intake['preferred_airline'] ?? '' ); ?>"></label>
+			<label>Frequent flyer / loyalty number <input type="text" id="cbv-intake-frequent-flyer-number" value="<?php echo esc_attr( $intake['frequent_flyer_number'] ?? '' ); ?>"></label>
+		</div>
+
+		<div class="cbv-intake-field">
+			<label>Traveling with anyone else? List their names <textarea id="cbv-intake-traveling-companions" rows="2"><?php echo esc_textarea( $intake['traveling_companions'] ?? '' ); ?></textarea></label>
 		</div>
 
 		<div class="cbv-intake-field">
@@ -2054,14 +2179,15 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 				</select>
 			</label>
 			<div id="cbv-intake-waiver-row" <?php echo ( 'declined' !== $insurance ) ? 'style="display:none;"' : ''; ?>>
-				<p><a href="<?php echo esc_url( $waiver_url ); ?>" target="_blank" rel="noopener">Download the Allianz Waiver of Travel Insurance form</a>. Print, sign, and email or fax it back to us.</p>
-				<label class="check-row"><input type="checkbox" id="cbv-intake-waiver-returned" <?php checked( ! empty( $intake['allianz_waiver_returned'] ) ); ?>> I have downloaded, completed, and returned the signed waiver.</label>
+				<p class="cbv-intake-warning">Declining travel insurance means you assume financial responsibility for any trip cancellation, interruption, delay, or medical costs that may arise during this trip.</p>
+				<p><a href="<?php echo esc_url( $waiver_url ); ?>" target="_blank" rel="noopener">Download the Allianz Waiver of Travel Insurance form</a>.</p>
+				<label class="check-row"><input type="checkbox" id="cbv-intake-waiver-returned" <?php checked( ! empty( $intake['allianz_waiver_returned'] ) ); ?>> I have downloaded, completed waiver. Will email to travel@journeywellglobal.com within 48 hours.</label>
 			</div>
 		</div>
 
 		<div class="cbv-intake-field">
-			<p><a href="<?php echo esc_url( $cc_auth_url ); ?>" target="_blank" rel="noopener">Download the Credit Card Authorization form</a>. This is required for every trip — print, fill out, sign, and email or fax it back to us. We never collect card details on this site.</p>
-			<label class="check-row"><input type="checkbox" id="cbv-intake-cc-auth-completed" <?php checked( ! empty( $intake['cc_auth_completed'] ) ); ?>> I have downloaded, completed, and returned this form.</label>
+			<p><a href="<?php echo esc_url( $cc_auth_url ); ?>" target="_blank" rel="noopener">Download the Credit Card Authorization form</a>. This is required for every trip. We never collect card details on this site.</p>
+			<label class="check-row"><input type="checkbox" id="cbv-intake-cc-auth-completed" <?php checked( ! empty( $intake['cc_auth_completed'] ) ); ?>> I have downloaded, completed form. Will email to travel@journeywellglobal.com within 48 hours.</label>
 		</div>
 
 		<div class="cbv-intake-field">
@@ -2091,6 +2217,9 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 					seat_preference: document.getElementById( 'cbv-intake-seat-preference' ).value,
 					departure_airport: document.getElementById( 'cbv-intake-departure-airport' ).value,
 					cabin_class: document.getElementById( 'cbv-intake-cabin-class' ).value,
+					preferred_airline: document.getElementById( 'cbv-intake-preferred-airline' ).value,
+					frequent_flyer_number: document.getElementById( 'cbv-intake-frequent-flyer-number' ).value,
+					traveling_companions: document.getElementById( 'cbv-intake-traveling-companions' ).value,
 					insurance_decision: document.getElementById( 'cbv-intake-insurance-decision' ).value,
 					allianz_waiver_returned: document.getElementById( 'cbv-intake-waiver-returned' ).checked,
 					cc_auth_completed: document.getElementById( 'cbv-intake-cc-auth-completed' ).checked,

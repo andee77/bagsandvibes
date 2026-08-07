@@ -1994,3 +1994,65 @@ body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
   color: rgba(251,243,231,0.75);
   margin-top: 0.5rem;
 }
+
+/* ==========================================================================
+   Travel Profile account tab (Phase 8a)
+   ========================================================================== */
+.cbv-travel-profile fieldset {
+  margin-bottom: 1.5rem;
+}
+.cbv-travel-profile label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+.cbv-travel-profile input[type="text"],
+.cbv-travel-profile input[type="tel"],
+.cbv-travel-profile input[type="date"],
+.cbv-travel-profile select {
+  max-width: 320px;
+}
+.cbv-travel-profile textarea {
+  max-width: 420px;
+  width: 100%;
+}
+.cbv-tp-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.cbv-tp-row > label {
+  flex: 1;
+  min-width: 140px;
+}
+.cbv-travel-profile label.cbv-tp-inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+.cbv-travel-profile label.cbv-tp-inline input {
+  width: auto;
+  max-width: 180px;
+}
+
+/* ==========================================================================
+   Per-Traveler Trip Intake (Phase 8c) -- contrast fix + side-by-side fields
+   ========================================================================== */
+.trip-detail-traveler-intake h3 {
+  color: var(--sand);
+}
+.cbv-intake-field.cbv-intake-field-row {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.cbv-intake-field.cbv-intake-field-row label {
+  flex: 1;
+  min-width: 160px;
+}
+.cbv-intake-warning {
+  font-size: 0.8rem;
+  color: rgba(251,243,231,0.7);
+  font-style: italic;
+}

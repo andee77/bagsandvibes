@@ -175,7 +175,8 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 
 	$headers = array(
 		// Roster / Contact
-		'Name', 'Legal Name', 'Date of Birth', 'Email', 'Phone', 'Address',
+		'Name', 'First Name', 'Last Name', 'Date of Birth', 'Email', 'Phone',
+		'Street Address', 'City', 'State', 'Zip Code',
 		'Emergency Contact Name', 'Emergency Contact Phone',
 		// Passport Status
 		'Has Passport', 'Passport Country', 'Passport Expiration', 'Passport Renewal Needed',
@@ -183,12 +184,13 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 		'Role', 'Invited By', 'Membership Terms Version', 'Membership Terms Accepted Date',
 		'Trip Agreement Version', 'Trip Agreement Accepted Date',
 		// Financial
-		'Budget Tier Requested', 'Trip Price', 'Payment Status', 'Amount Paid',
-		'Insurance Decision', 'Allianz Waiver Returned', 'CC Auth Completed',
+		'Budget Tier Requested', 'Trip Price', 'Payment Status', 'Amount Paid', 'Paid in Full',
+		'Insurance Decision', 'Allianz Waiver Returned', 'Insurance Waiver Received',
+		'CC Auth Completed', 'CC Auth Received',
 		// Travel Logistics
-		'Departure Airport', 'Airline Preference', 'Seat Preference',
+		'Departure Airport', 'Airline Preference', 'Preferred Airline', 'Frequent Flyer Number', 'Seat Preference',
 		'Destinations of Interest', 'Travel Dates', 'Date Flexibility',
-		'Additional Adults', 'Additional Children', "Children's Ages",
+		'Additional Adults', 'Additional Children', "Children's Ages", 'Traveling Companions',
 		// Accommodation & Trip-Type Preferences
 		'Cabin Class / Room Type', 'Hotel Preferences', 'Hotel Room Type', 'Hotel Features',
 		'Hotel Nights', 'Hotel Rooms/Arrangement', 'Cruise Preferences', 'Cruise Itinerary',
@@ -242,13 +244,24 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 		$start = get_post_meta( $trip_id, 'cb_start_date', true );
 		$dates = $start ? ( $start . ( $trip_end ? ' to ' . $trip_end : '' ) ) : get_post_meta( $trip_id, 'cb_when_notes', true );
 
+		list( $first_name, $last_name ) = function_exists( 'cbv_get_member_name_parts' ) ? cbv_get_member_name_parts( $user_id ) : array( '', '' );
+		list( $addr_street, $addr_city, $addr_state, $addr_zip ) = function_exists( 'cbv_get_member_address_parts' ) ? cbv_get_member_address_parts( $user_id ) : array( '', '', '', '' );
+
+		$paid_in_full       = get_user_meta( $user_id, '_paid_in_full_' . $trip_id, true );
+		$insurance_received = get_user_meta( $user_id, '_insurance_waiver_received_' . $trip_id, true );
+		$cc_auth_received   = get_user_meta( $user_id, '_cc_auth_received_' . $trip_id, true );
+
 		$row = array(
 			$user->display_name,
-			get_user_meta( $user_id, '_legal_name', true ),
+			$first_name,
+			$last_name,
 			get_user_meta( $user_id, '_date_of_birth', true ),
 			$user->user_email,
 			get_user_meta( $user_id, '_phone', true ),
-			get_user_meta( $user_id, '_address', true ),
+			$addr_street,
+			$addr_city,
+			$addr_state,
+			$addr_zip,
 			get_user_meta( $user_id, '_emergency_contact_name', true ),
 			get_user_meta( $user_id, '_emergency_contact_phone', true ),
 
@@ -268,12 +281,17 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 			$price > 0 ? number_format( $price, 2 ) : '',
 			$payment_status,
 			$amount_paid > 0 ? number_format( $amount_paid, 2 ) : '',
+			'yes' === $paid_in_full ? 'Yes' : 'No',
 			$intake['insurance_decision'] ?? '',
 			! empty( $intake['allianz_waiver_returned'] ) ? 'Yes' : 'No',
+			'yes' === $insurance_received ? 'Yes' : 'No',
 			! empty( $intake['cc_auth_completed'] ) ? 'Yes' : 'No',
+			'yes' === $cc_auth_received ? 'Yes' : 'No',
 
 			$intake['departure_airport'] ?? '',
 			$req( 'airline_preference' ),
+			$intake['preferred_airline'] ?? '',
+			$intake['frequent_flyer_number'] ?? '',
 			$seat_preference_marked,
 			$req( 'destination_pref' ),
 			$dates,
@@ -281,6 +299,7 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 			$intake['additional_adults'] ?? '',
 			$intake['additional_children'] ?? '',
 			$intake['children_ages'] ?? '',
+			$intake['traveling_companions'] ?? '',
 
 			$cabin_class_marked,
 			$req( 'hotel_preferences' ),
