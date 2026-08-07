@@ -5,9 +5,13 @@
  *              compares 2-3 existing Trips for one prospective group. A
  *              Proposal never duplicates trip data -- it only stores which
  *              trips it references plus proposal-specific fields (client
- *              name via post_title, overview narrative, hero photo,
- *              Template Style); pricing/itinerary/dates are always pulled
- *              live from the referenced cb_trip posts at generation time.
+ *              name via post_title, overview narrative, Additional Photos
+ *              gallery, Template Style); pricing/itinerary/dates are always
+ *              pulled live from the referenced cb_trip posts at generation
+ *              time. The PDF's top banner photo is NOT proposal-specific --
+ *              it's one fixed global image set once on the Proposal
+ *              Boilerplate settings page (below), the same on every
+ *              generated proposal.
  * Author:      Built with Claude for JourneyWell Global LLC
  *
  * WHERE THIS FILE GOES:
@@ -28,7 +32,7 @@
  * show_in_rest is deliberately false: no REST endpoint means no second
  * guessable URL surface to also have to gate, and it keeps this CPT on the
  * Classic Editor -- so, unlike cb_trip's Gutenberg-edited meta boxes, the
- * hero-photo picker below does NOT need the input/change event-dispatch
+ * media pickers below do NOT need the input/change event-dispatch
  * workaround documented in checkedbags-trip-invites.php (Gutenberg's
  * separate meta-box-loader save path doesn't exist here; this form POSTs
  * normally on Publish/Update).
@@ -87,19 +91,16 @@ function cb_proposal_get_template_style( $proposal_id ) {
 	return get_post_meta( $proposal_id, 'cb_proposal_template_style', true ) ?: 'warm_editorial';
 }
 
-function cb_proposal_get_hero_photo_url( $proposal_id, $size = 'large' ) {
-	$attachment_id = (int) get_post_meta( $proposal_id, 'cb_proposal_hero_photo', true );
-	if ( ! $attachment_id ) {
-		return '';
-	}
-	return wp_get_attachment_image_url( $attachment_id, $size ) ?: '';
+function cb_proposal_get_additional_photo_ids( $proposal_id ) {
+	$ids = get_post_meta( $proposal_id, 'cb_proposal_additional_photos', true );
+	return is_array( $ids ) ? array_map( 'absint', $ids ) : array();
 }
 
 /* ==========================================================================
    3. Meta box: trip picker (reuses the validated flat-repeater mechanism
       from Day-by-Day Itinerary -- one <select> per row instead of several
       text fields, everything else identical), overview narrative, Template
-      Style, hero photo picker.
+      Style, Additional Photos gallery.
    ========================================================================== */
 add_action( 'add_meta_boxes', function () {
 	add_meta_box(
@@ -115,7 +116,11 @@ add_action( 'add_meta_boxes', function () {
 add_action( 'admin_enqueue_scripts', function ( $hook ) {
 	global $post;
 	if ( in_array( $hook, array( 'post.php', 'post-new.php' ), true ) && $post && 'cb_proposal' === $post->post_type ) {
-		wp_enqueue_media();
+		wp_enqueue_media(); // Additional Photos gallery picker
+		return;
+	}
+	if ( 'cb_proposal_page_cb-proposal-boilerplate' === $hook ) {
+		wp_enqueue_media(); // Proposal Header Banner picker
 	}
 } );
 
@@ -139,11 +144,10 @@ function cb_render_proposal_meta_box( $post ) {
 	}
 	wp_nonce_field( 'cb_proposal_save', 'cb_proposal_nonce' );
 
-	$trip_ids       = cb_proposal_get_trip_ids( $post->ID );
-	$overview       = cb_proposal_get_overview( $post->ID );
-	$template_style = cb_proposal_get_template_style( $post->ID );
-	$hero_photo_id  = (int) get_post_meta( $post->ID, 'cb_proposal_hero_photo', true );
-	$hero_photo_url = $hero_photo_id ? wp_get_attachment_image_url( $hero_photo_id, 'medium' ) : '';
+	$trip_ids         = cb_proposal_get_trip_ids( $post->ID );
+	$overview         = cb_proposal_get_overview( $post->ID );
+	$template_style   = cb_proposal_get_template_style( $post->ID );
+	$additional_photo_ids = cb_proposal_get_additional_photo_ids( $post->ID );
 
 	$trips = get_posts( array(
 		'post_type'      => 'cb_trip',
@@ -191,37 +195,71 @@ function cb_render_proposal_meta_box( $post ) {
 	</div>
 
 	<div class="cb-field">
-		<label>Hero Photo</label>
-		<div id="cb-proposal-hero-preview" style="margin-bottom:8px;">
-			<?php if ( $hero_photo_url ) : ?>
-				<img src="<?php echo esc_url( $hero_photo_url ); ?>" style="max-width:300px;height:auto;border-radius:4px;">
-			<?php else : ?>
-				<p style="color:#888;"><em>No hero photo set.</em></p>
-			<?php endif; ?>
+		<label>Additional Photos <span class="description">(optional -- a handful, e.g. 3-6, works well for visual variety. Placed between the trip options and the closing content in the generated Client Proposal PDF. The fixed banner photo at the top of every proposal is set once on the Boilerplate Content settings page, not here.)</span></label>
+		<div id="cb-proposal-gallery-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+			<?php foreach ( $additional_photo_ids as $photo_id ) :
+				$thumb_url = wp_get_attachment_image_url( $photo_id, 'thumbnail' );
+				if ( ! $thumb_url ) {
+					continue;
+				}
+				?>
+				<div class="cb-gallery-thumb" data-id="<?php echo esc_attr( $photo_id ); ?>" style="position:relative;">
+					<img src="<?php echo esc_url( $thumb_url ); ?>" style="width:100px;height:100px;object-fit:cover;border-radius:4px;">
+					<button type="button" class="cb-gallery-remove" style="position:absolute;top:-6px;right:-6px;background:#b32d2e;color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;">&times;</button>
+				</div>
+			<?php endforeach; ?>
 		</div>
-		<input type="hidden" name="cb_proposal_hero_photo" id="cb_proposal_hero_photo" value="<?php echo esc_attr( $hero_photo_id ); ?>">
-		<button type="button" class="button" id="cb-proposal-select-hero">Select image</button>
-		<button type="button" class="button" id="cb-proposal-remove-hero" style="<?php echo $hero_photo_id ? '' : 'display:none;'; ?>">Remove</button>
+		<input type="hidden" name="cb_proposal_additional_photos" id="cb_proposal_additional_photos" value="<?php echo esc_attr( implode( ',', $additional_photo_ids ) ); ?>">
+		<button type="button" class="button" id="cb-proposal-select-gallery">Choose Photos</button>
 	</div>
 	<script>
 	(function () {
-		document.getElementById( 'cb-proposal-select-hero' ).addEventListener( 'click', function ( e ) {
+		var container    = document.getElementById( 'cb-proposal-gallery-preview' );
+		var hiddenInput   = document.getElementById( 'cb_proposal_additional_photos' );
+
+		function currentIds() {
+			return hiddenInput.value ? hiddenInput.value.split( ',' ).filter( Boolean ) : [];
+		}
+
+		function addThumb( id, url ) {
+			var wrap = document.createElement( 'div' );
+			wrap.className = 'cb-gallery-thumb';
+			wrap.setAttribute( 'data-id', id );
+			wrap.style.position = 'relative';
+			wrap.innerHTML = '<img src="' + url + '" style="width:100px;height:100px;object-fit:cover;border-radius:4px;">'
+				+ '<button type="button" class="cb-gallery-remove" style="position:absolute;top:-6px;right:-6px;background:#b32d2e;color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;">&times;</button>';
+			container.appendChild( wrap );
+		}
+
+		document.getElementById( 'cb-proposal-select-gallery' ).addEventListener( 'click', function ( e ) {
 			e.preventDefault();
-			var frame = wp.media( { title: 'Select Hero Photo', library: { type: 'image' }, multiple: false } );
+			var frame = wp.media( { title: 'Choose Additional Photos', library: { type: 'image' }, multiple: true } );
 			frame.on( 'select', function () {
-				var attachment = frame.state().get( 'selection' ).first().toJSON();
-				document.getElementById( 'cb_proposal_hero_photo' ).value = attachment.id;
-				var url = ( attachment.sizes && attachment.sizes.medium ) ? attachment.sizes.medium.url : attachment.url;
-				document.getElementById( 'cb-proposal-hero-preview' ).innerHTML = '<img src="' + url + '" style="max-width:300px;height:auto;border-radius:4px;">';
-				document.getElementById( 'cb-proposal-remove-hero' ).style.display = '';
+				var selection = frame.state().get( 'selection' ).toJSON();
+				var ids = currentIds();
+				selection.forEach( function ( attachment ) {
+					var id = String( attachment.id );
+					if ( ids.indexOf( id ) !== -1 ) {
+						return; // already added -- reopening the picker doesn't duplicate
+					}
+					ids.push( id );
+					var url = ( attachment.sizes && attachment.sizes.thumbnail ) ? attachment.sizes.thumbnail.url : attachment.url;
+					addThumb( id, url );
+				} );
+				hiddenInput.value = ids.join( ',' );
 			} );
 			frame.open();
 		} );
-		document.getElementById( 'cb-proposal-remove-hero' ).addEventListener( 'click', function ( e ) {
-			e.preventDefault();
-			document.getElementById( 'cb_proposal_hero_photo' ).value = '0';
-			document.getElementById( 'cb-proposal-hero-preview' ).innerHTML = '<p style="color:#888;"><em>No hero photo set.</em></p>';
-			this.style.display = 'none';
+
+		container.addEventListener( 'click', function ( e ) {
+			var removeBtn = e.target.closest( '.cb-gallery-remove' );
+			if ( ! removeBtn ) {
+				return;
+			}
+			var thumb = removeBtn.closest( '.cb-gallery-thumb' );
+			var id    = thumb.getAttribute( 'data-id' );
+			hiddenInput.value = currentIds().filter( function ( existingId ) { return existingId !== id; } ).join( ',' );
+			thumb.remove();
 		} );
 	})();
 	</script>
@@ -265,8 +303,19 @@ add_action( 'save_post_cb_proposal', function ( $post_id ) {
 		}
 	}
 
-	if ( isset( $_POST['cb_proposal_hero_photo'] ) ) {
-		update_post_meta( $post_id, 'cb_proposal_hero_photo', absint( $_POST['cb_proposal_hero_photo'] ) );
+	// Additional Photos: comma-separated attachment IDs from the hidden
+	// field, validated the same way the trip picker validates its IDs --
+	// each must actually resolve to a real image attachment before being
+	// trusted, since this list feeds straight into the PDF generator.
+	if ( isset( $_POST['cb_proposal_additional_photos'] ) ) {
+		$photo_ids = array();
+		foreach ( explode( ',', $_POST['cb_proposal_additional_photos'] ) as $photo_id ) {
+			$photo_id = absint( $photo_id );
+			if ( $photo_id && 'attachment' === get_post_type( $photo_id ) ) {
+				$photo_ids[] = $photo_id;
+			}
+		}
+		update_post_meta( $post_id, 'cb_proposal_additional_photos', $photo_ids );
 	}
 } );
 
@@ -288,6 +337,7 @@ function cb_get_proposal_boilerplate() {
 		'insurance_importance'   => '',
 		'payment_plan'           => '',
 		'coordinator_next_steps' => '',
+		'header_banner_photo'    => 0, // attachment ID -- one fixed image atop every Client Proposal PDF
 	);
 	return wp_parse_args( get_option( 'cb_proposal_boilerplate', $defaults ), $defaults );
 }
@@ -314,12 +364,15 @@ function cb_render_proposal_boilerplate_page() {
 			'insurance_importance'   => wp_kses_post( wp_unslash( $_POST['insurance_importance'] ?? '' ) ),
 			'payment_plan'           => wp_kses_post( wp_unslash( $_POST['payment_plan'] ?? '' ) ),
 			'coordinator_next_steps' => wp_kses_post( wp_unslash( $_POST['coordinator_next_steps'] ?? '' ) ),
+			'header_banner_photo'    => absint( $_POST['header_banner_photo'] ?? 0 ),
 		);
 		update_option( 'cb_proposal_boilerplate', $boilerplate, false );
 		echo '<div class="notice notice-success"><p>Boilerplate content saved.</p></div>';
 	}
 
 	$boilerplate = cb_get_proposal_boilerplate();
+	$banner_id   = (int) $boilerplate['header_banner_photo'];
+	$banner_url  = $banner_id ? wp_get_attachment_image_url( $banner_id, 'medium' ) : '';
 	?>
 	<div class="wrap">
 		<h1>Proposal Boilerplate</h1>
@@ -327,6 +380,22 @@ function cb_render_proposal_boilerplate_page() {
 		<form method="post">
 			<?php wp_nonce_field( 'cb_save_proposal_boilerplate', 'cb_boilerplate_nonce' ); ?>
 			<table class="form-table">
+				<tr>
+					<th><label>Header Banner Photo</label></th>
+					<td>
+						<div id="cb-banner-preview" style="margin-bottom:8px;">
+							<?php if ( $banner_url ) : ?>
+								<img src="<?php echo esc_url( $banner_url ); ?>" style="max-width:400px;height:auto;border-radius:4px;">
+							<?php else : ?>
+								<p style="color:#888;"><em>No banner photo set -- the Client Proposal PDF will render without one.</em></p>
+							<?php endif; ?>
+						</div>
+						<input type="hidden" name="header_banner_photo" id="header_banner_photo" value="<?php echo esc_attr( $banner_id ); ?>">
+						<button type="button" class="button" id="cb-select-banner">Select image</button>
+						<button type="button" class="button" id="cb-remove-banner" style="<?php echo $banner_id ? '' : 'display:none;'; ?>">Remove</button>
+						<p class="description">The same fixed image at the top of every generated Client Proposal PDF -- not proposal-specific. Compare with each proposal's own "Additional Photos" gallery, which varies per proposal.</p>
+					</td>
+				</tr>
 				<tr>
 					<th><label for="whats_included">What's Included</label></th>
 					<td><textarea name="whats_included" id="whats_included" rows="6" class="large-text"><?php echo esc_textarea( $boilerplate['whats_included'] ); ?></textarea></td>
@@ -347,5 +416,27 @@ function cb_render_proposal_boilerplate_page() {
 			<?php submit_button( 'Save Boilerplate Content' ); ?>
 		</form>
 	</div>
+	<script>
+	(function () {
+		document.getElementById( 'cb-select-banner' ).addEventListener( 'click', function ( e ) {
+			e.preventDefault();
+			var frame = wp.media( { title: 'Select Header Banner Photo', library: { type: 'image' }, multiple: false } );
+			frame.on( 'select', function () {
+				var attachment = frame.state().get( 'selection' ).first().toJSON();
+				document.getElementById( 'header_banner_photo' ).value = attachment.id;
+				var url = ( attachment.sizes && attachment.sizes.medium ) ? attachment.sizes.medium.url : attachment.url;
+				document.getElementById( 'cb-banner-preview' ).innerHTML = '<img src="' + url + '" style="max-width:400px;height:auto;border-radius:4px;">';
+				document.getElementById( 'cb-remove-banner' ).style.display = '';
+			} );
+			frame.open();
+		} );
+		document.getElementById( 'cb-remove-banner' ).addEventListener( 'click', function ( e ) {
+			e.preventDefault();
+			document.getElementById( 'header_banner_photo' ).value = '0';
+			document.getElementById( 'cb-banner-preview' ).innerHTML = '<p style="color:#888;"><em>No banner photo set -- the Client Proposal PDF will render without one.</em></p>';
+			this.style.display = 'none';
+		} );
+	})();
+	</script>
 	<?php
 }
