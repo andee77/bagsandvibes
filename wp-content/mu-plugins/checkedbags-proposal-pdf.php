@@ -204,7 +204,8 @@ function cb_proposal_get_template_css( $style ) {
 		.cb-footer .cb-page-number:after { content: "Page " counter(page); }
 		.cb-hero { width: 100%; max-height: 260px; margin-bottom: 16px; }
 		.cb-section-title { font-size: 16px; margin-top: 22px; margin-bottom: 10px; }
-		.cb-option-card { padding: 14px; margin-bottom: 18px; page-break-inside: avoid; }
+		.cb-option-card { padding: 14px; margin-bottom: 18px; page-break-inside: avoid; overflow: hidden; }
+		.cb-cover-photo { float: left; width: 46%; height: auto; margin: 0 14px 8px 0; border-radius: 6px; }
 		.cb-option-meta { font-family: "Courier New", monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
 		table.cb-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 10px; }
 		table.cb-table th, table.cb-table td { padding: 5px 7px; text-align: left; border-bottom: 1px solid #ddd; }
@@ -325,13 +326,14 @@ function cb_proposal_build_client_html( $data ) {
 	foreach ( $data['trips'] as $trip ) {
 		$dates = cb_format_date_range( $trip['start_date'], $trip['end_date'] );
 		$cover_html = $trip['cover_photo_path']
-			? '<img src="' . esc_attr( $trip['cover_photo_path'] ) . '" style="width:100%;max-height:180px;margin-bottom:8px;">'
+			? '<img class="cb-cover-photo" src="' . esc_attr( $trip['cover_photo_path'] ) . '">'
 			: '';
 
 		$options_html .= '<div class="cb-option-card">'
 			. $cover_html
 			. '<h2>' . esc_html( $trip['title'] ) . '</h2>'
 			. '<div class="cb-option-meta">' . esc_html( $trip['type_label'] ) . ' &middot; ' . esc_html( $dates ) . '</div>'
+			. '<div style="clear:both;"></div>'
 			. cb_proposal_render_itinerary_html( $trip )
 			. cb_proposal_render_pricing_html( $trip )
 			. '</div>';
