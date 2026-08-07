@@ -866,12 +866,20 @@ function cb_repeater_row_is_blank( $row ) {
 	return true;
 }
 
-// Shared Add/Remove-row script for every repeater field on the cb_trip edit
+// Shared Add/Remove-row script for every repeater field on any post edit
 // screen -- written once here, reused unmodified by any repeater added
-// later (Pricing Tiers, its nested Occupancy Points, its nested Add-ons).
+// later, on any post type (Day-by-Day Itinerary and Pricing Tiers on
+// cb_trip, the trip picker on cb_proposal, and anything still to come).
+// Deliberately NOT gated to specific post types: this was originally
+// gated to 'cb_trip' only, which silently broke the cb_proposal trip
+// picker's Add button (script never loaded on that screen at all). Gating
+// on $screen->base === 'post' instead -- i.e. "some post edit/new screen,
+// any post type" -- is exactly as cheap when no .cb-repeater exists on the
+// page (the delegated click listener simply never matches anything) and
+// needs no maintenance when a repeater is added to a new post type later.
 add_action( 'admin_footer', function () {
 	$screen = get_current_screen();
-	if ( ! $screen || 'cb_trip' !== $screen->post_type || 'post' !== $screen->base ) {
+	if ( ! $screen || 'post' !== $screen->base ) {
 		return;
 	}
 	?>
