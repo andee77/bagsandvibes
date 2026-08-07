@@ -267,16 +267,24 @@ function cb_trip_meets_minimum_group_size( $trip_id ) {
 // price, inclusions, featured flag) is Phase 10 scope and doesn't exist on
 // cb_trip yet. Wire real tier-scanning logic in here once it's built; every
 // caller of this function already expects and handles a 'tiers' source.
+// Single source of truth for "what does one Occupancy Price Point actually
+// cost per person" -- used by the price-range summary below AND by the
+// Client Proposal / Internal Data Sheet PDF itemized invoice tables
+// (Piece 5), so the two can never drift apart on the math.
+function cb_pricing_occupancy_point_total( $point ) {
+	return (float) ( $point['voyage_fare'] ?? 0 )
+		+ (float) ( $point['taxes_fees'] ?? 0 )
+		+ (float) ( $point['gratuities'] ?? 0 )
+		+ (float) ( $point['insurance'] ?? 0 )
+		- (float) ( $point['discount'] ?? 0 );
+}
+
 function cb_trip_get_price_range( $trip_id ) {
 	$tiers        = cb_trip_get_pricing_tiers( $trip_id );
 	$point_totals = array();
 	foreach ( $tiers as $tier ) {
 		foreach ( (array) ( $tier['occupancy_points'] ?? array() ) as $point ) {
-			$point_totals[] = (float) ( $point['voyage_fare'] ?? 0 )
-				+ (float) ( $point['taxes_fees'] ?? 0 )
-				+ (float) ( $point['gratuities'] ?? 0 )
-				+ (float) ( $point['insurance'] ?? 0 )
-				- (float) ( $point['discount'] ?? 0 );
+			$point_totals[] = cb_pricing_occupancy_point_total( $point );
 		}
 	}
 	if ( ! empty( $point_totals ) ) {
