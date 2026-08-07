@@ -215,7 +215,7 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 		// Accommodation & Trip-Type Preferences
 		'Hotel Preferences', 'Hotel Room Type', 'Hotel Features',
 		'Hotel Nights', 'Hotel Rooms/Arrangement', 'Hotel Concierge Notes',
-		'Cruise Company', 'Cruise Program Number', 'Cruise Itinerary',
+		'Cruise Company', 'Cruise Program Number', 'Cruise Itinerary (Legacy)',
 		'Cruise Start Date', 'Cruise End Date', 'Cruise Duration', 'Cruise Region',
 		'Cruise Departure Port', 'Pre/Post Cruise Nights',
 		'Cruise Cabin Class', 'Beverage Plan', 'Beverage Plan Type',
@@ -279,7 +279,11 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 
 		$cruise_company        = $merge( $intake['cruise_company'] ?? '', $req( 'cruise_company' ) );
 		$cruise_program_number = $merge( $intake['cruise_program_number'] ?? '', $req( 'cruise_program_number' ) );
-		$cruise_itinerary      = $merge( $intake['cruise_itinerary'] ?? '', $req( 'cruise_itinerary' ) );
+
+		// No longer a form input on either form (Duration/Region/Port
+		// replace it) -- this only ever surfaces already-stored data now.
+		$cruise_itinerary = $merge( $intake['cruise_itinerary'] ?? '', $req( 'cruise_itinerary' ) );
+
 		$cruise_start_date     = $merge( $intake['cruise_start_date'] ?? '', $req( 'cruise_start_date' ) );
 		$cruise_end_date       = $merge( $intake['cruise_end_date'] ?? '', $req( 'cruise_end_date' ) );
 		$cruise_region         = $merge( $intake['cruise_region'] ?? '', $req( 'cruise_region' ) );

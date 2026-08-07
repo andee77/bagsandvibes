@@ -139,12 +139,13 @@ function cbv_trip_request_field_defs() {
 		'seat_preference'    => array( 'type' => 'array' ),
 
 		// Cruise Vacation (CIF section) -- shown when "Cruise" is checked.
-		// cruise_preferences and cruise_length are legacy -- no longer a
-		// form input on this or the Per-Traveler Intake form, replaced by
-		// cruise_company/cruise_program_number and cruise_duration
-		// respectively, but kept registered here so any already-stored
-		// data stays readable (see cbv_get_trip_request_field()'s fallback
-		// and cbv_build_trip_roster_export_data()).
+		// cruise_preferences, cruise_itinerary, and cruise_length are
+		// legacy -- no longer a form input on this or the Per-Traveler
+		// Intake form (replaced by cruise_company/cruise_program_number
+		// and cruise_duration/cruise_region/cruise_departure_port), but
+		// kept registered here so any already-stored data stays readable
+		// (see cbv_get_trip_request_field()'s fallback and
+		// cbv_build_trip_roster_export_data()).
 		'cruise_preferences'     => array( 'type' => 'text' ),
 		'cruise_company'         => array( 'type' => 'text' ),
 		'cruise_program_number'  => array( 'type' => 'text' ),
@@ -273,7 +274,6 @@ function cb_render_request_meta_box( $post ) {
 		'— Cruise Vacation —'    => '',
 		'Cruise company'         => $f( 'cruise_company' ),
 		'Cruise program number'  => $f( 'cruise_program_number' ),
-		'Cruise itinerary'       => $f( 'cruise_itinerary' ),
 		'Cruise start date'      => $f( 'cruise_start_date' ),
 		'Cruise end date'        => $f( 'cruise_end_date' ),
 		'Cruise duration'        => $f( 'cruise_duration' ),
@@ -284,6 +284,7 @@ function cb_render_request_meta_box( $post ) {
 		'Beverage plan'          => $f( 'beverage_plan' ),
 		'Beverage plan type'     => $f( 'beverage_plan_type' ),
 		'Cruise preferences (legacy)' => $f( 'cruise_preferences' ),
+		'Cruise itinerary (legacy)'   => $f( 'cruise_itinerary' ),
 		'Cruise length (legacy)'      => $f( 'cruise_length' ),
 
 		'— Hotel and Resort Vacation —' => '',
@@ -642,7 +643,6 @@ add_shortcode( 'cb_gate_requests', function () {
 			<legend>Cruise Vacation</legend>
 			<label>Cruise company <input type="text" id="req-cruise-company"></label>
 			<label>Cruise program number <input type="text" id="req-cruise-program-number"></label>
-			<label>Cruise itinerary <input type="text" id="req-cruise-itinerary"></label>
 			<label>Cruise start date <input type="date" id="req-cruise-start-date"></label>
 			<label>Cruise end date <input type="date" id="req-cruise-end-date"></label>
 			<label>Cruise duration <select id="req-cruise-duration">

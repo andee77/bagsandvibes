@@ -54,7 +54,6 @@
         // Cruise Vacation
         cruise_company: val('req-cruise-company'),
         cruise_program_number: val('req-cruise-program-number'),
-        cruise_itinerary: val('req-cruise-itinerary'),
         cruise_start_date: val('req-cruise-start-date'),
         cruise_end_date: val('req-cruise-end-date'),
         cruise_duration: val('req-cruise-duration'),

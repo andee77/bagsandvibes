@@ -1798,19 +1798,24 @@ define( 'CBV_CRUISE_DURATIONS', array( '3–5 days', '7 days', '10–21 days', '
 
 define( 'CBV_CRUISE_REGIONS', array(
 	'The Caribbean, Bahamas & Mexico' => array(
-		'Western Caribbean (4–7 Nights)',
-		'Eastern Caribbean (7 Nights)',
-		'Southern Caribbean (7–14 Nights)',
-		'Mexican Riviera (3–7 Nights)',
+		'Western Caribbean',
+		'Eastern Caribbean',
+		'Southern Caribbean',
+		'Mexican Riviera',
 	),
 	'Alaska & The Pacific Northwest' => array(
-		'Inside Passage Roundtrip (7 Nights)',
-		'Gulf of Alaska / One-Way (7 Nights)',
+		'Inside Passage Roundtrip',
+		'Gulf of Alaska / One-Way',
 	),
 	'Europe & The Mediterranean' => array(
-		'Western Mediterranean (7–10 Nights)',
-		'Eastern Mediterranean & Greek Isles (7–11 Nights)',
-		'Northern Europe & Norwegian Fjords (7–14 Nights)',
+		'Western Mediterranean',
+		'Eastern Mediterranean & Greek Isles',
+		'Northern Europe & Norwegian Fjords',
+	),
+	'Australasia' => array(
+		'Sydney, Australia',
+		'Melbourne, Australia',
+		'Auckland, New Zealand',
 	),
 ) );
 
@@ -1837,7 +1842,7 @@ define( 'CBV_CRUISE_DEPARTURE_PORTS', array(
 		'Port of Marseille',
 		'Reykjavik, Iceland',
 	),
-	'Australia & The South Pacific' => array(
+	'Australasia' => array(
 		'Sydney, Australia',
 		'Melbourne, Australia',
 		'Auckland, New Zealand',
@@ -2206,10 +2211,13 @@ add_action( 'rest_api_init', function () {
 				'preferred_airline'       => $str( 'preferred_airline' ),
 				'frequent_flyer_number'   => $str( 'frequent_flyer_number' ),
 
-				// Cruise Vacation
+				// Cruise Vacation. cruise_itinerary is legacy -- no longer a
+				// form input on this or Gate 12 (Duration/Region/Port
+				// replace it), so it's deliberately not written here; any
+				// already-stored value stays readable via
+				// cbv_get_trip_request_field()'s fallback and the export.
 				'cruise_company'          => $str( 'cruise_company' ),
 				'cruise_program_number'   => $str( 'cruise_program_number' ),
-				'cruise_itinerary'        => $str( 'cruise_itinerary' ),
 				'cruise_start_date'       => $str( 'cruise_start_date' ),
 				'cruise_end_date'         => $str( 'cruise_end_date' ),
 				'cruise_duration'         => in_array( $cruise_duration, CBV_CRUISE_DURATIONS, true ) ? $cruise_duration : '',
@@ -2352,7 +2360,6 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 				<label>Cruise program number <input type="text" id="cbv-intake-cruise-program-number" value="<?php echo esc_attr( $intake['cruise_program_number'] ?? '' ); ?>"></label>
 			</div>
 			<div class="cbv-intake-field-row">
-				<label>Cruise itinerary <input type="text" id="cbv-intake-cruise-itinerary" value="<?php echo esc_attr( $intake['cruise_itinerary'] ?? '' ); ?>"></label>
 				<label>Cruise start date <input type="date" id="cbv-intake-cruise-start-date" value="<?php echo esc_attr( $intake['cruise_start_date'] ?? '' ); ?>"></label>
 				<label>Cruise end date <input type="date" id="cbv-intake-cruise-end-date" value="<?php echo esc_attr( $intake['cruise_end_date'] ?? '' ); ?>"></label>
 			</div>
@@ -2530,7 +2537,6 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 
 					cruise_company: fieldVal( 'cbv-intake-cruise-company' ),
 					cruise_program_number: fieldVal( 'cbv-intake-cruise-program-number' ),
-					cruise_itinerary: fieldVal( 'cbv-intake-cruise-itinerary' ),
 					cruise_start_date: fieldVal( 'cbv-intake-cruise-start-date' ),
 					cruise_end_date: fieldVal( 'cbv-intake-cruise-end-date' ),
 					cruise_duration: fieldVal( 'cbv-intake-cruise-duration' ),
