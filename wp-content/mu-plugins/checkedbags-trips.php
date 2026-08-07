@@ -171,6 +171,19 @@ function cb_trip_get_roster( $trip_id ) {
 	return is_array( $roster ) ? $roster : array();
 }
 
+// Counts only roster IDs that still resolve to a real WP user -- a raw
+// count( cb_trip_get_roster() ) can be inflated by orphaned IDs left behind
+// when a user account is deleted outside of the "Remove" button.
+function cb_trip_get_valid_roster_count( $trip_id ) {
+	$count = 0;
+	foreach ( cb_trip_get_roster( $trip_id ) as $user_id ) {
+		if ( get_userdata( $user_id ) ) {
+			$count++;
+		}
+	}
+	return $count;
+}
+
 function cb_trip_add_member( $trip_id, $user_id ) {
 	$roster = cb_trip_get_roster( $trip_id );
 
@@ -198,6 +211,24 @@ function cb_trip_remove_member( $trip_id, $user_id ) {
 
 	do_action( 'cb_trip_member_removed', $trip_id, $user_id );
 }
+
+// Strip a deleted WP user's ID out of every trip roster that still lists
+// them, so a deleted account doesn't linger as an orphaned ID (inflating
+// raw roster counts) with no way to remove it via the admin UI anymore.
+add_action( 'delete_user', function ( $user_id ) {
+	$trip_ids = get_posts( array(
+		'post_type'      => 'cb_trip',
+		'post_status'    => 'any',
+		'posts_per_page' => -1,
+		'fields'         => 'ids',
+	) );
+
+	foreach ( $trip_ids as $trip_id ) {
+		if ( in_array( (int) $user_id, cb_trip_get_roster( $trip_id ), true ) ) {
+			cb_trip_remove_member( $trip_id, $user_id );
+		}
+	}
+} );
 
 function cb_trip_spots_remaining( $trip_id ) {
 	$capacity = (int) get_post_meta( $trip_id, 'cb_capacity', true );
@@ -359,8 +390,9 @@ function cb_render_trip_meta_box( $post ) {
 	</div>
 
 	<hr>
+	<?php $valid_roster_count = cb_trip_get_valid_roster_count( $post->ID ); ?>
 	<div class="cb-field">
-		<label>Roster (<?php echo count( $roster ); ?> member<?php echo count( $roster ) === 1 ? '' : 's'; ?>)</label>
+		<label>Roster (<?php echo $valid_roster_count; ?> member<?php echo 1 === $valid_roster_count ? '' : 's'; ?>)</label>
 		<?php if ( isset( $_GET['cb_roster_removed'] ) ) : ?>
 			<p style="color:#2a7a2a;"><em>Member removed.</em></p>
 		<?php endif; ?>

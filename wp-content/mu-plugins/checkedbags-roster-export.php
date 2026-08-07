@@ -452,7 +452,7 @@ add_action( 'add_meta_boxes', function () {
 } );
 
 function cbv_render_roster_export_meta_box( $post ) {
-	$roster_count = count( cb_trip_get_roster( $post->ID ) );
+	$roster_count = cb_trip_get_valid_roster_count( $post->ID );
 
 	if ( ! $roster_count ) {
 		echo '<p><em>No roster members yet.</em></p>';
