@@ -123,6 +123,8 @@ add_action( 'init', function () {
 		'cb_deposit_amount'  => 0,  // required deposit per person, in dollars
 		'cb_quoted_price'    => 0,  // admin's quoted price for member-built requests
 		'cb_min_group_size'  => 4,  // company-wide default is 4, but stored per-trip in case it changes
+		'cb_price_range_low'  => 0, // manual low end of the summary price range (trips with no Pricing Tiers)
+		'cb_price_range_high' => 0, // manual high end of the summary price range
 	);
 
 	foreach ( $number_fields as $key => $default ) {
@@ -246,6 +248,41 @@ function cb_trip_meets_minimum_group_size( $trip_id ) {
 	return count( cb_trip_get_roster( $trip_id ) ) >= $min;
 }
 
+// Quick low-high summary price for a trip, for display anywhere a single
+// number would be misleading (trip cards, later the Phase 10 marketing
+// hero). Falls back in order: Pricing Tiers (once that field exists) ->
+// manual range fields -> null, meaning "no range, show the single price."
+//
+// The Pricing Tiers branch is a placeholder -- that repeater field (name,
+// price, inclusions, featured flag) is Phase 10 scope and doesn't exist on
+// cb_trip yet. Wire real tier-scanning logic in here once it's built; every
+// caller of this function already expects and handles a 'tiers' source.
+function cb_trip_get_price_range( $trip_id ) {
+	if ( function_exists( 'cbv_get_trip_pricing_tiers' ) ) {
+		$tiers = cbv_get_trip_pricing_tiers( $trip_id );
+		if ( ! empty( $tiers ) ) {
+			$tier_prices = wp_list_pluck( $tiers, 'price' );
+			return array(
+				'low'    => (float) min( $tier_prices ),
+				'high'   => (float) max( $tier_prices ),
+				'source' => 'tiers',
+			);
+		}
+	}
+
+	$range_low  = (float) get_post_meta( $trip_id, 'cb_price_range_low', true );
+	$range_high = (float) get_post_meta( $trip_id, 'cb_price_range_high', true );
+	if ( $range_low > 0 && $range_high > 0 ) {
+		return array(
+			'low'    => min( $range_low, $range_high ),
+			'high'   => max( $range_low, $range_high ),
+			'source' => 'manual',
+		);
+	}
+
+	return null;
+}
+
 /**
  * Convenience: move a trip through the status flow, firing an action other
  * files (Stripe integration, board creation, email notifications) can hook.
@@ -294,6 +331,8 @@ function cb_render_trip_meta_box( $post ) {
 	$privacy     = get_post_meta( $post->ID, 'cb_gallery_privacy', true ) ?: 'public';
 	$min_size    = get_post_meta( $post->ID, 'cb_min_group_size', true ) ?: 4;
 	$addendum    = get_post_meta( $post->ID, 'cb_rules_addendum', true );
+	$range_low   = get_post_meta( $post->ID, 'cb_price_range_low', true );
+	$range_high  = get_post_meta( $post->ID, 'cb_price_range_high', true );
 	$roster      = cb_trip_get_roster( $post->ID );
 	?>
 	<style>
@@ -360,6 +399,18 @@ function cb_render_trip_meta_box( $post ) {
 		<div class="cb-field">
 			<label for="cb_deposit_amount">Deposit per person ($)</label>
 			<input type="number" step="0.01" name="cb_deposit_amount" id="cb_deposit_amount" value="<?php echo esc_attr( $deposit ); ?>">
+		</div>
+	</div>
+
+	<div class="cb-row">
+		<div class="cb-field">
+			<label for="cb_price_range_low">Price range summary -- low ($)</label>
+			<input type="number" step="0.01" name="cb_price_range_low" id="cb_price_range_low" value="<?php echo esc_attr( $range_low ); ?>">
+		</div>
+		<div class="cb-field">
+			<label for="cb_price_range_high">Price range summary -- high ($)</label>
+			<input type="number" step="0.01" name="cb_price_range_high" id="cb_price_range_high" value="<?php echo esc_attr( $range_high ); ?>">
+			<p class="description">Optional. Used for the quick "$low&#8211;$high" summary shown on trip cards. Leave both blank to show the single Price per person above instead. Once this trip has Pricing Tiers, the range is computed from the tiers automatically and these two fields are ignored.</p>
 		</div>
 	</div>
 
@@ -555,6 +606,7 @@ add_action( 'save_post_cb_trip', function ( $post_id ) {
 	$number_fields = array(
 		'cb_capacity', 'cb_price', 'cb_deposit_amount',
 		'cb_quoted_price', 'cb_min_group_size',
+		'cb_price_range_low', 'cb_price_range_high',
 	);
 	foreach ( $number_fields as $field ) {
 		if ( isset( $_POST[ $field ] ) ) {

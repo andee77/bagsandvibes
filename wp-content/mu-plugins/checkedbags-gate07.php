@@ -192,6 +192,7 @@ add_shortcode( 'cb_gate_vacations', function () {
 			$start      = get_post_meta( $trip->ID, 'cb_start_date', true );
 			$end        = get_post_meta( $trip->ID, 'cb_end_date', true );
 			$price      = (float) get_post_meta( $trip->ID, 'cb_price', true );
+			$price_range = cb_trip_get_price_range( $trip->ID );
 			$spots      = cb_trip_spots_remaining( $trip->ID );
 			$roster     = cb_trip_get_roster( $trip->ID );
 			$already_in = in_array( $current_user_id, $roster, true );
@@ -201,7 +202,15 @@ add_shortcode( 'cb_gate_vacations', function () {
 				<span class="trip-card-type"><i class="ti <?php echo esc_attr( $icon ); ?>" aria-hidden="true"></i> <?php echo esc_html( $type_label ); ?></span>
 				<h3 class="trip-card-title"><?php echo esc_html( get_the_title( $trip ) ); ?></h3>
 				<p class="trip-card-dates"><?php echo esc_html( cb_format_date_range( $start, $end ) ); ?></p>
-				<p class="trip-card-price">$<?php echo esc_html( number_format_i18n( $price ) ); ?> / person</p>
+				<p class="trip-card-price">
+					<?php if ( $price_range && $price_range['low'] < $price_range['high'] ) : ?>
+						$<?php echo esc_html( number_format_i18n( $price_range['low'] ) ); ?>&#8211;$<?php echo esc_html( number_format_i18n( $price_range['high'] ) ); ?> / person
+					<?php elseif ( $price_range ) : ?>
+						$<?php echo esc_html( number_format_i18n( $price_range['low'] ) ); ?> / person
+					<?php else : ?>
+						$<?php echo esc_html( number_format_i18n( $price ) ); ?> / person
+					<?php endif; ?>
+				</p>
 				<p class="trip-card-spots">
 					<?php echo $spots === null ? 'Open' : esc_html( $spots ) . ' spot' . ( $spots === 1 ? '' : 's' ) . ' left'; ?>
 				</p>
@@ -276,6 +285,7 @@ add_filter( 'the_content', function ( $content ) {
 	$min_ok     = cb_trip_meets_minimum_group_size( $post->ID );
 
 	$price    = (float) get_post_meta( $post->ID, 'cb_price', true );
+	$price_range = cb_trip_get_price_range( $post->ID );
 	$start    = get_post_meta( $post->ID, 'cb_start_date', true );
 	$end      = get_post_meta( $post->ID, 'cb_end_date', true );
 	$spots    = cb_trip_spots_remaining( $post->ID );
@@ -297,7 +307,11 @@ add_filter( 'the_content', function ( $content ) {
 		<p class="trip-detail-type"><?php echo esc_html( $type_label ); ?> trip</p>
 
 		<div class="trip-detail-summary">
-			<?php if ( $price > 0 ) : ?>
+			<?php if ( $price_range && $price_range['low'] < $price_range['high'] ) : ?>
+				<span class="trip-detail-stat"><strong>$<?php echo esc_html( number_format( $price_range['low'] ) ); ?>&#8211;$<?php echo esc_html( number_format( $price_range['high'] ) ); ?></strong> / person</span>
+			<?php elseif ( $price_range ) : ?>
+				<span class="trip-detail-stat"><strong>$<?php echo esc_html( number_format( $price_range['low'] ) ); ?></strong> / person</span>
+			<?php elseif ( $price > 0 ) : ?>
 				<span class="trip-detail-stat"><strong>$<?php echo esc_html( number_format( $price ) ); ?></strong> / person</span>
 			<?php endif; ?>
 			<?php if ( $start ) : ?>
