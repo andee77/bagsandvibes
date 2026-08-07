@@ -91,9 +91,36 @@ function cb_proposal_get_template_style( $proposal_id ) {
 	return get_post_meta( $proposal_id, 'cb_proposal_template_style', true ) ?: 'warm_editorial';
 }
 
-function cb_proposal_get_additional_photo_ids( $proposal_id ) {
-	$ids = get_post_meta( $proposal_id, 'cb_proposal_additional_photos', true );
-	return is_array( $ids ) ? array_map( 'absint', $ids ) : array();
+// The 6 places a photo can be assigned to -- matches the real section
+// headings in cb_proposal_build_client_html() exactly (checked against the
+// live code, not memory). 4 of the 6 keys deliberately match the existing
+// cb_get_proposal_boilerplate() array keys 1:1 -- no parallel naming scheme.
+function cb_proposal_get_photo_sections() {
+	return array(
+		'overview'               => 'Overview',
+		'trip_options'           => 'Trip Options',
+		'whats_included'         => "What's Included",
+		'insurance_importance'   => 'Why Travel Insurance Matters',
+		'payment_plan'           => 'Travel Now, Pay Later',
+		'coordinator_next_steps' => 'Your Coordinator',
+	);
+}
+
+function cb_proposal_get_additional_photos( $proposal_id ) {
+	$photos = get_post_meta( $proposal_id, 'cb_proposal_additional_photos', true );
+	if ( ! is_array( $photos ) ) {
+		return array();
+	}
+	$sections = array_keys( cb_proposal_get_photo_sections() );
+	$result   = array();
+	foreach ( $photos as $photo ) {
+		$id      = absint( $photo['id'] ?? 0 );
+		$section = $photo['section'] ?? '';
+		if ( $id && in_array( $section, $sections, true ) ) {
+			$result[] = array( 'id' => $id, 'section' => $section );
+		}
+	}
+	return $result;
 }
 
 /* ==========================================================================
@@ -138,6 +165,29 @@ function cb_render_proposal_trip_row_fields( $index, $selected_trip_id, $trips )
 	<?php
 }
 
+// Reuses .cb-repeater-row/.cb-repeater-remove so the shared Remove handler
+// (checkedbags-trips.php admin_footer) works for free -- but "Add" is NOT
+// the template-clone mechanism, since a photo row's content (the image)
+// arrives already-chosen from wp.media, not typed in blank by the admin.
+// See cb_render_proposal_meta_box()'s inline script below for the add flow.
+function cb_render_proposal_photo_row_fields( $index, $photo_id, $section ) {
+	$thumb_url = wp_get_attachment_image_url( $photo_id, 'thumbnail' );
+	?>
+	<div class="cb-repeater-row cb-proposal-photo-row">
+		<?php if ( $thumb_url ) : ?>
+			<img src="<?php echo esc_url( $thumb_url ); ?>" style="width:60px;height:60px;object-fit:cover;border-radius:4px;">
+		<?php endif; ?>
+		<input type="hidden" name="cb_proposal_additional_photos[<?php echo esc_attr( $index ); ?>][id]" value="<?php echo esc_attr( $photo_id ); ?>">
+		<select name="cb_proposal_additional_photos[<?php echo esc_attr( $index ); ?>][section]">
+			<?php foreach ( cb_proposal_get_photo_sections() as $slug => $label ) : ?>
+				<option value="<?php echo esc_attr( $slug ); ?>" <?php selected( $section, $slug ); ?>><?php echo esc_html( $label ); ?></option>
+			<?php endforeach; ?>
+		</select>
+		<button type="button" class="button-link cb-repeater-remove" style="color:#b32d2e;">Remove</button>
+	</div>
+	<?php
+}
+
 function cb_render_proposal_meta_box( $post ) {
 	if ( ! current_user_can( 'manage_options' ) ) {
 		return;
@@ -147,7 +197,7 @@ function cb_render_proposal_meta_box( $post ) {
 	$trip_ids         = cb_proposal_get_trip_ids( $post->ID );
 	$overview         = cb_proposal_get_overview( $post->ID );
 	$template_style   = cb_proposal_get_template_style( $post->ID );
-	$additional_photo_ids = cb_proposal_get_additional_photo_ids( $post->ID );
+	$additional_photos = cb_proposal_get_additional_photos( $post->ID );
 
 	$trips = get_posts( array(
 		'post_type'      => 'cb_trip',
@@ -164,6 +214,7 @@ function cb_render_proposal_meta_box( $post ) {
 		.cb-field select#cb_proposal_template_style { min-width: 320px; }
 		[data-repeater="cb_proposal_trip_ids"] .cb-repeater-row { display: flex; gap: 8px; align-items: center; }
 		[data-repeater="cb_proposal_trip_ids"] select { min-width: 320px; }
+		.cb-proposal-photo-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
 	</style>
 
 	<div class="cb-field">
@@ -195,71 +246,61 @@ function cb_render_proposal_meta_box( $post ) {
 	</div>
 
 	<div class="cb-field">
-		<label>Additional Photos <span class="description">(optional -- a handful, e.g. 3-6, works well for visual variety. Placed between the trip options and the closing content in the generated Client Proposal PDF. The fixed banner photo at the top of every proposal is set once on the Boilerplate Content settings page, not here.)</span></label>
-		<div id="cb-proposal-gallery-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
-			<?php foreach ( $additional_photo_ids as $photo_id ) :
-				$thumb_url = wp_get_attachment_image_url( $photo_id, 'thumbnail' );
-				if ( ! $thumb_url ) {
-					continue;
-				}
-				?>
-				<div class="cb-gallery-thumb" data-id="<?php echo esc_attr( $photo_id ); ?>" style="position:relative;">
-					<img src="<?php echo esc_url( $thumb_url ); ?>" style="width:100px;height:100px;object-fit:cover;border-radius:4px;">
-					<button type="button" class="cb-gallery-remove" style="position:absolute;top:-6px;right:-6px;background:#b32d2e;color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;">&times;</button>
-				</div>
+		<label>Additional Photos <span class="description">(optional -- a handful, e.g. 3-6, works well for visual variety. Each photo is assigned to one section below and renders as a small grid right there in the generated Client Proposal PDF. The fixed banner photo at the top of every proposal is set once on the Boilerplate Content settings page, not here.)</span></label>
+		<div id="cb-proposal-photo-rows">
+			<?php foreach ( $additional_photos as $i => $photo ) : ?>
+				<?php cb_render_proposal_photo_row_fields( $i, $photo['id'], $photo['section'] ); ?>
 			<?php endforeach; ?>
 		</div>
-		<input type="hidden" name="cb_proposal_additional_photos" id="cb_proposal_additional_photos" value="<?php echo esc_attr( implode( ',', $additional_photo_ids ) ); ?>">
 		<button type="button" class="button" id="cb-proposal-select-gallery">Choose Photos</button>
 	</div>
 	<script>
 	(function () {
-		var container    = document.getElementById( 'cb-proposal-gallery-preview' );
-		var hiddenInput   = document.getElementById( 'cb_proposal_additional_photos' );
+		var rowsContainer = document.getElementById( 'cb-proposal-photo-rows' );
+		var nextIndex      = rowsContainer.children.length;
+		var sections       = <?php echo wp_json_encode( cb_proposal_get_photo_sections() ); ?>;
 
-		function currentIds() {
-			return hiddenInput.value ? hiddenInput.value.split( ',' ).filter( Boolean ) : [];
+		function existingPhotoIds() {
+			var ids = [];
+			rowsContainer.querySelectorAll( '.cb-proposal-photo-row input[type="hidden"]' ).forEach( function ( input ) {
+				ids.push( String( input.value ) );
+			} );
+			return ids;
 		}
 
-		function addThumb( id, url ) {
-			var wrap = document.createElement( 'div' );
-			wrap.className = 'cb-gallery-thumb';
-			wrap.setAttribute( 'data-id', id );
-			wrap.style.position = 'relative';
-			wrap.innerHTML = '<img src="' + url + '" style="width:100px;height:100px;object-fit:cover;border-radius:4px;">'
-				+ '<button type="button" class="cb-gallery-remove" style="position:absolute;top:-6px;right:-6px;background:#b32d2e;color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;">&times;</button>';
-			container.appendChild( wrap );
+		function addPhotoRow( id, thumbUrl ) {
+			var row = document.createElement( 'div' );
+			row.className = 'cb-repeater-row cb-proposal-photo-row';
+
+			var options = '';
+			Object.keys( sections ).forEach( function ( slug ) {
+				options += '<option value="' + slug + '"' + ( 'trip_options' === slug ? ' selected' : '' ) + '>' + sections[ slug ] + '</option>';
+			} );
+
+			row.innerHTML = ( thumbUrl ? '<img src="' + thumbUrl + '" style="width:60px;height:60px;object-fit:cover;border-radius:4px;">' : '' )
+				+ '<input type="hidden" name="cb_proposal_additional_photos[' + nextIndex + '][id]" value="' + id + '">'
+				+ '<select name="cb_proposal_additional_photos[' + nextIndex + '][section]">' + options + '</select>'
+				+ '<button type="button" class="button-link cb-repeater-remove" style="color:#b32d2e;">Remove</button>';
+			rowsContainer.appendChild( row );
+			nextIndex++; // never reused, even after removals -- same principle as the template-clone repeaters
 		}
 
 		document.getElementById( 'cb-proposal-select-gallery' ).addEventListener( 'click', function ( e ) {
 			e.preventDefault();
 			var frame = wp.media( { title: 'Choose Additional Photos', library: { type: 'image' }, multiple: true } );
 			frame.on( 'select', function () {
-				var selection = frame.state().get( 'selection' ).toJSON();
-				var ids = currentIds();
-				selection.forEach( function ( attachment ) {
+				var existing = existingPhotoIds();
+				frame.state().get( 'selection' ).toJSON().forEach( function ( attachment ) {
 					var id = String( attachment.id );
-					if ( ids.indexOf( id ) !== -1 ) {
+					if ( existing.indexOf( id ) !== -1 ) {
 						return; // already added -- reopening the picker doesn't duplicate
 					}
-					ids.push( id );
+					existing.push( id );
 					var url = ( attachment.sizes && attachment.sizes.thumbnail ) ? attachment.sizes.thumbnail.url : attachment.url;
-					addThumb( id, url );
+					addPhotoRow( id, url );
 				} );
-				hiddenInput.value = ids.join( ',' );
 			} );
 			frame.open();
-		} );
-
-		container.addEventListener( 'click', function ( e ) {
-			var removeBtn = e.target.closest( '.cb-gallery-remove' );
-			if ( ! removeBtn ) {
-				return;
-			}
-			var thumb = removeBtn.closest( '.cb-gallery-thumb' );
-			var id    = thumb.getAttribute( 'data-id' );
-			hiddenInput.value = currentIds().filter( function ( existingId ) { return existingId !== id; } ).join( ',' );
-			thumb.remove();
 		} );
 	})();
 	</script>
@@ -303,20 +344,27 @@ add_action( 'save_post_cb_proposal', function ( $post_id ) {
 		}
 	}
 
-	// Additional Photos: comma-separated attachment IDs from the hidden
-	// field, validated the same way the trip picker validates its IDs --
-	// each must actually resolve to a real image attachment before being
-	// trusted, since this list feeds straight into the PDF generator.
-	if ( isset( $_POST['cb_proposal_additional_photos'] ) ) {
-		$photo_ids = array();
-		foreach ( explode( ',', $_POST['cb_proposal_additional_photos'] ) as $photo_id ) {
-			$photo_id = absint( $photo_id );
-			if ( $photo_id && 'attachment' === get_post_type( $photo_id ) ) {
-				$photo_ids[] = $photo_id;
-			}
+	// Additional Photos: bracket-array rows (id + section), same
+	// append-based rebuild and blank-row skip as Itinerary/Pricing Tiers.
+	// Each ID must resolve to a real attachment; an unrecognized section
+	// value falls back to trip_options rather than being silently dropped.
+	$photo_sections = array_keys( cb_proposal_get_photo_sections() );
+	$photos = array();
+	foreach ( (array) ( $_POST['cb_proposal_additional_photos'] ?? array() ) as $photo_row ) {
+		if ( cb_repeater_row_is_blank( $photo_row ) ) {
+			continue;
 		}
-		update_post_meta( $post_id, 'cb_proposal_additional_photos', $photo_ids );
+		$photo_id = absint( $photo_row['id'] ?? 0 );
+		if ( ! $photo_id || 'attachment' !== get_post_type( $photo_id ) ) {
+			continue;
+		}
+		$section = sanitize_text_field( wp_unslash( $photo_row['section'] ?? '' ) );
+		if ( ! in_array( $section, $photo_sections, true ) ) {
+			$section = 'trip_options';
+		}
+		$photos[] = array( 'id' => $photo_id, 'section' => $section );
 	}
+	update_post_meta( $post_id, 'cb_proposal_additional_photos', $photos );
 } );
 
 /* ==========================================================================

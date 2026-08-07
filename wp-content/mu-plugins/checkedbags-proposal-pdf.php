@@ -128,23 +128,26 @@ function cb_proposal_build_pdf_data( $proposal_id, $include_internal_notes = fal
 	// Photos, by contrast, is a per-proposal gallery the admin curates.
 	$banner_id = (int) $boilerplate['header_banner_photo'];
 
-	$additional_photo_paths = array();
-	foreach ( cb_proposal_get_additional_photo_ids( $proposal_id ) as $photo_id ) {
-		$path = get_attached_file( $photo_id );
+	// Grouped by section (Overview, Trip Options, and the 4 boilerplate
+	// blocks) rather than one flat list -- each section renders its own
+	// small grid, or nothing at all if no photos were assigned to it.
+	$photos_by_section = array_fill_keys( array_keys( cb_proposal_get_photo_sections() ), array() );
+	foreach ( cb_proposal_get_additional_photos( $proposal_id ) as $photo ) {
+		$path = get_attached_file( $photo['id'] );
 		if ( $path ) {
-			$additional_photo_paths[] = cb_proposal_resolve_pdf_image_path( $path );
+			$photos_by_section[ $photo['section'] ][] = cb_proposal_resolve_pdf_image_path( $path );
 		}
 	}
 
 	$data = array(
-		'client_name'            => $proposal->post_title,
-		'overview'               => cb_proposal_get_overview( $proposal_id ),
-		'template_style'         => cb_proposal_get_template_style( $proposal_id ),
-		'header_banner_path'     => $banner_id ? cb_proposal_resolve_pdf_image_path( get_attached_file( $banner_id ) ) : '',
-		'additional_photo_paths' => $additional_photo_paths,
-		'boilerplate'            => $boilerplate,
-		'generated_date'         => date_i18n( 'F j, Y' ),
-		'trips'                  => array(),
+		'client_name'        => $proposal->post_title,
+		'overview'           => cb_proposal_get_overview( $proposal_id ),
+		'template_style'     => cb_proposal_get_template_style( $proposal_id ),
+		'header_banner_path' => $banner_id ? cb_proposal_resolve_pdf_image_path( get_attached_file( $banner_id ) ) : '',
+		'photos_by_section'  => $photos_by_section,
+		'boilerplate'        => $boilerplate,
+		'generated_date'     => date_i18n( 'F j, Y' ),
+		'trips'              => array(),
 	);
 
 	foreach ( cb_proposal_get_trip_ids( $proposal_id ) as $trip_id ) {
@@ -308,11 +311,26 @@ function cb_proposal_render_pricing_html( $trip ) {
 	return '<p><em>Contact us for pricing.</em></p>';
 }
 
-function cb_proposal_render_boilerplate_block_html( $title, $content ) {
-	if ( '' === trim( (string) $content ) ) {
+// Shared by every section that can carry Additional Photos (Overview,
+// Trip Options, and each of the 4 boilerplate blocks) -- one small grid,
+// or '' if that section has no photos assigned. Same .cb-gallery treatment
+// used everywhere, just localized to wherever it's called.
+function cb_proposal_render_gallery_html( $photo_paths ) {
+	if ( empty( $photo_paths ) ) {
 		return '';
 	}
-	return '<div class="cb-boilerplate-block"><h2 class="cb-section-title">' . esc_html( $title ) . '</h2><div>' . wpautop( esc_html( $content ) ) . '</div></div>';
+	$html = '<div class="cb-gallery">';
+	foreach ( $photo_paths as $photo_path ) {
+		$html .= '<img src="' . esc_attr( $photo_path ) . '">';
+	}
+	return $html . '</div>';
+}
+
+function cb_proposal_render_boilerplate_block_html( $title, $content, $photo_paths = array() ) {
+	if ( '' === trim( (string) $content ) ) {
+		return ''; // no text -> skip the whole block, including any photos assigned to it
+	}
+	return '<div class="cb-boilerplate-block"><h2 class="cb-section-title">' . esc_html( $title ) . '</h2><div>' . wpautop( esc_html( $content ) ) . '</div>' . cb_proposal_render_gallery_html( $photo_paths ) . '</div>';
 }
 
 /* ==========================================================================
@@ -339,29 +357,20 @@ function cb_proposal_build_client_html( $data ) {
 			. '</div>';
 	}
 
-	$boilerplate_html = cb_proposal_render_boilerplate_block_html( "What's Included", $data['boilerplate']['whats_included'] )
-		. cb_proposal_render_boilerplate_block_html( 'Why Travel Insurance Matters', $data['boilerplate']['insurance_importance'] )
-		. cb_proposal_render_boilerplate_block_html( 'Travel Now, Pay Later', $data['boilerplate']['payment_plan'] )
-		. cb_proposal_render_boilerplate_block_html( 'Your Coordinator', $data['boilerplate']['coordinator_next_steps'] );
+	$photos = $data['photos_by_section'];
+
+	$boilerplate_html = cb_proposal_render_boilerplate_block_html( "What's Included", $data['boilerplate']['whats_included'], $photos['whats_included'] )
+		. cb_proposal_render_boilerplate_block_html( 'Why Travel Insurance Matters', $data['boilerplate']['insurance_importance'], $photos['insurance_importance'] )
+		. cb_proposal_render_boilerplate_block_html( 'Travel Now, Pay Later', $data['boilerplate']['payment_plan'], $photos['payment_plan'] )
+		. cb_proposal_render_boilerplate_block_html( 'Your Coordinator', $data['boilerplate']['coordinator_next_steps'], $photos['coordinator_next_steps'] );
 
 	// Fixed global banner (Boilerplate Content settings page) -- the same
 	// photo on every generated proposal, unlike each trip's own cover photo
-	// above (unchanged, per-trip) or the gallery below (per-proposal, varies).
+	// above (unchanged, per-trip) or the Additional Photos galleries below
+	// (per-proposal, per-section, distributed throughout the document).
 	$banner_html = $data['header_banner_path']
 		? '<img class="cb-hero" src="' . esc_attr( $data['header_banner_path'] ) . '">'
 		: '';
-
-	// Additional Photos: a per-proposal gallery for visual variety, placed
-	// after the trip comparison and before the closing boilerplate content --
-	// not interleaved per-trip, since there's no per-photo-to-trip mapping.
-	$gallery_html = '';
-	if ( ! empty( $data['additional_photo_paths'] ) ) {
-		$gallery_html .= '<div class="cb-gallery">';
-		foreach ( $data['additional_photo_paths'] as $photo_path ) {
-			$gallery_html .= '<img src="' . esc_attr( $photo_path ) . '">';
-		}
-		$gallery_html .= '</div>';
-	}
 
 	ob_start();
 	?>
@@ -383,11 +392,12 @@ function cb_proposal_build_client_html( $data ) {
 		<?php if ( $data['overview'] ) : ?>
 			<div><?php echo wpautop( esc_html( $data['overview'] ) ); ?></div>
 		<?php endif; ?>
+		<?php // Independent of the narrative text above -- writing the overview and choosing an Overview photo are two separate admin decisions, unlike the boilerplate blocks below (which always have persistent content by design). ?>
+		<?php echo cb_proposal_render_gallery_html( $photos['overview'] ); ?>
 
 		<h2 class="cb-section-title">Your Options</h2>
 		<?php echo $options_html; ?>
-
-		<?php echo $gallery_html; ?>
+		<?php echo cb_proposal_render_gallery_html( $photos['trip_options'] ); ?>
 
 		<?php echo $boilerplate_html; ?>
 	</body>
