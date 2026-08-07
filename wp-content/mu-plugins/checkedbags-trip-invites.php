@@ -1768,15 +1768,19 @@ define( 'CBV_ACTIVITY_INTERESTS', array(
 	'Sightseeing/History', 'Culture/Arts', 'Beach/Sun', 'Active/Sports', 'Wine/Culinary', 'Shopping', 'Spa',
 ) );
 
-// Same option set as Gate 12's Air Travel seat-preference checkboxes and
-// Cruise Vacation cabin-class dropdown -- kept identical on purpose so the
-// per-traveler answer and the trip-wide organizer answer are always
-// directly comparable (see cbv_build_trip_roster_export_data()'s " *"
-// fallback marking).
-define( 'CBV_SEAT_PREFERENCES', array(
-	'Economy', 'Extra Leg Room/Premium', 'Business Class', 'First Class', 'Aisle', 'Middle', 'Window', 'Bulkhead', 'Forward', 'Wing',
-) );
-define( 'CBV_CABIN_CLASSES', array( 'Interior', 'Oceanview', 'Balcony', 'Suite' ) );
+// Seat position only -- a subset of Gate 12's broader Air Travel seat-
+// preference checkbox list, so a trip-wide fallback value here is still
+// correctly-domained (just occasionally imprecise if the organizer also
+// checked fare-class boxes alongside position ones).
+define( 'CBV_SEAT_POSITIONS', array( 'Aisle', 'Middle', 'Window' ) );
+
+// Flight fare class -- deliberately NOT the same option set as Gate 12's
+// Cruise Vacation cabin-class dropdown (Interior/Oceanview/Balcony/Suite).
+// Both fields were originally named "Cabin Class" but describe different
+// things (this is about a flight seat, Gate 12's is about a cruise cabin),
+// so they're exported as two separate columns with no fallback between
+// them -- see cbv_build_trip_roster_export_data().
+define( 'CBV_FLIGHT_CABIN_CLASSES', array( 'Economy', 'Extra Leg Room/Premium', 'Business Class', 'First Class' ) );
 
 add_filter( 'um_account_page_default_tabs_hook', function ( $tabs ) {
 	$tabs[250]['travel-profile'] = array(
@@ -2085,9 +2089,9 @@ add_action( 'rest_api_init', function () {
 			$cabin_class        = $str( 'cabin_class' );
 
 			$data = array(
-				'seat_preference'         => in_array( $seat_preference, CBV_SEAT_PREFERENCES, true ) ? $seat_preference : '',
+				'seat_preference'         => in_array( $seat_preference, CBV_SEAT_POSITIONS, true ) ? $seat_preference : '',
 				'departure_airport'       => $str( 'departure_airport' ),
-				'cabin_class'             => in_array( $cabin_class, CBV_CABIN_CLASSES, true ) ? $cabin_class : '',
+				'cabin_class'             => in_array( $cabin_class, CBV_FLIGHT_CABIN_CLASSES, true ) ? $cabin_class : '',
 				'preferred_airline'       => $str( 'preferred_airline' ),
 				'frequent_flyer_number'   => $str( 'frequent_flyer_number' ),
 				'traveling_companions'    => $txt( 'traveling_companions' ),
@@ -2145,16 +2149,16 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 			<label>Seat preference
 				<select id="cbv-intake-seat-preference">
 					<option value="" <?php selected( $seat_pref, '' ); ?>>—</option>
-					<?php foreach ( CBV_SEAT_PREFERENCES as $option ) : ?>
+					<?php foreach ( CBV_SEAT_POSITIONS as $option ) : ?>
 						<option value="<?php echo esc_attr( $option ); ?>" <?php selected( $seat_pref, $option ); ?>><?php echo esc_html( $option ); ?></option>
 					<?php endforeach; ?>
 				</select>
 			</label>
 			<label>Departure airport <input type="text" id="cbv-intake-departure-airport" value="<?php echo esc_attr( $intake['departure_airport'] ?? '' ); ?>"></label>
-			<label>Cabin class / room type
+			<label>Flight cabin class
 				<select id="cbv-intake-cabin-class">
 					<option value="" <?php selected( $cabin_class, '' ); ?>>—</option>
-					<?php foreach ( CBV_CABIN_CLASSES as $option ) : ?>
+					<?php foreach ( CBV_FLIGHT_CABIN_CLASSES as $option ) : ?>
 						<option value="<?php echo esc_attr( $option ); ?>" <?php selected( $cabin_class, $option ); ?>><?php echo esc_html( $option ); ?></option>
 					<?php endforeach; ?>
 				</select>

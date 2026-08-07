@@ -171,7 +171,6 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 	};
 
 	$trip_wide_seat_preference = $req_list( 'seat_preference' );
-	$trip_wide_cabin_class     = $req( 'cruise_cabin_class' );
 
 	$headers = array(
 		// Roster / Contact
@@ -188,13 +187,14 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 		'Insurance Decision', 'Allianz Waiver Returned', 'Insurance Waiver Received',
 		'CC Auth Completed', 'CC Auth Received',
 		// Travel Logistics
-		'Departure Airport', 'Airline Preference', 'Preferred Airline', 'Frequent Flyer Number', 'Seat Preference',
+		'Departure Airport', 'Airline Preference', 'Preferred Airline', 'Frequent Flyer Number',
+		'Seat Preference', 'Flight Cabin Class',
 		'Destinations of Interest', 'Travel Dates', 'Date Flexibility',
 		'Additional Adults', 'Additional Children', "Children's Ages", 'Traveling Companions',
 		// Accommodation & Trip-Type Preferences
-		'Cabin Class / Room Type', 'Hotel Preferences', 'Hotel Room Type', 'Hotel Features',
+		'Hotel Preferences', 'Hotel Room Type', 'Hotel Features',
 		'Hotel Nights', 'Hotel Rooms/Arrangement', 'Cruise Preferences', 'Cruise Itinerary',
-		'Cruise Length', 'Car Preferences', 'Car Category', 'Package Tour Countries', 'Package Tour Style',
+		'Cruise Length', 'Cruise Cabin Class', 'Car Preferences', 'Car Category', 'Package Tour Countries', 'Package Tour Style',
 		// Preferences
 		'Dietary Restrictions/Allergies', 'Medical/Mobility Needs', 'Pacing Style',
 		'Past Hotels/Cruiselines Enjoyed', 'Activity Interests',
@@ -238,8 +238,12 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 		$seat_preference = $intake['seat_preference'] ?? '';
 		$seat_preference_marked = $seat_preference !== '' ? $seat_preference : ( $trip_wide_seat_preference !== '' ? $trip_wide_seat_preference . ' *' : '' );
 
-		$cabin_class = $intake['cabin_class'] ?? '';
-		$cabin_class_marked = $cabin_class !== '' ? $cabin_class : ( $trip_wide_cabin_class !== '' ? $trip_wide_cabin_class . ' *' : '' );
+		// Flight cabin class (per-traveler, Gate 07) and cruise cabin class
+		// (trip-wide, Gate 12) share no option values -- see the CBV_SEAT_
+		// POSITIONS/CBV_FLIGHT_CABIN_CLASSES comment in checkedbags-trip-
+		// invites.php. No fallback between them; each gets its own column.
+		$flight_cabin_class = $intake['cabin_class'] ?? '';
+		$cruise_cabin_class = $req( 'cruise_cabin_class' );
 
 		$start = get_post_meta( $trip_id, 'cb_start_date', true );
 		$dates = $start ? ( $start . ( $trip_end ? ' to ' . $trip_end : '' ) ) : get_post_meta( $trip_id, 'cb_when_notes', true );
@@ -293,6 +297,7 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 			$intake['preferred_airline'] ?? '',
 			$intake['frequent_flyer_number'] ?? '',
 			$seat_preference_marked,
+			$flight_cabin_class,
 			$req( 'destination_pref' ),
 			$dates,
 			$req( 'date_flexibility' ),
@@ -301,7 +306,6 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 			$intake['children_ages'] ?? '',
 			$intake['traveling_companions'] ?? '',
 
-			$cabin_class_marked,
 			$req( 'hotel_preferences' ),
 			$req_list( 'hotel_room_type' ),
 			$req_list( 'hotel_features' ),
@@ -310,6 +314,7 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 			$req( 'cruise_preferences' ),
 			$req( 'cruise_itinerary' ),
 			$req( 'cruise_length' ),
+			$cruise_cabin_class,
 			$req( 'car_preferences' ),
 			$req_list( 'car_category' ),
 			$req( 'package_countries' ),
