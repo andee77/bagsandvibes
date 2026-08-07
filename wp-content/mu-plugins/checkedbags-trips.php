@@ -173,6 +173,11 @@ function cb_trip_get_roster( $trip_id ) {
 	return is_array( $roster ) ? $roster : array();
 }
 
+function cb_trip_get_itinerary( $trip_id ) {
+	$itinerary = get_post_meta( $trip_id, 'cb_itinerary', true );
+	return is_array( $itinerary ) ? $itinerary : array();
+}
+
 // Counts only roster IDs that still resolve to a real WP user -- a raw
 // count( cb_trip_get_roster() ) can be inflated by orphaned IDs left behind
 // when a user account is deleted outside of the "Remove" button.
@@ -544,6 +549,155 @@ function cb_render_trip_meta_box( $post ) {
 	<?php
 }
 
+/* ==========================================================================
+   3a. Day-by-Day Itinerary -- the first add/remove-row repeater field in
+       this codebase. Rows are stored as a plain indexed array of assoc
+       arrays under cb_itinerary (no register_post_meta -- same as
+       cb_roster -- since nothing here needs REST/Gutenberg exposure).
+
+       Mechanism (validate here once, then reuse unmodified for Pricing
+       Tiers + its nested Occupancy Points / Add-ons):
+        - Every row's fields share one PHP renderer, cb_render_itinerary_row_fields(),
+          called once per saved row (real integer index) and once inside a
+          <template> (literal string index "__INDEX__") -- one canonical
+          row layout, no drift between "saved" and "freshly added" markup.
+        - Bracket-array field names (cb_itinerary[N][field]) let PHP parse
+          $_POST into a nested array natively -- no hand-rolled reindexing.
+        - Remove just deletes the row's <div> from the DOM. Indices are
+          allowed to have gaps after a removal; the save handler rebuilds
+          the array by appending (not by key), which closes the gaps for
+          free without any explicit reindex step.
+        - A single delegated-click script (admin_footer, further below)
+          handles Add/Remove for every repeater on the page, so adding a
+          second or third repeater field needs zero new JS.
+   ========================================================================== */
+add_action( 'add_meta_boxes', function () {
+	add_meta_box(
+		'cb_trip_itinerary',
+		'Day-by-Day Itinerary',
+		'cb_render_trip_itinerary_meta_box',
+		'cb_trip',
+		'normal',
+		'default'
+	);
+} );
+
+function cb_render_itinerary_row_fields( $index, $row ) {
+	$day         = $row['day'] ?? '';
+	$date        = $row['date'] ?? '';
+	$port        = $row['port'] ?? '';
+	$country     = $row['country'] ?? '';
+	$description = $row['description'] ?? '';
+	$time        = $row['time'] ?? '';
+	$tender_mode = $row['tender_mode'] ?? '';
+	?>
+	<div class="cb-repeater-row">
+		<input type="number" name="cb_itinerary[<?php echo esc_attr( $index ); ?>][day]" placeholder="Day #" value="<?php echo esc_attr( $day ); ?>">
+		<input type="date" name="cb_itinerary[<?php echo esc_attr( $index ); ?>][date]" value="<?php echo esc_attr( $date ); ?>">
+		<input type="text" name="cb_itinerary[<?php echo esc_attr( $index ); ?>][port]" placeholder="Port" value="<?php echo esc_attr( $port ); ?>">
+		<input type="text" name="cb_itinerary[<?php echo esc_attr( $index ); ?>][country]" placeholder="Country" value="<?php echo esc_attr( $country ); ?>">
+		<select name="cb_itinerary[<?php echo esc_attr( $index ); ?>][description]">
+			<option value="">-- Type --</option>
+			<?php foreach ( array( 'Embarkation', 'Arrival', 'Departure', 'At Sea', 'Disembarkation' ) as $opt ) : ?>
+				<option value="<?php echo esc_attr( $opt ); ?>" <?php selected( $description, $opt ); ?>><?php echo esc_html( $opt ); ?></option>
+			<?php endforeach; ?>
+		</select>
+		<input type="time" name="cb_itinerary[<?php echo esc_attr( $index ); ?>][time]" value="<?php echo esc_attr( $time ); ?>">
+		<select name="cb_itinerary[<?php echo esc_attr( $index ); ?>][tender_mode]">
+			<option value="">-- Tender --</option>
+			<option value="Dock" <?php selected( $tender_mode, 'Dock' ); ?>>Dock</option>
+			<option value="Tender" <?php selected( $tender_mode, 'Tender' ); ?>>Tender</option>
+		</select>
+		<button type="button" class="button-link cb-repeater-remove" style="color:#b32d2e;">Remove</button>
+	</div>
+	<?php
+}
+
+function cb_render_trip_itinerary_meta_box( $post ) {
+	$itinerary = get_post_meta( $post->ID, 'cb_itinerary', true );
+	$itinerary = is_array( $itinerary ) ? $itinerary : array();
+	?>
+	<div class="cb-repeater" data-repeater="cb_itinerary">
+		<div class="cb-repeater-row cb-repeater-header">
+			<span>Day</span><span>Date</span><span>Port</span><span>Country</span><span>Type</span><span>Time</span><span>Tender</span><span></span>
+		</div>
+		<div class="cb-repeater-rows">
+			<?php foreach ( $itinerary as $i => $row ) : ?>
+				<?php cb_render_itinerary_row_fields( $i, $row ); ?>
+			<?php endforeach; ?>
+		</div>
+		<template class="cb-repeater-template">
+			<?php cb_render_itinerary_row_fields( '__INDEX__', array() ); ?>
+		</template>
+		<button type="button" class="button cb-repeater-add">+ Add Day</button>
+	</div>
+	<?php
+}
+
+// Recursively treats a repeater row as blank only if every leaf value is an
+// empty string after trimming -- a legitimate "0" (e.g. a $0 Discount or
+// Insurance line, once Pricing Tiers/Occupancy Points reuse this) must NOT
+// be treated the same as never having filled the row in, unlike PHP's own
+// array_filter() which drops "0" as falsy.
+function cb_repeater_row_is_blank( $row ) {
+	foreach ( (array) $row as $value ) {
+		if ( is_array( $value ) ) {
+			if ( ! cb_repeater_row_is_blank( $value ) ) {
+				return false;
+			}
+			continue;
+		}
+		if ( '' !== trim( (string) $value ) ) {
+			return false;
+		}
+	}
+	return true;
+}
+
+// Shared Add/Remove-row script for every repeater field on the cb_trip edit
+// screen -- written once here, reused unmodified by any repeater added
+// later (Pricing Tiers, its nested Occupancy Points, its nested Add-ons).
+add_action( 'admin_footer', function () {
+	$screen = get_current_screen();
+	if ( ! $screen || 'cb_trip' !== $screen->post_type || 'post' !== $screen->base ) {
+		return;
+	}
+	?>
+	<style>
+		.cb-repeater-row { display: grid; grid-template-columns: 70px 130px 1fr 1fr 140px 90px 100px auto; gap: 8px; align-items: center; margin-bottom: 6px; }
+		.cb-repeater-header { font-weight: 600; font-size: 12px; }
+		.cb-repeater-row input, .cb-repeater-row select { width: 100%; }
+		.cb-repeater-template { display: none; }
+	</style>
+	<script>
+	(function () {
+		document.addEventListener( 'click', function ( e ) {
+			var addBtn = e.target.closest( '.cb-repeater-add' );
+			if ( addBtn ) {
+				var repeater = addBtn.closest( '.cb-repeater' );
+				var template = repeater.querySelector( ':scope > .cb-repeater-template' );
+				var rows     = repeater.querySelector( ':scope > .cb-repeater-rows' );
+				var nextIndex = repeater.dataset.nextIndex ? parseInt( repeater.dataset.nextIndex, 10 ) : rows.children.length;
+				var html = template.innerHTML.split( '__INDEX__' ).join( nextIndex );
+				var wrapper = document.createElement( 'div' );
+				wrapper.innerHTML = html.trim();
+				while ( wrapper.firstChild ) {
+					rows.appendChild( wrapper.firstChild );
+				}
+				repeater.dataset.nextIndex = String( nextIndex + 1 );
+				return;
+			}
+			var removeBtn = e.target.closest( '.cb-repeater-remove' );
+			if ( removeBtn ) {
+				var row = removeBtn.closest( '.cb-repeater-row' );
+				if ( row ) { row.remove(); }
+			}
+		} );
+	})();
+	</script>
+	<?php
+} );
+
 add_action( 'admin_post_cb_remove_roster_member', function () {
 	if ( ! current_user_can( 'edit_posts' ) ) {
 		wp_die( 'Insufficient permissions.' );
@@ -613,6 +767,26 @@ add_action( 'save_post_cb_trip', function ( $post_id ) {
 			update_post_meta( $post_id, $field, floatval( $_POST[ $field ] ) );
 		}
 	}
+
+	// Day-by-Day Itinerary repeater. Rebuilding via append (not by original
+	// $_POST key) closes any gaps left by removed rows for free -- see the
+	// mechanism notes above cb_render_trip_itinerary_meta_box().
+	$itinerary = array();
+	foreach ( (array) ( $_POST['cb_itinerary'] ?? array() ) as $row ) {
+		if ( cb_repeater_row_is_blank( $row ) ) {
+			continue;
+		}
+		$itinerary[] = array(
+			'day'         => sanitize_text_field( wp_unslash( $row['day'] ?? '' ) ),
+			'date'        => sanitize_text_field( wp_unslash( $row['date'] ?? '' ) ),
+			'port'        => sanitize_text_field( wp_unslash( $row['port'] ?? '' ) ),
+			'country'     => sanitize_text_field( wp_unslash( $row['country'] ?? '' ) ),
+			'description' => sanitize_text_field( wp_unslash( $row['description'] ?? '' ) ),
+			'time'        => sanitize_text_field( wp_unslash( $row['time'] ?? '' ) ),
+			'tender_mode' => sanitize_text_field( wp_unslash( $row['tender_mode'] ?? '' ) ),
+		);
+	}
+	update_post_meta( $post_id, 'cb_itinerary', $itinerary );
 
 	// Admin-only per-traveler-per-trip status (Paid in Full, Insurance
 	// Waiver Received, CC Auth Received) -- rendered as plain named inputs
