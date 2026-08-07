@@ -178,6 +178,11 @@ function cb_trip_get_itinerary( $trip_id ) {
 	return is_array( $itinerary ) ? $itinerary : array();
 }
 
+function cb_trip_get_pricing_tiers( $trip_id ) {
+	$tiers = get_post_meta( $trip_id, 'cb_pricing_tiers', true );
+	return is_array( $tiers ) ? $tiers : array();
+}
+
 // Counts only roster IDs that still resolve to a real WP user -- a raw
 // count( cb_trip_get_roster() ) can be inflated by orphaned IDs left behind
 // when a user account is deleted outside of the "Remove" button.
@@ -263,16 +268,23 @@ function cb_trip_meets_minimum_group_size( $trip_id ) {
 // cb_trip yet. Wire real tier-scanning logic in here once it's built; every
 // caller of this function already expects and handles a 'tiers' source.
 function cb_trip_get_price_range( $trip_id ) {
-	if ( function_exists( 'cbv_get_trip_pricing_tiers' ) ) {
-		$tiers = cbv_get_trip_pricing_tiers( $trip_id );
-		if ( ! empty( $tiers ) ) {
-			$tier_prices = wp_list_pluck( $tiers, 'price' );
-			return array(
-				'low'    => (float) min( $tier_prices ),
-				'high'   => (float) max( $tier_prices ),
-				'source' => 'tiers',
-			);
+	$tiers        = cb_trip_get_pricing_tiers( $trip_id );
+	$point_totals = array();
+	foreach ( $tiers as $tier ) {
+		foreach ( (array) ( $tier['occupancy_points'] ?? array() ) as $point ) {
+			$point_totals[] = (float) ( $point['voyage_fare'] ?? 0 )
+				+ (float) ( $point['taxes_fees'] ?? 0 )
+				+ (float) ( $point['gratuities'] ?? 0 )
+				+ (float) ( $point['insurance'] ?? 0 )
+				- (float) ( $point['discount'] ?? 0 );
 		}
+	}
+	if ( ! empty( $point_totals ) ) {
+		return array(
+			'low'    => min( $point_totals ),
+			'high'   => max( $point_totals ),
+			'source' => 'tiers',
+		);
 	}
 
 	$range_low  = (float) get_post_meta( $trip_id, 'cb_price_range_low', true );
@@ -634,6 +646,138 @@ function cb_render_trip_itinerary_meta_box( $post ) {
 	<?php
 }
 
+/* ==========================================================================
+   3b. Pricing Tiers -- reuses the exact mechanism validated above (bracket-
+       array POST parsing, template-clone JS, append-based save). The only
+       new wrinkle is nesting: each Tier contains two of its own nested
+       repeaters (Occupancy Price Points, Add-ons), and a brand-new Tier's
+       own template already contains THEIR templates too. If "Add Tier"
+       naively replaced every "__INDEX__" occurrence in the cloned block,
+       it would also clobber the nested templates' own placeholders before
+       they ever get used. Each nesting level therefore gets its own
+       distinct placeholder token (__TIER_INDEX__ / __POINT_INDEX__ /
+       __ADDON_INDEX__), read from a data-index-token attribute the shared
+       script falls back from to "__INDEX__" -- Day-by-Day Itinerary's
+       markup is untouched and keeps working exactly as already tested.
+   ========================================================================== */
+add_action( 'add_meta_boxes', function () {
+	add_meta_box(
+		'cb_trip_pricing_tiers',
+		'Pricing Tiers',
+		'cb_render_trip_pricing_tiers_meta_box',
+		'cb_trip',
+		'normal',
+		'default'
+	);
+} );
+
+function cb_render_occupancy_point_row_fields( $tier_index, $point_index, $point ) {
+	$occupancy_count = $point['occupancy_count'] ?? '';
+	$voyage_fare     = $point['voyage_fare'] ?? '';
+	$taxes_fees      = $point['taxes_fees'] ?? '';
+	$gratuities      = $point['gratuities'] ?? '';
+	$insurance       = $point['insurance'] ?? '';
+	$discount        = $point['discount'] ?? '';
+	$prefix          = 'cb_pricing_tiers[' . $tier_index . '][occupancy_points][' . $point_index . ']';
+	?>
+	<div class="cb-repeater-row cb-occupancy-point-row">
+		<input type="number" name="<?php echo esc_attr( $prefix ); ?>[occupancy_count]" placeholder="# Sailors" value="<?php echo esc_attr( $occupancy_count ); ?>">
+		<input type="number" step="0.01" name="<?php echo esc_attr( $prefix ); ?>[voyage_fare]" placeholder="Voyage Fare" value="<?php echo esc_attr( $voyage_fare ); ?>">
+		<input type="number" step="0.01" name="<?php echo esc_attr( $prefix ); ?>[taxes_fees]" placeholder="Taxes & Fees" value="<?php echo esc_attr( $taxes_fees ); ?>">
+		<input type="number" step="0.01" name="<?php echo esc_attr( $prefix ); ?>[gratuities]" placeholder="Gratuities" value="<?php echo esc_attr( $gratuities ); ?>">
+		<input type="number" step="0.01" name="<?php echo esc_attr( $prefix ); ?>[insurance]" placeholder="Insurance" value="<?php echo esc_attr( $insurance ); ?>">
+		<input type="number" step="0.01" name="<?php echo esc_attr( $prefix ); ?>[discount]" placeholder="Discount" value="<?php echo esc_attr( $discount ); ?>">
+		<button type="button" class="button-link cb-repeater-remove" style="color:#b32d2e;">Remove</button>
+	</div>
+	<?php
+}
+
+function cb_render_addon_row_fields( $tier_index, $addon_index, $addon ) {
+	$name = $addon['name'] ?? '';
+	$qty  = $addon['qty'] ?? '';
+	$prefix = 'cb_pricing_tiers[' . $tier_index . '][addons][' . $addon_index . ']';
+	?>
+	<div class="cb-repeater-row cb-addon-row">
+		<input type="text" name="<?php echo esc_attr( $prefix ); ?>[name]" placeholder="Add-on name (e.g. Beverage Package)" value="<?php echo esc_attr( $name ); ?>">
+		<input type="number" name="<?php echo esc_attr( $prefix ); ?>[qty]" placeholder="Qty" value="<?php echo esc_attr( $qty ); ?>">
+		<button type="button" class="button-link cb-repeater-remove" style="color:#b32d2e;">Remove</button>
+	</div>
+	<?php
+}
+
+function cb_render_pricing_tier_row_fields( $tier_index, $tier ) {
+	$name             = $tier['name'] ?? '';
+	$capacity_low     = $tier['capacity_low'] ?? '';
+	$capacity_high    = $tier['capacity_high'] ?? '';
+	$occupancy_points = is_array( $tier['occupancy_points'] ?? null ) ? $tier['occupancy_points'] : array();
+	$addons           = is_array( $tier['addons'] ?? null ) ? $tier['addons'] : array();
+	?>
+	<div class="cb-repeater-row cb-tier-row">
+		<div class="cb-tier-row-header">
+			<input type="text" name="cb_pricing_tiers[<?php echo esc_attr( $tier_index ); ?>][name]" class="cb-tier-name" placeholder="Tier name (e.g. Sea Terrace Cabin)" value="<?php echo esc_attr( $name ); ?>">
+			<label>Sleeps
+				<input type="number" name="cb_pricing_tiers[<?php echo esc_attr( $tier_index ); ?>][capacity_low]" class="cb-tier-capacity" placeholder="Low" value="<?php echo esc_attr( $capacity_low ); ?>">
+				to
+				<input type="number" name="cb_pricing_tiers[<?php echo esc_attr( $tier_index ); ?>][capacity_high]" class="cb-tier-capacity" placeholder="High" value="<?php echo esc_attr( $capacity_high ); ?>">
+				sailors
+			</label>
+			<button type="button" class="button-link cb-repeater-remove" style="color:#b32d2e;">Remove Tier</button>
+		</div>
+
+		<div class="cb-tier-section">
+			<h4>Occupancy Price Points <span class="description">(one row per headcount sharing this cabin -- e.g. 2 sailors vs. 4 sailors -- with its own explicit per-person price, not a computed split)</span></h4>
+			<div class="cb-repeater" data-repeater="occupancy_points" data-index-token="__POINT_INDEX__">
+				<div class="cb-repeater-row cb-occupancy-point-row cb-repeater-header">
+					<span># Sailors</span><span>Voyage Fare</span><span>Taxes &amp; Fees</span><span>Gratuities</span><span>Insurance</span><span>Discount</span><span></span>
+				</div>
+				<div class="cb-repeater-rows">
+					<?php foreach ( $occupancy_points as $p => $point ) : ?>
+						<?php cb_render_occupancy_point_row_fields( $tier_index, $p, $point ); ?>
+					<?php endforeach; ?>
+				</div>
+				<template class="cb-repeater-template">
+					<?php cb_render_occupancy_point_row_fields( $tier_index, '__POINT_INDEX__', array() ); ?>
+				</template>
+				<button type="button" class="button cb-repeater-add">+ Add Occupancy Price Point</button>
+			</div>
+		</div>
+
+		<div class="cb-tier-section">
+			<h4>Add-ons <span class="description">(optional extras, e.g. a beverage package)</span></h4>
+			<div class="cb-repeater" data-repeater="addons" data-index-token="__ADDON_INDEX__">
+				<div class="cb-repeater-rows">
+					<?php foreach ( $addons as $a => $addon ) : ?>
+						<?php cb_render_addon_row_fields( $tier_index, $a, $addon ); ?>
+					<?php endforeach; ?>
+				</div>
+				<template class="cb-repeater-template">
+					<?php cb_render_addon_row_fields( $tier_index, '__ADDON_INDEX__', array() ); ?>
+				</template>
+				<button type="button" class="button cb-repeater-add">+ Add Add-on</button>
+			</div>
+		</div>
+	</div>
+	<?php
+}
+
+function cb_render_trip_pricing_tiers_meta_box( $post ) {
+	$tiers = get_post_meta( $post->ID, 'cb_pricing_tiers', true );
+	$tiers = is_array( $tiers ) ? $tiers : array();
+	?>
+	<div class="cb-repeater" data-repeater="cb_pricing_tiers" data-index-token="__TIER_INDEX__">
+		<div class="cb-repeater-rows">
+			<?php foreach ( $tiers as $t => $tier ) : ?>
+				<?php cb_render_pricing_tier_row_fields( $t, $tier ); ?>
+			<?php endforeach; ?>
+		</div>
+		<template class="cb-repeater-template">
+			<?php cb_render_pricing_tier_row_fields( '__TIER_INDEX__', array() ); ?>
+		</template>
+		<button type="button" class="button button-primary cb-repeater-add">+ Add Pricing Tier</button>
+	</div>
+	<?php
+}
+
 // Recursively treats a repeater row as blank only if every leaf value is an
 // empty string after trimming -- a legitimate "0" (e.g. a $0 Discount or
 // Insurance line, once Pricing Tiers/Occupancy Points reuse this) must NOT
@@ -664,21 +808,36 @@ add_action( 'admin_footer', function () {
 	}
 	?>
 	<style>
-		.cb-repeater-row { display: grid; grid-template-columns: 70px 130px 1fr 1fr 140px 90px 100px auto; gap: 8px; align-items: center; margin-bottom: 6px; }
+		.cb-repeater-row { margin-bottom: 6px; }
 		.cb-repeater-header { font-weight: 600; font-size: 12px; }
 		.cb-repeater-row input, .cb-repeater-row select { width: 100%; }
 		.cb-repeater-template { display: none; }
+
+		/* Day-by-Day Itinerary */
+		[data-repeater="cb_itinerary"] .cb-repeater-row { display: grid; grid-template-columns: 70px 130px 1fr 1fr 140px 90px 100px auto; gap: 8px; align-items: center; }
+
+		/* Pricing Tiers + its nested Occupancy Points / Add-ons */
+		.cb-tier-row { border: 1px solid #ccd0d4; border-radius: 4px; padding: 12px; background: #fff; }
+		.cb-tier-row-header { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+		.cb-tier-name { max-width: 260px; }
+		.cb-tier-capacity { width: 60px; }
+		.cb-tier-section { margin-top: 10px; }
+		.cb-tier-section h4 { margin: 0 0 6px; }
+		.cb-tier-section h4 .description { font-weight: normal; font-size: 12px; color: #666; }
+		[data-repeater="occupancy_points"] .cb-repeater-row { display: grid; grid-template-columns: 90px 1fr 1fr 1fr 1fr 1fr auto; gap: 8px; align-items: center; }
+		[data-repeater="addons"] .cb-repeater-row { display: grid; grid-template-columns: 1fr 80px auto; gap: 8px; align-items: center; }
 	</style>
 	<script>
 	(function () {
 		document.addEventListener( 'click', function ( e ) {
 			var addBtn = e.target.closest( '.cb-repeater-add' );
 			if ( addBtn ) {
-				var repeater = addBtn.closest( '.cb-repeater' );
-				var template = repeater.querySelector( ':scope > .cb-repeater-template' );
-				var rows     = repeater.querySelector( ':scope > .cb-repeater-rows' );
-				var nextIndex = repeater.dataset.nextIndex ? parseInt( repeater.dataset.nextIndex, 10 ) : rows.children.length;
-				var html = template.innerHTML.split( '__INDEX__' ).join( nextIndex );
+				var repeater   = addBtn.closest( '.cb-repeater' );
+				var template   = repeater.querySelector( ':scope > .cb-repeater-template' );
+				var rows       = repeater.querySelector( ':scope > .cb-repeater-rows' );
+				var indexToken = repeater.dataset.indexToken || '__INDEX__';
+				var nextIndex  = repeater.dataset.nextIndex ? parseInt( repeater.dataset.nextIndex, 10 ) : rows.children.length;
+				var html = template.innerHTML.split( indexToken ).join( nextIndex );
 				var wrapper = document.createElement( 'div' );
 				wrapper.innerHTML = html.trim();
 				while ( wrapper.firstChild ) {
@@ -787,6 +946,54 @@ add_action( 'save_post_cb_trip', function ( $post_id ) {
 		);
 	}
 	update_post_meta( $post_id, 'cb_itinerary', $itinerary );
+
+	// Pricing Tiers repeater, with two levels of nested repeaters
+	// (Occupancy Price Points, Add-ons). Same append-based rebuild as
+	// Itinerary above, one level deeper per tier; cb_repeater_row_is_blank()
+	// already recurses into nested arrays, so a tier with a name filled in
+	// but no pricing yet still survives, and a $0 Discount/Insurance value
+	// still counts as "filled in" rather than blank.
+	$tiers = array();
+	foreach ( (array) ( $_POST['cb_pricing_tiers'] ?? array() ) as $tier_row ) {
+		if ( cb_repeater_row_is_blank( $tier_row ) ) {
+			continue;
+		}
+
+		$occupancy_points = array();
+		foreach ( (array) ( $tier_row['occupancy_points'] ?? array() ) as $point_row ) {
+			if ( cb_repeater_row_is_blank( $point_row ) ) {
+				continue;
+			}
+			$occupancy_points[] = array(
+				'occupancy_count' => absint( $point_row['occupancy_count'] ?? 0 ),
+				'voyage_fare'     => floatval( $point_row['voyage_fare'] ?? 0 ),
+				'taxes_fees'      => floatval( $point_row['taxes_fees'] ?? 0 ),
+				'gratuities'      => floatval( $point_row['gratuities'] ?? 0 ),
+				'insurance'       => floatval( $point_row['insurance'] ?? 0 ),
+				'discount'        => floatval( $point_row['discount'] ?? 0 ),
+			);
+		}
+
+		$addons = array();
+		foreach ( (array) ( $tier_row['addons'] ?? array() ) as $addon_row ) {
+			if ( cb_repeater_row_is_blank( $addon_row ) ) {
+				continue;
+			}
+			$addons[] = array(
+				'name' => sanitize_text_field( wp_unslash( $addon_row['name'] ?? '' ) ),
+				'qty'  => absint( $addon_row['qty'] ?? 0 ),
+			);
+		}
+
+		$tiers[] = array(
+			'name'             => sanitize_text_field( wp_unslash( $tier_row['name'] ?? '' ) ),
+			'capacity_low'     => absint( $tier_row['capacity_low'] ?? 0 ),
+			'capacity_high'    => absint( $tier_row['capacity_high'] ?? 0 ),
+			'occupancy_points' => $occupancy_points,
+			'addons'           => $addons,
+		);
+	}
+	update_post_meta( $post_id, 'cb_pricing_tiers', $tiers );
 
 	// Admin-only per-traveler-per-trip status (Paid in Full, Insurance
 	// Waiver Received, CC Auth Received) -- rendered as plain named inputs
