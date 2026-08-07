@@ -172,6 +172,27 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 
 	$trip_wide_seat_preference = $req_list( 'seat_preference' );
 
+	// Prefers the traveler's own answer, falling back to the organizer's
+	// trip-wide answer (marked with " *") when that traveler never filled
+	// in their own -- same treatment as Seat Preference above and Cruise
+	// Cabin Class below, for every field Per-Traveler Intake and Gate 12
+	// both capture in the same domain (this excludes Flight Cabin Class,
+	// which shares no option values with Gate 12's Cruise Cabin Class --
+	// see the CBV_FLIGHT_CABIN_CLASSES comment in checkedbags-trip-invites.php).
+	$merge = function ( $traveler_value, $trip_wide_value ) {
+		if ( '' !== (string) $traveler_value ) {
+			return $traveler_value;
+		}
+		return '' !== $trip_wide_value ? $trip_wide_value . ' *' : '';
+	};
+	$merge_list = function ( $traveler_list, $trip_wide_list ) {
+		$traveler_str = implode( ', ', (array) $traveler_list );
+		if ( '' !== $traveler_str ) {
+			return $traveler_str;
+		}
+		return '' !== $trip_wide_list ? $trip_wide_list . ' *' : '';
+	};
+
 	$headers = array(
 		// Roster / Contact
 		'Name', 'First Name', 'Last Name', 'Date of Birth', 'Email', 'Phone',
@@ -193,8 +214,11 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 		'Additional Adults', 'Additional Children', "Children's Ages", 'Traveling Companions',
 		// Accommodation & Trip-Type Preferences
 		'Hotel Preferences', 'Hotel Room Type', 'Hotel Features',
-		'Hotel Nights', 'Hotel Rooms/Arrangement', 'Cruise Preferences', 'Cruise Itinerary',
-		'Cruise Length', 'Cruise Cabin Class', 'Car Preferences', 'Car Category', 'Package Tour Countries', 'Package Tour Style',
+		'Hotel Nights', 'Hotel Rooms/Arrangement', 'Hotel Concierge Notes',
+		'Cruise Preferences', 'Cruise Itinerary', 'Cruise Length', 'Pre/Post Cruise Nights',
+		'Cruise Cabin Class', 'Beverage Plan', 'Beverage Plan Type',
+		'Car Preferences', 'Car Add-ons', 'Car Category',
+		'Package Tour Countries', 'Package Tour Style', 'Package Activity Level',
 		// Preferences
 		'Dietary Restrictions/Allergies', 'Medical/Mobility Needs', 'Pacing Style',
 		'Past Hotels/Cruiselines Enjoyed', 'Activity Interests',
@@ -242,8 +266,30 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 		// (trip-wide, Gate 12) share no option values -- see the CBV_SEAT_
 		// POSITIONS/CBV_FLIGHT_CABIN_CLASSES comment in checkedbags-trip-
 		// invites.php. No fallback between them; each gets its own column.
-		$flight_cabin_class = $intake['cabin_class'] ?? '';
-		$cruise_cabin_class = $req( 'cruise_cabin_class' );
+		$flight_cabin_class = $intake['flight_cabin_class'] ?? '';
+
+		$hotel_preferences       = $merge( $intake['hotel_preferences'] ?? '', $req( 'hotel_preferences' ) );
+		$hotel_room_type         = $merge_list( $intake['hotel_room_type'] ?? array(), $req_list( 'hotel_room_type' ) );
+		$hotel_features          = $merge_list( $intake['hotel_features'] ?? array(), $req_list( 'hotel_features' ) );
+		$hotel_nights            = $merge( $intake['hotel_nights'] ?? '', $req( 'hotel_nights' ) );
+		$hotel_rooms_arrangement = $merge( $intake['hotel_rooms_arrangement'] ?? '', $req( 'hotel_rooms_arrangement' ) );
+		$hotel_concierge_notes   = $merge( $intake['hotel_concierge_notes'] ?? '', $req( 'hotel_concierge_notes' ) );
+
+		$cruise_preferences     = $merge( $intake['cruise_preferences'] ?? '', $req( 'cruise_preferences' ) );
+		$cruise_itinerary       = $merge( $intake['cruise_itinerary'] ?? '', $req( 'cruise_itinerary' ) );
+		$cruise_length          = $merge( $intake['cruise_length'] ?? '', $req( 'cruise_length' ) );
+		$pre_post_cruise_nights = $merge( $intake['pre_post_cruise_nights'] ?? '', $req( 'pre_post_cruise_nights' ) );
+		$cruise_cabin_class     = $merge( $intake['cruise_cabin_class'] ?? '', $req( 'cruise_cabin_class' ) );
+		$beverage_plan          = $merge( $intake['beverage_plan'] ?? '', $req( 'beverage_plan' ) );
+		$beverage_plan_type     = $merge( $intake['beverage_plan_type'] ?? '', $req( 'beverage_plan_type' ) );
+
+		$car_preferences = $merge( $intake['car_preferences'] ?? '', $req( 'car_preferences' ) );
+		$car_addons      = $merge( $intake['car_addons'] ?? '', $req( 'car_addons' ) );
+		$car_category    = $merge_list( $intake['car_category'] ?? array(), $req_list( 'car_category' ) );
+
+		$package_countries      = $merge( $intake['package_countries'] ?? '', $req( 'package_countries' ) );
+		$package_style          = $merge_list( $intake['package_style'] ?? array(), $req_list( 'package_style' ) );
+		$package_activity_level = $merge( $intake['package_activity_level'] ?? '', $req( 'package_activity_level' ) );
 
 		$start = get_post_meta( $trip_id, 'cb_start_date', true );
 		$dates = $start ? ( $start . ( $trip_end ? ' to ' . $trip_end : '' ) ) : get_post_meta( $trip_id, 'cb_when_notes', true );
@@ -306,19 +352,25 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 			$intake['children_ages'] ?? '',
 			$intake['traveling_companions'] ?? '',
 
-			$req( 'hotel_preferences' ),
-			$req_list( 'hotel_room_type' ),
-			$req_list( 'hotel_features' ),
-			$req( 'hotel_nights' ),
-			$req( 'hotel_rooms_arrangement' ),
-			$req( 'cruise_preferences' ),
-			$req( 'cruise_itinerary' ),
-			$req( 'cruise_length' ),
+			$hotel_preferences,
+			$hotel_room_type,
+			$hotel_features,
+			$hotel_nights,
+			$hotel_rooms_arrangement,
+			$hotel_concierge_notes,
+			$cruise_preferences,
+			$cruise_itinerary,
+			$cruise_length,
+			$pre_post_cruise_nights,
 			$cruise_cabin_class,
-			$req( 'car_preferences' ),
-			$req_list( 'car_category' ),
-			$req( 'package_countries' ),
-			$req_list( 'package_style' ),
+			$beverage_plan,
+			$beverage_plan_type,
+			$car_preferences,
+			$car_addons,
+			$car_category,
+			$package_countries,
+			$package_style,
+			$package_activity_level,
 
 			get_user_meta( $user_id, '_dietary_restrictions', true ),
 			get_user_meta( $user_id, '_medical_mobility_needs', true ),

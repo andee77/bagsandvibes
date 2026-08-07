@@ -2042,12 +2042,13 @@ body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
 .trip-detail-traveler-intake h3 {
   color: var(--sand);
 }
-.cbv-intake-field.cbv-intake-field-row {
+.cbv-intake-field-row {
+  display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   gap: 1rem;
 }
-.cbv-intake-field.cbv-intake-field-row label {
+.cbv-intake-field-row label {
   flex: 1;
   min-width: 160px;
 }
@@ -2055,4 +2056,12 @@ body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
   font-size: 0.8rem;
   color: rgba(251,243,231,0.7);
   font-style: italic;
+}
+.trip-detail-traveler-intake h4 {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1rem;
+  color: var(--sand);
+  margin: 0.5rem 0 0.25rem;
 }

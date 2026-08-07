@@ -74,12 +74,12 @@ add_action( 'init', function () {
 } );
 
 /**
- * On first load, make sure the five trip-type terms exist so the taxonomy
+ * On first load, make sure these trip-type terms exist so the taxonomy
  * dropdown in the admin meta box isn't empty. Safe to run repeatedly —
  * term_exists() short-circuits if it's already there.
  */
 add_action( 'init', function () {
-	$types = array( 'Cruise', 'Destination', 'Flight', 'Train', 'Other', 'Resort', 'Retreat' );
+	$types = array( 'Cruise', 'Destination', 'Flight', 'Train', 'Other', 'Resort', 'Retreat', 'Hotel' );
 	foreach ( $types as $type ) {
 		if ( ! term_exists( $type, 'cb_trip_type' ) ) {
 			wp_insert_term( $type, 'cb_trip_type' );
