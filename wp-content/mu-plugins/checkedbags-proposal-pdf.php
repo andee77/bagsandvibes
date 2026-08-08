@@ -439,6 +439,106 @@ function cb_proposal_build_client_html( $data ) {
 }
 
 /* ==========================================================================
+   5a. Internal Data Sheet -- plain, no branding: no logo/banner, no
+       Template Style, no sales-copy boilerplate (Overview, What's
+       Included, Insurance, Payment Plan, Advisor's Desk closing note --
+       none of that belongs in an internal operational document). Keeps
+       Coordinator Role & Next Steps (still operationally useful for
+       staff) and adds the one thing this document exists for: Internal
+       Notes (vendor contacts, margin/profit notes, coordinator
+       checklist), gathered via cb_proposal_build_pdf_data(..., true) --
+       a separate call from the client PDF's (..., false), so
+       cb_trip_get_internal_notes() is never even invoked while building
+       the client-facing document.
+   ========================================================================== */
+function cb_proposal_get_internal_template_css() {
+	return '
+		* { box-sizing: border-box; }
+		body { font-family: "Helvetica", "Arial", sans-serif; color: #16232B; font-size: 11px; line-height: 1.5; margin: 0; }
+		h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; margin: 0 0 8px; color: #16232B; }
+		p { margin: 0 0 8px; }
+		@page { margin: 65px 40px 55px 40px; }
+		.cb-internal-banner { position: fixed; top: -45px; left: 0; right: 0; background: #16232B; color: #FBF3E7; padding: 6px 0; text-align: center; font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; }
+		.cb-footer { position: fixed; bottom: -40px; left: 0; right: 0; font-size: 8px; color: #666; text-align: center; border-top: 1px solid #ddd; padding-top: 6px; }
+		.cb-footer .cb-page-number:after { content: "Page " counter(page); }
+		.cb-section-title { font-size: 16px; margin-top: 22px; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+		.cb-trip-heading { margin-top: 16px; margin-bottom: 8px; page-break-inside: avoid; }
+		.cb-trip-heading h3 { margin: 0 0 4px; font-size: 13px; }
+		.cb-option-meta { font-family: "Courier New", monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; color: #666; }
+		table.cb-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 10px; }
+		table.cb-table th, table.cb-table td { padding: 5px 7px; text-align: left; border-bottom: 1px solid #ddd; }
+		table.cb-table th { font-family: "Courier New", monospace; font-size: 8px; text-transform: uppercase; letter-spacing: 0.04em; background: #eee; }
+		.cb-tier-name { font-weight: bold; margin-top: 10px; margin-bottom: 4px; }
+		.cb-addon-list { font-size: 9px; color: #444; margin: 4px 0 10px; }
+		.cb-internal-block { margin-top: 18px; }
+		.cb-internal-block h2 { font-size: 13px; }
+	';
+}
+
+function cb_proposal_render_internal_block_html( $title, $content ) {
+	if ( '' === trim( (string) $content ) ) {
+		return '';
+	}
+	return '<div class="cb-internal-block"><h2>' . esc_html( $title ) . '</h2><div>' . wpautop( esc_html( $content ) ) . '</div></div>';
+}
+
+function cb_proposal_build_internal_html( $data ) {
+	$trip_html = '';
+	if ( $data['trip'] ) {
+		$trip  = $data['trip'];
+		$dates = cb_format_date_range( $trip['start_date'], $trip['end_date'] );
+
+		$trip_html = '<div class="cb-trip-heading">'
+			. '<h3>' . esc_html( $trip['title'] ) . '</h3>'
+			. '<div class="cb-option-meta">' . esc_html( $trip['type_label'] ) . ' &middot; ' . esc_html( $dates ) . '</div>'
+			. '</div>'
+			. cb_proposal_render_itinerary_html( $trip )
+			. cb_proposal_render_pricing_html( $trip );
+	}
+
+	$notes = $data['trip']['internal_notes'] ?? array();
+
+	$internal_notes_html = cb_proposal_render_internal_block_html( 'Vendor Contacts', $notes['vendor_contacts'] ?? '' )
+		. cb_proposal_render_internal_block_html( 'Margin / Profit Notes', $notes['margin_notes'] ?? '' )
+		. cb_proposal_render_internal_block_html( 'Coordinator Checklist', $notes['coordinator_checklist'] ?? '' );
+
+	$coordinator_html = cb_proposal_render_internal_block_html( 'Coordinator Role &amp; Next Steps', $data['boilerplate']['coordinator_next_steps'] );
+
+	ob_start();
+	?>
+	<!DOCTYPE html>
+	<html>
+	<head>
+		<meta charset="utf-8">
+		<style><?php echo cb_proposal_get_internal_template_css(); ?></style>
+	</head>
+	<body>
+		<div class="cb-internal-banner">Internal Data Sheet -- Not For Client Distribution</div>
+		<div class="cb-footer">
+			<span>Internal use only. Generated <?php echo esc_html( $data['generated_date'] ); ?>.</span>
+			&nbsp;&nbsp;<span class="cb-page-number"></span>
+		</div>
+
+		<h1><?php echo esc_html( $data['client_name'] ); ?></h1>
+
+		<?php if ( $data['trip'] ) : ?>
+			<h2 class="cb-section-title">Trip Details</h2>
+			<?php echo $trip_html; ?>
+		<?php endif; ?>
+
+		<?php if ( $internal_notes_html ) : ?>
+			<h2 class="cb-section-title">Internal Notes</h2>
+			<?php echo $internal_notes_html; ?>
+		<?php endif; ?>
+
+		<?php echo $coordinator_html; ?>
+	</body>
+	</html>
+	<?php
+	return ob_get_clean();
+}
+
+/* ==========================================================================
    6. admin_post_ handler + streaming.
    ========================================================================== */
 function cb_proposal_render_pdf( $html, $filename ) {
@@ -483,6 +583,26 @@ add_action( 'admin_post_cb_generate_client_proposal', function () {
 	cb_proposal_render_pdf( $html, $filename );
 } );
 
+add_action( 'admin_post_cb_generate_internal_data_sheet', function () {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( 'Insufficient permissions.' );
+	}
+
+	$proposal_id = isset( $_GET['proposal_id'] ) ? (int) $_GET['proposal_id'] : 0;
+	if ( ! $proposal_id || ! wp_verify_nonce( $_GET['_wpnonce'] ?? '', 'cb_generate_internal_data_sheet_' . $proposal_id ) ) {
+		wp_die( 'Invalid request.' );
+	}
+	if ( 'cb_proposal' !== get_post_type( $proposal_id ) ) {
+		wp_die( 'Proposal not found.' );
+	}
+
+	$data     = cb_proposal_build_pdf_data( $proposal_id, true );
+	$html     = cb_proposal_build_internal_html( $data );
+	$filename = sanitize_file_name( $data['client_name'] . '-Internal-Data-Sheet.pdf' );
+
+	cb_proposal_render_pdf( $html, $filename );
+} );
+
 /* ==========================================================================
    7. "Generate PDFs" meta box on the Proposal edit screen.
    ========================================================================== */
@@ -500,6 +620,13 @@ function cb_render_proposal_generate_pdfs_meta_box( $post ) {
 			admin_url( 'admin-post.php?action=cb_generate_client_proposal&proposal_id=' . $post->ID ),
 			'cb_generate_client_proposal_' . $post->ID
 		) ); ?>">Download Client Proposal PDF</a>
+	</p>
+	<p>
+		<a class="button" href="<?php echo esc_url( wp_nonce_url(
+			admin_url( 'admin-post.php?action=cb_generate_internal_data_sheet&proposal_id=' . $post->ID ),
+			'cb_generate_internal_data_sheet_' . $post->ID
+		) ); ?>">Download Internal Data Sheet</a>
+		<br><span class="description">Includes vendor/margin/coordinator notes -- never share this one with the client.</span>
 	</p>
 	<?php
 }
