@@ -116,21 +116,36 @@
   // Show only the Air/Cruise/Hotel/Car/Package Tour section(s) that match
   // whichever "Trip Elements" boxes are currently checked -- a request can
   // involve more than one (e.g. a flight to a cruise port), so this is
-  // additive, not a single fixed "type" toggle.
+  // additive, not a single fixed "type" toggle. Hotel and Resort are two
+  // separate checkboxes sharing one section id -- computed per unique
+  // section below (any element mapped to it being checked shows it), not
+  // per checkbox key, since a naive per-key loop would have the
+  // later-processed key's checked/unchecked state silently overwrite the
+  // earlier one's for that same shared section.
   var SECTION_BY_ELEMENT = {
     'Flight': 'req-section-air',
     'Cruise': 'req-section-cruise',
-    'Hotel/Resort': 'req-section-hotel',
+    'Hotel': 'req-section-hotel',
+    'Resort': 'req-section-hotel',
     'Car Rental': 'req-section-car',
     'Package Tour': 'req-section-package'
   };
 
   function updateConditionalSections() {
     var checked = checkedValues('transport_modes');
-    Object.keys(SECTION_BY_ELEMENT).forEach(function (element) {
-      var section = document.getElementById(SECTION_BY_ELEMENT[element]);
+    var visibleSectionIds = {};
+    checked.forEach(function (element) {
+      var sectionId = SECTION_BY_ELEMENT[element];
+      if (sectionId) { visibleSectionIds[sectionId] = true; }
+    });
+
+    var allSectionIds = Object.keys(SECTION_BY_ELEMENT).map(function (element) { return SECTION_BY_ELEMENT[element]; });
+    var uniqueSectionIds = allSectionIds.filter(function (id, index) { return allSectionIds.indexOf(id) === index; });
+
+    uniqueSectionIds.forEach(function (sectionId) {
+      var section = document.getElementById(sectionId);
       if (!section) { return; }
-      section.style.display = checked.indexOf(element) !== -1 ? '' : 'none';
+      section.style.display = visibleSectionIds[sectionId] ? '' : 'none';
     });
   }
 

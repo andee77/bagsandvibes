@@ -419,17 +419,20 @@ function cb_toggle_suggestion_vote( $request ) {
 
 /**
  * Maps a checked "Trip Elements" value to an existing cb_trip_type term
- * (Cruise, Destination, Flight, Train, Other, Resort, Retreat -- see
- * checkedbags-trips.php). Without this, wp_set_object_terms() would
- * silently CREATE a new taxonomy term for any unmapped value (e.g. "Hotel/
- * Resort", "Car Rental") the first time someone checked it, since WP
- * auto-creates terms that don't already exist by that name.
+ * (Cruise, Destination, Flight, Train, Other, Resort, Retreat, Hotel --
+ * see checkedbags-trips.php). Without this, wp_set_object_terms() would
+ * silently CREATE a new taxonomy term for any unmapped value (e.g. "Car
+ * Rental") the first time someone checked it, since WP auto-creates terms
+ * that don't already exist by that name. Hotel and Resort map directly to
+ * their own terms -- no more guessing/defaulting one to the other now that
+ * the checkbox itself is split.
  */
 function cbv_map_request_type_to_trip_type( $type ) {
 	$map = array(
 		'Flight'       => 'Flight',
 		'Cruise'       => 'Cruise',
-		'Hotel/Resort' => 'Resort',
+		'Hotel'        => 'Hotel',
+		'Resort'       => 'Resort',
 		'Train'        => 'Train',
 		'Package Tour' => 'Destination',
 	);
@@ -614,7 +617,8 @@ add_shortcode( 'cb_gate_requests', function () {
 			<legend>Trip Elements (check all that apply)</legend>
 			<label class="check-row"><input type="checkbox" name="transport_modes" value="Flight"> Flight needed</label>
 			<label class="check-row"><input type="checkbox" name="transport_modes" value="Cruise"> Cruise</label>
-			<label class="check-row"><input type="checkbox" name="transport_modes" value="Hotel/Resort"> Hotel/Resort stay</label>
+			<label class="check-row"><input type="checkbox" name="transport_modes" value="Hotel"> Hotel stay</label>
+			<label class="check-row"><input type="checkbox" name="transport_modes" value="Resort"> Resort stay</label>
 			<label class="check-row"><input type="checkbox" name="transport_modes" value="Car Rental"> Car rental</label>
 			<label class="check-row"><input type="checkbox" name="transport_modes" value="Package Tour"> Package tour</label>
 			<label class="check-row"><input type="checkbox" name="transport_modes" value="Bus/Motorcoach"> Bus / motorcoach</label>
