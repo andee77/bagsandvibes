@@ -91,14 +91,17 @@ function cb_proposal_get_template_style( $proposal_id ) {
 	return get_post_meta( $proposal_id, 'cb_proposal_template_style', true ) ?: 'warm_editorial';
 }
 
-// The 6 places a photo can be assigned to -- matches the real section
-// headings in cb_proposal_build_client_html() exactly (checked against the
-// live code, not memory). 4 of the 6 keys deliberately match the existing
-// cb_get_proposal_boilerplate() array keys 1:1 -- no parallel naming scheme.
+// The 5 places a photo can be assigned to, one image max each (enforced at
+// save time below) -- matches the real section headings in
+// cb_proposal_build_client_html() exactly. "Your Options" and "From Your
+// Travel Advisor's Desk" deliberately have NO entry here -- Your Options
+// is table/grid content with no natural paragraph to pair an image with,
+// and the Advisor's Desk closing note is text-only by design, no
+// exception. 4 of these 5 keys match the existing cb_get_proposal_boilerplate()
+// array keys 1:1 -- no parallel naming scheme.
 function cb_proposal_get_photo_sections() {
 	return array(
 		'overview'               => 'Overview',
-		'trip_options'           => 'Trip Options',
 		'whats_included'         => "What's Included",
 		'insurance_importance'   => 'Why Travel Insurance Matters',
 		'payment_plan'           => 'Travel Now, Pay Later',
@@ -246,7 +249,7 @@ function cb_render_proposal_meta_box( $post ) {
 	</div>
 
 	<div class="cb-field">
-		<label>Additional Photos <span class="description">(optional -- a handful, e.g. 3-6, works well for visual variety. Each photo is assigned to one section below and renders as a small grid right there in the generated Client Proposal PDF. The fixed banner photo at the top of every proposal is set once on the Boilerplate Content settings page, not here.)</span></label>
+		<label>Additional Photos <span class="description">(optional -- assign each photo to one section below; one image max per section, shown side-by-side with that section's text in the generated Client Proposal PDF. If you assign a second photo to a section that already has one, only the first will be used. "Your Options" and the closing Advisor's Desk note don't take a photo. The fixed banner photo at the top of every proposal is set once on the Boilerplate Content settings page, not here.)</span></label>
 		<div id="cb-proposal-photo-rows">
 			<?php foreach ( $additional_photos as $i => $photo ) : ?>
 				<?php cb_render_proposal_photo_row_fields( $i, $photo['id'], $photo['section'] ); ?>
@@ -274,7 +277,7 @@ function cb_render_proposal_meta_box( $post ) {
 
 			var options = '';
 			Object.keys( sections ).forEach( function ( slug ) {
-				options += '<option value="' + slug + '"' + ( 'trip_options' === slug ? ' selected' : '' ) + '>' + sections[ slug ] + '</option>';
+				options += '<option value="' + slug + '"' + ( 'overview' === slug ? ' selected' : '' ) + '>' + sections[ slug ] + '</option>';
 			} );
 
 			row.innerHTML = ( thumbUrl ? '<img src="' + thumbUrl + '" style="width:60px;height:60px;object-fit:cover;border-radius:4px;">' : '' )
@@ -346,10 +349,14 @@ add_action( 'save_post_cb_proposal', function ( $post_id ) {
 
 	// Additional Photos: bracket-array rows (id + section), same
 	// append-based rebuild and blank-row skip as Itinerary/Pricing Tiers.
-	// Each ID must resolve to a real attachment; an unrecognized section
-	// value falls back to trip_options rather than being silently dropped.
+	// Each ID must resolve to a real attachment; a row whose section isn't
+	// currently recognized is dropped outright (not reassigned anywhere --
+	// there's no longer a catch-all section to fall back to). One image
+	// max per section: if a second photo targets an already-used section,
+	// only the first one (in submitted row order) is kept.
 	$photo_sections = array_keys( cb_proposal_get_photo_sections() );
 	$photos = array();
+	$used_sections = array();
 	foreach ( (array) ( $_POST['cb_proposal_additional_photos'] ?? array() ) as $photo_row ) {
 		if ( cb_repeater_row_is_blank( $photo_row ) ) {
 			continue;
@@ -360,8 +367,12 @@ add_action( 'save_post_cb_proposal', function ( $post_id ) {
 		}
 		$section = sanitize_text_field( wp_unslash( $photo_row['section'] ?? '' ) );
 		if ( ! in_array( $section, $photo_sections, true ) ) {
-			$section = 'trip_options';
+			continue;
 		}
+		if ( in_array( $section, $used_sections, true ) ) {
+			continue;
+		}
+		$used_sections[] = $section;
 		$photos[] = array( 'id' => $photo_id, 'section' => $section );
 	}
 	update_post_meta( $post_id, 'cb_proposal_additional_photos', $photos );
@@ -381,10 +392,12 @@ add_action( 'save_post_cb_proposal', function ( $post_id ) {
    ========================================================================== */
 function cb_get_proposal_boilerplate() {
 	$defaults = array(
+		'overview_fallback'      => '', // used only when a proposal's own overview narrative is blank
 		'whats_included'         => '',
 		'insurance_importance'   => '',
 		'payment_plan'           => '',
 		'coordinator_next_steps' => '',
+		'travel_advisor_desk'    => '', // closing personal note -- text-only, never takes a photo
 		'header_banner_photo'    => 0, // attachment ID -- one fixed image atop every Client Proposal PDF
 	);
 	return wp_parse_args( get_option( 'cb_proposal_boilerplate', $defaults ), $defaults );
@@ -408,10 +421,12 @@ function cb_render_proposal_boilerplate_page() {
 
 	if ( isset( $_POST['cb_boilerplate_nonce'] ) && wp_verify_nonce( $_POST['cb_boilerplate_nonce'], 'cb_save_proposal_boilerplate' ) ) {
 		$boilerplate = array(
+			'overview_fallback'      => wp_kses_post( wp_unslash( $_POST['overview_fallback'] ?? '' ) ),
 			'whats_included'         => wp_kses_post( wp_unslash( $_POST['whats_included'] ?? '' ) ),
 			'insurance_importance'   => wp_kses_post( wp_unslash( $_POST['insurance_importance'] ?? '' ) ),
 			'payment_plan'           => wp_kses_post( wp_unslash( $_POST['payment_plan'] ?? '' ) ),
 			'coordinator_next_steps' => wp_kses_post( wp_unslash( $_POST['coordinator_next_steps'] ?? '' ) ),
+			'travel_advisor_desk'    => wp_kses_post( wp_unslash( $_POST['travel_advisor_desk'] ?? '' ) ),
 			'header_banner_photo'    => absint( $_POST['header_banner_photo'] ?? 0 ),
 		);
 		update_option( 'cb_proposal_boilerplate', $boilerplate, false );
@@ -445,6 +460,13 @@ function cb_render_proposal_boilerplate_page() {
 					</td>
 				</tr>
 				<tr>
+					<th><label for="overview_fallback">Overview (fallback)</label></th>
+					<td>
+						<textarea name="overview_fallback" id="overview_fallback" rows="6" class="large-text"><?php echo esc_textarea( $boilerplate['overview_fallback'] ); ?></textarea>
+						<p class="description">Shown only when a proposal's own Overview Narrative is left blank -- a proposal-specific narrative always takes priority over this.</p>
+					</td>
+				</tr>
+				<tr>
 					<th><label for="whats_included">What's Included</label></th>
 					<td><textarea name="whats_included" id="whats_included" rows="6" class="large-text"><?php echo esc_textarea( $boilerplate['whats_included'] ); ?></textarea></td>
 				</tr>
@@ -459,6 +481,13 @@ function cb_render_proposal_boilerplate_page() {
 				<tr>
 					<th><label for="coordinator_next_steps">Coordinator Role &amp; Next Steps</label></th>
 					<td><textarea name="coordinator_next_steps" id="coordinator_next_steps" rows="6" class="large-text"><?php echo esc_textarea( $boilerplate['coordinator_next_steps'] ); ?></textarea></td>
+				</tr>
+				<tr>
+					<th><label for="travel_advisor_desk">From Your Travel Advisor's Desk</label></th>
+					<td>
+						<textarea name="travel_advisor_desk" id="travel_advisor_desk" rows="6" class="large-text"><?php echo esc_textarea( $boilerplate['travel_advisor_desk'] ); ?></textarea>
+						<p class="description">Closing personal note/signoff -- the final section of every Client Proposal PDF, text-only (never takes a photo).</p>
+					</td>
 				</tr>
 			</table>
 			<?php submit_button( 'Save Boilerplate Content' ); ?>

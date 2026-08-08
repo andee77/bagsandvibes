@@ -128,14 +128,18 @@ function cb_proposal_build_pdf_data( $proposal_id, $include_internal_notes = fal
 	// Photos, by contrast, is a per-proposal gallery the admin curates.
 	$banner_id = (int) $boilerplate['header_banner_photo'];
 
-	// Grouped by section (Overview, Trip Options, and the 4 boilerplate
-	// blocks) rather than one flat list -- each section renders its own
-	// small grid, or nothing at all if no photos were assigned to it.
-	$photos_by_section = array_fill_keys( array_keys( cb_proposal_get_photo_sections() ), array() );
+	// One photo max per section (Overview + the 4 photo-eligible boilerplate
+	// blocks -- "Your Options" and the Advisor's Desk closing note never
+	// take one). The save handler already enforces the cap, but keeping
+	// only the first match here too is a harmless defensive backstop.
+	$photos_by_section = array_fill_keys( array_keys( cb_proposal_get_photo_sections() ), '' );
 	foreach ( cb_proposal_get_additional_photos( $proposal_id ) as $photo ) {
+		if ( '' !== $photos_by_section[ $photo['section'] ] ) {
+			continue;
+		}
 		$path = get_attached_file( $photo['id'] );
 		if ( $path ) {
-			$photos_by_section[ $photo['section'] ][] = cb_proposal_resolve_pdf_image_path( $path );
+			$photos_by_section[ $photo['section'] ] = cb_proposal_resolve_pdf_image_path( $path );
 		}
 	}
 
@@ -157,7 +161,6 @@ function cb_proposal_build_pdf_data( $proposal_id, $include_internal_notes = fal
 			continue;
 		}
 
-		$cover_id   = (int) get_post_meta( $trip_id, 'cb_cover_photo', true );
 		$terms      = get_the_terms( $trip_id, 'cb_trip_type' );
 		$type_label = ( $terms && ! is_wp_error( $terms ) ) ? $terms[0]->name : '';
 
@@ -167,7 +170,6 @@ function cb_proposal_build_pdf_data( $proposal_id, $include_internal_notes = fal
 			'type_label'       => $type_label,
 			'start_date'       => get_post_meta( $trip_id, 'cb_start_date', true ),
 			'end_date'         => get_post_meta( $trip_id, 'cb_end_date', true ),
-			'cover_photo_path' => $cover_id ? cb_proposal_resolve_pdf_image_path( get_attached_file( $cover_id ) ) : '',
 			'itinerary'        => cb_trip_get_itinerary( $trip_id ),
 			'pricing_tiers'    => cb_trip_get_pricing_tiers( $trip_id ),
 			'single_price'     => (float) get_post_meta( $trip_id, 'cb_price', true ),
@@ -207,8 +209,8 @@ function cb_proposal_get_template_css( $style ) {
 		.cb-footer .cb-page-number:after { content: "Page " counter(page); }
 		.cb-hero { width: 100%; max-height: 260px; margin-bottom: 16px; }
 		.cb-section-title { font-size: 16px; margin-top: 22px; margin-bottom: 10px; }
-		.cb-option-card { padding: 14px; margin-bottom: 18px; page-break-inside: avoid; overflow: hidden; }
-		.cb-cover-photo { float: left; width: 46%; height: auto; margin: 0 14px 8px 0; border-radius: 6px; }
+		.cb-trip-heading { margin-top: 16px; margin-bottom: 8px; page-break-inside: avoid; }
+		.cb-trip-heading h3 { margin: 0 0 4px; font-size: 13px; }
 		.cb-option-meta { font-family: "Courier New", monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
 		table.cb-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 10px; }
 		table.cb-table th, table.cb-table td { padding: 5px 7px; text-align: left; border-bottom: 1px solid #ddd; }
@@ -217,15 +219,25 @@ function cb_proposal_get_template_css( $style ) {
 		.cb-addon-list { font-size: 9px; color: #444; margin: 4px 0 10px; }
 		.cb-boilerplate-block { margin-top: 18px; page-break-inside: avoid; }
 		.cb-disclaimer { font-size: 8px; color: #888; }
-		.cb-gallery { margin-top: 18px; }
-		.cb-gallery img { width: 32%; height: 110px; object-fit: cover; margin: 0 1.3% 8px 0; display: inline-block; }
+		/* Two-column image+copy layout -- table-based, not float-based. A
+		   table row height is the max of its cells, so a tall image never
+		   overlaps whatever comes after it regardless of which cell is
+		   taller (verified directly against this Dompdf install before
+		   building this; floats do not reliably self-contain this way). */
+		table.cb-two-col { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
+		table.cb-two-col td { vertical-align: top; padding: 0; }
+		table.cb-two-col td.cb-two-col-image { width: 42%; }
+		table.cb-two-col td.cb-two-col-image img { width: 100%; height: auto; border-radius: 6px; }
+		table.cb-two-col td.cb-two-col-image.cb-image-left { padding-right: 16px; }
+		table.cb-two-col td.cb-two-col-image.cb-image-right { padding-left: 16px; }
+		table.cb-two-col td.cb-two-col-text { width: 58%; }
 	';
 
 	if ( 'structured_grid' === $style ) {
 		return $shared . '
 			h1, h2, h3 { font-family: "Helvetica", "Arial", sans-serif; font-weight: bold; text-transform: uppercase; letter-spacing: 0.03em; color: #1B3A4B; }
 			.cb-section-title { border-bottom: 2px solid #1B3A4B; padding-bottom: 4px; }
-			.cb-option-card { border: 1px solid #1B3A4B; background: #fff; }
+			.cb-trip-heading h3 { color: #1B3A4B; }
 			.cb-option-meta { color: #2E7D6E; }
 			table.cb-table th { background: #1B3A4B; color: #FBF3E7; }
 			.cb-tier-name { color: #1B3A4B; }
@@ -236,7 +248,7 @@ function cb_proposal_get_template_css( $style ) {
 	return $shared . '
 		h1, h2, h3 { font-style: italic; color: #FF6B4A; }
 		.cb-section-title { color: #FF6B4A; }
-		.cb-option-card { border-radius: 10px; background: #FBF3E7; }
+		.cb-trip-heading h3 { color: #FF6B4A; }
 		.cb-option-meta { color: #E8A94E; }
 		table.cb-table th { background: #FBF3E7; color: #16232B; border-bottom: 2px solid #E8A94E; }
 		.cb-tier-name { color: #FF6B4A; }
@@ -311,26 +323,29 @@ function cb_proposal_render_pricing_html( $trip ) {
 	return '<p><em>Contact us for pricing.</em></p>';
 }
 
-// Shared by every section that can carry Additional Photos (Overview,
-// Trip Options, and each of the 4 boilerplate blocks) -- one small grid,
-// or '' if that section has no photos assigned. Same .cb-gallery treatment
-// used everywhere, just localized to wherever it's called.
-function cb_proposal_render_gallery_html( $photo_paths ) {
-	if ( empty( $photo_paths ) ) {
-		return '';
+// Table-based two-column layout (image one side, arbitrary HTML content
+// the other) -- NOT float-based. A table row's height is the max of its
+// cells regardless of which side is taller, which is exactly the
+// containment property floats lack in Dompdf (confirmed directly against
+// this install before building this: both a tall-image/short-text row and
+// a short-image/long-text row correctly avoid overlapping what follows).
+// Degrades to plain content, full width, when no photo is assigned.
+function cb_proposal_render_two_col_html( $photo_path, $content_html, $image_side = 'left' ) {
+	if ( ! $photo_path ) {
+		return $content_html;
 	}
-	$html = '<div class="cb-gallery">';
-	foreach ( $photo_paths as $photo_path ) {
-		$html .= '<img src="' . esc_attr( $photo_path ) . '">';
-	}
-	return $html . '</div>';
+	$image_cell = '<td class="cb-two-col-image cb-image-' . esc_attr( $image_side ) . '"><img src="' . esc_attr( $photo_path ) . '"></td>';
+	$text_cell  = '<td class="cb-two-col-text">' . $content_html . '</td>';
+	$cells      = ( 'right' === $image_side ) ? ( $text_cell . $image_cell ) : ( $image_cell . $text_cell );
+	return '<table class="cb-two-col"><tr>' . $cells . '</tr></table>';
 }
 
-function cb_proposal_render_boilerplate_block_html( $title, $content, $photo_paths = array() ) {
+function cb_proposal_render_boilerplate_block_html( $title, $content, $photo_path = '', $image_side = 'left' ) {
 	if ( '' === trim( (string) $content ) ) {
-		return ''; // no text -> skip the whole block, including any photos assigned to it
+		return ''; // no text -> skip the whole block, including any photo assigned to it
 	}
-	return '<div class="cb-boilerplate-block"><h2 class="cb-section-title">' . esc_html( $title ) . '</h2><div>' . wpautop( esc_html( $content ) ) . '</div>' . cb_proposal_render_gallery_html( $photo_paths ) . '</div>';
+	$body = cb_proposal_render_two_col_html( $photo_path, wpautop( esc_html( $content ) ), $image_side );
+	return '<div class="cb-boilerplate-block"><h2 class="cb-section-title">' . esc_html( $title ) . '</h2>' . $body . '</div>';
 }
 
 /* ==========================================================================
@@ -340,37 +355,47 @@ function cb_proposal_build_client_html( $data ) {
 	$logo_id  = get_theme_mod( 'custom_logo' );
 	$logo_src = $logo_id ? cb_proposal_resolve_pdf_image_path( get_attached_file( $logo_id ) ) : '';
 
+	// "Your Options": plain title + type/dates per trip (no card, no
+	// per-trip photo, no price-teaser box) straight into that trip's own
+	// itinerary/pricing tables -- the old bordered card was what pushed
+	// content across a page break and left a blank gap; this section never
+	// takes an Additional Photos image at all (no natural paragraph to
+	// pair one with).
 	$options_html = '';
 	foreach ( $data['trips'] as $trip ) {
 		$dates = cb_format_date_range( $trip['start_date'], $trip['end_date'] );
-		$cover_html = $trip['cover_photo_path']
-			? '<img class="cb-cover-photo" src="' . esc_attr( $trip['cover_photo_path'] ) . '">'
-			: '';
 
-		$options_html .= '<div class="cb-option-card">'
-			. $cover_html
-			. '<h2>' . esc_html( $trip['title'] ) . '</h2>'
+		$options_html .= '<div class="cb-trip-heading">'
+			. '<h3>' . esc_html( $trip['title'] ) . '</h3>'
 			. '<div class="cb-option-meta">' . esc_html( $trip['type_label'] ) . ' &middot; ' . esc_html( $dates ) . '</div>'
-			. '<div style="clear:both;"></div>'
+			. '</div>'
 			. cb_proposal_render_itinerary_html( $trip )
-			. cb_proposal_render_pricing_html( $trip )
-			. '</div>';
+			. cb_proposal_render_pricing_html( $trip );
 	}
 
 	$photos = $data['photos_by_section'];
 
-	$boilerplate_html = cb_proposal_render_boilerplate_block_html( "What's Included", $data['boilerplate']['whats_included'], $photos['whats_included'] )
-		. cb_proposal_render_boilerplate_block_html( 'Why Travel Insurance Matters', $data['boilerplate']['insurance_importance'], $photos['insurance_importance'] )
-		. cb_proposal_render_boilerplate_block_html( 'Travel Now, Pay Later', $data['boilerplate']['payment_plan'], $photos['payment_plan'] )
-		. cb_proposal_render_boilerplate_block_html( 'Your Coordinator', $data['boilerplate']['coordinator_next_steps'], $photos['coordinator_next_steps'] );
+	// Alternates image-left/copy-right, copy-left/image-right for visual
+	// variety across the 4 photo-eligible boilerplate blocks, per mockup.
+	// The closing Advisor's Desk note is text-only -- no photo argument at
+	// all, so cb_proposal_render_two_col_html() degrades to plain content.
+	$boilerplate_html = cb_proposal_render_boilerplate_block_html( "What's Included", $data['boilerplate']['whats_included'], $photos['whats_included'], 'left' )
+		. cb_proposal_render_boilerplate_block_html( 'Why Travel Insurance Matters', $data['boilerplate']['insurance_importance'], $photos['insurance_importance'], 'right' )
+		. cb_proposal_render_boilerplate_block_html( 'Travel Now, Pay Later', $data['boilerplate']['payment_plan'], $photos['payment_plan'], 'left' )
+		. cb_proposal_render_boilerplate_block_html( 'Your Coordinator', $data['boilerplate']['coordinator_next_steps'], $photos['coordinator_next_steps'], 'right' )
+		. cb_proposal_render_boilerplate_block_html( "From Your Travel Advisor's Desk", $data['boilerplate']['travel_advisor_desk'] );
 
 	// Fixed global banner (Boilerplate Content settings page) -- the same
-	// photo on every generated proposal, unlike each trip's own cover photo
-	// above (unchanged, per-trip) or the Additional Photos galleries below
-	// (per-proposal, per-section, distributed throughout the document).
+	// photo on every generated proposal, unlike the per-section Additional
+	// Photos below (per-proposal, one per eligible section).
 	$banner_html = $data['header_banner_path']
 		? '<img class="cb-hero" src="' . esc_attr( $data['header_banner_path'] ) . '">'
 		: '';
+
+	// Overview: the proposal's own narrative always wins; the universal
+	// fallback text (Boilerplate Content settings) only appears when a
+	// proposal's own Overview Narrative was left blank.
+	$overview_text = $data['overview'] ?: $data['boilerplate']['overview_fallback'];
 
 	ob_start();
 	?>
@@ -389,15 +414,13 @@ function cb_proposal_build_client_html( $data ) {
 
 		<?php echo $banner_html; ?>
 		<h1><?php echo esc_html( $data['client_name'] ); ?></h1>
-		<?php if ( $data['overview'] ) : ?>
-			<div><?php echo wpautop( esc_html( $data['overview'] ) ); ?></div>
+		<?php // The Overview photo shows independently of whether any overview text exists -- writing the narrative and choosing a photo are two separate admin decisions, per explicit confirmation, unlike the boilerplate blocks (which always have persistent content by design). ?>
+		<?php if ( $overview_text || $photos['overview'] ) : ?>
+			<?php echo cb_proposal_render_two_col_html( $photos['overview'], $overview_text ? wpautop( esc_html( $overview_text ) ) : '', 'left' ); ?>
 		<?php endif; ?>
-		<?php // Independent of the narrative text above -- writing the overview and choosing an Overview photo are two separate admin decisions, unlike the boilerplate blocks below (which always have persistent content by design). ?>
-		<?php echo cb_proposal_render_gallery_html( $photos['overview'] ); ?>
 
 		<h2 class="cb-section-title">Your Options</h2>
 		<?php echo $options_html; ?>
-		<?php echo cb_proposal_render_gallery_html( $photos['trip_options'] ); ?>
 
 		<?php echo $boilerplate_html; ?>
 	</body>
