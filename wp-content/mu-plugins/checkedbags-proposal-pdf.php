@@ -215,7 +215,14 @@ function cb_proposal_get_template_css( $style ) {
 		table.cb-table th { font-family: "Courier New", monospace; font-size: 8px; text-transform: uppercase; letter-spacing: 0.04em; }
 		.cb-tier-name { font-weight: bold; margin-top: 10px; margin-bottom: 4px; }
 		.cb-addon-list { font-size: 9px; color: #444; margin: 4px 0 10px; }
-		.cb-boilerplate-block { margin-top: 18px; page-break-inside: avoid; }
+		/* No page-break-inside: avoid here -- confirmed directly (before/
+		   after test against this Dompdf install) that on a block this
+		   size (heading + wrapped image + full-length copy), "avoid"
+		   pushes the ENTIRE block to the next page whenever it cannot
+		   fully fit, leaving the remainder of the current page blank.
+		   Letting it split naturally means whatever fits stays, only the
+		   overflow continues -- normal reflow, no gap. */
+		.cb-boilerplate-block { margin-top: 18px; }
 		.cb-disclaimer { font-size: 8px; color: #888; }
 		/* Genuine wrap-around: a floated figure with text flowing beside it
 		   for the height of the figure, then continuing at full width once
