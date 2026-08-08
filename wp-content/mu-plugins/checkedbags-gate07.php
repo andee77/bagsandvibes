@@ -394,7 +394,8 @@ add_filter( 'the_content', function ( $content ) {
 			<?php else : ?>
 				<ul class="trip-roster-list">
 					<?php foreach ( $roster as $uid ) : $u = get_userdata( $uid ); if ( ! $u ) { continue; } ?>
-						<li><?php echo esc_html( $u->display_name ); ?></li>
+						<?php /* Anyone who can see this page is already on this trip's roster (cbv_user_can_view_trip() enforces that), so they share this exact trip with every other name listed here -- cb_users_share_any_trip() is always true between them, meaning every link below always resolves to a viewable profile. No conditional check needed. */ ?>
+						<li><a href="<?php echo esc_url( home_url( '/members/' . $u->user_nicename . '/' ) ); ?>"><?php echo esc_html( $u->display_name ); ?></a></li>
 					<?php endforeach; ?>
 				</ul>
 			<?php endif; ?>
