@@ -174,13 +174,70 @@ function cb_proposal_build_pdf_data( $proposal_id, $include_internal_notes = fal
 		);
 
 		if ( $include_internal_notes ) {
-			$trip_data['internal_notes'] = cb_trip_get_internal_notes( $trip_id );
+			$trip_data['internal_notes']  = cb_trip_get_internal_notes( $trip_id );
+			$trip_data['point_person']    = cb_trip_get_point_person( $trip_id );
+			$trip_data['roster_summary']  = cb_proposal_get_roster_summary_rows( $trip_id );
 		}
 
 		$data['trip'] = $trip_data;
 	}
 
+	if ( $include_internal_notes ) {
+		$data['proposal_next_steps'] = cb_proposal_get_next_steps( $proposal_id );
+	}
+
 	return $data;
+}
+
+/* ==========================================================================
+   2a. Already-Signed-Up Clients table data -- Internal Data Sheet only.
+       Deliberately reuses the same underlying helpers the Phase 9 roster
+       export already relies on (cb_trip_get_roster, cb_trip_amount_paid/
+       cb_trip_balance_due, cbv_get_traveler_intake, the raw per-trip
+       "Received" flag meta reads) rather than re-deriving any of this --
+       one source of truth. Per-traveler add-ons are deliberately NOT
+       included: add-ons are tracked per Pricing Tier, not per traveler, so
+       there's no data linking a specific add-on to a specific person yet.
+   ========================================================================== */
+function cb_proposal_get_roster_summary_rows( $trip_id ) {
+	$rows = array();
+
+	foreach ( cb_trip_get_roster( $trip_id ) as $user_id ) {
+		$user = get_userdata( $user_id );
+		if ( ! $user ) {
+			continue;
+		}
+
+		$intake = function_exists( 'cbv_get_traveler_intake' ) ? cbv_get_traveler_intake( $user_id, $trip_id ) : array();
+
+		$flight_cabin_class = $intake['flight_cabin_class'] ?? '';
+
+		// Same trip-wide fallback treatment as the roster export's cruise
+		// cabin class column: prefer the traveler's own answer, falling
+		// back to the organizer's trip-wide answer (marked " *") only when
+		// the traveler never filled in their own.
+		$cruise_cabin_class   = $intake['cruise_cabin_class'] ?? '';
+		$trip_wide_cruise_cabin_class = function_exists( 'cbv_get_trip_request_field' ) ? cbv_get_trip_request_field( $trip_id, 'cruise_cabin_class' ) : '';
+		if ( '' === $cruise_cabin_class && '' !== (string) $trip_wide_cruise_cabin_class ) {
+			$cruise_cabin_class = $trip_wide_cruise_cabin_class . ' *';
+		}
+
+		$cabin_room = array_filter( array( $flight_cabin_class, $cruise_cabin_class ) );
+		$cabin_room = implode( ' / ', $cabin_room );
+
+		$balance_due = function_exists( 'cb_trip_balance_due' ) ? cb_trip_balance_due( $trip_id, $user_id ) : 0;
+
+		$rows[] = array(
+			'name'               => $user->display_name,
+			'cabin_room'         => $cabin_room,
+			'balance_due'        => (float) $balance_due,
+			'paid_in_full'       => 'yes' === get_user_meta( $user_id, '_paid_in_full_' . $trip_id, true ),
+			'insurance_received' => 'yes' === get_user_meta( $user_id, '_insurance_waiver_received_' . $trip_id, true ),
+			'cc_auth_received'   => 'yes' === get_user_meta( $user_id, '_cc_auth_received_' . $trip_id, true ),
+		);
+	}
+
+	return $rows;
 }
 
 /* ==========================================================================
@@ -482,8 +539,42 @@ function cb_proposal_render_internal_block_html( $title, $content ) {
 	return '<div class="cb-internal-block"><h2>' . esc_html( $title ) . '</h2><div>' . wpautop( esc_html( $content ) ) . '</div></div>';
 }
 
+function cb_proposal_render_point_person_html( $point_person ) {
+	$parts = array_filter( array(
+		$point_person['name'] ?? '',
+		$point_person['phone'] ?? '',
+		$point_person['email'] ?? '',
+	) );
+	if ( ! $parts ) {
+		return '';
+	}
+	return '<p><strong>Point Person:</strong> ' . implode( ' &middot; ', array_map( 'esc_html', $parts ) ) . '</p>';
+}
+
+function cb_proposal_render_roster_summary_html( $rows ) {
+	if ( ! $rows ) {
+		return '';
+	}
+	$body = '';
+	foreach ( $rows as $row ) {
+		$body .= '<tr>'
+			. '<td>' . esc_html( $row['name'] ) . '</td>'
+			. '<td>' . esc_html( $row['cabin_room'] ) . '</td>'
+			. '<td>' . esc_html( cb_proposal_format_money( $row['balance_due'] ) ) . '</td>'
+			. '<td>' . ( $row['paid_in_full'] ? 'Yes' : 'No' ) . '</td>'
+			. '<td>' . ( $row['insurance_received'] ? 'Yes' : 'No' ) . '</td>'
+			. '<td>' . ( $row['cc_auth_received'] ? 'Yes' : 'No' ) . '</td>'
+			. '</tr>';
+	}
+	return '<h2 class="cb-section-title">Already-Signed-Up Clients</h2>'
+		. '<table class="cb-table"><thead><tr>'
+		. '<th>Name</th><th>Cabin/Room</th><th>Balance Due</th><th>Paid in Full</th><th>Insurance Waiver</th><th>CC Auth</th>'
+		. '</tr></thead><tbody>' . $body . '</tbody></table>';
+}
+
 function cb_proposal_build_internal_html( $data ) {
 	$trip_html = '';
+	$roster_summary_html = '';
 	if ( $data['trip'] ) {
 		$trip  = $data['trip'];
 		$dates = cb_format_date_range( $trip['start_date'], $trip['end_date'] );
@@ -492,17 +583,22 @@ function cb_proposal_build_internal_html( $data ) {
 			. '<h3>' . esc_html( $trip['title'] ) . '</h3>'
 			. '<div class="cb-option-meta">' . esc_html( $trip['type_label'] ) . ' &middot; ' . esc_html( $dates ) . '</div>'
 			. '</div>'
+			. cb_proposal_render_point_person_html( $trip['point_person'] ?? array() )
 			. cb_proposal_render_itinerary_html( $trip )
 			. cb_proposal_render_pricing_html( $trip );
+
+		$roster_summary_html = cb_proposal_render_roster_summary_html( $trip['roster_summary'] ?? array() );
 	}
 
 	$notes = $data['trip']['internal_notes'] ?? array();
 
 	$internal_notes_html = cb_proposal_render_internal_block_html( 'Vendor Contacts', $notes['vendor_contacts'] ?? '' )
 		. cb_proposal_render_internal_block_html( 'Margin / Profit Notes', $notes['margin_notes'] ?? '' )
-		. cb_proposal_render_internal_block_html( 'Coordinator Checklist', $notes['coordinator_checklist'] ?? '' );
+		. cb_proposal_render_internal_block_html( 'Coordinator Checklist', $notes['coordinator_checklist'] ?? '' )
+		. cb_proposal_render_internal_block_html( "What's Needed From the Party", $notes['needed_from_party'] ?? '' )
+		. cb_proposal_render_internal_block_html( 'Notes', $notes['general_notes'] ?? '' );
 
-	$coordinator_html = cb_proposal_render_internal_block_html( 'Coordinator Role &amp; Next Steps', $data['boilerplate']['coordinator_next_steps'] );
+	$next_steps_html = cb_proposal_render_internal_block_html( 'Next Steps', $data['proposal_next_steps'] ?? '' );
 
 	ob_start();
 	?>
@@ -526,12 +622,14 @@ function cb_proposal_build_internal_html( $data ) {
 			<?php echo $trip_html; ?>
 		<?php endif; ?>
 
+		<?php echo $roster_summary_html; ?>
+
 		<?php if ( $internal_notes_html ) : ?>
 			<h2 class="cb-section-title">Internal Notes</h2>
 			<?php echo $internal_notes_html; ?>
 		<?php endif; ?>
 
-		<?php echo $coordinator_html; ?>
+		<?php echo $next_steps_html; ?>
 	</body>
 	</html>
 	<?php

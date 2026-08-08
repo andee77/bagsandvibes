@@ -359,6 +359,10 @@ function cb_render_trip_meta_box( $post ) {
 	$range_low   = get_post_meta( $post->ID, 'cb_price_range_low', true );
 	$range_high  = get_post_meta( $post->ID, 'cb_price_range_high', true );
 	$roster      = cb_trip_get_roster( $post->ID );
+
+	$point_person_name  = get_post_meta( $post->ID, 'cb_point_person_name', true );
+	$point_person_phone = get_post_meta( $post->ID, 'cb_point_person_phone', true );
+	$point_person_email = get_post_meta( $post->ID, 'cb_point_person_email', true );
 	?>
 	<style>
 		.cb-field { margin-bottom: 14px; }
@@ -450,6 +454,24 @@ function cb_render_trip_meta_box( $post ) {
 	<div class="cb-field">
 		<label for="cb_rules_addendum">Trip-specific rules addendum</label>
 		<textarea name="cb_rules_addendum" id="cb_rules_addendum" rows="3" placeholder="e.g. Passport must be valid 6 months past return date. Visa required for entry."><?php echo esc_textarea( $addendum ); ?></textarea>
+	</div>
+
+	<hr>
+	<h4>Point Person</h4>
+	<p class="description">The client-side contact coordinating this trip -- not necessarily a roster member (may be a non-traveling family spokesperson). Shown on the Internal Data Sheet.</p>
+	<div class="cb-row">
+		<div class="cb-field">
+			<label for="cb_point_person_name">Name</label>
+			<input type="text" name="cb_point_person_name" id="cb_point_person_name" value="<?php echo esc_attr( $point_person_name ); ?>">
+		</div>
+		<div class="cb-field">
+			<label for="cb_point_person_phone">Phone</label>
+			<input type="text" name="cb_point_person_phone" id="cb_point_person_phone" value="<?php echo esc_attr( $point_person_phone ); ?>">
+		</div>
+		<div class="cb-field">
+			<label for="cb_point_person_email">Email</label>
+			<input type="text" name="cb_point_person_email" id="cb_point_person_email" value="<?php echo esc_attr( $point_person_email ); ?>">
+		</div>
 	</div>
 
 	<hr>
@@ -805,11 +827,21 @@ add_action( 'add_meta_boxes', function () {
 	);
 } );
 
+function cb_trip_get_point_person( $trip_id ) {
+	return array(
+		'name'  => (string) get_post_meta( $trip_id, 'cb_point_person_name', true ),
+		'phone' => (string) get_post_meta( $trip_id, 'cb_point_person_phone', true ),
+		'email' => (string) get_post_meta( $trip_id, 'cb_point_person_email', true ),
+	);
+}
+
 function cb_trip_get_internal_notes( $trip_id ) {
 	return array(
 		'vendor_contacts'        => (string) get_post_meta( $trip_id, 'cb_internal_vendor_contacts', true ),
 		'margin_notes'           => (string) get_post_meta( $trip_id, 'cb_internal_margin_notes', true ),
 		'coordinator_checklist'  => (string) get_post_meta( $trip_id, 'cb_internal_coordinator_checklist', true ),
+		'needed_from_party'      => (string) get_post_meta( $trip_id, 'cb_internal_needed_from_party', true ),
+		'general_notes'          => (string) get_post_meta( $trip_id, 'cb_internal_general_notes', true ),
 	);
 }
 
@@ -833,6 +865,14 @@ function cb_render_trip_internal_notes_meta_box( $post ) {
 		<label for="cb_internal_coordinator_checklist">Coordinator Checklist</label>
 		<textarea name="cb_internal_coordinator_checklist" id="cb_internal_coordinator_checklist" rows="4" style="width:100%;max-width:700px;" placeholder="Deposit deadlines, final payment due dates, docs to collect, follow-up tasks..."><?php echo esc_textarea( $notes['coordinator_checklist'] ); ?></textarea>
 	</div>
+	<div class="cb-field">
+		<label for="cb_internal_needed_from_party">What's Needed From the Party</label>
+		<textarea name="cb_internal_needed_from_party" id="cb_internal_needed_from_party" rows="4" style="width:100%;max-width:700px;" placeholder="Missing forms, pending decisions, anything still outstanding from this specific client group..."><?php echo esc_textarea( $notes['needed_from_party'] ); ?></textarea>
+	</div>
+	<div class="cb-field">
+		<label for="cb_internal_general_notes">Notes</label>
+		<textarea name="cb_internal_general_notes" id="cb_internal_general_notes" rows="4" style="width:100%;max-width:700px;" placeholder="General ongoing operational notes for this trip..."><?php echo esc_textarea( $notes['general_notes'] ); ?></textarea>
+	</div>
 	<?php
 }
 
@@ -846,7 +886,10 @@ add_action( 'save_post_cb_trip', function ( $post_id ) {
 	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 		return;
 	}
-	$fields = array( 'cb_internal_vendor_contacts', 'cb_internal_margin_notes', 'cb_internal_coordinator_checklist' );
+	$fields = array(
+		'cb_internal_vendor_contacts', 'cb_internal_margin_notes', 'cb_internal_coordinator_checklist',
+		'cb_internal_needed_from_party', 'cb_internal_general_notes',
+	);
 	foreach ( $fields as $field ) {
 		if ( isset( $_POST[ $field ] ) ) {
 			update_post_meta( $post_id, $field, sanitize_textarea_field( wp_unslash( $_POST[ $field ] ) ) );
@@ -986,11 +1029,16 @@ add_action( 'save_post_cb_trip', function ( $post_id ) {
 	$text_fields = array(
 		'cb_status', 'cb_source', 'cb_start_date', 'cb_end_date',
 		'cb_gallery_privacy', 'cb_rules_addendum', 'cb_quote_notes',
+		'cb_point_person_name', 'cb_point_person_phone',
 	);
 	foreach ( $text_fields as $field ) {
 		if ( isset( $_POST[ $field ] ) ) {
 			update_post_meta( $post_id, $field, sanitize_text_field( wp_unslash( $_POST[ $field ] ) ) );
 		}
+	}
+
+	if ( isset( $_POST['cb_point_person_email'] ) ) {
+		update_post_meta( $post_id, 'cb_point_person_email', sanitize_email( wp_unslash( $_POST['cb_point_person_email'] ) ) );
 	}
 
 	if ( isset( $_POST['cb_status'] ) ) {

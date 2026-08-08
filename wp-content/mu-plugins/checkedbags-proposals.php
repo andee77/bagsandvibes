@@ -90,6 +90,14 @@ function cb_proposal_get_template_style( $proposal_id ) {
 	return get_post_meta( $proposal_id, 'cb_proposal_template_style', true ) ?: 'warm_editorial';
 }
 
+// This proposal's own private action items -- deliberately distinct from
+// the universal "Coordinator Role & Next Steps" boilerplate block (generic,
+// identical wording on every document, client-facing). Internal-only:
+// appears on the Internal Data Sheet, never on the Client Proposal PDF.
+function cb_proposal_get_next_steps( $proposal_id ) {
+	return (string) get_post_meta( $proposal_id, 'cb_proposal_next_steps', true );
+}
+
 // The 5 places a photo can be assigned to, one image max each (enforced at
 // save time below) -- matches the real section headings in
 // cb_proposal_build_client_html() exactly. "Your Options" and "From Your
@@ -186,6 +194,7 @@ function cb_render_proposal_meta_box( $post ) {
 	$overview          = cb_proposal_get_overview( $post->ID );
 	$template_style    = cb_proposal_get_template_style( $post->ID );
 	$additional_photos = cb_proposal_get_additional_photos( $post->ID );
+	$next_steps        = cb_proposal_get_next_steps( $post->ID );
 
 	$trips = get_posts( array(
 		'post_type'      => 'cb_trip',
@@ -217,6 +226,11 @@ function cb_render_proposal_meta_box( $post ) {
 	<div class="cb-field">
 		<label for="cb_proposal_overview">Overview Narrative</label>
 		<textarea name="cb_proposal_overview" id="cb_proposal_overview" rows="6" placeholder="Short, client-specific narrative introducing this group's options..."><?php echo esc_textarea( $overview ); ?></textarea>
+	</div>
+
+	<div class="cb-field">
+		<label for="cb_proposal_next_steps">Next Steps <span class="description">(internal only -- your own to-do items for this specific client conversation. Shown on the Internal Data Sheet only, never the Client Proposal PDF. Not the same as the generic "Coordinator Role &amp; Next Steps" boilerplate, which stays as-is on the client-facing document.)</span></label>
+		<textarea name="cb_proposal_next_steps" id="cb_proposal_next_steps" rows="4" placeholder="e.g. Follow up on final headcount by Friday, confirm insurance deadline with the point person..."><?php echo esc_textarea( $next_steps ); ?></textarea>
 	</div>
 
 	<div class="cb-field">
@@ -314,6 +328,10 @@ add_action( 'save_post_cb_proposal', function ( $post_id ) {
 
 	if ( isset( $_POST['cb_proposal_overview'] ) ) {
 		update_post_meta( $post_id, 'cb_proposal_overview', sanitize_textarea_field( wp_unslash( $_POST['cb_proposal_overview'] ) ) );
+	}
+
+	if ( isset( $_POST['cb_proposal_next_steps'] ) ) {
+		update_post_meta( $post_id, 'cb_proposal_next_steps', sanitize_textarea_field( wp_unslash( $_POST['cb_proposal_next_steps'] ) ) );
 	}
 
 	if ( isset( $_POST['cb_proposal_template_style'] ) ) {
