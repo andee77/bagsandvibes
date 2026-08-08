@@ -1,9 +1,10 @@
 <?php
 /**
  * Plugin Name: Checked Bags & Good Vibes — Custom Page Templates
- * Description: Registers two custom page templates that bypass Kadence's
- *              header/footer: the static scrollytelling landing page, and
- *              the member dashboard shell. Lives in mu-plugins so it
+ * Description: Registers custom page templates that bypass Kadence's
+ *              header/footer: the static scrollytelling landing page, the
+ *              member dashboard shell, and (Member Profile + Wall Post,
+ *              piece 2) the member profile shell. Lives in mu-plugins so it
  *              survives theme switches/updates.
  * Author:      Built with Claude for JourneyWell Global LLC
  *
@@ -11,11 +12,21 @@
  *   wp-content/mu-plugins/checkedbags-landing.php   <- this file itself
  *   wp-content/mu-plugins/checkedbags-landing/       <- the folder next to it
  *     ├── template-scrollytelling.php                <- landing page template
- *     └── template-dashboard.php                     <- member dashboard template
+ *     ├── template-dashboard.php                     <- member dashboard template
+ *     └── template-member-profile.php                <- member profile template
  *
  * mu-plugins only auto-load *.php files directly inside wp-content/mu-plugins/
  * (not subfolders), which is why the loader (this file) lives at the top level
  * and reaches into the checkedbags-landing/ subfolder manually below.
+ *
+ * Member profile URLs (/members/{user_nicename}/) are the one place this
+ * file uses an actual rewrite rule rather than a plain page slug -- see
+ * section 4 below. It still resolves to a single real "Member Profile" WP
+ * page through the exact same theme_page_templates/template_include
+ * mechanism as the other two templates; the rewrite rule's only job is
+ * carrying the requested nicename in as a query var. No flush_rewrite_rules()
+ * precedent existed anywhere in this codebase before this -- a manual
+ * `wp rewrite flush` was run once after this rule was deployed.
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -24,17 +35,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'CB_LANDING_TEMPLATE_SLUG', 'checkedbags-scrollytelling.php' );
 define( 'CB_DASHBOARD_TEMPLATE_SLUG', 'checkedbags-dashboard.php' );
 define( 'CB_GATE_TEMPLATE_SLUG', 'checkedbags-gate.php' );
+define( 'CB_MEMBER_PROFILE_TEMPLATE_SLUG', 'checkedbags-member-profile.php' );
+define( 'CB_MEMBER_PROFILE_PAGE_SLUG', 'member-profile' );
 
 /**
- * 1. Make both templates selectable in the Page Attributes > Template
+ * 1. Make all templates selectable in the Page Attributes > Template
  *    dropdown, same as any theme-provided template would appear.
  */
 add_filter(
 	'theme_page_templates',
 	function ( $templates ) {
-		$templates[ CB_LANDING_TEMPLATE_SLUG ]   = 'Scrollytelling Landing (Checked Bags & Good Vibes)';
-		$templates[ CB_DASHBOARD_TEMPLATE_SLUG ] = 'Member Dashboard (Checked Bags & Good Vibes)';
-		$templates[ CB_GATE_TEMPLATE_SLUG ]      = 'Gate Page (Checked Bags & Good Vibes)';
+		$templates[ CB_LANDING_TEMPLATE_SLUG ]         = 'Scrollytelling Landing (Checked Bags & Good Vibes)';
+		$templates[ CB_DASHBOARD_TEMPLATE_SLUG ]       = 'Member Dashboard (Checked Bags & Good Vibes)';
+		$templates[ CB_GATE_TEMPLATE_SLUG ]            = 'Gate Page (Checked Bags & Good Vibes)';
+		$templates[ CB_MEMBER_PROFILE_TEMPLATE_SLUG ]  = 'Member Profile (Checked Bags & Good Vibes)';
 		return $templates;
 	}
 );
@@ -97,6 +111,13 @@ add_filter(
 			}
 		}
 
+		if ( $slug === CB_MEMBER_PROFILE_TEMPLATE_SLUG ) {
+			$custom = __DIR__ . '/checkedbags-landing/template-member-profile.php';
+			if ( file_exists( $custom ) ) {
+				return $custom;
+			}
+		}
+
 		return $template;
 	},
 	20 // must run after bbPress's own template_include filter (priority 10),
@@ -118,7 +139,8 @@ add_action(
 		}
 
 		$slug = $is_trip ? CB_GATE_TEMPLATE_SLUG : get_page_template_slug();
-		if ( $slug !== CB_LANDING_TEMPLATE_SLUG && $slug !== CB_DASHBOARD_TEMPLATE_SLUG && $slug !== CB_GATE_TEMPLATE_SLUG ) {
+		$known_slugs = array( CB_LANDING_TEMPLATE_SLUG, CB_DASHBOARD_TEMPLATE_SLUG, CB_GATE_TEMPLATE_SLUG, CB_MEMBER_PROFILE_TEMPLATE_SLUG );
+		if ( ! in_array( $slug, $known_slugs, true ) ) {
 			return;
 		}
 
@@ -155,3 +177,30 @@ add_action(
 		}
 	}
 );
+
+/**
+ * 4. Member Profile URLs -- /members/{user_nicename}/ -- the one rewrite
+ *    rule in this codebase. It exists purely to carry the requested
+ *    nicename in as a query var; the actual page it resolves to
+ *    (CB_MEMBER_PROFILE_PAGE_SLUG) is a normal real WP page using the
+ *    CB_MEMBER_PROFILE_TEMPLATE_SLUG template above, routed through the
+ *    exact same template_include mechanism as every other custom template
+ *    here. No new rendering pipeline, just one new query var feeding it.
+ *
+ *    No flush_rewrite_rules() precedent existed anywhere in this codebase
+ *    before this rule -- deploying it requires one manual `wp rewrite
+ *    flush` on the live server afterward (done once at deploy time, not a
+ *    recurring step).
+ */
+add_action( 'init', function () {
+	add_rewrite_rule(
+		'^members/([^/]+)/?$',
+		'index.php?pagename=' . CB_MEMBER_PROFILE_PAGE_SLUG . '&cb_member_nicename=$matches[1]',
+		'top'
+	);
+} );
+
+add_filter( 'query_vars', function ( $vars ) {
+	$vars[] = 'cb_member_nicename';
+	return $vars;
+} );
