@@ -4,10 +4,13 @@
  * Description: The [cb_feed] shortcode — a Facebook-style feed combining
  *              upcoming open trips (from cb_trip, same data Gate 07 uses),
  *              recent discussion activity (bbPress topics, same boards as
- *              Gate 10), admin-managed travel tip cards (new cb_tip post
- *              type), and admin-managed destination inspiration photos
- *              (new cb_destination post type). Entirely read-only on the
- *              front end — no forms, no REST endpoints, no JS file needed.
+ *              Gate 10, plus -- Member Profile + Wall Post, piece 4 --
+ *              wall posts explicitly flagged _cb_show_in_feed via
+ *              cb_feed_user_can_view_wall_post()), admin-managed travel tip
+ *              cards (new cb_tip post type), and admin-managed destination
+ *              inspiration photos (new cb_destination post type). Entirely
+ *              read-only on the front end — no forms, no REST endpoints, no
+ *              JS file needed.
  * Author:      Built with Claude for JourneyWell Global LLC
  *
  * WHERE THIS FILE GOES:
@@ -132,6 +135,13 @@ function cb_feed_upcoming_trips( $limit = 6 ) {
  * to everyone (per its own description in checkedbags-gate10.php); a
  * per-trip board requires roster membership on the trip it belongs to. An
  * orphaned/unrecognized forum defaults to NOT visible, not leaked.
+ *
+ * Deliberately does NOT handle wall forums -- cb_wall_forum_owner_id()
+ * returns 0 for every trip/Lounge forum this checks, so this function
+ * already naturally excludes wall topics without any special-casing; see
+ * cb_feed_user_can_view_wall_post() below for that separate case, kept
+ * distinct rather than folded in here so this function's existing
+ * trip/Lounge behavior is untouched.
  */
 function cb_feed_user_can_view_forum( $forum_id, $user_id ) {
 	if ( ! $forum_id ) {
@@ -156,6 +166,32 @@ function cb_feed_user_can_view_forum( $forum_id, $user_id ) {
 	return in_array( (int) $user_id, cb_trip_get_roster( $trip_ids[0] ), true );
 }
 
+/**
+ * True if $user_id may see $topic_id in the feed, given it's a wall post
+ * (Member Profile + Wall Post, piece 4) -- both of these must hold:
+ *   1. The poster chose "Post to Profile + Feed" (_cb_show_in_feed === '1'),
+ *      set by the composer's REST endpoint in checkedbags-member-wall.php.
+ *      A "Post to Profile"-only post never surfaces here, regardless of
+ *      who's asking.
+ *   2. $user_id can actually read the topic at all -- reuses
+ *      current_user_can( 'read_topic', $topic_id )'s underlying check via
+ *      user_can(), the exact same map_meta_cap gate proven in pieces 1-3
+ *      (true for the wall owner, a moderator, or anyone sharing a trip
+ *      roster with the owner). Deliberately NOT re-deriving
+ *      cb_users_share_any_trip() independently here -- this codebase
+ *      already has three divergent copies of forum-visibility logic
+ *      (checkedbags-gate10.php's listing filter and detail-page link, plus
+ *      this file's own cb_feed_user_can_view_forum() above); a wall post's
+ *      feed visibility reuses the one real access-control mechanism piece 1
+ *      built instead of adding a fourth.
+ */
+function cb_feed_user_can_view_wall_post( $topic_id, $user_id ) {
+	if ( '1' !== get_post_meta( $topic_id, '_cb_show_in_feed', true ) ) {
+		return false;
+	}
+	return (bool) user_can( $user_id, 'read_topic', $topic_id );
+}
+
 function cb_feed_recent_topics( $limit = 5 ) {
 	if ( ! function_exists( 'bbp_get_topic_permalink' ) ) {
 		return array();
@@ -167,7 +203,10 @@ function cb_feed_recent_topics( $limit = 5 ) {
 	// user has access to," only a per-topic _bbp_forum_id to check against
 	// roster membership. A recent-activity teaser, not paginated, so this
 	// may show fewer than $limit if most recent topics aren't visible to
-	// this viewer -- acceptable for a lightweight feed widget.
+	// this viewer -- acceptable for a lightweight feed widget. This same
+	// pool already includes wall-forum topics (get_posts() below has no
+	// forum-type distinction) -- the per-topic filter is what decides
+	// whether a wall post belongs in it.
 	$candidates = get_posts( array(
 		'post_type'   => 'topic',
 		'post_status' => 'publish',
@@ -178,6 +217,11 @@ function cb_feed_recent_topics( $limit = 5 ) {
 
 	$visible = array_filter( $candidates, function ( $topic ) use ( $user_id ) {
 		$forum_id = get_post_meta( $topic->ID, '_bbp_forum_id', true );
+
+		if ( function_exists( 'cb_wall_forum_owner_id' ) && cb_wall_forum_owner_id( $forum_id ) ) {
+			return cb_feed_user_can_view_wall_post( $topic->ID, $user_id );
+		}
+
 		return cb_feed_user_can_view_forum( $forum_id, $user_id );
 	} );
 
