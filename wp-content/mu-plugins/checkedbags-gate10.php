@@ -3,7 +3,12 @@
  * Plugin Name: Checked Bags & Good Vibes — Gate 10: Discussion Boards
  * Description: Auto-creates one bbPress forum per active trip, maintains a
  *              permanent "Lounge" general forum, and provides the
- *              [cb_gate_boards] listing shortcode. Requires bbPress active.
+ *              [cb_gate_boards] listing shortcode. Also genuinely enforces
+ *              access to trip/Lounge forums at the bbPress capability level
+ *              (map_meta_cap, priority 20) -- previously only soft-gated by
+ *              hiding links, mirroring the same pattern already proven for
+ *              wall forums in checkedbags-member-wall.php, as a fully
+ *              separate/independent hook. Requires bbPress active.
  *              Depends on checkedbags-trips.php for the cb_trip post type,
  *              cb_trip_status_changed action, and cb_trip_get_roster().
  * Author:      Built with Claude for JourneyWell Global LLC
@@ -172,3 +177,72 @@ add_filter( 'the_content', function ( $content ) {
 	return $content . $link;
 
 }, 25 );
+
+/* ==========================================================================
+   6. Real access enforcement for trip forums and the Lounge -- until now,
+      these were only soft-gated by hiding links (sections 4 and 5 above); a
+      bookmarked/guessed forum/topic/reply URL was never actually blocked at
+      the bbPress capability level. This mirrors the exact map_meta_cap
+      approach already proven for wall forums (checkedbags-member-wall.php),
+      as a fully separate, independent hook -- it never calls into that
+      file's logic and explicitly skips any forum a wall-forum owns,
+      leaving that gate completely untouched.
+
+      Same idiom as the wall-forum hook: resolve topic/reply back to their
+      forum via bbPress's own _bbp_forum_id post meta (read_forum needs no
+      resolution, it already is the forum); override bbPress's own decision
+      only when the forum is positively recognized as the Lounge or a real
+      trip's board -- an unrecognized forum ID (not the Lounge, not a wall
+      forum, not any trip's cb_forum_id) falls through with $caps
+      unchanged, same as bbPress's own default, rather than being blocked
+      outright for content this hook doesn't actually own.
+   ========================================================================== */
+function cb_gate10_forum_trip_id( $forum_id ) {
+	$trip_ids = get_posts( array(
+		'post_type'      => 'cb_trip',
+		'posts_per_page' => 1,
+		'meta_key'       => 'cb_forum_id',
+		'meta_value'     => $forum_id,
+		'fields'         => 'ids',
+	) );
+	return $trip_ids ? (int) $trip_ids[0] : 0;
+}
+
+function cb_gate10_resolve_forum_id( $cap, $post_id ) {
+	if ( 'read_forum' === $cap ) {
+		return (int) $post_id;
+	}
+	return (int) get_post_meta( $post_id, '_bbp_forum_id', true );
+}
+
+add_filter( 'map_meta_cap', function ( $caps, $cap, $user_id, $args ) {
+	if ( ! in_array( $cap, array( 'read_forum', 'read_topic', 'read_reply' ), true ) || empty( $args[0] ) ) {
+		return $caps;
+	}
+
+	$forum_id = cb_gate10_resolve_forum_id( $cap, (int) $args[0] );
+	if ( ! $forum_id ) {
+		return $caps;
+	}
+
+	// Wall forums are a separate, independent gate -- never override that
+	// hook's decision here.
+	if ( function_exists( 'cb_wall_forum_owner_id' ) && cb_wall_forum_owner_id( $forum_id ) ) {
+		return $caps;
+	}
+
+	if ( (int) $forum_id === (int) cb_ensure_lounge_forum() ) {
+		return array( 'read' ); // Lounge is open to every member
+	}
+
+	$trip_id = cb_gate10_forum_trip_id( $forum_id );
+	if ( ! $trip_id ) {
+		return $caps; // not a recognized trip forum or the Lounge -- leave bbPress's own decision alone
+	}
+
+	if ( in_array( (int) $user_id, cb_trip_get_roster( $trip_id ), true ) || user_can( $user_id, 'moderate' ) ) {
+		return array( 'read' );
+	}
+
+	return array( 'do_not_allow' );
+}, 20, 4 );

@@ -25,6 +25,16 @@
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; } /* native smooth-scroll for nav anchor jumps, no JS needed */
 
+/* bbPress redirects back to a topic with a #post-{id} anchor after a
+   successful reply/topic submission (its own native, unmodified behavior --
+   confirmed working via a live test). Without this, the fixed site header
+   (--header-h, position: fixed, z-index: 100) sits directly over the top of
+   whatever the browser scrolls that anchor to, hiding the new post's
+   author/timestamp -- confirmed via a live test where the reply landed with
+   its top edge at y=0, fully obscured. Scoped to bbPress's own wrapper so
+   this can't affect anything outside forum/topic/reply pages. */
+#bbpress-forums [id^="post-"] { scroll-margin-top: calc(var(--header-h) + 1rem); }
+
 body {
   margin: 0;
   -webkit-font-smoothing: antialiased;
