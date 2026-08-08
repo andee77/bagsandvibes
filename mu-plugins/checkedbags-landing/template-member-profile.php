@@ -61,6 +61,9 @@ if ( ! $profile_user ) {
     <nav class="member-nav" aria-label="Member navigation">
       <a href="https://bagsandvibes.com/dashboard/" class="btn btn-ghost">Dashboard</a>
       <a href="https://bagsandvibes.com/member-feed/" class="btn btn-ghost">Feed</a>
+      <?php if ( function_exists( 'cb_member_profile_url' ) ) : ?>
+        <a href="<?php echo esc_url( cb_member_profile_url( get_current_user_id() ) ); ?>" class="btn btn-ghost">My Profile</a>
+      <?php endif; ?>
       <a href="https://bagsandvibes.com/logout/" class="btn btn-ghost">Log Out</a>
     </nav>
   </div>

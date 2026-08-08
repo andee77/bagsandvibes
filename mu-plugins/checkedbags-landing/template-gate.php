@@ -57,6 +57,9 @@ $gate_nav = array(
       <ul class="gate-nav-list">
         <li><a href="https://bagsandvibes.com/member-feed/">Feed</a></li>
         <li><a href="<?php echo esc_url( home_url( '/dashboard/' ) ); ?>">Dashboard</a></li>
+        <?php if ( function_exists( 'cb_member_profile_url' ) && is_user_logged_in() ) : ?>
+          <li><a href="<?php echo esc_url( cb_member_profile_url( get_current_user_id() ) ); ?>">My Profile</a></li>
+        <?php endif; ?>
         <li><a href="https://bagsandvibes.com/account/">Account</a></li>
         <li><a href="https://bagsandvibes.com/logout/">Logout</a></li>
         <?php foreach ( $gate_nav as $g ) : ?>

@@ -1897,6 +1897,23 @@ add_filter( 'um_account_page_default_tabs_hook', function ( $tabs ) {
 	return $tabs;
 } );
 
+// The Account page (real WP page, slug "account", content is just the
+// [ultimatemember_account] shortcode) had no visible way to log out --
+// only the shared header nav's Logout link, easy to miss (especially
+// behind the mobile "Menu" toggle). Appends a direct Logout button after
+// UM's own rendered tabs, same /logout/ URL already used everywhere else
+// in this codebase's nav (a real page UM itself handles, not a raw
+// wp_logout_url() call, so behavior matches every other Logout link
+// exactly). Same is_page() + late-priority the_content idiom already used
+// for the reaccept-terms/logout redirect above, just additive instead of
+// a redirect.
+add_filter( 'the_content', function ( $content ) {
+	if ( ! is_page( 'account' ) || ! is_user_logged_in() ) {
+		return $content;
+	}
+	return $content . '<p class="cb-account-logout"><a href="' . esc_url( home_url( '/logout/' ) ) . '" class="btn btn-ghost">Log Out</a></p>';
+}, 20 );
+
 /**
  * Falls back to the legacy single _legal_name field for anyone who filled
  * that in before First/Last Name replaced it, so nothing already entered

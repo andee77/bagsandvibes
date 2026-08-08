@@ -90,6 +90,17 @@ function cb_wall_forum_owner_id( $forum_id ) {
 }
 
 /* ==========================================================================
+   2b. Canonical /members/{user_nicename}/ URL for a given user -- the one
+       place this string gets built, so every nav link pointing at a
+       member's profile agrees with the rewrite rule registered in
+       mu-plugins/checkedbags-landing.php.
+   ========================================================================== */
+function cb_member_profile_url( $user_id ) {
+	$user = get_userdata( $user_id );
+	return $user ? home_url( '/members/' . $user->user_nicename . '/' ) : '';
+}
+
+/* ==========================================================================
    3. Pairwise trip-sharing check -- true if the two users have ever been on
       the same trip's roster together. This is the gate a later piece will
       use to decide whether one member can see/post on another's wall.

@@ -104,6 +104,9 @@ $needs_profile_nudge = function_exists( 'cbv_user_profile_is_complete' )
     <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="brand">Checked Bags <span class="brand-amp">&amp;</span> Good Vibes</a>
     <nav class="member-nav" aria-label="Member navigation">
       <a href="https://bagsandvibes.com/member-feed/" class="btn btn-ghost">Feed</a>
+      <?php if ( function_exists( 'cb_member_profile_url' ) ) : ?>
+        <a href="<?php echo esc_url( cb_member_profile_url( $current_user->ID ) ); ?>" class="btn btn-ghost">My Profile</a>
+      <?php endif; ?>
       <a href="https://bagsandvibes.com/account/" class="btn btn-ghost">My Account</a>
       <a href="https://bagsandvibes.com/logout/" class="btn btn-ghost">Log Out</a>
     </nav>
