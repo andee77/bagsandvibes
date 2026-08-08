@@ -1822,6 +1822,8 @@ body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
   margin-top: 0.5rem;
   width: 100%;
 }
+.dashboard-invite-url { margin: 0 0 0.5rem; }
+.dashboard-invite-qr { width: 140px; height: 140px; display: block; border-radius: 4px; }
 
 .dashboard-upgrade-cta {
   background: var(--horizon);

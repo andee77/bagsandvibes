@@ -159,6 +159,31 @@ function cbv_render_trip_code_meta_box( $post ) {
 		Public trips get a marketing page + teaser QR and normal manual-approval signup.
 		Private trips are only reachable via a member's personal invite link.
 	</p>
+
+	<?php
+	// Phase 11: a scannable QR for this trip's public join link -- only
+	// for Public trips with a saved code, since a Private trip's code
+	// deliberately doesn't resolve via /join/?trip=... (cbv_resolve_trip_code()
+	// excludes it) and a QR pointing at a link that just says "not valid"
+	// isn't useful. Generated fresh on every screen load (cheap, ~1-2KB),
+	// no file written to disk.
+	if ( 'public' === $visibility && $code ) :
+		$join_url = home_url( '/join/?trip=' . rawurlencode( $code ) );
+		$qr_uri   = function_exists( 'cb_generate_qr_data_uri' ) ? cb_generate_qr_data_uri( $join_url ) : '';
+		?>
+		<hr>
+		<p><strong>Public Join QR</strong></p>
+		<?php if ( $qr_uri ) : ?>
+			<img src="<?php echo esc_attr( $qr_uri ); ?>" alt="QR code linking to this trip's public join page" style="width:100%;max-width:200px;height:auto;display:block;">
+		<?php endif; ?>
+		<p class="description">
+			Right-click to save for flyers or social posts. Links to:<br>
+			<code style="word-break:break-all;"><?php echo esc_html( $join_url ); ?></code>
+		</p>
+	<?php elseif ( 'private' === $visibility ) : ?>
+		<hr>
+		<p class="description"><em>No QR shown — Private trips aren't reachable via the public join-code link, only a member's personal invite link.</em></p>
+	<?php endif; ?>
 	<?php
 }
 
@@ -308,7 +333,19 @@ function cbv_resolve_trip_code( $code ) {
 		'posts_per_page' => 1,
 		'meta_query'     => array(
 			array( 'key' => 'cb_trip_code', 'value' => $code ),
-			array( 'key' => 'cb_visibility', 'value' => 'private', 'compare' => '!=' ),
+			array(
+				'relation' => 'OR',
+				// A trip whose cb_visibility meta row was never explicitly
+				// saved has no row at all -- register_post_meta()'s 'public'
+				// default only applies when reading via get_post_meta(), not
+				// to this meta_query, so a plain != 'private' comparison
+				// silently excludes it (SQL NULL != 'private' isn't true).
+				// Confirmed directly: a freshly created trip resolved as
+				// false here despite get_post_meta() reporting 'public',
+				// and only succeeded once cb_visibility was explicitly saved.
+				array( 'key' => 'cb_visibility', 'compare' => 'NOT EXISTS' ),
+				array( 'key' => 'cb_visibility', 'value' => 'private', 'compare' => '!=' ),
+			),
 		),
 		'fields'         => 'ids',
 	) );
@@ -468,9 +505,16 @@ add_action( 'rest_api_init', function () {
 				return new WP_Error( $token->get_error_code(), $token->get_error_message(), array( 'status' => 403 ) );
 			}
 
+			$url = add_query_arg( 'invite', $token, home_url( '/join/' ) );
+
 			return array(
-				'token' => $token,
-				'url'   => add_query_arg( 'invite', $token, home_url( '/join/' ) ),
+				'token'  => $token,
+				'url'    => $url,
+				// Phase 11: generated in the same response rather than a
+				// second round-trip -- entirely server-side (no third-party
+				// QR API), since this URL identifies both the trip and the
+				// inviting member and must never leave this server.
+				'qr_uri' => function_exists( 'cb_generate_qr_data_uri' ) ? cb_generate_qr_data_uri( $url ) : '',
 			);
 		},
 	) );

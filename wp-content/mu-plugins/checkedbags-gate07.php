@@ -167,12 +167,25 @@ add_shortcode( 'cb_gate_vacations', function () {
 	// already excluded from the public ?trip=CODE join path (Phase 2). A
 	// roster member who's already on a Private trip still sees/manages it via
 	// their dashboard's "Your Trips" section instead.
+	//
+	// The nested OR/NOT EXISTS below fixes a real bug found while building
+	// Phase 11: a trip whose cb_visibility row was never explicitly saved
+	// has no meta row at all, and a plain != 'private' comparison silently
+	// excludes it (SQL NULL != 'private' isn't true) even though
+	// register_post_meta()'s 'public' default makes get_post_meta() report
+	// it as public everywhere else -- confirmed directly against the live
+	// DB, same root cause as cbv_resolve_trip_code() in
+	// checkedbags-trip-invites.php.
 	$trips = get_posts( array(
 		'post_type'   => 'cb_trip',
 		'numberposts' => -1,
 		'meta_query'  => array(
 			array( 'key' => 'cb_status', 'value' => 'active' ),
-			array( 'key' => 'cb_visibility', 'value' => 'private', 'compare' => '!=' ),
+			array(
+				'relation' => 'OR',
+				array( 'key' => 'cb_visibility', 'compare' => 'NOT EXISTS' ),
+				array( 'key' => 'cb_visibility', 'value' => 'private', 'compare' => '!=' ),
+			),
 		),
 	) );
 

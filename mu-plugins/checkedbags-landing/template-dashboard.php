@@ -227,7 +227,26 @@ $needs_profile_nudge = function_exists( 'cbv_user_profile_is_complete' )
 				.then( function ( r ) { return r.json().then( function ( body ) { return { ok: r.ok, body: body }; } ); } )
 				.then( function ( res ) {
 					btn.disabled = false;
-					if ( resultEl ) { resultEl.textContent = res.ok ? res.body.url : ( 'Error: ' + res.body.message ); }
+					if ( ! resultEl ) { return; }
+					resultEl.textContent = '';
+					if ( ! res.ok ) {
+						resultEl.textContent = 'Error: ' + res.body.message;
+						return;
+					}
+					var urlEl = document.createElement( 'p' );
+					urlEl.className = 'dashboard-invite-url';
+					urlEl.textContent = res.body.url;
+					resultEl.appendChild( urlEl );
+					// QR is generated server-side in the same response (no
+					// third-party API -- this link identifies both the trip
+					// and the inviting member) -- only render it if present.
+					if ( res.body.qr_uri ) {
+						var qrImg = document.createElement( 'img' );
+						qrImg.className = 'dashboard-invite-qr';
+						qrImg.alt = 'QR code for this invite link';
+						qrImg.src = res.body.qr_uri;
+						resultEl.appendChild( qrImg );
+					}
 				} )
 				.catch( function () {
 					btn.disabled = false;
