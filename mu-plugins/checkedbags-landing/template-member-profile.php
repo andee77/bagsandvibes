@@ -13,8 +13,16 @@
  * current_user_can( 'read_forum', $wall_forum_id ) -- the single source of
  * truth established in checkedbags-member-wall.php (piece 1): true for the
  * profile owner, any moderator, or anyone who shares a trip roster with
- * this member; false otherwise. No wall posting or Feed integration yet --
- * later pieces.
+ * this member; false otherwise.
+ *
+ * Piece 3 adds the composer: anyone who passes that same $can_view check
+ * (owner, moderator, or a roster-sharer) can post to this wall -- not just
+ * the owner, matching the "wall" concept (others post messages to it, not
+ * just the owner). Two buttons post the exact same way, differing only in
+ * the show_in_feed flag sent to the REST endpoint (registered in
+ * checkedbags-member-wall.php), which the endpoint stores as topic meta
+ * _cb_show_in_feed. Feed integration itself (actually surfacing flagged
+ * posts there) is a later piece -- this one only sets the flag.
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -82,6 +90,15 @@ if ( ! $profile_user ) {
     </p>
   </section>
 
+  <section class="member-profile-composer" id="cb-wall-composer" data-wall-owner-id="<?php echo (int) $profile_user->ID; ?>">
+    <textarea id="cb-wall-composer-text" class="member-profile-composer-text" rows="3" placeholder="Write something..."></textarea>
+    <div class="member-profile-composer-actions">
+      <button type="button" class="btn btn-ghost" id="cb-wall-post-profile-btn">Post to Profile</button>
+      <button type="button" class="btn btn-ticket" id="cb-wall-post-profile-feed-btn">Post to Profile + Feed</button>
+    </div>
+    <p class="member-profile-composer-result" id="cb-wall-composer-result"></p>
+  </section>
+
 <?php endif; ?>
 
 </main>
@@ -105,6 +122,59 @@ if ( ! $profile_user ) {
     </div>
   </div>
 </footer>
+
+<?php if ( $profile_user && $can_view ) : ?>
+<script>
+(function () {
+	var restUrl  = <?php echo wp_json_encode( esc_url_raw( rest_url( 'cb/v1/' ) ) ); ?>;
+	var nonce    = <?php echo wp_json_encode( wp_create_nonce( 'wp_rest' ) ); ?>;
+	var composer = document.getElementById( 'cb-wall-composer' );
+	if ( ! composer ) { return; }
+
+	var wallOwnerId = composer.getAttribute( 'data-wall-owner-id' );
+	var textarea    = document.getElementById( 'cb-wall-composer-text' );
+	var resultEl    = document.getElementById( 'cb-wall-composer-result' );
+
+	function postToWall( showInFeed, btn ) {
+		var content = textarea.value.trim();
+		if ( ! content ) {
+			resultEl.textContent = 'Write something before posting.';
+			return;
+		}
+
+		btn.disabled = true;
+		resultEl.textContent = 'Posting…';
+
+		fetch( restUrl + 'members/' + wallOwnerId + '/wall-posts', {
+			method: 'POST',
+			headers: { 'X-WP-Nonce': nonce, 'Content-Type': 'application/json' },
+			body: JSON.stringify( { content: content, show_in_feed: showInFeed } )
+		} )
+			.then( function ( r ) { return r.json().then( function ( body ) { return { ok: r.ok, body: body }; } ); } )
+			.then( function ( res ) {
+				btn.disabled = false;
+				if ( res.ok && res.body.success ) {
+					textarea.value = '';
+					resultEl.textContent = 'Posted!';
+				} else {
+					resultEl.textContent = 'Error: ' + ( res.body.message || 'Something went wrong.' );
+				}
+			} )
+			.catch( function () {
+				btn.disabled = false;
+				resultEl.textContent = 'Request failed — please try again.';
+			} );
+	}
+
+	document.getElementById( 'cb-wall-post-profile-btn' ).addEventListener( 'click', function () {
+		postToWall( false, this );
+	} );
+	document.getElementById( 'cb-wall-post-profile-feed-btn' ).addEventListener( 'click', function () {
+		postToWall( true, this );
+	} );
+})();
+</script>
+<?php endif; ?>
 
 <?php wp_footer(); ?>
 </body>

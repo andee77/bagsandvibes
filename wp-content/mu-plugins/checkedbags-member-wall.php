@@ -15,11 +15,15 @@
  *              bbPress's own includes/forums|topics|replies/capabilities.php
  *              on the live install -- read_topic and read_reply do NOT
  *              re-check their parent forum's access on their own, so all
- *              three are hooked, not just read_forum. No UI yet -- the
- *              /members/{user}/ page, wall posting, and Feed integration are
- *              later pieces (piece 2+ should call
- *              current_user_can( 'read_forum', $wall_forum_id ) directly as
- *              the one source of truth, rather than re-deriving the check).
+ *              three are hooked, not just read_forum. Piece 2 built the
+ *              /members/{user}/ profile shell (mu-plugins/checkedbags-landing.php
+ *              + template-member-profile.php), gated on
+ *              current_user_can( 'read_forum', $wall_forum_id ) as the one
+ *              source of truth. Piece 3 (this file's section 5) adds the
+ *              REST endpoint the profile page's composer posts to --
+ *              bbp_insert_topic() plus a _cb_show_in_feed topic-meta flag.
+ *              Feed integration itself (surfacing flagged posts there) is
+ *              still a later piece.
  *              Requires bbPress active. Depends on checkedbags-trips.php for
  *              the cb_trip post type and cb_trip_get_roster().
  * Author:      Built with Claude for JourneyWell Global LLC
@@ -176,3 +180,64 @@ add_filter( 'map_meta_cap', function ( $caps, $cap, $user_id, $args ) {
 
 	return array( 'do_not_allow' );
 }, 20, 4 );
+
+/* ==========================================================================
+   5. Wall posting REST endpoint -- the profile page's composer (piece 2's
+      template-member-profile.php) posts here. Same house pattern as every
+      other member-facing action in this codebase (cb/v1 namespace,
+      permission_callback just checks is_user_logged_in(), the real access
+      check happens inside the callback with a WP_Error on failure -- see
+      e.g. the cover-photo endpoints in checkedbags-trip-invites.php).
+
+      Posting is gated on the EXACT same current_user_can( 'read_forum', ... )
+      check as viewing -- not owner-only, matching the "wall" concept: a
+      roster-sharer can post to someone else's wall, not just the owner.
+      _cb_show_in_feed is stored as plain topic post meta ('1'/'0'); Feed
+      integration (actually reading this flag to decide what surfaces there)
+      is a later piece, not this one.
+   ========================================================================== */
+add_action( 'rest_api_init', function () {
+	register_rest_route( 'cb/v1', '/members/(?P<user_id>\d+)/wall-posts', array(
+		'methods'             => 'POST',
+		'permission_callback' => function () {
+			return is_user_logged_in();
+		},
+		'callback'            => function ( $request ) {
+			$wall_owner_id = (int) $request['user_id'];
+			$wall_owner    = get_userdata( $wall_owner_id );
+			if ( ! $wall_owner ) {
+				return new WP_Error( 'cb_wall_no_owner', 'That member could not be found.', array( 'status' => 404 ) );
+			}
+
+			if ( ! function_exists( 'bbp_insert_topic' ) ) {
+				return new WP_Error( 'cb_wall_bbpress_inactive', 'Discussion boards are not available right now.', array( 'status' => 500 ) );
+			}
+
+			$wall_forum_id = cb_ensure_user_wall_forum( $wall_owner_id );
+			if ( ! $wall_forum_id || ! current_user_can( 'read_forum', $wall_forum_id ) ) {
+				return new WP_Error( 'cb_wall_no_access', "You don't have access to post on this wall.", array( 'status' => 403 ) );
+			}
+
+			$content = sanitize_textarea_field( (string) $request->get_param( 'content' ) );
+			if ( '' === trim( $content ) ) {
+				return new WP_Error( 'cb_wall_empty_post', 'Write something before posting.', array( 'status' => 400 ) );
+			}
+
+			$topic_id = bbp_insert_topic( array(
+				'post_title'   => wp_trim_words( $content, 10, '…' ),
+				'post_content' => $content,
+				'post_parent'  => $wall_forum_id,
+				'post_author'  => get_current_user_id(),
+			), array( 'forum_id' => $wall_forum_id ) );
+
+			if ( ! $topic_id || is_wp_error( $topic_id ) ) {
+				return new WP_Error( 'cb_wall_post_failed', 'Something went wrong posting to the wall.', array( 'status' => 500 ) );
+			}
+
+			$show_in_feed = ! empty( $request->get_param( 'show_in_feed' ) );
+			update_post_meta( $topic_id, '_cb_show_in_feed', $show_in_feed ? '1' : '0' );
+
+			return array( 'success' => true, 'topic_id' => $topic_id );
+		},
+	) );
+} );
