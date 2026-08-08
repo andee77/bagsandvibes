@@ -182,6 +182,7 @@ add_shortcode( 'cb_gate_vacations', function () {
 
 	ob_start();
 	?>
+	<p class="cb-gate-vacations-hint">Click &#8220;I&#8217;m In&#8221; on a trip to see full details, itinerary, and pricing.</p>
 	<div class="trip-grid">
 		<?php foreach ( $trips as $trip ) :
 			$terms      = get_the_terms( $trip->ID, 'cb_trip_type' );
