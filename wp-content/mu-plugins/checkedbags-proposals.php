@@ -78,9 +78,8 @@ add_action( 'current_screen', function ( $screen ) {
    2. Getters -- for this piece's own meta box and for the PDF generation
       code (Piece 5) to consume without reaching into raw post meta.
    ========================================================================== */
-function cb_proposal_get_trip_ids( $proposal_id ) {
-	$trip_ids = get_post_meta( $proposal_id, 'cb_proposal_trip_ids', true );
-	return is_array( $trip_ids ) ? $trip_ids : array();
+function cb_proposal_get_trip_id( $proposal_id ) {
+	return (int) get_post_meta( $proposal_id, 'cb_proposal_trip_id', true );
 }
 
 function cb_proposal_get_overview( $proposal_id ) {
@@ -154,20 +153,6 @@ add_action( 'admin_enqueue_scripts', function ( $hook ) {
 	}
 } );
 
-function cb_render_proposal_trip_row_fields( $index, $selected_trip_id, $trips ) {
-	?>
-	<div class="cb-repeater-row cb-proposal-trip-row">
-		<select name="cb_proposal_trip_ids[<?php echo esc_attr( $index ); ?>]">
-			<option value="">-- Choose a trip --</option>
-			<?php foreach ( $trips as $trip ) : ?>
-				<option value="<?php echo esc_attr( $trip->ID ); ?>" <?php selected( (int) $selected_trip_id, $trip->ID ); ?>><?php echo esc_html( $trip->post_title ); ?></option>
-			<?php endforeach; ?>
-		</select>
-		<button type="button" class="button-link cb-repeater-remove" style="color:#b32d2e;">Remove</button>
-	</div>
-	<?php
-}
-
 // Reuses .cb-repeater-row/.cb-repeater-remove so the shared Remove handler
 // (checkedbags-trips.php admin_footer) works for free -- but "Add" is NOT
 // the template-clone mechanism, since a photo row's content (the image)
@@ -197,9 +182,9 @@ function cb_render_proposal_meta_box( $post ) {
 	}
 	wp_nonce_field( 'cb_proposal_save', 'cb_proposal_nonce' );
 
-	$trip_ids         = cb_proposal_get_trip_ids( $post->ID );
-	$overview         = cb_proposal_get_overview( $post->ID );
-	$template_style   = cb_proposal_get_template_style( $post->ID );
+	$trip_id           = cb_proposal_get_trip_id( $post->ID );
+	$overview          = cb_proposal_get_overview( $post->ID );
+	$template_style    = cb_proposal_get_template_style( $post->ID );
 	$additional_photos = cb_proposal_get_additional_photos( $post->ID );
 
 	$trips = get_posts( array(
@@ -215,24 +200,18 @@ function cb_render_proposal_meta_box( $post ) {
 		.cb-field label { display: block; font-weight: 600; margin-bottom: 4px; }
 		.cb-field textarea { width: 100%; max-width: 700px; }
 		.cb-field select#cb_proposal_template_style { min-width: 320px; }
-		[data-repeater="cb_proposal_trip_ids"] .cb-repeater-row { display: flex; gap: 8px; align-items: center; }
-		[data-repeater="cb_proposal_trip_ids"] select { min-width: 320px; }
+		.cb-field select#cb_proposal_trip_id { min-width: 320px; }
 		.cb-proposal-photo-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
 	</style>
 
 	<div class="cb-field">
-		<label>Trip Options Being Compared <span class="description">(2-3 existing trips -- pricing/itinerary/dates are pulled live from each at generation time, never duplicated here)</span></label>
-		<div class="cb-repeater" data-repeater="cb_proposal_trip_ids">
-			<div class="cb-repeater-rows">
-				<?php foreach ( $trip_ids as $i => $trip_id ) : ?>
-					<?php cb_render_proposal_trip_row_fields( $i, $trip_id, $trips ); ?>
-				<?php endforeach; ?>
-			</div>
-			<template class="cb-repeater-template">
-				<?php cb_render_proposal_trip_row_fields( '__INDEX__', '', $trips ); ?>
-			</template>
-			<button type="button" class="button cb-repeater-add">+ Add Trip Option</button>
-		</div>
+		<label for="cb_proposal_trip_id">Trip <span class="description">(the one trip this proposal is for -- pricing/itinerary/dates are pulled live from it at generation time, never duplicated here)</span></label>
+		<select name="cb_proposal_trip_id" id="cb_proposal_trip_id">
+			<option value="">-- Choose a trip --</option>
+			<?php foreach ( $trips as $trip ) : ?>
+				<option value="<?php echo esc_attr( $trip->ID ); ?>" <?php selected( $trip_id, $trip->ID ); ?>><?php echo esc_html( $trip->post_title ); ?></option>
+			<?php endforeach; ?>
+		</select>
 	</div>
 
 	<div class="cb-field">
@@ -324,17 +303,14 @@ add_action( 'save_post_cb_proposal', function ( $post_id ) {
 		return;
 	}
 
-	// Trip picker: validate every submitted ID actually resolves to a real,
-	// existing cb_trip post before trusting it -- these IDs get used to pull
-	// live pricing/itinerary data at PDF-generation time.
-	$trip_ids = array();
-	foreach ( (array) ( $_POST['cb_proposal_trip_ids'] ?? array() ) as $trip_id_row ) {
-		$trip_id_row = absint( $trip_id_row );
-		if ( $trip_id_row && 'cb_trip' === get_post_type( $trip_id_row ) ) {
-			$trip_ids[] = $trip_id_row;
-		}
+	// Validate the submitted ID actually resolves to a real, existing
+	// cb_trip post before trusting it -- it gets used to pull live
+	// pricing/itinerary data at PDF-generation time.
+	$trip_id = absint( $_POST['cb_proposal_trip_id'] ?? 0 );
+	if ( ! $trip_id || 'cb_trip' !== get_post_type( $trip_id ) ) {
+		$trip_id = 0;
 	}
-	update_post_meta( $post_id, 'cb_proposal_trip_ids', $trip_ids );
+	update_post_meta( $post_id, 'cb_proposal_trip_id', $trip_id );
 
 	if ( isset( $_POST['cb_proposal_overview'] ) ) {
 		update_post_meta( $post_id, 'cb_proposal_overview', sanitize_textarea_field( wp_unslash( $_POST['cb_proposal_overview'] ) ) );

@@ -151,35 +151,33 @@ function cb_proposal_build_pdf_data( $proposal_id, $include_internal_notes = fal
 		'photos_by_section'  => $photos_by_section,
 		'boilerplate'        => $boilerplate,
 		'generated_date'     => date_i18n( 'F j, Y' ),
-		'trips'              => array(),
+		'trip'               => null,
 	);
 
-	foreach ( cb_proposal_get_trip_ids( $proposal_id ) as $trip_id ) {
-		// A trip referenced when this proposal was built may have since
-		// been deleted -- skip stale references rather than trusting them.
-		if ( 'cb_trip' !== get_post_type( $trip_id ) ) {
-			continue;
-		}
-
+	$trip_id = cb_proposal_get_trip_id( $proposal_id );
+	// The referenced trip may have been deleted since this proposal was
+	// built -- skip stale references rather than trusting them; 'trip'
+	// stays null and the HTML builder renders nothing for that section.
+	if ( $trip_id && 'cb_trip' === get_post_type( $trip_id ) ) {
 		$terms      = get_the_terms( $trip_id, 'cb_trip_type' );
 		$type_label = ( $terms && ! is_wp_error( $terms ) ) ? $terms[0]->name : '';
 
 		$trip_data = array(
-			'id'               => $trip_id,
-			'title'            => get_the_title( $trip_id ),
-			'type_label'       => $type_label,
-			'start_date'       => get_post_meta( $trip_id, 'cb_start_date', true ),
-			'end_date'         => get_post_meta( $trip_id, 'cb_end_date', true ),
-			'itinerary'        => cb_trip_get_itinerary( $trip_id ),
-			'pricing_tiers'    => cb_trip_get_pricing_tiers( $trip_id ),
-			'single_price'     => (float) get_post_meta( $trip_id, 'cb_price', true ),
+			'id'            => $trip_id,
+			'title'         => get_the_title( $trip_id ),
+			'type_label'    => $type_label,
+			'start_date'    => get_post_meta( $trip_id, 'cb_start_date', true ),
+			'end_date'      => get_post_meta( $trip_id, 'cb_end_date', true ),
+			'itinerary'     => cb_trip_get_itinerary( $trip_id ),
+			'pricing_tiers' => cb_trip_get_pricing_tiers( $trip_id ),
+			'single_price'  => (float) get_post_meta( $trip_id, 'cb_price', true ),
 		);
 
 		if ( $include_internal_notes ) {
 			$trip_data['internal_notes'] = cb_trip_get_internal_notes( $trip_id );
 		}
 
-		$data['trips'][] = $trip_data;
+		$data['trip'] = $trip_data;
 	}
 
 	return $data;
@@ -219,18 +217,20 @@ function cb_proposal_get_template_css( $style ) {
 		.cb-addon-list { font-size: 9px; color: #444; margin: 4px 0 10px; }
 		.cb-boilerplate-block { margin-top: 18px; page-break-inside: avoid; }
 		.cb-disclaimer { font-size: 8px; color: #888; }
-		/* Two-column image+copy layout -- table-based, not float-based. A
-		   table row height is the max of its cells, so a tall image never
-		   overlaps whatever comes after it regardless of which cell is
-		   taller (verified directly against this Dompdf install before
-		   building this; floats do not reliably self-contain this way). */
-		table.cb-two-col { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
-		table.cb-two-col td { vertical-align: top; padding: 0; }
-		table.cb-two-col td.cb-two-col-image { width: 42%; }
-		table.cb-two-col td.cb-two-col-image img { width: 100%; height: auto; border-radius: 6px; }
-		table.cb-two-col td.cb-two-col-image.cb-image-left { padding-right: 16px; }
-		table.cb-two-col td.cb-two-col-image.cb-image-right { padding-left: 16px; }
-		table.cb-two-col td.cb-two-col-text { width: 58%; }
+		/* Genuine wrap-around: a floated figure with text flowing beside it
+		   for the height of the figure, then continuing at full width once
+		   past it -- not a rigid two-column table. Verified directly against
+		   this Dompdf install before building this (both a tall-figure/
+		   short-text case and a short-figure/long-text case correctly wrap
+		   and then go full-width, with no overlap into what follows). Every
+		   call site pairs this with an explicit .cb-clear div immediately
+		   after the content, closing the float before the next section --
+		   that clearing, not the float itself, is what the earlier overlap
+		   bug (a different, unrelated inline-block gallery) was missing. */
+		.cb-figure { float: left; width: 42%; margin: 0 16px 8px 0; }
+		.cb-figure.cb-image-right { float: right; margin: 0 0 8px 16px; }
+		.cb-figure img { width: 100%; height: auto; border-radius: 6px; }
+		.cb-clear { clear: both; }
 	';
 
 	if ( 'structured_grid' === $style ) {
@@ -323,28 +323,28 @@ function cb_proposal_render_pricing_html( $trip ) {
 	return '<p><em>Contact us for pricing.</em></p>';
 }
 
-// Table-based two-column layout (image one side, arbitrary HTML content
-// the other) -- NOT float-based. A table row's height is the max of its
-// cells regardless of which side is taller, which is exactly the
-// containment property floats lack in Dompdf (confirmed directly against
-// this install before building this: both a tall-image/short-text row and
-// a short-image/long-text row correctly avoid overlapping what follows).
-// Degrades to plain content, full width, when no photo is assigned.
-function cb_proposal_render_two_col_html( $photo_path, $content_html, $image_side = 'left' ) {
+// Genuine wrap-around: a floated figure with content flowing beside it for
+// the figure's height, continuing at full width once past it -- not a
+// rigid two-column split. The trailing .cb-clear div is what actually
+// closes the float before whatever comes next; confirmed directly against
+// this install before building this, in both a tall-figure/short-content
+// case and a short-figure/long-content case, that the wrap is genuine (text
+// narrows beside the figure, then widens back out) with no overlap either
+// into the figure or into subsequent content. Degrades to plain content,
+// full width, when no photo is assigned.
+function cb_proposal_render_wrap_html( $photo_path, $content_html, $image_side = 'left' ) {
 	if ( ! $photo_path ) {
 		return $content_html;
 	}
-	$image_cell = '<td class="cb-two-col-image cb-image-' . esc_attr( $image_side ) . '"><img src="' . esc_attr( $photo_path ) . '"></td>';
-	$text_cell  = '<td class="cb-two-col-text">' . $content_html . '</td>';
-	$cells      = ( 'right' === $image_side ) ? ( $text_cell . $image_cell ) : ( $image_cell . $text_cell );
-	return '<table class="cb-two-col"><tr>' . $cells . '</tr></table>';
+	$figure = '<div class="cb-figure cb-image-' . esc_attr( $image_side ) . '"><img src="' . esc_attr( $photo_path ) . '"></div>';
+	return $figure . $content_html . '<div class="cb-clear"></div>';
 }
 
 function cb_proposal_render_boilerplate_block_html( $title, $content, $photo_path = '', $image_side = 'left' ) {
 	if ( '' === trim( (string) $content ) ) {
 		return ''; // no text -> skip the whole block, including any photo assigned to it
 	}
-	$body = cb_proposal_render_two_col_html( $photo_path, wpautop( esc_html( $content ) ), $image_side );
+	$body = cb_proposal_render_wrap_html( $photo_path, wpautop( esc_html( $content ) ), $image_side );
 	return '<div class="cb-boilerplate-block"><h2 class="cb-section-title">' . esc_html( $title ) . '</h2>' . $body . '</div>';
 }
 
@@ -355,17 +355,17 @@ function cb_proposal_build_client_html( $data ) {
 	$logo_id  = get_theme_mod( 'custom_logo' );
 	$logo_src = $logo_id ? cb_proposal_resolve_pdf_image_path( get_attached_file( $logo_id ) ) : '';
 
-	// "Your Options": plain title + type/dates per trip (no card, no
-	// per-trip photo, no price-teaser box) straight into that trip's own
-	// itinerary/pricing tables -- the old bordered card was what pushed
-	// content across a page break and left a blank gap; this section never
-	// takes an Additional Photos image at all (no natural paragraph to
-	// pair one with).
-	$options_html = '';
-	foreach ( $data['trips'] as $trip ) {
+	// "Your Trip": the one referenced trip's full detail -- title, type/
+	// dates, complete itinerary table, complete pricing table(s) -- plain
+	// heading (no card, no photo, no price-teaser box). Never takes an
+	// Additional Photos image (title+meta+tables isn't a paragraph a photo
+	// can wrap against).
+	$trip_html = '';
+	if ( $data['trip'] ) {
+		$trip  = $data['trip'];
 		$dates = cb_format_date_range( $trip['start_date'], $trip['end_date'] );
 
-		$options_html .= '<div class="cb-trip-heading">'
+		$trip_html = '<div class="cb-trip-heading">'
 			. '<h3>' . esc_html( $trip['title'] ) . '</h3>'
 			. '<div class="cb-option-meta">' . esc_html( $trip['type_label'] ) . ' &middot; ' . esc_html( $dates ) . '</div>'
 			. '</div>'
@@ -378,7 +378,7 @@ function cb_proposal_build_client_html( $data ) {
 	// Alternates image-left/copy-right, copy-left/image-right for visual
 	// variety across the 4 photo-eligible boilerplate blocks, per mockup.
 	// The closing Advisor's Desk note is text-only -- no photo argument at
-	// all, so cb_proposal_render_two_col_html() degrades to plain content.
+	// all, so cb_proposal_render_wrap_html() degrades to plain content.
 	$boilerplate_html = cb_proposal_render_boilerplate_block_html( "What's Included", $data['boilerplate']['whats_included'], $photos['whats_included'], 'left' )
 		. cb_proposal_render_boilerplate_block_html( 'Why Travel Insurance Matters', $data['boilerplate']['insurance_importance'], $photos['insurance_importance'], 'right' )
 		. cb_proposal_render_boilerplate_block_html( 'Travel Now, Pay Later', $data['boilerplate']['payment_plan'], $photos['payment_plan'], 'left' )
@@ -416,11 +416,13 @@ function cb_proposal_build_client_html( $data ) {
 		<h1><?php echo esc_html( $data['client_name'] ); ?></h1>
 		<?php // The Overview photo shows independently of whether any overview text exists -- writing the narrative and choosing a photo are two separate admin decisions, per explicit confirmation, unlike the boilerplate blocks (which always have persistent content by design). ?>
 		<?php if ( $overview_text || $photos['overview'] ) : ?>
-			<?php echo cb_proposal_render_two_col_html( $photos['overview'], $overview_text ? wpautop( esc_html( $overview_text ) ) : '', 'left' ); ?>
+			<?php echo cb_proposal_render_wrap_html( $photos['overview'], $overview_text ? wpautop( esc_html( $overview_text ) ) : '', 'left' ); ?>
 		<?php endif; ?>
 
-		<h2 class="cb-section-title">Your Options</h2>
-		<?php echo $options_html; ?>
+		<?php if ( $data['trip'] ) : ?>
+			<h2 class="cb-section-title">Your Trip</h2>
+			<?php echo $trip_html; ?>
+		<?php endif; ?>
 
 		<?php echo $boilerplate_html; ?>
 	</body>
@@ -482,10 +484,8 @@ add_action( 'add_meta_boxes', function () {
 } );
 
 function cb_render_proposal_generate_pdfs_meta_box( $post ) {
-	$trip_count = count( cb_proposal_get_trip_ids( $post->ID ) );
-
-	if ( $trip_count < 2 ) {
-		echo '<p style="color:#b32d2e;"><em>Add at least 2 trip options above for a meaningful comparison.</em></p>';
+	if ( ! cb_proposal_get_trip_id( $post->ID ) ) {
+		echo '<p style="color:#b32d2e;"><em>Choose a trip above before generating.</em></p>';
 	}
 	?>
 	<p>
