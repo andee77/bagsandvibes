@@ -2415,8 +2415,12 @@ add_action( 'rest_api_init', function () {
 				'hotel_preferences'       => $str( 'hotel_preferences' ),
 				'hotel_rooms_arrangement' => $str( 'hotel_rooms_arrangement' ),
 				'hotel_room_type'         => $arr( 'hotel_room_type' ),
-				'hotel_features'          => $arr( 'hotel_features' ),
-				'hotel_concierge_notes'   => $str( 'hotel_concierge_notes' ),
+				// hotel_features / hotel_concierge_notes deliberately no longer
+				// saved from here (Trip Details item 3) -- that's now Gate 12's
+				// organizer-only decision (cb_req_hotel_features), not re-asked
+				// per traveler. Any already-saved per-traveler value from before
+				// this change stays readable (not deleted), just no longer
+				// written going forward.
 
 				// Car Rental
 				'car_preferences'         => $str( 'car_preferences' ),
@@ -2497,14 +2501,13 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 	$cruise_region        = $intake['cruise_region'] ?? '';
 	$cruise_departure_port = $intake['cruise_departure_port'] ?? '';
 	$hotel_room_type      = (array) ( $intake['hotel_room_type'] ?? array() );
-	$hotel_features     = (array) ( $intake['hotel_features'] ?? array() );
 	$car_category       = (array) ( $intake['car_category'] ?? array() );
 	$package_style      = (array) ( $intake['package_style'] ?? array() );
 
 	ob_start();
 	?>
 	<div class="trip-detail-section trip-detail-traveler-intake" id="cbv-traveler-intake">
-		<h3>Your Travel Details for This Trip</h3>
+		<h3>Trip Registration</h3>
 
 		<?php if ( $show_air ) : ?>
 		<h4>Air Travel</h4>
@@ -2608,23 +2611,12 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 			<label class="check-row"><input type="checkbox" name="cbv_intake_hotel_room_type" value="Garden View" <?php checked( in_array( 'Garden View', $hotel_room_type, true ) ); ?>> Garden View</label>
 			<label class="check-row"><input type="checkbox" name="cbv_intake_hotel_room_type" value="Ocean View/Front" <?php checked( in_array( 'Ocean View/Front', $hotel_room_type, true ) ); ?>> Ocean View/Front</label>
 			<label class="check-row"><input type="checkbox" name="cbv_intake_hotel_room_type" value="Other" <?php checked( in_array( 'Other', $hotel_room_type, true ) ); ?>> Other</label>
-			<p class="requests-check-group-label">Features (check all that apply):</p>
-			<div class="cbv-checkbox-row">
-				<?php foreach ( array( 'All Inclusive', 'Adults Only', 'Family Friendly', 'Concierge Level' ) as $feature ) : ?>
-					<label class="check-row"><input type="checkbox" name="cbv_intake_hotel_features" value="<?php echo esc_attr( $feature ); ?>" <?php checked( in_array( $feature, $hotel_features, true ) ); ?>> <?php echo esc_html( $feature ); ?></label>
-				<?php endforeach; ?>
-			</div>
-			<div class="cbv-checkbox-row">
-				<?php foreach ( array( 'Suite/Jr Suite', 'On the Beach', 'Near City Center', 'Kids Club' ) as $feature ) : ?>
-					<label class="check-row"><input type="checkbox" name="cbv_intake_hotel_features" value="<?php echo esc_attr( $feature ); ?>" <?php checked( in_array( $feature, $hotel_features, true ) ); ?>> <?php echo esc_html( $feature ); ?></label>
-				<?php endforeach; ?>
-			</div>
-			<div class="cbv-checkbox-row">
-				<?php foreach ( array( 'Near Air/Cruise Port', 'Luxury Resort', 'Activities On-Site', 'Standard View', 'Ocean View' ) as $feature ) : ?>
-					<label class="check-row"><input type="checkbox" name="cbv_intake_hotel_features" value="<?php echo esc_attr( $feature ); ?>" <?php checked( in_array( $feature, $hotel_features, true ) ); ?>> <?php echo esc_html( $feature ); ?></label>
-				<?php endforeach; ?>
-			</div>
-			<label>Concierge level notes <input type="text" id="cbv-intake-hotel-concierge-notes" value="<?php echo esc_attr( $intake['hotel_concierge_notes'] ?? '' ); ?>"></label>
+			<!-- Hotel Features + Concierge level notes removed (Trip Details item 3)
+			     -- that's a trip-wide decision the organizer already makes on Gate 12
+			     (cb_req_hotel_features / cb_req_hotel_concierge_notes), not something
+			     that needs re-asking of every individual traveler. Still read via the
+			     export's existing fallback to the Gate 12 value -- see
+			     cbv_build_trip_roster_export_data() in checkedbags-roster-export.php. -->
 		</div>
 		<?php endif; ?>
 
@@ -2752,8 +2744,6 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 					hotel_preferences: fieldVal( 'cbv-intake-hotel-preferences' ),
 					hotel_rooms_arrangement: fieldVal( 'cbv-intake-hotel-rooms-arrangement' ),
 					hotel_room_type: checkedValuesFor( 'cbv_intake_hotel_room_type' ),
-					hotel_features: checkedValuesFor( 'cbv_intake_hotel_features' ),
-					hotel_concierge_notes: fieldVal( 'cbv-intake-hotel-concierge-notes' ),
 
 					car_preferences: fieldVal( 'cbv-intake-car-preferences' ),
 					car_addons: fieldVal( 'cbv-intake-car-addons' ),
