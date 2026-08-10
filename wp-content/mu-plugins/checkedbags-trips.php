@@ -79,7 +79,12 @@ add_action( 'init', function () {
  * term_exists() short-circuits if it's already there.
  */
 add_action( 'init', function () {
-	$types = array( 'Cruise', 'Destination', 'Flight', 'Train', 'Other', 'Resort', 'Retreat', 'Hotel' );
+	// Car Rental and Package Tour added (Trip Details item 1) so
+	// cbv_render_traveler_intake_form() can gate those two sections on a
+	// real term exactly like Cruise/Hotel/Resort, instead of the old
+	// "show if the trip has any type at all" fallback -- see
+	// $show_car_rental/$show_package_tour there.
+	$types = array( 'Cruise', 'Destination', 'Flight', 'Train', 'Other', 'Resort', 'Retreat', 'Hotel', 'Car Rental', 'Package Tour' );
 	foreach ( $types as $type ) {
 		if ( ! term_exists( $type, 'cb_trip_type' ) ) {
 			wp_insert_term( $type, 'cb_trip_type' );

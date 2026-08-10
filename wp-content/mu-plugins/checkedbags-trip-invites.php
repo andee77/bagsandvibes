@@ -2038,12 +2038,6 @@ function cbv_trip_has_type( $trip_id, $type_name ) {
 	return false;
 }
 
-/** Whether this trip has any cb_trip_type term assigned at all. */
-function cbv_trip_has_any_type( $trip_id ) {
-	$terms = get_the_terms( $trip_id, 'cb_trip_type' );
-	return $terms && ! is_wp_error( $terms ) && count( $terms ) > 0;
-}
-
 add_filter( 'um_account_page_default_tabs_hook', function ( $tabs ) {
 	$tabs[250]['travel-profile'] = array(
 		'icon'   => 'um-faicon-suitcase',
@@ -2472,22 +2466,28 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 
 	$intake = cbv_get_traveler_intake( $user_id, $trip_id );
 
+	// Same boilerplate block the Proposal PDF already uses (Trip Details
+	// item 5) -- reused verbatim, not duplicated content, so an admin
+	// editing it in Settings -> Boilerplate Content updates both places.
+	$insurance_overview = function_exists( 'cb_get_proposal_boilerplate' ) ? cb_get_proposal_boilerplate()['insurance_importance'] : '';
+
 	// Which sections apply is driven by the trip's own cb_trip_type
 	// (admin-assigned), not the client's original Gate 12 "Trip Elements"
 	// checkboxes -- what was requested and what the trip actually became
-	// can differ. Car Rental and Package Tour have no corresponding
-	// cb_trip_type term (the taxonomy is Cruise/Destination/Flight/Train/
-	// Other/Resort/Retreat/Hotel), so both are shown whenever the trip has
-	// any type assigned at all, since either could reasonably accompany
-	// any kind of trip. Train and Retreat are real taxonomy terms but have
-	// no dedicated section yet in either this form or Gate 12 -- left out
+	// can differ. Car Rental and Package Tour are now real cb_trip_type
+	// terms (Trip Details item 1) gated exactly like Cruise/Hotel/Resort --
+	// previously neither had a corresponding term, so both showed whenever
+	// the trip had any type assigned at all, which in practice meant every
+	// real trip. Train and Retreat are real taxonomy terms but have no
+	// dedicated section yet in either this form or Gate 12 -- left out
 	// until an actual trip needs one, per instruction. "Hotel" and "Resort"
 	// are separate terms (a plain city hotel stay isn't a resort trip),
 	// but both share the same "Hotel and Resort Vacation" field set.
-	$show_air     = cbv_trip_has_type( $trip_id, 'Flight' );
-	$show_cruise  = cbv_trip_has_type( $trip_id, 'Cruise' );
-	$show_hotel   = cbv_trip_has_type( $trip_id, 'Hotel' ) || cbv_trip_has_type( $trip_id, 'Resort' );
-	$show_addons  = cbv_trip_has_any_type( $trip_id );
+	$show_air          = cbv_trip_has_type( $trip_id, 'Flight' );
+	$show_cruise       = cbv_trip_has_type( $trip_id, 'Cruise' );
+	$show_hotel        = cbv_trip_has_type( $trip_id, 'Hotel' ) || cbv_trip_has_type( $trip_id, 'Resort' );
+	$show_car_rental   = cbv_trip_has_type( $trip_id, 'Car Rental' );
+	$show_package_tour = cbv_trip_has_type( $trip_id, 'Package Tour' );
 
 	$cc_auth_url = content_url( 'uploads/checkedbags/documents/CC_authorization.pdf' );
 	$waiver_url  = content_url( 'uploads/checkedbags/documents/Allianz_Waiver_form.pdf' );
@@ -2508,6 +2508,7 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 	?>
 	<div class="trip-detail-section trip-detail-traveler-intake" id="cbv-traveler-intake">
 		<h3>Trip Registration</h3>
+		<p class="cb-page-hint">A few details we need from you individually — seat and cabin preferences, your travel insurance decision, and required paperwork — so everything&#8217;s ready well before departure.</p>
 
 		<?php if ( $show_air ) : ?>
 		<h4>Air Travel</h4>
@@ -2620,7 +2621,7 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 		</div>
 		<?php endif; ?>
 
-		<?php if ( $show_addons ) : ?>
+		<?php if ( $show_car_rental ) : ?>
 		<div class="cbv-intake-field">
 			<h4>Car Rental</h4>
 			<div class="cbv-intake-field-row">
@@ -2632,7 +2633,9 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 				<label class="check-row"><input type="checkbox" name="cbv_intake_car_category" value="<?php echo esc_attr( $category ); ?>" <?php checked( in_array( $category, $car_category, true ) ); ?>> <?php echo esc_html( $category ); ?></label>
 			<?php endforeach; ?>
 		</div>
+		<?php endif; ?>
 
+		<?php if ( $show_package_tour ) : ?>
 		<div class="cbv-intake-field">
 			<h4>Package Tour</h4>
 			<label>Country or countries of interest <input type="text" id="cbv-intake-package-countries" value="<?php echo esc_attr( $intake['package_countries'] ?? '' ); ?>"></label>
@@ -2642,9 +2645,12 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 		</div>
 		<?php endif; ?>
 
-		<div class="cbv-intake-field">
-			<label>Traveling with anyone else? List their names <textarea id="cbv-intake-traveling-companions" rows="2"><?php echo esc_textarea( $intake['traveling_companions'] ?? '' ); ?></textarea></label>
+		<?php if ( trim( $insurance_overview ) ) : ?>
+		<div class="cbv-intake-field cbv-intake-insurance-overview">
+			<h4>Why Travel Insurance Matters</h4>
+			<?php echo wp_kses_post( wpautop( $insurance_overview ) ); ?>
 		</div>
+		<?php endif; ?>
 
 		<div class="cbv-intake-field">
 			<label>Travel insurance
@@ -2662,14 +2668,23 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 		</div>
 
 		<div class="cbv-intake-field">
+			<p class="cb-page-hint">Some trip vendors require a signed card authorization for incidental charges during your trip. We never collect card details on this site — download the form, sign it, and email it to us directly instead.</p>
 			<p><a href="<?php echo esc_url( $cc_auth_url ); ?>" target="_blank" rel="noopener">Download the Credit Card Authorization form</a>. This is required for every trip. We never collect card details on this site.</p>
 			<label class="check-row"><input type="checkbox" id="cbv-intake-cc-auth-completed" <?php checked( ! empty( $intake['cc_auth_completed'] ) ); ?>> I have downloaded, completed form. Will email to travel@journeywellglobal.com within 48 hours.</label>
 		</div>
 
 		<div class="cbv-intake-field">
-			<label>Additional adults traveling with you <input type="number" id="cbv-intake-additional-adults" min="0" value="<?php echo esc_attr( $intake['additional_adults'] ?? 0 ); ?>"></label>
-			<label>Additional children traveling with you <input type="number" id="cbv-intake-additional-children" min="0" value="<?php echo esc_attr( $intake['additional_children'] ?? 0 ); ?>"></label>
-			<label>Children's ages, if any <input type="text" id="cbv-intake-children-ages" placeholder="e.g. 5, 8, 12" value="<?php echo esc_attr( $intake['children_ages'] ?? '' ); ?>"></label>
+			<h4>Trip Companions</h4>
+			<div class="cbv-intake-companions-columns">
+				<div>
+					<label>Additional adults traveling with you <input type="number" id="cbv-intake-additional-adults" min="0" value="<?php echo esc_attr( $intake['additional_adults'] ?? 0 ); ?>"></label>
+					<label>List their names <textarea id="cbv-intake-traveling-companions" rows="2"><?php echo esc_textarea( $intake['traveling_companions'] ?? '' ); ?></textarea></label>
+				</div>
+				<div>
+					<label>Additional children traveling with you <input type="number" id="cbv-intake-additional-children" min="0" value="<?php echo esc_attr( $intake['additional_children'] ?? 0 ); ?>"></label>
+					<label>Children's ages, if any <input type="text" id="cbv-intake-children-ages" placeholder="e.g. 5, 8, 12" value="<?php echo esc_attr( $intake['children_ages'] ?? '' ); ?>"></label>
+				</div>
+			</div>
 		</div>
 
 		<button type="button" class="btn btn-ticket" id="cbv-intake-save-btn" data-trip-id="<?php echo (int) $trip_id; ?>">Save Travel Details</button>
