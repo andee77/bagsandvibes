@@ -2637,3 +2637,38 @@ body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
   color: var(--coral);
   font-weight: 600;
 }
+
+/* ==========================================================================
+   Exchange Rates section (Section 6, Piece D)
+   ========================================================================== */
+.cbv-exchange-rates-section {
+  background: var(--horizon);
+  border-radius: 6px;
+  padding: 1.5rem;
+  margin: 2rem 0;
+  color: rgba(251,243,231,0.85);
+}
+.cbv-exchange-rates-section h3 {
+  margin-top: 0;
+}
+.cbv-exchange-rates-table {
+  width: 100%;
+  max-width: 480px;
+  border-collapse: collapse;
+  margin-top: 0.75rem;
+}
+.cbv-exchange-rates-table th,
+.cbv-exchange-rates-table td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(251,243,231,0.2);
+}
+.cbv-exchange-rates-meta {
+  font-size: 0.85rem;
+  opacity: 0.75;
+  margin: 0.75rem 0 0;
+}
+.cbv-exchange-rates-stale {
+  color: var(--coral);
+  font-size: 0.9rem;
+}
