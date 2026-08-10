@@ -310,40 +310,6 @@ add_shortcode( 'cb_feed', function () {
 	</section>
 	<?php endif; ?>
 
-	<?php if ( ! empty( $boards ) ) : ?>
-	<section class="feed-section">
-		<h3 class="feed-section-title">Discussion Topics</h3>
-		<div class="feed-topic-list">
-			<?php foreach ( $boards as $topic ) :
-				$forum_id    = get_post_meta( $topic->ID, '_bbp_forum_id', true );
-				$forum_title = $forum_id ? get_the_title( $forum_id ) : '';
-				?>
-				<a href="<?php echo esc_url( function_exists( 'bbp_get_topic_permalink' ) ? bbp_get_topic_permalink( $topic->ID ) : get_permalink( $topic ) ); ?>" class="feed-topic-row">
-					<span class="feed-topic-title"><?php echo esc_html( get_the_title( $topic ) ); ?></span>
-					<?php if ( $forum_title ) : ?><span class="feed-topic-forum"><?php echo esc_html( $forum_title ); ?></span><?php endif; ?>
-				</a>
-			<?php endforeach; ?>
-		</div>
-	</section>
-	<?php endif; ?>
-
-	<?php if ( ! empty( $wall_posts ) ) : ?>
-	<section class="feed-section">
-		<h3 class="feed-section-title">Members Post</h3>
-		<div class="feed-topic-list">
-			<?php foreach ( $wall_posts as $topic ) :
-				$forum_id    = get_post_meta( $topic->ID, '_bbp_forum_id', true );
-				$forum_title = $forum_id ? get_the_title( $forum_id ) : '';
-				?>
-				<a href="<?php echo esc_url( function_exists( 'bbp_get_topic_permalink' ) ? bbp_get_topic_permalink( $topic->ID ) : get_permalink( $topic ) ); ?>" class="feed-topic-row">
-					<span class="feed-topic-title"><?php echo esc_html( get_the_title( $topic ) ); ?></span>
-					<?php if ( $forum_title ) : ?><span class="feed-topic-forum"><?php echo esc_html( $forum_title ); ?></span><?php endif; ?>
-				</a>
-			<?php endforeach; ?>
-		</div>
-	</section>
-	<?php endif; ?>
-
 	<?php if ( ! empty( $tips ) ) : ?>
 	<section class="feed-section">
 		<h3 class="feed-section-title">Travel Tips</h3>
@@ -360,6 +326,44 @@ add_shortcode( 'cb_feed', function () {
 			<?php endforeach; ?>
 		</div>
 	</section>
+	<?php endif; ?>
+
+	<?php if ( ! empty( $boards ) || ! empty( $wall_posts ) ) : ?>
+	<div class="feed-columns">
+		<?php if ( ! empty( $wall_posts ) ) : ?>
+		<section class="feed-section">
+			<h3 class="feed-section-title">Members Post</h3>
+			<div class="feed-topic-list">
+				<?php foreach ( $wall_posts as $topic ) :
+					$forum_id    = get_post_meta( $topic->ID, '_bbp_forum_id', true );
+					$forum_title = $forum_id ? get_the_title( $forum_id ) : '';
+					?>
+					<a href="<?php echo esc_url( function_exists( 'bbp_get_topic_permalink' ) ? bbp_get_topic_permalink( $topic->ID ) : get_permalink( $topic ) ); ?>" class="feed-topic-row">
+						<span class="feed-topic-title"><?php echo esc_html( get_the_title( $topic ) ); ?></span>
+						<?php if ( $forum_title ) : ?><span class="feed-topic-forum"><?php echo esc_html( $forum_title ); ?></span><?php endif; ?>
+					</a>
+				<?php endforeach; ?>
+			</div>
+		</section>
+		<?php endif; ?>
+
+		<?php if ( ! empty( $boards ) ) : ?>
+		<section class="feed-section">
+			<h3 class="feed-section-title">Discussion Topics</h3>
+			<div class="feed-topic-list">
+				<?php foreach ( $boards as $topic ) :
+					$forum_id    = get_post_meta( $topic->ID, '_bbp_forum_id', true );
+					$forum_title = $forum_id ? get_the_title( $forum_id ) : '';
+					?>
+					<a href="<?php echo esc_url( function_exists( 'bbp_get_topic_permalink' ) ? bbp_get_topic_permalink( $topic->ID ) : get_permalink( $topic ) ); ?>" class="feed-topic-row">
+						<span class="feed-topic-title"><?php echo esc_html( get_the_title( $topic ) ); ?></span>
+						<?php if ( $forum_title ) : ?><span class="feed-topic-forum"><?php echo esc_html( $forum_title ); ?></span><?php endif; ?>
+					</a>
+				<?php endforeach; ?>
+			</div>
+		</section>
+		<?php endif; ?>
+	</div>
 	<?php endif; ?>
 
 	<?php if ( ! empty( $dests ) ) : ?>

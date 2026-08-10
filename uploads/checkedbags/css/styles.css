@@ -1728,6 +1728,17 @@ body.checkedbags-dashboard {
 .feed-section {
   margin-bottom: 2.5rem;
 }
+.feed-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .feed-columns {
+    grid-template-columns: 1fr;
+  }
+}
 .feed-section-title {
   font-family: var(--font-mono);
   font-size: 0.8rem;
