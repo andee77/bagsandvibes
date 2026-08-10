@@ -41,6 +41,33 @@ add_action( 'init', function () {
 		'auth_callback'     => function () { return current_user_can( 'edit_posts' ); },
 	) );
 
+	// CBGV Commitment Fee = cb_price + cb_extras_cost (see cb_trip_balance_due()
+	// below) -- a standalone flat add-on cost, distinct from Pricing Tiers'
+	// own per-occupancy-point totals (checkedbags-trips.php), which stay a
+	// display-only concept and are never billed through here.
+	register_post_meta( 'cb_trip', 'cb_extras_cost', array(
+		'type'              => 'number',
+		'single'            => true,
+		'default'           => 0,
+		'show_in_rest'      => true,
+		'sanitize_callback' => function ( $value ) {
+			return floatval( $value );
+		},
+		'auth_callback'     => function () { return current_user_can( 'edit_posts' ); },
+	) );
+
+	// Admin-entered target date for the next Travel Payment installment --
+	// display-only (the Payment page shows it on a trip's card), not used by
+	// any of the amount-calculation functions below.
+	register_post_meta( 'cb_trip', 'cb_next_payment_due_date', array(
+		'type'              => 'string',
+		'single'            => true,
+		'default'           => '',
+		'show_in_rest'      => true,
+		'sanitize_callback' => 'sanitize_text_field',
+		'auth_callback'     => function () { return current_user_can( 'edit_posts' ); },
+	) );
+
 	// Payment log — array of records: user_id, amount, date, session_id, type.
 	register_post_meta( 'cb_trip', 'cb_payments', array(
 		'type'         => 'array',
@@ -58,8 +85,10 @@ add_action( 'add_meta_boxes', function () {
 
 function cb_render_payment_meta_box( $post ) {
 	wp_nonce_field( 'cb_gate09_save', 'cb_gate09_nonce' );
-	$mode     = get_post_meta( $post->ID, 'cb_payment_mode', true ) ?: 'full_only';
-	$installs = get_post_meta( $post->ID, 'cb_num_installments', true ) ?: 1;
+	$mode         = get_post_meta( $post->ID, 'cb_payment_mode', true ) ?: 'full_only';
+	$installs     = get_post_meta( $post->ID, 'cb_num_installments', true ) ?: 1;
+	$extras_cost  = get_post_meta( $post->ID, 'cb_extras_cost', true );
+	$next_due     = get_post_meta( $post->ID, 'cb_next_payment_due_date', true );
 	?>
 	<p>
 		<label><strong>Payment mode</strong></label><br>
@@ -71,6 +100,16 @@ function cb_render_payment_meta_box( $post ) {
 	<p>
 		<label><strong>Number of installments</strong> (after deposit)</label><br>
 		<input type="number" name="cb_num_installments" min="1" value="<?php echo esc_attr( $installs ); ?>" style="width:100%;">
+	</p>
+	<p>
+		<label><strong>Extras Cost ($)</strong></label><br>
+		<input type="number" step="0.01" name="cb_extras_cost" value="<?php echo esc_attr( $extras_cost ); ?>" style="width:100%;">
+		<br><em>Added to Price per person to form the CBGV Commitment Fee billed on the Payment page. Does not affect the public price range on Gate 07.</em>
+	</p>
+	<p>
+		<label><strong>Next Travel Payment due date</strong></label><br>
+		<input type="date" name="cb_next_payment_due_date" value="<?php echo esc_attr( $next_due ); ?>" style="width:100%;">
+		<br><em>Shown on the member's payment card. Informational only -- InteleTravel processes the actual Travel Payment off-site.</em>
 	</p>
 	<p><em>Deposit amount and full price are set in the Trip Details box above.</em></p>
 	<?php
@@ -88,6 +127,12 @@ add_action( 'save_post_cb_trip', function ( $post_id ) {
 	}
 	if ( isset( $_POST['cb_num_installments'] ) ) {
 		update_post_meta( $post_id, 'cb_num_installments', absint( $_POST['cb_num_installments'] ) );
+	}
+	if ( isset( $_POST['cb_extras_cost'] ) ) {
+		update_post_meta( $post_id, 'cb_extras_cost', floatval( $_POST['cb_extras_cost'] ) );
+	}
+	if ( isset( $_POST['cb_next_payment_due_date'] ) ) {
+		update_post_meta( $post_id, 'cb_next_payment_due_date', sanitize_text_field( wp_unslash( $_POST['cb_next_payment_due_date'] ) ) );
 	}
 } );
 
@@ -110,9 +155,23 @@ function cb_trip_amount_paid( $trip_id, $user_id ) {
 	return $sum;
 }
 
+/**
+ * The CBGV Commitment Fee total -- what's actually billed via Stripe on
+ * this site, as opposed to cb_trip_get_price_range() (checkedbags-trips.php),
+ * which is a Pricing-Tiers-driven display figure for the public marketing
+ * range and never feeds payment math. cb_extras_cost is a standalone flat
+ * add-on (Section 6 spec), unrelated to Pricing Tiers' own per-occupancy-
+ * point totals.
+ */
+function cb_trip_cbgv_fee_total( $trip_id ) {
+	$price  = (float) get_post_meta( $trip_id, 'cb_price', true );
+	$extras = (float) get_post_meta( $trip_id, 'cb_extras_cost', true );
+	return $price + $extras;
+}
+
 function cb_trip_balance_due( $trip_id, $user_id ) {
-	$price = (float) get_post_meta( $trip_id, 'cb_price', true );
-	return max( 0, $price - cb_trip_amount_paid( $trip_id, $user_id ) );
+	$fee = cb_trip_cbgv_fee_total( $trip_id );
+	return max( 0, $fee - cb_trip_amount_paid( $trip_id, $user_id ) );
 }
 
 /**
