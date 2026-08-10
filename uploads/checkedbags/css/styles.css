@@ -2378,6 +2378,14 @@ body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
   width: auto;
   max-width: 180px;
 }
+.cbv-travel-profile label.check-row {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+.cbv-travel-profile label.check-row input {
+  width: auto;
+}
 
 /* ==========================================================================
    Per-Traveler Trip Intake (Phase 8c) -- contrast fix + side-by-side fields

@@ -2069,6 +2069,18 @@ add_filter( 'the_content', function ( $content ) {
 	return $content . '<p class="cb-account-logout"><a href="' . esc_url( home_url( '/logout/' ) ) . '" class="btn btn-ghost">Log Out</a></p>';
 }, 20 );
 
+// The Account page's title is the one shared WP Page title ("Account") used
+// for every UM tab (General, Password, Privacy, etc.) -- only override it
+// when the Travel Profile tab specifically is active, via the same um_tab
+// query var UM itself uses to pick the tab (see tab_link() in UM's
+// class-account.php), so every other tab keeps seeing "Account".
+add_filter( 'the_title', function ( $title ) {
+	if ( in_the_loop() && is_page( 'account' ) && 'travel-profile' === get_query_var( 'um_tab' ) ) {
+		return 'Travel Profile';
+	}
+	return $title;
+} );
+
 /**
  * Falls back to the legacy single _legal_name field for anyone who filled
  * that in before First/Last Name replaced it, so nothing already entered
