@@ -1097,7 +1097,11 @@ body.checkedbags-dashboard {
   font-style: italic;
   font-weight: 500;
   font-size: 1.15rem;
-  color: var(--sand);
+  /* Was --sand (cream) -- this title sits directly on the page's light
+     cream background (Gate template), not a dark card, so cream-on-cream
+     was nearly unreadable. Same root cause as the .btn-ticket contrast fix
+     from the General batch. */
+  color: var(--ink);
   margin: 0 0 0.75rem;
 }
 .gallery-grid {
@@ -1108,7 +1112,11 @@ body.checkedbags-dashboard {
 }
 .gallery-empty {
   grid-column: 1 / -1;
-  color: rgba(251,243,231,0.5);
+  /* Was rgba(251,243,231,0.5) (faint cream) -- same light-page issue as
+     .gallery-trip-title above; matches .cb-empty's existing ink/0.75
+     convention for muted-but-readable text on this background. */
+  color: var(--ink);
+  opacity: 0.75;
   font-size: 0.85rem;
 }
 .photo-tile {
