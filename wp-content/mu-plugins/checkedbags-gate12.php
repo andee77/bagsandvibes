@@ -539,6 +539,7 @@ add_shortcode( 'cb_gate_requests', function () {
 	} );
 	?>
 	<h3 class="requests-section-title">Build Your Own Trip</h3>
+	<p class="cb-page-hint">Tell us the basics and we&#8217;ll build a custom quote — the more detail you give us, the better we can tailor it. Sections below only appear once they&#8217;re relevant to your trip.</p>
 
 	<?php foreach ( $my_requests as $req ) :
 		$status       = get_post_meta( $req->ID, 'cb_status', true );

@@ -205,6 +205,7 @@ add_shortcode( 'cb_following_list', function () {
 
 	ob_start();
 	?>
+	<p class="cb-page-hint">Everyone you&#8217;re following — visit their profile, or head to Find Members to follow more people.</p>
 	<div class="following-list">
 		<?php foreach ( $following_ids as $user_id ) :
 			$user = get_userdata( $user_id );

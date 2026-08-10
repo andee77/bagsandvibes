@@ -268,6 +268,8 @@ add_shortcode( 'cb_feed', function () {
 	ob_start();
 	?>
 
+	<p class="cb-page-hint">See what&#8217;s new across your trips — upcoming open travel, and posts your friends have shared with the group.</p>
+
 	<?php if ( ! empty( $trips ) ) : ?>
 	<section class="feed-section">
 		<h3 class="feed-section-title">Upcoming Open Travel</h3>

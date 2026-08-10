@@ -664,6 +664,16 @@ add_shortcode( 'cbv_membership_terms', function () {
 } );
 
 /**
+ * Intro copy above UM's registration fields -- um_before_register_fields
+ * fires before Username/Name/Email/Password, unlike um_after_register_fields
+ * below which fires after them (that's why the Membership Terms checkbox
+ * uses the "after" hook and this uses "before").
+ */
+add_action( 'um_before_register_fields', function () {
+	echo '<p class="cb-page-hint">Just a few details to get your account set up — you can fill in the rest of your Travel Profile later.</p>';
+} );
+
+/**
  * Inject the required Membership Terms checkbox into UM's registration
  * form. Priority 900 — before UM's own submit button, which hooks the same
  * action at priority 1000 (um_add_submit_button_to_register).
@@ -2147,6 +2157,7 @@ add_filter( 'um_account_content_hook_travel-profile', function ( $output, $args 
 	ob_start();
 	?>
 	<div class="cbv-travel-profile">
+		<p class="cb-page-hint">The more we know, the smoother your trips go — this info helps us book flights, arrange rooms, and plan for any needs ahead of time.</p>
 		<fieldset>
 			<legend>Personal Details</legend>
 			<div class="cbv-tp-row">

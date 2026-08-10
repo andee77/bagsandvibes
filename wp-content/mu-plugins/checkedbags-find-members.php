@@ -57,6 +57,7 @@ add_shortcode( 'cb_find_members', function () {
 
 	ob_start();
 	?>
+	<p class="cb-page-hint">Browse everyone on Checked Bags &amp; Good Vibes and follow the people you want to keep up with.</p>
 	<form method="get" class="member-directory-search" action="<?php echo esc_url( get_permalink() ); ?>">
 		<input type="search" name="member_q" placeholder="Search members…" value="<?php echo esc_attr( $search ); ?>">
 		<button type="submit" class="btn btn-ghost">Search</button>

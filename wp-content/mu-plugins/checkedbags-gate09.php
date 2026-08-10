@@ -321,6 +321,9 @@ add_shortcode( 'cb_gate_payments', function () {
 	}
 
 	ob_start();
+	?>
+	<p class="cb-page-hint">Track what you owe, what&#8217;s been paid, and upcoming due dates for each trip you&#8217;re part of.</p>
+	<?php
 	foreach ( $my_trips as $trip ) :
 		$balance  = cb_trip_balance_due( $trip->ID, $user_id );
 		$next_amt = cb_trip_next_payment_amount( $trip->ID, $user_id );

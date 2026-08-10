@@ -209,6 +209,9 @@ add_shortcode( 'cb_gate_gallery', function () {
 	}
 
 	ob_start();
+	?>
+	<p class="cb-page-hint">Browse photos from your trips, and add your own to share with the group.</p>
+	<?php
 
 	if ( ! empty( $my_trips ) ) {
 		echo '<h3 class="gallery-section-title">Your Trips</h3>';

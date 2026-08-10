@@ -117,6 +117,7 @@ add_shortcode( 'cb_gate_boards', function () {
 
 	ob_start();
 	?>
+	<p class="cb-page-hint">Chat with your crew here — the Lounge is open to everyone, and each trip gets its own board once you&#8217;re on the roster.</p>
 	<div class="board-list">
 
 		<?php if ( $lounge_id ) : ?>

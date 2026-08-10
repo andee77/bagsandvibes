@@ -1010,6 +1010,16 @@ body.checkedbags-dashboard {
   text-decoration: underline;
 }
 
+/* Shared instructional-copy line -- same muted weight as .cb-empty but
+   inline rather than a standalone empty-state block, since this sits above
+   real content instead of replacing it. */
+.cb-page-hint {
+  color: var(--ink);
+  opacity: 0.75;
+  max-width: 640px;
+  margin: 0 0 1.5rem;
+}
+
 /* ==========================================================================
    Gate 09 — Payments
    ========================================================================== */

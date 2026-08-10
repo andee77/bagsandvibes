@@ -135,6 +135,7 @@ add_action( 'um_profile_content_main', function ( $args ) {
 	}
 	?>
 	<section class="member-profile-composer" id="cb-wall-composer" data-wall-owner-id="<?php echo (int) $profile_user_id; ?>">
+		<p class="cb-page-hint">This is your Timeline — post updates here, and choose whether they also show up in your followers&#8217; Feed.</p>
 		<textarea id="cb-wall-composer-text" class="member-profile-composer-text" rows="3" placeholder="Write something..."></textarea>
 		<div class="member-profile-composer-actions">
 			<button type="button" class="btn btn-ghost" id="cb-wall-post-profile-btn">Post to Profile</button>
