@@ -215,40 +215,59 @@ function cb_feed_user_can_view_wall_post( $topic_id, $user_id ) {
 	return $wall_owner_id && cb_user_follows( $user_id, $wall_owner_id );
 }
 
+/**
+ * Returns two SEPARATE groups -- array( 'boards' => [...], 'wall_posts' =>
+ * [...] ) -- instead of one interleaved list, so the Feed can render real
+ * Discussion Board topics and members' Feed-flagged Timeline posts as two
+ * clearly distinct sections. Access-control filtering is untouched: boards
+ * still go through cb_feed_user_can_view_forum(), wall posts still go
+ * through cb_feed_user_can_view_wall_post() -- this only changes how the
+ * results are grouped for display, not who can see what.
+ */
 function cb_feed_recent_topics( $limit = 5 ) {
 	if ( ! function_exists( 'bbp_get_topic_permalink' ) ) {
-		return array();
+		return array( 'boards' => array(), 'wall_posts' => array() );
 	}
 
 	$user_id = get_current_user_id();
 
 	// Over-fetch and filter in PHP -- there's no meta_query for "forums this
 	// user has access to," only a per-topic _bbp_forum_id to check against
-	// roster membership. A recent-activity teaser, not paginated, so this
-	// may show fewer than $limit if most recent topics aren't visible to
-	// this viewer -- acceptable for a lightweight feed widget. This same
-	// pool already includes wall-forum topics (get_posts() below has no
-	// forum-type distinction) -- the per-topic filter is what decides
-	// whether a wall post belongs in it.
+	// roster membership. A recent-activity teaser, not paginated, so a
+	// group may end up with fewer than $limit if most recent topics of that
+	// type aren't visible to this viewer -- acceptable for a lightweight
+	// feed widget. Multiplied higher than the old single-list version's 4x
+	// since candidates are now split across two independently-limited
+	// groups instead of competing for one shared slot count.
 	$candidates = get_posts( array(
 		'post_type'   => 'topic',
 		'post_status' => 'publish',
-		'numberposts' => $limit * 4,
+		'numberposts' => $limit * 8,
 		'orderby'     => 'date',
 		'order'       => 'DESC',
 	) );
 
-	$visible = array_filter( $candidates, function ( $topic ) use ( $user_id ) {
-		$forum_id = get_post_meta( $topic->ID, '_bbp_forum_id', true );
+	$boards     = array();
+	$wall_posts = array();
 
-		if ( function_exists( 'cb_wall_forum_owner_id' ) && cb_wall_forum_owner_id( $forum_id ) ) {
-			return cb_feed_user_can_view_wall_post( $topic->ID, $user_id );
+	foreach ( $candidates as $topic ) {
+		if ( count( $boards ) >= $limit && count( $wall_posts ) >= $limit ) {
+			break;
 		}
 
-		return cb_feed_user_can_view_forum( $forum_id, $user_id );
-	} );
+		$forum_id = get_post_meta( $topic->ID, '_bbp_forum_id', true );
+		$is_wall  = function_exists( 'cb_wall_forum_owner_id' ) && cb_wall_forum_owner_id( $forum_id );
 
-	return array_slice( array_values( $visible ), 0, $limit );
+		if ( $is_wall ) {
+			if ( count( $wall_posts ) < $limit && cb_feed_user_can_view_wall_post( $topic->ID, $user_id ) ) {
+				$wall_posts[] = $topic;
+			}
+		} elseif ( count( $boards ) < $limit && cb_feed_user_can_view_forum( $forum_id, $user_id ) ) {
+			$boards[] = $topic;
+		}
+	}
+
+	return array( 'boards' => $boards, 'wall_posts' => $wall_posts );
 }
 
 /* ==========================================================================
@@ -260,10 +279,12 @@ add_shortcode( 'cb_feed', function () {
 		return '<p class="cb-empty">Please <a href="' . esc_url( wp_login_url( get_permalink() ) ) . '">sign in</a> to see your feed.</p>';
 	}
 
-	$trips  = cb_feed_upcoming_trips();
-	$topics = cb_feed_recent_topics();
-	$tips   = get_posts( array( 'post_type' => 'cb_tip', 'numberposts' => -1 ) );
-	$dests  = get_posts( array( 'post_type' => 'cb_destination', 'numberposts' => -1 ) );
+	$trips      = cb_feed_upcoming_trips();
+	$topics     = cb_feed_recent_topics();
+	$boards     = $topics['boards'];
+	$wall_posts = $topics['wall_posts'];
+	$tips       = get_posts( array( 'post_type' => 'cb_tip', 'numberposts' => -1 ) );
+	$dests      = get_posts( array( 'post_type' => 'cb_destination', 'numberposts' => -1 ) );
 
 	ob_start();
 	?>
@@ -289,11 +310,28 @@ add_shortcode( 'cb_feed', function () {
 	</section>
 	<?php endif; ?>
 
-	<?php if ( ! empty( $topics ) ) : ?>
+	<?php if ( ! empty( $boards ) ) : ?>
 	<section class="feed-section">
-		<h3 class="feed-section-title">Recent Discussion</h3>
+		<h3 class="feed-section-title">Discussion Topics</h3>
 		<div class="feed-topic-list">
-			<?php foreach ( $topics as $topic ) :
+			<?php foreach ( $boards as $topic ) :
+				$forum_id    = get_post_meta( $topic->ID, '_bbp_forum_id', true );
+				$forum_title = $forum_id ? get_the_title( $forum_id ) : '';
+				?>
+				<a href="<?php echo esc_url( function_exists( 'bbp_get_topic_permalink' ) ? bbp_get_topic_permalink( $topic->ID ) : get_permalink( $topic ) ); ?>" class="feed-topic-row">
+					<span class="feed-topic-title"><?php echo esc_html( get_the_title( $topic ) ); ?></span>
+					<?php if ( $forum_title ) : ?><span class="feed-topic-forum"><?php echo esc_html( $forum_title ); ?></span><?php endif; ?>
+				</a>
+			<?php endforeach; ?>
+		</div>
+	</section>
+	<?php endif; ?>
+
+	<?php if ( ! empty( $wall_posts ) ) : ?>
+	<section class="feed-section">
+		<h3 class="feed-section-title">Members Post</h3>
+		<div class="feed-topic-list">
+			<?php foreach ( $wall_posts as $topic ) :
 				$forum_id    = get_post_meta( $topic->ID, '_bbp_forum_id', true );
 				$forum_title = $forum_id ? get_the_title( $forum_id ) : '';
 				?>
@@ -339,7 +377,7 @@ add_shortcode( 'cb_feed', function () {
 	</section>
 	<?php endif; ?>
 
-	<?php if ( empty( $trips ) && empty( $topics ) && empty( $tips ) && empty( $dests ) ) : ?>
+	<?php if ( empty( $trips ) && empty( $boards ) && empty( $wall_posts ) && empty( $tips ) && empty( $dests ) ) : ?>
 		<p class="cb-empty">Nothing to show yet — check back soon.</p>
 	<?php endif; ?>
 
