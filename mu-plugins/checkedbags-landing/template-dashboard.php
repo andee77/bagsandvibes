@@ -141,6 +141,22 @@ $needs_profile_nudge = function_exists( 'cbv_user_profile_is_complete' )
       <a href="<?php echo esc_url( function_exists( 'UM' ) ? UM()->account()->tab_link( 'travel-profile' ) : home_url( '/account/' ) ); ?>" class="btn btn-ticket">Complete profile</a>
       <button type="button" class="btn btn-ghost" id="cbv-dismiss-profile-nudge-btn">Dismiss</button>
     </section>
+    <script>
+    (function () {
+    	var restUrl = <?php echo wp_json_encode( esc_url_raw( rest_url( 'cb/v1/' ) ) ); ?>;
+    	var nonce   = <?php echo wp_json_encode( wp_create_nonce( 'wp_rest' ) ); ?>;
+
+    	var dismissProfileNudgeBtn = document.getElementById( 'cbv-dismiss-profile-nudge-btn' );
+    	if ( dismissProfileNudgeBtn ) {
+    		dismissProfileNudgeBtn.addEventListener( 'click', function () {
+    			var banner = document.getElementById( 'cbv-profile-nudge' );
+    			fetch( restUrl + 'dismiss-profile-nudge', { method: 'POST', headers: { 'X-WP-Nonce': nonce } } )
+    				.then( function () { if ( banner ) { banner.remove(); } } )
+    				.catch( function () { if ( banner ) { banner.remove(); } } );
+    		} );
+    	}
+    })();
+    </script>
   <?php endif; ?>
 
   <?php if ( $is_trip_guest ) : ?>
@@ -323,16 +339,6 @@ $needs_profile_nudge = function_exists( 'cbv_user_profile_is_complete' )
 		dismissBtn.addEventListener( 'click', function () {
 			var banner = document.getElementById( 'cbv-trip-highlight' );
 			fetch( restUrl + 'dismiss-trip-highlight', { method: 'POST', headers: { 'X-WP-Nonce': nonce } } )
-				.then( function () { if ( banner ) { banner.remove(); } } )
-				.catch( function () { if ( banner ) { banner.remove(); } } );
-		} );
-	}
-
-	var dismissProfileNudgeBtn = document.getElementById( 'cbv-dismiss-profile-nudge-btn' );
-	if ( dismissProfileNudgeBtn ) {
-		dismissProfileNudgeBtn.addEventListener( 'click', function () {
-			var banner = document.getElementById( 'cbv-profile-nudge' );
-			fetch( restUrl + 'dismiss-profile-nudge', { method: 'POST', headers: { 'X-WP-Nonce': nonce } } )
 				.then( function () { if ( banner ) { banner.remove(); } } )
 				.catch( function () { if ( banner ) { banner.remove(); } } );
 		} );
