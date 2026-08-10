@@ -222,3 +222,71 @@ add_shortcode( 'cb_following_list', function () {
 	<?php
 	return ob_get_clean();
 } );
+
+/* ==========================================================================
+   Auto-follow on registration -- every new member automatically follows
+   one configured account (default: Andee's) the moment their account is
+   created. New registrations only, per explicit decision -- existing
+   members are untouched, no backfill.
+
+   All three signup paths (normal registration, invite-token, trip-code)
+   create the account through Ultimate Member's own registration form and
+   converge on this same hook -- the invite-token/trip-code paths
+   (checkedbags-trip-invites.php) only set a cookie beforehand and are
+   consumed by their OWN um_registration_complete callbacks after the
+   account already exists, so one callback here covers every path; there is
+   no separate account-creation route to also hook.
+   ========================================================================== */
+function cbv_get_auto_follow_user_id() {
+	return (int) get_option( 'cbv_auto_follow_user_id', 1 );
+}
+
+add_action( 'um_registration_complete', function ( $user_id ) {
+	$target_user_id = cbv_get_auto_follow_user_id();
+	if ( $target_user_id ) {
+		cb_user_follow( $user_id, $target_user_id );
+	}
+} );
+
+/**
+ * Admin screen: Settings -> Auto-Follow Account. Same options-page pattern
+ * as Membership Terms / Cover Photo Presets (both in
+ * checkedbags-trip-invites.php) -- a single admin-facing value, so it's a
+ * WP option with a settings screen, not a hardcoded constant.
+ */
+add_action( 'admin_menu', function () {
+	add_options_page( 'Auto-Follow Account', 'Auto-Follow Account', 'manage_options', 'cbv-auto-follow', 'cbv_render_auto_follow_settings_page' );
+} );
+
+function cbv_render_auto_follow_settings_page() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	if ( isset( $_POST['cbv_auto_follow_nonce'] ) && wp_verify_nonce( $_POST['cbv_auto_follow_nonce'], 'cbv_save_auto_follow' ) ) {
+		$new_user_id = isset( $_POST['cbv_auto_follow_user_id'] ) ? absint( $_POST['cbv_auto_follow_user_id'] ) : 0;
+		if ( $new_user_id && get_userdata( $new_user_id ) ) {
+			update_option( 'cbv_auto_follow_user_id', $new_user_id );
+			echo '<div class="notice notice-success"><p>Saved. New members will now automatically follow this account.</p></div>';
+		} else {
+			echo '<div class="notice notice-error"><p>Please choose a valid account.</p></div>';
+		}
+	}
+
+	$current_id = cbv_get_auto_follow_user_id();
+	?>
+	<div class="wrap">
+		<h1>Auto-Follow Account</h1>
+		<p>Every new member automatically follows this account the moment they register — on any signup path (normal, invite link, or trip code). Doesn&#8217;t affect anyone who already registered.</p>
+		<form method="post">
+			<?php wp_nonce_field( 'cbv_save_auto_follow', 'cbv_auto_follow_nonce' ); ?>
+			<select name="cbv_auto_follow_user_id">
+				<?php foreach ( get_users( array( 'orderby' => 'display_name', 'order' => 'ASC' ) ) as $user ) : ?>
+					<option value="<?php echo esc_attr( $user->ID ); ?>" <?php selected( $current_id, $user->ID ); ?>><?php echo esc_html( $user->display_name . ' (' . $user->user_email . ')' ); ?></option>
+				<?php endforeach; ?>
+			</select>
+			<p><button type="submit" class="button button-primary">Save</button></p>
+		</form>
+	</div>
+	<?php
+}
