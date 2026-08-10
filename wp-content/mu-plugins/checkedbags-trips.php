@@ -371,6 +371,14 @@ function cb_render_trip_meta_box( $post ) {
 	$range_high  = get_post_meta( $post->ID, 'cb_price_range_high', true );
 	$roster      = cb_trip_get_roster( $post->ID );
 
+	// cb_trip_get_price_range() checks Pricing Tiers first and, if any tier
+	// has occupancy-point pricing, uses that for every public price-range
+	// display -- silently ignoring cb_price below regardless of what it's
+	// set to. Surfacing that here so editing this field doesn't look like
+	// it did nothing when it's actually just being overridden.
+	$computed_price_range  = cb_trip_get_price_range( $post->ID );
+	$price_field_overridden = $computed_price_range && 'tiers' === $computed_price_range['source'];
+
 	$point_person_name  = get_post_meta( $post->ID, 'cb_point_person_name', true );
 	$point_person_phone = get_post_meta( $post->ID, 'cb_point_person_phone', true );
 	$point_person_email = get_post_meta( $post->ID, 'cb_point_person_email', true );
@@ -386,6 +394,7 @@ function cb_render_trip_meta_box( $post ) {
 		.cb-row { display: flex; gap: 24px; flex-wrap: wrap; }
 		.cb-roster-admin-fields { display: flex; gap: 16px; flex-wrap: wrap; margin: 6px 0 0 0; }
 		.cb-roster-admin-fields label { font-size: 12px; font-weight: 600; display: flex; flex-direction: column; gap: 2px; }
+		.cb-field-notice { margin: 6px 0 0 0; padding: 6px 10px; background: #fff8e5; border-left: 3px solid #dba617; font-size: 12px; font-weight: 400; max-width: 420px; }
 	</style>
 
 	<div class="cb-row">
@@ -435,6 +444,11 @@ function cb_render_trip_meta_box( $post ) {
 		<div class="cb-field">
 			<label for="cb_price">Price per person ($)</label>
 			<input type="number" step="0.01" name="cb_price" id="cb_price" value="<?php echo esc_attr( $price ); ?>">
+			<?php if ( $price_field_overridden ) : ?>
+				<p class="cb-field-notice">
+					Overridden by Pricing Tiers below (currently showing $<?php echo esc_html( number_format_i18n( $computed_price_range['low'] ) ); ?>&#8211;$<?php echo esc_html( number_format_i18n( $computed_price_range['high'] ) ); ?> / person) &mdash; this field won&#8217;t affect the displayed price until every tier's Occupancy Points are removed.
+				</p>
+			<?php endif; ?>
 		</div>
 		<div class="cb-field">
 			<label for="cb_deposit_amount">Deposit per person ($)</label>
