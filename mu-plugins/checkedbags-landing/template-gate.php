@@ -18,15 +18,6 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
-$gate_nav = array(
-	array( 'label' => 'Gate 07', 'title' => 'Pre-Planned Vacations', 'url' => 'https://bagsandvibes.com/gate-07-pre-planned-vacations/' ),
-	array( 'label' => 'Gate 08', 'title' => 'Photo Gallery',          'url' => 'https://bagsandvibes.com/gate-08-photo-gallery/' ),
-	array( 'label' => 'Gate 09', 'title' => 'Payments',                'url' => 'https://bagsandvibes.com/gate-09-payments/' ),
-	array( 'label' => 'Gate 10', 'title' => 'Discussion Boards',       'url' => 'https://bagsandvibes.com/gate-10-discussion-boards/' ),
-	array( 'label' => 'Gate 11', 'title' => 'Travel Rules',            'url' => 'https://bagsandvibes.com/gate-11-travel-rules/' ),
-	array( 'label' => 'Gate 12', 'title' => 'Vacation Requests',       'url' => 'https://bagsandvibes.com/gate-12-vacation-requests/' ),
-);
 ?><!DOCTYPE html>
 <html <?php language_attributes(); ?>>
 <head>
@@ -48,25 +39,7 @@ $gate_nav = array(
       <?php endif; ?>
     </a>
 
-    <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="primary-nav">
-      <span class="nav-toggle-label">Menu</span>
-      <span class="nav-toggle-bars" aria-hidden="true"></span>
-    </button>
-
-    <nav class="primary-nav" id="primary-nav" aria-label="Member navigation">
-      <ul class="gate-nav-list">
-        <li><a href="https://bagsandvibes.com/member-feed/">Feed</a></li>
-        <li><a href="<?php echo esc_url( home_url( '/dashboard/' ) ); ?>">Dashboard</a></li>
-        <?php if ( function_exists( 'cb_member_profile_url' ) && is_user_logged_in() ) : ?>
-          <li><a href="<?php echo esc_url( cb_member_profile_url( get_current_user_id() ) ); ?>">My Profile</a></li>
-        <?php endif; ?>
-        <li><a href="https://bagsandvibes.com/account/">Account</a></li>
-        <li><a href="https://bagsandvibes.com/logout/">Logout</a></li>
-        <?php foreach ( $gate_nav as $g ) : ?>
-          <li><a href="<?php echo esc_url( $g['url'] ); ?>" title="<?php echo esc_attr( $g['title'] ); ?>"><?php echo esc_html( $g['label'] ); ?></a></li>
-        <?php endforeach; ?>
-      </ul>
-    </nav>
+    <?php echo function_exists( 'cb_render_primary_nav' ) ? cb_render_primary_nav() : ''; ?>
   </div>
 </header>
 

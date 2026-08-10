@@ -168,11 +168,12 @@ function cb_feed_user_can_view_forum( $forum_id, $user_id ) {
 
 /**
  * True if $user_id may see $topic_id in the feed, given it's a wall post
- * (Member Profile + Wall Post, piece 4) -- both of these must hold:
+ * (Member Profile + Wall Post, piece 4). The flag check is a hard
+ * requirement; after that, EITHER of the following is sufficient:
  *   1. The poster chose "Post to Profile + Feed" (_cb_show_in_feed === '1'),
  *      set by the composer's REST endpoint in checkedbags-member-wall.php.
  *      A "Post to Profile"-only post never surfaces here, regardless of
- *      who's asking.
+ *      who's asking. This part is a hard requirement, not an OR branch.
  *   2. $user_id can actually read the topic at all -- reuses
  *      current_user_can( 'read_topic', $topic_id )'s underlying check via
  *      user_can(), the exact same map_meta_cap gate proven in pieces 1-3
@@ -184,12 +185,34 @@ function cb_feed_user_can_view_forum( $forum_id, $user_id ) {
  *      this file's own cb_feed_user_can_view_forum() above); a wall post's
  *      feed visibility reuses the one real access-control mechanism piece 1
  *      built instead of adding a fourth.
+ *   3. OR, added for the Follow feature: $user_id follows the wall's
+ *      owner (cb_user_follows(), independent of shared-trip access by
+ *      design -- see checkedbags-follows.php's header comment). This is
+ *      purely additive -- it never narrows what #2 already allows, and it
+ *      does NOT touch the actual map_meta_cap gate or the profile page's
+ *      current_user_can( 'read_forum', ... ) check (checkedbags-member-
+ *      profile-hooks.php). The accepted result: a follower can see a
+ *      flagged post's teaser here and still correctly get told the wall
+ *      isn't visible to them if they click through to the full profile --
+ *      intentional, not a bug.
  */
 function cb_feed_user_can_view_wall_post( $topic_id, $user_id ) {
 	if ( '1' !== get_post_meta( $topic_id, '_cb_show_in_feed', true ) ) {
 		return false;
 	}
-	return (bool) user_can( $user_id, 'read_topic', $topic_id );
+
+	if ( user_can( $user_id, 'read_topic', $topic_id ) ) {
+		return true;
+	}
+
+	if ( ! function_exists( 'cb_user_follows' ) || ! function_exists( 'cb_wall_forum_owner_id' ) ) {
+		return false;
+	}
+
+	$forum_id      = (int) get_post_meta( $topic_id, '_bbp_forum_id', true );
+	$wall_owner_id = cb_wall_forum_owner_id( $forum_id );
+
+	return $wall_owner_id && cb_user_follows( $user_id, $wall_owner_id );
 }
 
 function cb_feed_recent_topics( $limit = 5 ) {

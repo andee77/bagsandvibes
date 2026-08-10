@@ -101,15 +101,16 @@ $needs_profile_nudge = function_exists( 'cbv_user_profile_is_complete' )
 
 <header class="site-header" id="site-header">
   <div class="header-inner">
-    <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="brand">Checked Bags <span class="brand-amp">&amp;</span> Good Vibes</a>
-    <nav class="member-nav" aria-label="Member navigation">
-      <a href="https://bagsandvibes.com/member-feed/" class="btn btn-ghost">Feed</a>
-      <?php if ( function_exists( 'cb_member_profile_url' ) ) : ?>
-        <a href="<?php echo esc_url( cb_member_profile_url( $current_user->ID ) ); ?>" class="btn btn-ghost">My Profile</a>
+    <?php
+    $cb_logo_id  = get_theme_mod( 'custom_logo' );
+    $cb_logo_url = $cb_logo_id ? wp_get_attachment_image_url( $cb_logo_id, 'medium' ) : '';
+    ?>
+    <a href="<?php echo esc_url( home_url( '/dashboard/' ) ); ?>" class="brand brand-logo-only" aria-label="Dashboard">
+      <?php if ( $cb_logo_url ) : ?>
+        <img src="<?php echo esc_url( $cb_logo_url ); ?>" alt="Checked Bags &amp; Good Vibes" class="brand-logo-img">
       <?php endif; ?>
-      <a href="https://bagsandvibes.com/account/" class="btn btn-ghost">My Account</a>
-      <a href="https://bagsandvibes.com/logout/" class="btn btn-ghost">Log Out</a>
-    </nav>
+    </a>
+    <?php echo function_exists( 'cb_render_primary_nav' ) ? cb_render_primary_nav() : ''; ?>
   </div>
 </header>
 
@@ -117,6 +118,7 @@ $needs_profile_nudge = function_exists( 'cbv_user_profile_is_complete' )
 
   <div class="dashboard-hero-row">
     <section class="dashboard-hero">
+      <p class="dashboard-hero-pagelabel">Dashboard</p>
       <p class="dashboard-hero-eyebrow">Welcome back</p>
       <h1 class="dashboard-hero-name"><?php echo esc_html( $display_name ); ?></h1>
       <p class="dashboard-hero-sub">
@@ -216,6 +218,27 @@ $needs_profile_nudge = function_exists( 'cbv_user_profile_is_complete' )
 	var restUrl = <?php echo wp_json_encode( esc_url_raw( rest_url( 'cb/v1/' ) ) ); ?>;
 	var nonce   = <?php echo wp_json_encode( wp_create_nonce( 'wp_rest' ) ); ?>;
 
+	// Shared by the invite-link and QR copy buttons below -- takes the
+	// actual clipboard action as a callback since the two buttons copy
+	// different things (link text vs. image data).
+	function cbvMakeCopyBtn( label, doCopy ) {
+		var btn = document.createElement( 'button' );
+		btn.type = 'button';
+		btn.className = 'btn btn-ghost dashboard-copy-btn';
+		btn.textContent = label;
+		btn.addEventListener( 'click', function () {
+			doCopy().then( function () {
+				var original = label;
+				btn.textContent = 'Copied!';
+				setTimeout( function () { btn.textContent = original; }, 1500 );
+			} ).catch( function () {
+				btn.textContent = 'Copy failed';
+				setTimeout( function () { btn.textContent = label; }, 1500 );
+			} );
+		} );
+		return btn;
+	}
+
 	document.querySelectorAll( '.cbv-invite-btn' ).forEach( function ( btn ) {
 		btn.addEventListener( 'click', function () {
 			var tripId   = btn.getAttribute( 'data-trip-id' );
@@ -233,19 +256,39 @@ $needs_profile_nudge = function_exists( 'cbv_user_profile_is_complete' )
 						resultEl.textContent = 'Error: ' + res.body.message;
 						return;
 					}
+					var urlRow = document.createElement( 'div' );
+					urlRow.className = 'dashboard-invite-link-row';
 					var urlEl = document.createElement( 'p' );
 					urlEl.className = 'dashboard-invite-url';
 					urlEl.textContent = res.body.url;
-					resultEl.appendChild( urlEl );
+					urlRow.appendChild( urlEl );
+					urlRow.appendChild( cbvMakeCopyBtn( 'Copy Link', function () {
+						return navigator.clipboard.writeText( res.body.url );
+					} ) );
+					resultEl.appendChild( urlRow );
 					// QR is generated server-side in the same response (no
 					// third-party API -- this link identifies both the trip
 					// and the inviting member) -- only render it if present.
 					if ( res.body.qr_uri ) {
+						var qrRow = document.createElement( 'div' );
+						qrRow.className = 'dashboard-invite-qr-row';
 						var qrImg = document.createElement( 'img' );
 						qrImg.className = 'dashboard-invite-qr';
 						qrImg.alt = 'QR code for this invite link';
 						qrImg.src = res.body.qr_uri;
-						resultEl.appendChild( qrImg );
+						qrRow.appendChild( qrImg );
+						// Copies the QR image itself (not the URL again --
+						// the link row above already covers that) so it can
+						// be pasted straight into an email or chat as a
+						// scannable image.
+						qrRow.appendChild( cbvMakeCopyBtn( 'Copy QR Image', function () {
+							return fetch( res.body.qr_uri )
+								.then( function ( r ) { return r.blob(); } )
+								.then( function ( blob ) {
+									return navigator.clipboard.write( [ new ClipboardItem( { 'image/png': blob } ) ] );
+								} );
+						} ) );
+						resultEl.appendChild( qrRow );
 					}
 				} )
 				.catch( function () {

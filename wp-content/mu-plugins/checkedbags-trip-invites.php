@@ -638,6 +638,32 @@ function cbv_render_membership_terms_page() {
 }
 
 /**
+ * Public, read-only view of the current Membership Terms -- [cbv_membership_terms].
+ * Until now the ONLY place this content appeared was the small 150px
+ * scrollable box next to the registration checkbox below, with no separate
+ * page to link to; this gives prospective and existing members a real page
+ * to read the full terms on (and something for the registration checkbox
+ * to link to). No login required, same as any other legal/policy page.
+ */
+add_shortcode( 'cbv_membership_terms', function () {
+	$version = cbv_get_current_terms_version();
+	$content = cbv_get_current_terms_content();
+
+	ob_start();
+	?>
+	<div class="cbv-membership-terms-page">
+		<p class="cbv-terms-version">Version <?php echo (int) $version; ?></p>
+		<?php if ( '' === trim( $content ) ) : ?>
+			<p class="cb-empty">No Membership Terms content has been published yet.</p>
+		<?php else : ?>
+			<?php echo wp_kses_post( wpautop( $content ) ); ?>
+		<?php endif; ?>
+	</div>
+	<?php
+	return ob_get_clean();
+} );
+
+/**
  * Inject the required Membership Terms checkbox into UM's registration
  * form. Priority 900 — before UM's own submit button, which hooks the same
  * action at priority 1000 (um_add_submit_button_to_register).
@@ -650,6 +676,13 @@ add_action( 'um_after_register_fields', function () {
 		<div style="max-height:150px;overflow-y:auto;border:1px solid #ddd;padding:10px;margin-bottom:8px;font-size:13px;">
 			<?php echo wp_kses_post( wpautop( $content ) ); ?>
 		</div>
+		<?php // Points at the site's real, already-written Terms of Service
+		// page -- NOT the versioned Membership Terms system below, which
+		// this deliberately leaves untouched (no content copy, no version
+		// bump, no change to existing acceptance records). Link-destination
+		// and label only, per explicit correction: the tester meant the ToS
+		// page, not this separate acceptance-tracking mechanism. ?>
+		<p style="margin: 0 0 8px;"><a href="<?php echo esc_url( home_url( '/terms-of-service/' ) ); ?>" target="_blank" rel="noopener">Read the Terms of Service</a> (opens in a new tab)</p>
 		<label>
 			<input type="checkbox" name="cbv_accept_terms" value="1">
 			<?php
@@ -659,6 +692,7 @@ add_action( 'um_after_register_fields', function () {
 				(int) $version
 			);
 			?>
+			<span class="cbv-required" aria-hidden="true">*</span>
 		</label>
 	</div>
 	<?php
@@ -728,6 +762,7 @@ add_shortcode( 'cbv_reaccept_terms', function () {
 		<label>
 			<input type="checkbox" id="cbv-reaccept-checkbox">
 			I have read and agree to the updated Membership Terms.
+			<span class="cbv-required" aria-hidden="true">*</span>
 		</label>
 		<p><button type="button" class="btn btn-ticket" id="cbv-reaccept-submit" disabled>Continue</button></p>
 		<div id="cbv-reaccept-result" style="margin-top:8px;"></div>
@@ -1062,6 +1097,7 @@ function cbv_render_trip_agreement_prompt( $trip_id ) {
 			<label>
 				<input type="checkbox" class="cbv-agreement-checkbox">
 				I have read and agree to this trip&#8217;s agreement (v<?php echo (int) $version; ?>).
+				<span class="cbv-required" aria-hidden="true">*</span>
 			</label>
 			<p><button type="button" class="btn btn-ticket cbv-accept-agreement-btn" data-trip-id="<?php echo (int) $trip_id; ?>" disabled>Continue to trip details</button></p>
 		<?php endif; ?>
@@ -1171,7 +1207,8 @@ add_action( 'rest_api_init', function () {
 	 * Records intent only — no automatic role change. Phase 7's back-office
 	 * screen is where an admin actually reviews and promotes; this just
 	 * gives them a signal to act on, surfaced in the admin usermeta panel
-	 * below and (in Phase 7) the dedicated Trip Guests list.
+	 * below and in the Trip Guests list's "Requested Full Membership"
+	 * column (sorted to the top there, since it's the actionable subset).
 	 */
 	register_rest_route( 'cb/v1', '/request-full-membership', array(
 		'methods'             => 'POST',
@@ -1704,6 +1741,20 @@ function cbv_render_trip_guests_page() {
 		'orderby' => 'registered',
 		'order'   => 'DESC',
 	) );
+
+	// Guests who've asked to be promoted float to the top -- that's the
+	// actionable subset an admin lands on this screen to find; everyone
+	// else keeps the existing newest-registered-first order beneath them.
+	// The "surfaced... in Phase 7's Trip Guests list" this file's own
+	// earlier doc comments promised, never actually built until now.
+	usort( $guests, function ( $a, $b ) {
+		$a_requested = (bool) get_user_meta( $a->ID, '_requested_full_membership_date', true );
+		$b_requested = (bool) get_user_meta( $b->ID, '_requested_full_membership_date', true );
+		if ( $a_requested === $b_requested ) {
+			return 0;
+		}
+		return $a_requested ? -1 : 1;
+	} );
 	?>
 	<div class="wrap">
 		<h1>Trip Guests</h1>
@@ -1723,6 +1774,7 @@ function cbv_render_trip_guests_page() {
 						<th>Trip</th>
 						<th>Invited by</th>
 						<th>Join date</th>
+						<th>Requested Full Membership</th>
 						<th>Action</th>
 					</tr>
 				</thead>
@@ -1732,8 +1784,9 @@ function cbv_render_trip_guests_page() {
 						$invited_trip  = get_user_meta( $guest->ID, '_invited_by_trip_id', true );
 						$inviter       = $invited_by_id ? get_userdata( $invited_by_id ) : false;
 						$trip          = $invited_trip ? get_post( $invited_trip ) : false;
+						$requested     = get_user_meta( $guest->ID, '_requested_full_membership_date', true );
 						?>
-						<tr>
+						<tr<?php echo $requested ? ' style="background-color:#fff8e5;"' : ''; ?>>
 							<td><a href="<?php echo esc_url( get_edit_user_link( $guest->ID ) ); ?>"><?php echo esc_html( $guest->display_name ); ?></a></td>
 							<td><?php echo esc_html( $guest->user_email ); ?></td>
 							<td>
@@ -1751,6 +1804,13 @@ function cbv_render_trip_guests_page() {
 								<?php endif; ?>
 							</td>
 							<td><?php echo esc_html( date_i18n( 'M j, Y', strtotime( $guest->user_registered ) ) ); ?></td>
+							<td>
+								<?php if ( $requested ) : ?>
+									<strong style="color:#b45900;">&#9733; Requested <?php echo esc_html( date_i18n( 'M j, Y', strtotime( $requested ) ) ); ?></strong>
+								<?php else : ?>
+									<em>&#8212;</em>
+								<?php endif; ?>
+							</td>
 							<td>
 								<a class="button button-small" href="<?php echo esc_url( wp_nonce_url(
 									admin_url( 'admin-post.php?action=cbv_promote_trip_guest&user_id=' . $guest->ID ),
@@ -1825,6 +1885,48 @@ define( 'CBV_SEAT_POSITIONS', array( 'Aisle', 'Middle', 'Window' ) );
 // so they're exported as two separate columns with no fallback between
 // them -- see cbv_build_trip_roster_export_data().
 define( 'CBV_FLIGHT_CABIN_CLASSES', array( 'Economy', 'Extra Leg Room/Premium', 'Business Class', 'First Class' ) );
+
+// Shared airline list -- every "airline preference" field sitewide (Gate 12,
+// Per-Traveler Intake) uses this same fixed set via cbv_render_airline_field()
+// below, so adding an airline means changing it in exactly one place.
+define( 'CBV_AIRLINES', array(
+	'Delta Air Lines',
+	'American Airlines',
+	'United Airlines',
+	'Southwest Airlines',
+	'Alaska Airlines',
+	'Qatar Airways',
+	'Singapore Airlines',
+	'Emirates',
+	'Turkish Airlines',
+	'Air France',
+	'Other',
+) );
+
+/**
+ * Renders an airline <select> (fixed CBV_AIRLINES list) plus a free-text
+ * field that only appears once "Other" is chosen -- shared by every airline
+ * field sitewide so both forms stay in sync automatically. The select keeps
+ * $id as its own id (so existing JS that reads the field by that id doesn't
+ * need to know about the "Other" field at all -- callers combine the two
+ * themselves, same as the existing cbv-intake-insurance-decision/waiver-row
+ * pattern already does for a different field).
+ */
+function cbv_render_airline_field( $id, $label, $current_value = '' ) {
+	$is_known = in_array( $current_value, CBV_AIRLINES, true );
+	$is_other = '' !== $current_value && ! $is_known;
+	?>
+	<label><?php echo esc_html( $label ); ?>
+		<select id="<?php echo esc_attr( $id ); ?>" class="cbv-airline-select">
+			<option value="">—</option>
+			<?php foreach ( CBV_AIRLINES as $airline ) : ?>
+				<option value="<?php echo esc_attr( $airline ); ?>" <?php selected( $is_other ? 'Other' : $current_value, $airline ); ?>><?php echo esc_html( $airline ); ?></option>
+			<?php endforeach; ?>
+		</select>
+	</label>
+	<input type="text" id="<?php echo esc_attr( $id . '-other' ); ?>" class="cbv-airline-other" placeholder="Enter airline name" value="<?php echo esc_attr( $is_other ? $current_value : '' ); ?>" style="<?php echo $is_other ? '' : 'display:none;'; ?>">
+	<?php
+}
 
 // Same option set as Gate 12's Cruise Vacation cabin-class dropdown, on
 // purpose -- unlike flight cabin class, a traveler's own cruise room-type
@@ -2015,8 +2117,16 @@ function cbv_user_profile_is_complete( $user_id ) {
 add_filter( 'um_account_content_hook_travel-profile', function ( $output, $args ) {
 	$user_id = get_current_user_id();
 
-	$first_name    = get_user_meta( $user_id, '_first_name', true );
-	$last_name     = get_user_meta( $user_id, '_last_name', true );
+	// Falls back to the name captured at registration (WP/UM's own native
+	// first_name/last_name usermeta) the first time this page is opened --
+	// _first_name/_last_name are this app's own separate Travel-Profile-
+	// specific fields (see CBV_AIRLINES-style constants above for why this
+	// codebase keeps its own meta keys rather than reusing UM's), so
+	// without this fallback a brand new Travel Profile showed blank name
+	// fields despite the member having already typed their name once.
+	$user          = get_userdata( $user_id );
+	$first_name    = get_user_meta( $user_id, '_first_name', true ) ?: ( $user ? $user->first_name : '' );
+	$last_name     = get_user_meta( $user_id, '_last_name', true ) ?: ( $user ? $user->last_name : '' );
 	$dob           = get_user_meta( $user_id, '_date_of_birth', true );
 	$phone         = get_user_meta( $user_id, '_phone', true );
 	$address_street = get_user_meta( $user_id, '_address_street', true );
@@ -2408,7 +2518,7 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 		</div>
 
 		<div class="cbv-intake-field cbv-intake-field-row">
-			<label>Preferred airline <input type="text" id="cbv-intake-preferred-airline" value="<?php echo esc_attr( $intake['preferred_airline'] ?? '' ); ?>"></label>
+			<?php cbv_render_airline_field( 'cbv-intake-preferred-airline', 'Preferred airline', $intake['preferred_airline'] ?? '' ); ?>
 			<label>Frequent flyer / loyalty number <input type="text" id="cbv-intake-frequent-flyer-number" value="<?php echo esc_attr( $intake['frequent_flyer_number'] ?? '' ); ?>"></label>
 		</div>
 		<?php endif; ?>
@@ -2585,6 +2695,25 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 			} );
 		}
 
+		// Airline "Other" reveal -- shared markup from cbv_render_airline_field(),
+		// so this same block also covers any future airline field added here.
+		function airlineValue( selectId ) {
+			var select = document.getElementById( selectId );
+			if ( ! select ) { return ''; }
+			if ( select.value === 'Other' ) {
+				var other = document.getElementById( selectId + '-other' );
+				return other ? other.value : '';
+			}
+			return select.value;
+		}
+		document.querySelectorAll( '.cbv-airline-select' ).forEach( function ( select ) {
+			var other = document.getElementById( select.id + '-other' );
+			if ( ! other ) { return; }
+			select.addEventListener( 'change', function () {
+				other.style.display = ( select.value === 'Other' ) ? '' : 'none';
+			} );
+		} );
+
 		var saveBtn = document.getElementById( 'cbv-intake-save-btn' );
 		if ( saveBtn ) {
 			saveBtn.addEventListener( 'click', function () {
@@ -2593,7 +2722,7 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 					seat_preference: fieldVal( 'cbv-intake-seat-preference' ),
 					departure_airport: fieldVal( 'cbv-intake-departure-airport' ),
 					flight_cabin_class: fieldVal( 'cbv-intake-flight-cabin-class' ),
-					preferred_airline: fieldVal( 'cbv-intake-preferred-airline' ),
+					preferred_airline: airlineValue( 'cbv-intake-preferred-airline' ),
 					frequent_flyer_number: fieldVal( 'cbv-intake-frequent-flyer-number' ),
 
 					cruise_company: fieldVal( 'cbv-intake-cruise-company' ),

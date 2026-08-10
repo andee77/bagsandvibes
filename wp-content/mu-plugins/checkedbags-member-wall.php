@@ -67,6 +67,7 @@ function cb_ensure_user_wall_forum( $user_id ) {
 		'post_title'   => $user->display_name . '&#8217;s Wall',
 		'post_content' => 'Personal wall for ' . $user->display_name . '.',
 		'post_author'  => $user_id,
+		'post_status'  => bbp_get_hidden_status_id(), // engages bbPress's own native forum/topic/reply 404 gate; our map_meta_cap filter below still makes the actual per-user decision
 	) );
 
 	if ( $forum_id ) {
@@ -90,14 +91,27 @@ function cb_wall_forum_owner_id( $forum_id ) {
 }
 
 /* ==========================================================================
-   2b. Canonical /members/{user_nicename}/ URL for a given user -- the one
-       place this string gets built, so every nav link pointing at a
-       member's profile agrees with the rewrite rule registered in
-       mu-plugins/checkedbags-landing.php.
+   2b. Canonical profile URL for a given user -- the one place this string
+       gets built, so every nav link pointing at a member's profile agrees.
+
+       Consolidated onto Ultimate Member's native /user/{user_nicename}/ URL
+       (previously our own separate /members/{user_nicename}/ page) -- our
+       wall/composer/gating now lives on that URL via hooks, see
+       checkedbags-member-profile-hooks.php. Delegates to UM's own
+       um_user_profile_url() so this always agrees with whatever URL
+       structure UM itself considers authoritative, rather than assuming a
+       path format here; falls back to constructing /user/{nicename}/
+       directly only if UM's function is unexpectedly unavailable.
    ========================================================================== */
 function cb_member_profile_url( $user_id ) {
+	if ( function_exists( 'um_user_profile_url' ) ) {
+		$url = um_user_profile_url( $user_id );
+		if ( $url ) {
+			return $url;
+		}
+	}
 	$user = get_userdata( $user_id );
-	return $user ? home_url( '/members/' . $user->user_nicename . '/' ) : '';
+	return $user ? home_url( '/user/' . $user->user_nicename . '/' ) : '';
 }
 
 /* ==========================================================================
@@ -193,6 +207,63 @@ add_filter( 'map_meta_cap', function ( $caps, $cap, $user_id, $args ) {
 }, 20, 4 );
 
 /* ==========================================================================
+   4b. bbPress's own hidden-forum query exclusion is a SEPARATE gate from the
+       map_meta_cap filter above, and the one that actually mattered once wall
+       forums were switched to hidden status: bbp_get_excluded_forum_ids()
+       (includes/forums/functions.php) builds its exclusion list purely from
+       the blanket read_hidden_forums/read_private_forums ROLE capability --
+       which no normal member has, not even a wall's own owner -- and applies
+       it as a post__not_in / meta_query filter on every forum, topic, and
+       reply query site-wide, via pre_get_posts, before map_meta_cap is ever
+       consulted. Confirmed live: after forums went hidden, even the owner's
+       own wall 404'd, because bbPress excluded it from the query before our
+       per-forum decision could run.
+
+       bbPress ships the fix for exactly this shape of problem: the
+       'bbp_get_excluded_forum_ids' filter is the same one bbp_allow_forums_of_user()
+       uses to let a per-forum moderator see one specific hidden forum despite
+       lacking the blanket role cap (includes/core/filters.php:305). This
+       hooks the same filter with the same ownership rule already proven
+       above, so the two gates agree.
+
+       cb_user_follows() added below (Follow feature, Feed integration
+       piece) for exactly one reason: cb_feed_recent_topics()'s own
+       get_posts() call is subject to this SAME global exclusion, so
+       without this, a follower's feed-flagged post would silently never
+       reach cb_feed_user_can_view_wall_post()'s own follow-based check at
+       all -- confirmed live, not assumed (the query simply returned the
+       topic in a candidate list of zero wall entries). This does NOT touch
+       the map_meta_cap filter above -- a mere follower still correctly
+       gets 'do_not_allow' if they try to view the actual forum/topic/
+       profile directly; this only lets the topic surface in queries like
+       the Feed's.
+   ========================================================================== */
+add_filter( 'bbp_get_excluded_forum_ids', function ( $forum_ids ) {
+	if ( empty( $forum_ids ) ) {
+		return $forum_ids;
+	}
+
+	$user_id = get_current_user_id();
+
+	foreach ( $forum_ids as $key => $forum_id ) {
+		$owner_id = cb_wall_forum_owner_id( $forum_id );
+		if ( ! $owner_id ) {
+			continue; // not a wall forum -- leave bbPress's own decision alone
+		}
+
+		if ( $user_id === $owner_id
+			|| user_can( $user_id, 'moderate' )
+			|| cb_users_share_any_trip( $user_id, $owner_id )
+			|| ( function_exists( 'cb_user_follows' ) && cb_user_follows( $user_id, $owner_id ) )
+		) {
+			unset( $forum_ids[ $key ] );
+		}
+	}
+
+	return array_values( $forum_ids );
+} );
+
+/* ==========================================================================
    5. Wall posting REST endpoint -- the profile page's composer (piece 2's
       template-member-profile.php) posts here. Same house pattern as every
       other member-facing action in this codebase (cb/v1 namespace,
@@ -252,3 +323,144 @@ add_action( 'rest_api_init', function () {
 		},
 	) );
 } );
+
+/* ==========================================================================
+   6. Timeline -- the wall's post list (piece 3 of the profile redesign).
+      No per-post visibility filtering needed beyond what already exists:
+      the_content gate in checkedbags-member-profile-hooks.php already
+      blocks the whole page for anyone who can't view this wall, so anyone
+      who reaches this function is already authorized to see every post on
+      it. Ordered newest-first, matching the composer's "post to the top"
+      expectation.
+   ========================================================================== */
+function cb_wall_get_posts( $wall_forum_id ) {
+	if ( ! $wall_forum_id || ! function_exists( 'bbp_get_topic_post_type' ) ) {
+		return array();
+	}
+
+	return get_posts( array(
+		'post_type'      => bbp_get_topic_post_type(),
+		'post_parent'    => $wall_forum_id,
+		'post_status'    => 'publish',
+		'numberposts'    => -1,
+		'orderby'        => 'date',
+		'order'          => 'DESC',
+	) );
+}
+
+/* ==========================================================================
+   7. Can the current user delete this specific wall post? Three-tier rule,
+      matching the brief exactly: the wall's own owner can delete ANY post
+      on their wall (it's their space to manage); the post's original
+      author can always delete their own words, even on someone else's
+      wall; a moderator can always delete, same bypass used everywhere else
+      in this codebase.
+   ========================================================================== */
+function cb_wall_user_can_delete_post( $user_id, $topic ) {
+	if ( ! $topic || ! $user_id ) {
+		return false;
+	}
+
+	$wall_owner_id = cb_wall_forum_owner_id( (int) $topic->post_parent );
+
+	return (int) $user_id === $wall_owner_id
+		|| (int) $user_id === (int) $topic->post_author
+		|| user_can( $user_id, 'moderate' );
+}
+
+/* ==========================================================================
+   8. Delete a wall post -- new server-side logic (piece 3), not just a
+      relocation. The {user_id} in the URL identifies which wall is being
+      managed; the topic's own post_parent is independently checked against
+      that wall's actual forum ID before any authorization check runs, so a
+      valid topic ID from a DIFFERENT wall can't be pointed at this
+      endpoint to bypass the owner/author/moderator check above --
+      confirmed by explicit test, not assumed (see verification notes).
+   ========================================================================== */
+add_action( 'rest_api_init', function () {
+	register_rest_route( 'cb/v1', '/members/(?P<user_id>\d+)/wall-posts/(?P<topic_id>\d+)', array(
+		'methods'             => 'DELETE',
+		'permission_callback' => function () {
+			return is_user_logged_in();
+		},
+		'callback'            => function ( $request ) {
+			$wall_owner_id = (int) $request['user_id'];
+			$topic_id      = (int) $request['topic_id'];
+
+			if ( ! function_exists( 'bbp_get_topic_post_type' ) ) {
+				return new WP_Error( 'cb_wall_bbpress_inactive', 'Discussion boards are not available right now.', array( 'status' => 500 ) );
+			}
+
+			$wall_forum_id = cb_ensure_user_wall_forum( $wall_owner_id );
+			if ( ! $wall_forum_id ) {
+				return new WP_Error( 'cb_wall_no_owner', 'That member could not be found.', array( 'status' => 404 ) );
+			}
+
+			$topic = get_post( $topic_id );
+			if ( ! $topic || bbp_get_topic_post_type() !== $topic->post_type ) {
+				return new WP_Error( 'cb_wall_post_not_found', 'That post could not be found.', array( 'status' => 404 ) );
+			}
+
+			// The topic must actually belong to THIS wall -- independent of
+			// which wall's URL the request was sent to, closing off a
+			// bypass where a real topic ID from a different wall is pointed
+			// at this endpoint to piggyback on that wall's owner/author check.
+			if ( (int) $topic->post_parent !== $wall_forum_id ) {
+				return new WP_Error( 'cb_wall_post_wrong_wall', 'That post does not belong to this wall.', array( 'status' => 404 ) );
+			}
+
+			if ( ! cb_wall_user_can_delete_post( get_current_user_id(), $topic ) ) {
+				return new WP_Error( 'cb_wall_no_delete_access', "You don't have permission to delete this post.", array( 'status' => 403 ) );
+			}
+
+			$deleted = wp_delete_post( $topic_id, true );
+			if ( ! $deleted ) {
+				return new WP_Error( 'cb_wall_delete_failed', 'Something went wrong deleting that post.', array( 'status' => 500 ) );
+			}
+
+			return array( 'success' => true );
+		},
+	) );
+} );
+
+/* ==========================================================================
+   9. Render the Timeline list -- hooked onto the same um_profile_content_main
+      action as the composer (checkedbags-member-profile-hooks.php), at a
+      later priority so it renders below it.
+   ========================================================================== */
+function cb_wall_render_posts( $wall_forum_id ) {
+	$posts        = cb_wall_get_posts( $wall_forum_id );
+	$current_user = get_current_user_id();
+
+	ob_start();
+	?>
+	<div class="member-profile-timeline">
+		<?php if ( empty( $posts ) ) : ?>
+			<p class="cb-empty">No posts yet.</p>
+		<?php else : foreach ( $posts as $topic ) :
+			$author    = get_userdata( $topic->post_author );
+			$can_delete = cb_wall_user_can_delete_post( $current_user, $topic );
+			if ( ! $author ) {
+				continue;
+			}
+			?>
+			<div class="member-profile-post" data-topic-id="<?php echo (int) $topic->ID; ?>">
+				<div class="member-profile-post-header">
+					<?php echo get_avatar( $author->ID, 40 ); ?>
+					<div class="member-profile-post-byline">
+						<a href="<?php echo esc_url( cb_member_profile_url( $author->ID ) ); ?>" class="member-profile-post-author"><?php echo esc_html( $author->display_name ); ?></a>
+						<span class="member-profile-post-date"><?php echo esc_html( date_i18n( 'M j, Y g:i a', strtotime( $topic->post_date ) ) ); ?></span>
+					</div>
+					<?php if ( $can_delete ) : ?>
+						<button type="button" class="member-profile-post-delete" data-topic-id="<?php echo (int) $topic->ID; ?>" aria-label="Delete post">
+							<i class="ti ti-trash" aria-hidden="true"></i>
+						</button>
+					<?php endif; ?>
+				</div>
+				<p class="member-profile-post-content"><?php echo nl2br( esc_html( $topic->post_content ) ); ?></p>
+			</div>
+		<?php endforeach; endif; ?>
+	</div>
+	<?php
+	return ob_get_clean();
+}

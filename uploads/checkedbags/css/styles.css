@@ -55,6 +55,35 @@ img { user-select: none; -webkit-user-drag: none; }
   outline-offset: 3px;
 }
 
+/* Required-field marker -- only applied to fields actually enforced as
+   required (HTML `required` attribute, or blocked server-side/JS-disabled
+   submit) rather than every field, so it doesn't imply required-ness that
+   isn't real. */
+.cbv-required {
+  color: var(--coral);
+  margin-left: 0.15rem;
+  font-weight: 700;
+}
+
+/* Sitewide dropdown arrow -- confirmed live that plain <select> elements
+   render with NO visible arrow at all in this environment (no `appearance`
+   was ever set anywhere in this file, and none of our dark-card selects
+   like Gate 12's "Your role" showed one), leaving dropdowns indistinguishable
+   from static text. `appearance: none` + this background-image chevron
+   guarantees one consistent, branded arrow everywhere on the front end,
+   regardless of browser/OS default rendering. Scoped to this stylesheet, so
+   wp-admin's own selects are untouched. */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23E8A94E' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 12px 8px;
+  padding-right: 2.25rem !important;
+}
+
 /* ==========================================================================
    Header
    ========================================================================== */
@@ -369,7 +398,11 @@ img { user-select: none; -webkit-user-drag: none; }
 }
 
 /* Boarding-pass style phase tag — the signature element, now a plain
-   always-visible static label per section instead of a JS-driven one. */
+   always-visible static label per section instead of a JS-driven one.
+   Rotation pushed from a barely-there -2.5deg to a deliberate -8deg, and the
+   punch-hole (::before) moved out of the flex row into a fixed top-left
+   spot so a "string" (::after) can hang from it convincingly -- reads as an
+   actual luggage tag on a strap, not a rotated card with a decorative dot. */
 .phase-tag {
   position: absolute;
   left: var(--edge);
@@ -380,20 +413,33 @@ img { user-select: none; -webkit-user-drag: none; }
   gap: 0.65rem;
   background: var(--sand);
   color: var(--ink);
-  padding: 0.55rem 0.9rem 0.55rem 0.7rem;
+  padding: 0.6rem 0.9rem 0.55rem 1.15rem;
   border-radius: 3px;
-  transform: rotate(-2.5deg);
+  transform: rotate(-8deg);
   box-shadow: 0 10px 24px rgba(0,0,0,0.28);
 }
 .phase-tag::before {
   content: "";
-  width: 10px; height: 10px;
+  position: absolute;
+  top: 8px;
+  left: 11px;
+  width: 9px; height: 9px;
   border-radius: 50%;
   background: var(--ink);
-  flex-shrink: 0;
   box-shadow:
     -3px 0 0 -2px var(--sand),
     3px 0 0 -2px var(--sand);
+}
+.phase-tag::after {
+  content: "";
+  position: absolute;
+  top: -25px;
+  left: 14.5px;
+  width: 2px;
+  height: 38px;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, transparent, var(--gold) 35%, var(--gold));
+  opacity: 0.8;
 }
 .phase-tag-gate {
   font-family: var(--font-mono);
@@ -458,19 +504,27 @@ img { user-select: none; -webkit-user-drag: none; }
 
 .btn-ticket {
   position: relative;
-  background: var(--sand);
-  color: var(--ink);
+  /* Was --sand (cream) -- read fine on the dark Dashboard, but most of
+     these buttons (Gate 12 submit, Travel Profile/Intake save, Account
+     Continue prompts) sit on the site's light cream page background,
+     where cream-on-cream was nearly invisible. Coral holds contrast on
+     both. */
+  background: var(--coral);
+  color: var(--sand);
   padding: 0.85rem 1.6rem;
   font-weight: 700;
   text-decoration: none;
   gap: 0.4rem;
 }
-.btn-ticket:hover { transform: translateY(-2px); }
+.btn-ticket:hover { transform: translateY(-2px); filter: brightness(0.92); }
 .ticket-notch {
   display: inline-block;
   width: 6px; height: 6px;
   border-radius: 50%;
-  background: var(--coral);
+  /* Was coral, matching the old coral notch-on-cream punch-hole look;
+     button background is coral now, so the notch needs to switch to the
+     button's old cream to stay visible instead of disappearing into it. */
+  background: var(--sand);
   flex-shrink: 0;
 }
 
@@ -545,6 +599,12 @@ img { user-select: none; -webkit-user-drag: none; }
     transform: translateY(0);
     pointer-events: auto;
   }
+  .primary-nav * {
+    pointer-events: none;
+  }
+  .primary-nav.is-open * {
+    pointer-events: auto;
+  }
   .phase-nav-list { flex-direction: column; gap: 0.85rem; }
   .nav-toggle { display: inline-flex; }
   .phase-tag { left: var(--edge); right: var(--edge); }
@@ -563,12 +623,6 @@ body.checkedbags-dashboard {
   background: var(--ink);
 }
 
-.member-nav {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
 .dashboard-main {
   padding-top: calc(var(--header-h) + 3rem);
   padding-bottom: 4rem;
@@ -581,6 +635,19 @@ body.checkedbags-dashboard {
 .dashboard-hero {
   text-align: center;
   margin-bottom: 3rem;
+}
+.dashboard-hero-pagelabel {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--coral);
+  border: 1px solid rgba(255,107,74,0.4);
+  border-radius: 999px;
+  padding: 0.3rem 0.9rem;
+  margin: 0 0 0.9rem;
 }
 .dashboard-hero-eyebrow {
   font-family: var(--font-mono);
@@ -694,6 +761,101 @@ body.checkedbags-dashboard {
 }
 
 /* ==========================================================================
+   Following page (/following/) -- same dark-card-on-light-page convention
+   as Gate 10's .board-row above, reused rather than inventing a new look.
+   ========================================================================== */
+.following-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.following-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  background: var(--horizon);
+  border: 1px solid rgba(232,169,78,0.25);
+  border-radius: 6px;
+  padding: 0.75rem 1.25rem;
+  text-decoration: none;
+  color: var(--sand);
+  transition: border-color 0.2s var(--ease-standard), transform 0.2s var(--ease-standard);
+}
+.following-list-item:hover {
+  border-color: var(--gold);
+  transform: translateX(4px);
+}
+.following-list-item img {
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.following-list-name {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.05rem;
+}
+
+/* ==========================================================================
+   Find Members (/members/) -- same dark-card-grid convention as the Gate
+   dashboard cards (.gate-grid/.gate-card), reused rather than inventing a
+   new look for a member directory.
+   ========================================================================== */
+.member-directory-search {
+  display: flex;
+  gap: 0.75rem;
+  max-width: 480px;
+  margin: 0 auto 2rem;
+}
+.member-directory-search input[type="search"] {
+  flex: 1;
+  padding: 0.6rem 0.9rem;
+  border-radius: 6px;
+  border: 1px solid rgba(22, 35, 43, 0.2);
+  font-family: var(--font-body);
+}
+.member-directory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+.member-directory-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--horizon);
+  border: 1px solid rgba(232,169,78,0.25);
+  border-radius: 6px;
+  padding: 1.5rem 1.25rem;
+  transition: transform 0.2s var(--ease-standard), border-color 0.2s var(--ease-standard);
+}
+.member-directory-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--gold);
+}
+.member-directory-card-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+}
+.member-directory-card-link img {
+  border-radius: 50%;
+}
+.member-directory-card-name {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.05rem;
+  color: var(--sand);
+  text-align: center;
+}
+
+/* ==========================================================================
    Gate 07 — Vacations (trip cards + detail)
    ========================================================================== */
 .trip-grid {
@@ -803,7 +965,11 @@ body.checkedbags-dashboard {
   padding: 0.5rem;
   border-radius: 4px;
   border: 1px solid rgba(251,243,231,0.3);
-  background: rgba(251,243,231,0.06);
+  /* background-color, not the `background` shorthand -- shorthand resets
+     background-image too, which silently wiped the sitewide select-arrow
+     icon (confirmed live: computed background-image came back "none" here
+     despite the base `select` rule setting it). */
+  background-color: rgba(251,243,231,0.06);
   color: var(--sand);
   font-family: var(--font-body);
 }
@@ -1250,7 +1416,10 @@ body.checkedbags-dashboard {
   padding: 0.5rem;
   border-radius: 4px;
   border: 1px solid rgba(251,243,231,0.3);
-  background: rgba(251,243,231,0.06);
+  /* background-color, not the `background` shorthand -- see the same note
+     on .cbv-intake-field above; shorthand here was silently wiping the
+     sitewide select-arrow icon's background-image. */
+  background-color: rgba(251,243,231,0.06);
   color: var(--sand);
   font-family: var(--font-body);
 }
@@ -1407,6 +1576,101 @@ body.checkedbags-dashboard {
   opacity: 1;
   color: var(--gold);
 }
+
+/* Nav dropdowns (My Profile / Navigation / Account) -- click-toggled via
+   app.js, not CSS :hover, so touch and desktop share one behavior. */
+.nav-dropdown {
+  position: relative;
+}
+.nav-dropdown-toggle {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sand);
+  opacity: 0.75;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: opacity 0.2s var(--ease-standard);
+}
+.nav-dropdown-toggle::after {
+  content: "";
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid currentColor;
+  opacity: 0.7;
+}
+.nav-dropdown-toggle:hover,
+.nav-dropdown-toggle:focus-visible,
+.nav-dropdown.is-open .nav-dropdown-toggle {
+  opacity: 1;
+  color: var(--gold);
+}
+.nav-dropdown-menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: none;
+}
+.nav-dropdown.is-open .nav-dropdown-menu {
+  display: block;
+}
+.nav-dropdown-menu a {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--sand);
+  opacity: 0.75;
+  transition: opacity 0.2s var(--ease-standard);
+}
+.nav-dropdown-menu a:hover,
+.nav-dropdown-menu a:focus-visible {
+  opacity: 1;
+  color: var(--gold);
+}
+@media (min-width: 861px) {
+  .nav-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 0.75rem);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink);
+    border: 1px solid rgba(232,169,78,0.25);
+    border-radius: 6px;
+    padding: 0.6rem 0;
+    min-width: 160px;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.3);
+    z-index: 20;
+  }
+  .nav-dropdown-menu li {
+    display: block;
+  }
+  .nav-dropdown-menu a {
+    display: block;
+    padding: 0.45rem 1rem;
+  }
+}
+@media (max-width: 860px) {
+  .nav-dropdown-menu {
+    padding-left: 1rem;
+    margin-top: 0.6rem;
+  }
+  .nav-dropdown.is-open .nav-dropdown-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+}
+
 .gate-main {
   padding-top: calc(var(--header-h) + 3rem);
   padding-bottom: 4rem;
@@ -1822,8 +2086,19 @@ body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
   margin-top: 0.5rem;
   width: 100%;
 }
-.dashboard-invite-url { margin: 0 0 0.5rem; }
+.dashboard-invite-url { margin: 0; }
 .dashboard-invite-qr { width: 140px; height: 140px; display: block; border-radius: 4px; }
+.dashboard-invite-link-row,
+.dashboard-invite-qr-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+.dashboard-copy-btn {
+  flex-shrink: 0;
+  padding: 0.4rem 0.75rem;
+}
 
 .dashboard-upgrade-cta {
   background: var(--horizon);
@@ -2085,4 +2360,170 @@ body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
 }
 .cbv-checkbox-row .check-row {
   margin: 0;
+}
+
+/* ==========================================================================
+   Member Profile (/user/{nicename}/) -- restyles Ultimate Member's own
+   header markup rather than replacing it (see checkedbags-member-profile-
+   hooks.php). Avatar centered, overlapping the top of the cover banner --
+   deliberately not a Facebook-style bottom-left overlap; this profile
+   should operate like one (Feed = home, Profile = hub), not look like one.
+   ========================================================================== */
+.um {
+  max-width: 720px;
+  margin: 0 auto;
+}
+.um-cover {
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--horizon);
+}
+.um-cover-e {
+  border-radius: 12px;
+  overflow: hidden;
+}
+/* .um-cover and .um-header are siblings, not parent/child (confirmed in
+   UM's own templates/profile.php -- two separate do_action calls) -- the
+   overlap is a normal-flow negative margin pulling .um-header up over the
+   cover's bottom edge, not absolute positioning against it. */
+.um-header {
+  position: relative;
+  z-index: 2;
+  margin-top: -90px;
+  text-align: center;
+}
+/* !important below: UM's own CSS (um-profile.min.css etc.) is enqueued
+   after ours and sets display/float/position on this exact class, so a
+   plain override loses on source order despite equal specificity --
+   confirmed live via computed style, not assumed. */
+.um-profile-photo {
+  display: inline-block !important;
+  float: none !important;
+  position: relative !important;
+  width: 190px !important;
+  height: 190px !important;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4px solid var(--sand);
+  box-shadow: 0 4px 16px rgba(22, 35, 43, 0.25);
+}
+.um-profile-photo img {
+  border-radius: 50%;
+  display: block;
+}
+/* UM's own markup wraps the photo in an <a class="um-profile-photo-img">
+   that UM's stylesheet positions with `top: -105px` -- a default meant for
+   UM's own header layout, not ours. Left alone, it shifts the real photo
+   up out of the circle's clip window, leaving the top of the circle empty
+   and cropping the bottom of the source image out of view. Reset to fill
+   the circle exactly (confirmed live via computed style, not assumed). */
+.um-header .um-profile-photo-img {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 190px !important;
+  height: 190px !important;
+}
+.um-header .um-title,
+.um-header h1 {
+  text-align: center;
+}
+.cb-member-since {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin: 0.25rem 0 1rem;
+}
+.member-profile-follow-btn {
+  display: block;
+  margin: 0 auto 1.5rem;
+}
+/* UM's own membership-status badge ("account status is Undefined") reflects
+   internal enum values our custom registration flow doesn't set -- not
+   useful to a viewer, hidden rather than left showing "Undefined". */
+.um-profile-status {
+  display: none;
+}
+.um-profile-navbar {
+  max-width: 720px;
+  margin: 0 auto;
+  justify-content: center;
+}
+
+.member-profile-composer {
+  max-width: 720px;
+  margin: 0 auto 1.5rem;
+  padding: 1rem;
+  border: 1px solid rgba(22, 35, 43, 0.12);
+  border-radius: 12px;
+}
+.member-profile-composer-text {
+  width: 100%;
+  resize: vertical;
+  font-family: var(--font-body);
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid rgba(22, 35, 43, 0.2);
+}
+.member-profile-composer-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.6rem;
+}
+.member-profile-composer-result {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
+.member-profile-timeline {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.member-profile-post {
+  padding: 1rem;
+  border: 1px solid rgba(22, 35, 43, 0.12);
+  border-radius: 12px;
+}
+.member-profile-post-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.member-profile-post-header img {
+  border-radius: 50%;
+}
+.member-profile-post-byline {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.member-profile-post-author {
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--ink);
+}
+.member-profile-post-date {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  opacity: 0.6;
+}
+.member-profile-post-delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.5;
+  padding: 0.25rem;
+}
+.member-profile-post-delete:hover {
+  opacity: 1;
+  color: var(--coral);
+}
+.member-profile-post-content {
+  margin: 0.75rem 0 0;
+  white-space: pre-line;
 }

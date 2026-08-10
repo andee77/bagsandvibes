@@ -272,11 +272,17 @@ function cb_trip_meets_minimum_group_size( $trip_id ) {
 // Client Proposal / Internal Data Sheet PDF itemized invoice tables
 // (Piece 5), so the two can never drift apart on the math.
 function cb_pricing_occupancy_point_total( $point ) {
-	return (float) ( $point['voyage_fare'] ?? 0 )
+	$total = (float) ( $point['voyage_fare'] ?? 0 )
 		+ (float) ( $point['taxes_fees'] ?? 0 )
 		+ (float) ( $point['gratuities'] ?? 0 )
 		+ (float) ( $point['insurance'] ?? 0 )
 		- (float) ( $point['discount'] ?? 0 );
+
+	// Defensive floor -- a discount entered larger than the base cost would
+	// otherwise produce a negative total, which then displays publicly on
+	// Gate 07's price range. Doesn't fix bad data already entered on a real
+	// trip, only prevents the display bug going forward.
+	return max( 0.0, $total );
 }
 
 function cb_trip_get_price_range( $trip_id ) {

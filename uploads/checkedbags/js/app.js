@@ -24,4 +24,45 @@
       }
     });
   });
+
+  // Nav dropdowns (My Profile / Navigation / Account) -- click-toggled, not
+  // hover, so touch and desktop behave the same and there's no hover/focus
+  // edge cases to fight. Same is-open + aria-expanded pattern as the
+  // hamburger toggle above.
+  var dropdowns = nav.querySelectorAll(".nav-dropdown");
+
+  function closeAllDropdowns() {
+    dropdowns.forEach(function (d) {
+      d.classList.remove("is-open");
+      var b = d.querySelector(".nav-dropdown-toggle");
+      if (b) {
+        b.setAttribute("aria-expanded", "false");
+      }
+    });
+  }
+
+  dropdowns.forEach(function (dropdown) {
+    var btn = dropdown.querySelector(".nav-dropdown-toggle");
+    if (!btn) {
+      return;
+    }
+
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var wasOpen = dropdown.classList.contains("is-open");
+      closeAllDropdowns();
+      if (!wasOpen) {
+        dropdown.classList.add("is-open");
+        btn.setAttribute("aria-expanded", "true");
+      }
+    });
+  });
+
+  document.addEventListener("click", closeAllDropdowns);
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+      closeAllDropdowns();
+    }
+  });
 })();

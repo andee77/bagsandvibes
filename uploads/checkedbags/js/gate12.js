@@ -10,6 +10,26 @@
     return Array.prototype.map.call(boxes, function (b) { return b.value; });
   }
 
+  // Airline "Other" reveal -- shared markup from cbv_render_airline_field()
+  // (also used by Per-Traveler Intake), so this same block covers any future
+  // airline field added to this form.
+  function airlineValue(selectId) {
+    var select = document.getElementById(selectId);
+    if (!select) { return ''; }
+    if (select.value === 'Other') {
+      var other = document.getElementById(selectId + '-other');
+      return other ? other.value : '';
+    }
+    return select.value;
+  }
+  document.querySelectorAll('.cbv-airline-select').forEach(function (select) {
+    var other = document.getElementById(select.id + '-other');
+    if (!other) { return; }
+    select.addEventListener('change', function () {
+      other.style.display = (select.value === 'Other') ? '' : 'none';
+    });
+  });
+
   document.addEventListener('submit', function (e) {
 
     if (e.target.id === 'cb-trip-request-form') {
@@ -48,7 +68,7 @@
         type: (checkedValues('transport_modes')[0] || 'Other'),
 
         // Air Travel
-        airline_preference: val('req-airline-preference'),
+        airline_preference: airlineValue('req-airline-preference'),
         seat_preference: checkedValues('seat_preference'),
 
         // Cruise Vacation

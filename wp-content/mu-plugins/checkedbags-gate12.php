@@ -560,13 +560,30 @@ add_shortcode( 'cb_gate_requests', function () {
 		</div>
 	<?php endforeach; ?>
 
+	<?php
+	// Prefill the Group Leader's own identity fields -- name/phone read the
+	// same Travel Profile meta keys as cbv_render_travel_profile (falling
+	// back to the name captured at registration if Travel Profile hasn't
+	// been filled out yet); email is always available directly from the
+	// account, no fallback needed.
+	$cbv_organizer_user   = get_userdata( $user_id );
+	$cbv_organizer_name   = trim( get_user_meta( $user_id, '_first_name', true ) . ' ' . get_user_meta( $user_id, '_last_name', true ) );
+	if ( '' === $cbv_organizer_name && $cbv_organizer_user ) {
+		$cbv_organizer_name = trim( $cbv_organizer_user->first_name . ' ' . $cbv_organizer_user->last_name );
+	}
+	if ( '' === $cbv_organizer_name && $cbv_organizer_user ) {
+		$cbv_organizer_name = $cbv_organizer_user->display_name;
+	}
+	$cbv_organizer_email = $cbv_organizer_user ? $cbv_organizer_user->user_email : '';
+	$cbv_organizer_phone = get_user_meta( $user_id, '_phone', true );
+	?>
 	<form id="cb-trip-request-form" class="trip-request-form">
 
 		<fieldset>
 			<legend>Group Leader</legend>
-			<label>Your name <input type="text" id="req-organizer-name"></label>
-			<label>Email <input type="email" id="req-organizer-email"></label>
-			<label>Phone <input type="tel" id="req-organizer-phone"></label>
+			<label>Your name <input type="text" id="req-organizer-name" value="<?php echo esc_attr( $cbv_organizer_name ); ?>"></label>
+			<label>Email <input type="email" id="req-organizer-email" value="<?php echo esc_attr( $cbv_organizer_email ); ?>"></label>
+			<label>Phone <input type="tel" id="req-organizer-phone" value="<?php echo esc_attr( $cbv_organizer_phone ); ?>"></label>
 			<label>Your role <select id="req-organizer-role">
 				<option>Birthday Host</option><option>Family Reunion Planner</option>
 				<option>Corporate Lead</option><option>Friend Group Lead</option><option>Other</option>
@@ -596,7 +613,7 @@ add_shortcode( 'cb_gate_requests', function () {
 
 		<fieldset>
 			<legend>Destination &amp; Timing</legend>
-			<label>Where (specific place, or general vibe) <input type="text" id="req-destination" required placeholder="e.g. Amalfi Coast, or 'warm Caribbean beach'"></label>
+			<label>Where (specific place, or general vibe) <span class="cbv-required" aria-hidden="true">*</span> <input type="text" id="req-destination" required placeholder="e.g. Amalfi Coast, or 'warm Caribbean beach'"></label>
 			<label>Dates <select id="req-date-flexibility">
 				<option value="Fixed dates">Fixed dates</option>
 				<option value="Flexible window">Flexible window</option>
@@ -629,7 +646,7 @@ add_shortcode( 'cb_gate_requests', function () {
 
 		<fieldset id="req-section-air" class="req-conditional-section" style="display:none;">
 			<legend>Air Travel</legend>
-			<label>Airline preference / frequent flyer programs <input type="text" id="req-airline-preference"></label>
+			<?php cbv_render_airline_field( 'req-airline-preference', 'Airline preference' ); ?>
 			<p class="requests-check-group-label">Seat preference (check all that apply):</p>
 			<label class="check-row"><input type="checkbox" name="seat_preference" value="Economy"> Economy</label>
 			<label class="check-row"><input type="checkbox" name="seat_preference" value="Extra Leg Room/Premium"> Extra Leg Room/Premium</label>

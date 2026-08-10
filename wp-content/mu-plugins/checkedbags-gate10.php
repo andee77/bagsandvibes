@@ -75,6 +75,7 @@ add_action( 'cb_trip_status_changed', function ( $trip_id, $old_status, $new_sta
 	$forum_id = bbp_insert_forum( array(
 		'post_title'   => get_the_title( $trip_id ) . ' — Trip Board',
 		'post_content' => 'Planning chatter, carpooling, roommate matching for this trip.',
+		'post_status'  => bbp_get_hidden_status_id(), // engages bbPress's own native forum/topic/reply 404 gate; the map_meta_cap filter below still makes the actual per-user decision. The Lounge (cb_ensure_lounge_forum() above) is deliberately NOT changed -- it stays public/open.
 	) );
 
 	if ( $forum_id ) {
@@ -246,3 +247,48 @@ add_filter( 'map_meta_cap', function ( $caps, $cap, $user_id, $args ) {
 
 	return array( 'do_not_allow' );
 }, 20, 4 );
+
+/* ==========================================================================
+   7. bbPress's own hidden-forum query exclusion -- a separate gate from the
+      map_meta_cap filter above, and the one that actually mattered once trip
+      boards were switched to hidden status: bbp_get_excluded_forum_ids()
+      (includes/forums/functions.php) builds its exclusion list purely from
+      the blanket read_hidden_forums ROLE capability -- which no normal
+      member has, not even a roster member of the trip -- and applies it as
+      a post__not_in / meta_query filter on every forum, topic, and reply
+      query site-wide, via pre_get_posts, before map_meta_cap is ever
+      consulted. Confirmed live: after trip boards went hidden, even a
+      roster member's own board 404'd, because bbPress excluded it from the
+      query before our per-forum decision could run.
+
+      Same fix as checkedbags-member-wall.php's matching hook: bbPress ships
+      the 'bbp_get_excluded_forum_ids' filter for exactly this -- it's the
+      same one bbp_allow_forums_of_user() uses to let a per-forum moderator
+      see one specific hidden forum despite lacking the blanket role cap
+      (includes/core/filters.php:305). The Lounge never appears in this list
+      (it's never hidden), so it needs no handling here.
+   ========================================================================== */
+add_filter( 'bbp_get_excluded_forum_ids', function ( $forum_ids ) {
+	if ( empty( $forum_ids ) ) {
+		return $forum_ids;
+	}
+
+	$user_id = get_current_user_id();
+
+	foreach ( $forum_ids as $key => $forum_id ) {
+		if ( function_exists( 'cb_wall_forum_owner_id' ) && cb_wall_forum_owner_id( $forum_id ) ) {
+			continue; // wall forums are a separate, independent gate
+		}
+
+		$trip_id = cb_gate10_forum_trip_id( $forum_id );
+		if ( ! $trip_id ) {
+			continue; // not a recognized trip forum
+		}
+
+		if ( in_array( $user_id, cb_trip_get_roster( $trip_id ), true ) || user_can( $user_id, 'moderate' ) ) {
+			unset( $forum_ids[ $key ] );
+		}
+	}
+
+	return array_values( $forum_ids );
+} );
