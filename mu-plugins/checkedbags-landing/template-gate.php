@@ -125,6 +125,7 @@ $cb_current_gate = isset( $cb_gate_page_config[ get_the_ID() ] ) ? $cb_gate_page
       <a href="https://bagsandvibes.com/privacy-policy/">Privacy</a>
       <a href="https://bagsandvibes.com/terms-of-service/">Terms</a>
       <a href="https://bagsandvibes.com/contact/">Contact</a>
+      <a href="https://bagsandvibes.com/payment-disclaimer/">Payment Disclaimer</a>
     </nav>
     <div class="footer-meta">
       <p>&copy; 2026 JourneyWell Global LLC. All rights reserved.</p>

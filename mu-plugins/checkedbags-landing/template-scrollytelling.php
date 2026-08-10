@@ -56,6 +56,7 @@ if ( ! defined( 'ABSPATH' ) ) {
         <li><a href="https://bagsandvibes.com/privacy-policy/">Privacy</a></li>
         <li><a href="https://bagsandvibes.com/terms-of-service/">Terms</a></li>
         <li><a href="https://bagsandvibes.com/contact/">Contact</a></li>
+        <li><a href="https://bagsandvibes.com/payment-disclaimer/">Payment Disclaimer</a></li>
       </ul>
       <?php endif; ?>
       <a href="https://bagsandvibes.com/login/" class="btn btn-ghost btn-signin">Members Sign In</a>
@@ -86,6 +87,7 @@ endif;
       <a href="https://bagsandvibes.com/privacy-policy/">Privacy</a>
       <a href="https://bagsandvibes.com/terms-of-service/">Terms</a>
       <a href="https://bagsandvibes.com/contact/">Contact</a>
+      <a href="https://bagsandvibes.com/payment-disclaimer/">Payment Disclaimer</a>
     </nav>
 
     <div class="footer-meta">

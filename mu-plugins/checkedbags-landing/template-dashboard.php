@@ -219,6 +219,7 @@ $needs_profile_nudge = function_exists( 'cbv_user_profile_is_complete' )
       <a href="https://bagsandvibes.com/privacy-policy/">Privacy</a>
       <a href="https://bagsandvibes.com/terms-of-service/">Terms</a>
       <a href="https://bagsandvibes.com/contact/">Contact</a>
+      <a href="https://bagsandvibes.com/payment-disclaimer/">Payment Disclaimer</a>
     </nav>
 
     <div class="footer-meta">
