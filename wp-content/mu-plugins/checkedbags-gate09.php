@@ -353,7 +353,9 @@ function cb_verify_stripe_signature( $payload, $sig_header, $secret ) {
 }
 
 /* ==========================================================================
-   4. Shortcode: [cb_gate_payments] — balance, history, pay buttons.
+   4. Shortcode: [cb_gate_payments] — Section 6 redesign: Payment Disclaimer
+      gate, per-trip CBGV Fee / Travel Payment status cards (grid of 3),
+      Schedule Appointment (page-level + per-card), Exchange Rates.
    ========================================================================== */
 add_shortcode( 'cb_gate_payments', function () {
 
@@ -362,6 +364,13 @@ add_shortcode( 'cb_gate_payments', function () {
 	}
 
 	$user_id = get_current_user_id();
+
+	// Disclaimer gate: full text + checkbox, nothing else on the page, until
+	// accepted -- "Continue to Payments" on the banner's own button implies
+	// exactly that, not just a banner sitting above visible content.
+	if ( ! function_exists( 'cbv_user_needs_payment_disclaimer_reaccept' ) || cbv_user_needs_payment_disclaimer_reaccept( $user_id ) ) {
+		return function_exists( 'cbv_render_payment_disclaimer_banner' ) ? cbv_render_payment_disclaimer_banner( $user_id ) : '';
+	}
 
 	$trips = get_posts( array(
 		'post_type'   => 'cb_trip',
@@ -375,47 +384,123 @@ add_shortcode( 'cb_gate_payments', function () {
 		return in_array( $user_id, cb_trip_get_roster( $t->ID ), true );
 	} );
 
+	ob_start();
+
+	echo cbv_render_payment_disclaimer_banner( $user_id );
+	?>
+	<div class="cbv-payments-page-header">
+		<p class="cb-page-hint">Track your CBGV Commitment Fee and Travel Payment status for each trip you&#8217;re part of.</p>
+		<button type="button" class="btn btn-ghost cbv-schedule-appt-btn" data-trip-id="0" data-trip-title="">
+			Schedule Appointment <i class="ti ti-calendar" aria-hidden="true"></i>
+		</button>
+	</div>
+	<?php
+
 	if ( empty( $my_trips ) ) {
-		return '<p class="cb-empty">You\'re not on any trips with payments due yet.</p>';
+		echo '<p class="cb-empty">You\'re not on any trips with payments due yet.</p>';
+	} else {
+		?>
+		<div class="cbv-payment-cards-grid">
+		<?php foreach ( $my_trips as $trip ) :
+			$fee_total = cb_trip_cbgv_fee_total( $trip->ID );
+			$balance   = cb_trip_balance_due( $trip->ID, $user_id );
+			$paid      = cb_trip_amount_paid( $trip->ID, $user_id );
+			$next_amt  = cb_trip_next_payment_amount( $trip->ID, $user_id );
+			$history   = cb_trip_payments_for_user( $trip->ID, $user_id );
+			$due_date  = get_post_meta( $trip->ID, 'cb_next_payment_due_date', true );
+			$extras    = (float) get_post_meta( $trip->ID, 'cb_extras_cost', true );
+			$price     = (float) get_post_meta( $trip->ID, 'cb_price', true );
+			$appt      = function_exists( 'cbv_get_latest_appointment_request' ) ? cbv_get_latest_appointment_request( $user_id, $trip->ID ) : null;
+			$detail_id = 'cbv-payment-detail-' . $trip->ID;
+			?>
+			<div class="cbv-payment-card" data-trip-id="<?php echo esc_attr( $trip->ID ); ?>">
+				<h3 class="cbv-payment-card-title"><?php echo esc_html( get_the_title( $trip ) ); ?></h3>
+
+				<div class="cbv-payment-card-row">
+					<span class="cbv-payment-card-label">CBGV Commitment Fee</span>
+					<span class="cbv-payment-card-value">
+						<?php if ( $balance > 0 ) : ?>
+							$<?php echo esc_html( number_format( $paid, 2 ) ); ?> of $<?php echo esc_html( number_format( $fee_total, 2 ) ); ?>
+						<?php else : ?>
+							Paid in full <i class="ti ti-check" aria-hidden="true"></i>
+						<?php endif; ?>
+					</span>
+				</div>
+
+				<div class="cbv-payment-card-row">
+					<span class="cbv-payment-card-label">Travel Payment</span>
+					<span class="cbv-payment-card-value"><?php echo esc_html( $appt ? cbv_appointment_status_label( $appt['status'] ) : 'Not yet scheduled' ); ?></span>
+				</div>
+
+				<?php if ( cb_trip_allows_installments( $trip->ID ) && $due_date ) : ?>
+				<div class="cbv-payment-card-row">
+					<span class="cbv-payment-card-label">Next payment due</span>
+					<span class="cbv-payment-card-value"><?php echo esc_html( date_i18n( 'M j, Y', strtotime( $due_date ) ) ); ?></span>
+				</div>
+				<?php endif; ?>
+
+				<div class="cbv-payment-card-actions">
+					<?php if ( $balance > 0 ) : ?>
+						<button class="btn btn-ticket cb-pay-btn" data-trip-id="<?php echo esc_attr( $trip->ID ); ?>">
+							Pay $<?php echo esc_html( number_format( $next_amt, 2 ) ); ?><?php echo cb_trip_allows_installments( $trip->ID ) && $next_amt < $balance ? ' (installment)' : ''; ?>
+						</button>
+					<?php endif; ?>
+					<button type="button" class="btn btn-ghost cbv-schedule-appt-btn" data-trip-id="<?php echo esc_attr( $trip->ID ); ?>" data-trip-title="<?php echo esc_attr( get_the_title( $trip ) ); ?>">
+						Schedule Appointment
+					</button>
+				</div>
+
+				<button type="button" class="cbv-payment-card-toggle" data-target="<?php echo esc_attr( $detail_id ); ?>">
+					View details <i class="ti ti-chevron-down" aria-hidden="true"></i>
+				</button>
+
+				<div class="cbv-payment-card-detail" id="<?php echo esc_attr( $detail_id ); ?>" hidden>
+					<p class="cbv-payment-detail-line">Price per person: $<?php echo esc_html( number_format( $price, 2 ) ); ?></p>
+					<?php if ( $extras > 0 ) : ?>
+						<p class="cbv-payment-detail-line">Extras: $<?php echo esc_html( number_format( $extras, 2 ) ); ?></p>
+					<?php endif; ?>
+					<p class="cbv-payment-detail-line"><strong>CBGV Commitment Fee total: $<?php echo esc_html( number_format( $fee_total, 2 ) ); ?></strong></p>
+
+					<?php if ( ! empty( $history ) ) : ?>
+						<h4>Payment history</h4>
+						<ul>
+							<?php foreach ( $history as $p ) : ?>
+								<li>$<?php echo esc_html( number_format( (float) $p['amount'], 2 ) ); ?> — <?php echo esc_html( date_i18n( 'M j, Y', strtotime( $p['date'] ) ) ); ?></li>
+							<?php endforeach; ?>
+						</ul>
+					<?php else : ?>
+						<p class="cb-empty">No CBGV Commitment Fee payments recorded yet.</p>
+					<?php endif; ?>
+
+					<?php if ( $appt ) : ?>
+						<h4>Travel Payment appointment</h4>
+						<p>Requested for &#8220;<?php echo esc_html( $appt['preferred_time'] ); ?>&#8221; — status: <?php echo esc_html( cbv_appointment_status_label( $appt['status'] ) ); ?></p>
+					<?php endif; ?>
+				</div>
+			</div>
+		<?php endforeach; ?>
+		</div>
+		<?php
 	}
 
-	ob_start();
+	echo function_exists( 'cbv_render_exchange_rates_section' ) ? cbv_render_exchange_rates_section() : '';
 	?>
-	<p class="cb-page-hint">Track what you owe, what&#8217;s been paid, and upcoming due dates for each trip you&#8217;re part of.</p>
-	<?php
-	foreach ( $my_trips as $trip ) :
-		$balance  = cb_trip_balance_due( $trip->ID, $user_id );
-		$next_amt = cb_trip_next_payment_amount( $trip->ID, $user_id );
-		$history  = cb_trip_payments_for_user( $trip->ID, $user_id );
-		$paid     = cb_trip_amount_paid( $trip->ID, $user_id );
-		?>
-		<div class="payment-card">
-			<h3 class="payment-card-title"><?php echo esc_html( get_the_title( $trip ) ); ?></h3>
-			<div class="payment-card-balance">
-				<span class="payment-card-balance-label">Balance due</span>
-				<span class="payment-card-balance-amount">$<?php echo esc_html( number_format( $balance, 2 ) ); ?></span>
-			</div>
-			<?php if ( $balance > 0 ) : ?>
-				<button class="btn btn-ticket cb-pay-btn" data-trip-id="<?php echo esc_attr( $trip->ID ); ?>">
-					Pay $<?php echo esc_html( number_format( $next_amt, 2 ) ); ?><?php echo cb_trip_allows_installments( $trip->ID ) && $next_amt < $balance ? ' (installment)' : ''; ?>
-				</button>
-			<?php else : ?>
-				<span class="payment-card-paid-badge">Paid in full <i class="ti ti-check" aria-hidden="true"></i></span>
-			<?php endif; ?>
-
-			<?php if ( ! empty( $history ) ) : ?>
-			<div class="payment-history">
-				<h4>Payment history</h4>
-				<ul>
-					<?php foreach ( $history as $p ) : ?>
-						<li>$<?php echo esc_html( number_format( (float) $p['amount'], 2 ) ); ?> — <?php echo esc_html( date_i18n( 'M j, Y', strtotime( $p['date'] ) ) ); ?></li>
-					<?php endforeach; ?>
-				</ul>
-			</div>
-			<?php endif; ?>
+	<div class="cbv-schedule-appt-modal" id="cbv-schedule-appt-modal" hidden>
+		<div class="cbv-schedule-appt-modal-inner">
+			<button type="button" class="cbv-schedule-appt-close" aria-label="Close">&times;</button>
+			<h4 id="cbv-schedule-appt-modal-title">Schedule an Appointment</h4>
+			<p class="cb-page-hint">Tell us when works best and we&#8217;ll reach out to arrange your InteleTravel Travel Payment.</p>
+			<label>Preferred time
+				<input type="text" id="cbv-schedule-appt-time" placeholder="e.g. Weekday afternoons">
+			</label>
+			<label>Notes (optional)
+				<textarea id="cbv-schedule-appt-notes" rows="3"></textarea>
+			</label>
+			<button type="button" class="btn btn-ticket" id="cbv-schedule-appt-submit">Send Request</button>
+			<div id="cbv-schedule-appt-result"></div>
 		</div>
+	</div>
 	<?php
-	endforeach;
 	return ob_get_clean();
 } );
 

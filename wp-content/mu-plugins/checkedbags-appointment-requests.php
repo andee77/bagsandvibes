@@ -195,6 +195,40 @@ function cbv_render_appt_request_meta_box( $post ) {
 	<?php
 }
 
+/* ==========================================================================
+   4. Payment page card helper -- this member's most recent request for a
+      given trip (or a general/no-trip request when $trip_id is 0), so the
+      card can show a "Travel Payment" status instead of always the same
+      generic prompt.
+   ========================================================================== */
+function cbv_get_latest_appointment_request( $user_id, $trip_id ) {
+	$posts = get_posts( array(
+		'post_type'   => 'cb_appt_request',
+		'author'      => $user_id,
+		'numberposts' => 1,
+		'orderby'     => 'date',
+		'order'       => 'DESC',
+		'meta_query'  => array(
+			array( 'key' => 'cbv_appt_trip_id', 'value' => (int) $trip_id ),
+		),
+	) );
+
+	if ( empty( $posts ) ) {
+		return null;
+	}
+
+	return array(
+		'status'         => get_post_meta( $posts[0]->ID, 'cbv_appt_status', true ) ?: 'new',
+		'preferred_time' => get_post_meta( $posts[0]->ID, 'cbv_appt_preferred_time', true ),
+		'date'           => $posts[0]->post_date,
+	);
+}
+
+function cbv_appointment_status_label( $status ) {
+	$labels = array( 'new' => 'Requested', 'contacted' => 'Advisor reached out', 'scheduled' => 'Scheduled', 'done' => 'Complete' );
+	return $labels[ $status ] ?? ucfirst( $status );
+}
+
 add_action( 'save_post_cb_appt_request', function ( $post_id ) {
 	if ( ! isset( $_POST['cbv_appt_nonce'] ) || ! wp_verify_nonce( $_POST['cbv_appt_nonce'], 'cbv_appt_save' ) ) {
 		return;

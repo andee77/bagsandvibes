@@ -2672,3 +2672,139 @@ body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
   color: var(--coral);
   font-size: 0.9rem;
 }
+
+/* ==========================================================================
+   Payment page redesign (Section 6, Piece E)
+   ========================================================================== */
+.cbv-payments-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.cbv-payment-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+@media (max-width: 1024px) {
+  .cbv-payment-cards-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .cbv-payment-cards-grid { grid-template-columns: 1fr; }
+}
+.cbv-payment-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  background: var(--horizon);
+  border: 1px solid rgba(232,169,78,0.25);
+  border-radius: 6px;
+  padding: 1.5rem;
+}
+.cbv-payment-card-title {
+  margin: 0 0 0.25rem;
+}
+.cbv-payment-card-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: rgba(251,243,231,0.85);
+  font-size: 0.9rem;
+}
+.cbv-payment-card-label {
+  opacity: 0.75;
+}
+.cbv-payment-card-value {
+  font-weight: 600;
+  text-align: right;
+}
+.cbv-payment-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+.cbv-payment-card-toggle {
+  background: none;
+  border: none;
+  color: var(--coral);
+  cursor: pointer;
+  padding: 0.25rem 0;
+  align-self: flex-start;
+  font-size: 0.85rem;
+}
+.cbv-payment-card-toggle.is-open i {
+  transform: rotate(180deg);
+}
+.cbv-payment-card-toggle i {
+  transition: transform 0.15s ease;
+}
+.cbv-payment-card-detail {
+  border-top: 1px solid rgba(251,243,231,0.15);
+  padding-top: 0.75rem;
+  color: rgba(251,243,231,0.85);
+  font-size: 0.9rem;
+}
+.cbv-payment-detail-line {
+  margin: 0 0 0.35rem;
+}
+.cbv-payment-card-detail h4 {
+  margin: 0.75rem 0 0.35rem;
+}
+.cbv-payment-card-detail ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.cbv-schedule-appt-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+.cbv-schedule-appt-modal-inner {
+  background: var(--horizon);
+  border: 1px solid var(--coral);
+  border-radius: 6px;
+  padding: 1.5rem;
+  max-width: 420px;
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  color: rgba(251,243,231,0.9);
+}
+.cbv-schedule-appt-modal-inner label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+}
+.cbv-schedule-appt-modal-inner input,
+.cbv-schedule-appt-modal-inner textarea {
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid rgba(251,243,231,0.3);
+  background: rgba(0,0,0,0.2);
+  color: #fff;
+}
+.cbv-schedule-appt-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: rgba(251,243,231,0.8);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
