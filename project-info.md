@@ -97,3 +97,21 @@ A successful response includes "success":true in the JSON. Add this purge
 step to the standard deploy workflow: after scp/rsync to the live server,
 purge SiteGround, then purge Cloudflare, then tell the user to hard-refresh
 and check.
+
+## Standing Workflow Rule — commit, deploy, verify, purge, push
+
+As of 2026-08-11, every piece of work on this project follows one complete
+cycle, done automatically without waiting for separate go-ahead each time:
+
+  1. Commit the change (with a normal descriptive commit message).
+  2. Deploy to the live server (scp/rsync, per the mapping above).
+  3. Checksum-verify local vs. remote (sha256sum both sides, confirm MATCH).
+  4. Lint (php -l on the live server for any PHP file changed).
+  5. Purge SiteGround cache (wp sg purge).
+  6. Purge Cloudflare cache (see above, with --ssl-no-revoke).
+  7. Push to origin/main.
+
+Showing diffs before deploying (or batching several small diffs for one
+review) is still expected, same as always — this rule just means the push
+step is no longer a separate ask-first action; it's folded into the same
+cycle as the deploy + purge steps once the diff itself has been shown.
