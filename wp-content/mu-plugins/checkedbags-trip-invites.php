@@ -285,7 +285,13 @@ add_action( 'init', function () {
  * invalidates a link already shared with someone.
  */
 function cbv_get_or_create_invite_token( $user_id, $trip_id ) {
-	if ( ! in_array( (int) $user_id, cb_trip_get_roster( $trip_id ), true ) ) {
+	// Admin bypass: a support/administrative action (e.g. regenerating a
+	// lost invite link for a client), not something requiring genuine
+	// travel -- same "not on roster, but an admin" carve-out as
+	// cbv_user_can_view_trip().
+	$has_access = in_array( (int) $user_id, cb_trip_get_roster( $trip_id ), true )
+		|| user_can( $user_id, 'manage_options' );
+	if ( ! $has_access ) {
 		return new WP_Error( 'cbv_no_access', 'You need access to this trip before you can invite others to it.' );
 	}
 
@@ -985,10 +991,16 @@ function cbv_user_needs_trip_agreement_reaccept( $user_id, $trip_id ) {
  * (Phase 6) is deliberately exempt from the agreement half of this check —
  * roster membership alone is enough for that, since it's meant to inform
  * the decision, not reward it.
+ *
+ * Admin bypass: an admin gets full view access to every trip WITHOUT being
+ * added to cb_roster -- but only when they're not actually on it. A roster
+ * member who happens to be an admin still goes through the normal rules
+ * below (including the agreement check), same as any other traveler.
  */
 function cbv_user_can_view_trip( $user_id, $trip_id ) {
-	if ( ! in_array( (int) $user_id, cb_trip_get_roster( $trip_id ), true ) ) {
-		return false;
+	$on_roster = in_array( (int) $user_id, cb_trip_get_roster( $trip_id ), true );
+	if ( ! $on_roster ) {
+		return user_can( $user_id, 'manage_options' );
 	}
 	return ! cbv_user_needs_trip_agreement_reaccept( $user_id, $trip_id );
 }
@@ -1643,7 +1655,10 @@ add_action( 'rest_api_init', function () {
 			$user_id       = get_current_user_id();
 			$attachment_id = (int) $request->get_param( 'attachment_id' );
 
-			if ( ! in_array( $user_id, cb_trip_get_roster( $trip_id ), true ) ) {
+			// Admin bypass: cover photo is a trip-level management setting any
+			// roster member can already change, not personal traveler data --
+			// same "not on roster, but an admin" carve-out used elsewhere.
+			if ( ! in_array( $user_id, cb_trip_get_roster( $trip_id ), true ) && ! user_can( $user_id, 'manage_options' ) ) {
 				return new WP_Error( 'cbv_no_access', 'You need access to this trip to change its cover photo.', array( 'status' => 403 ) );
 			}
 			if ( ! $attachment_id || ! wp_get_attachment_image_url( $attachment_id, 'thumbnail' ) ) {
@@ -1677,7 +1692,10 @@ add_action( 'rest_api_init', function () {
 			$trip_id = (int) $request['id'];
 			$user_id = get_current_user_id();
 
-			if ( ! in_array( $user_id, cb_trip_get_roster( $trip_id ), true ) ) {
+			// Admin bypass: cover photo is a trip-level management setting any
+			// roster member can already change, not personal traveler data --
+			// same "not on roster, but an admin" carve-out used elsewhere.
+			if ( ! in_array( $user_id, cb_trip_get_roster( $trip_id ), true ) && ! user_can( $user_id, 'manage_options' ) ) {
 				return new WP_Error( 'cbv_no_access', 'You need access to this trip to change its cover photo.', array( 'status' => 403 ) );
 			}
 

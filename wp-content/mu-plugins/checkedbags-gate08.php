@@ -203,7 +203,12 @@ add_shortcode( 'cb_gate_gallery', function () {
 
 		if ( $on_roster ) {
 			$my_trips[] = $trip;
-		} elseif ( $privacy === 'public' ) {
+		} elseif ( $privacy === 'public' || user_can( $user_id, 'manage_options' ) ) {
+			// Admin bypass: a private gallery would otherwise be invisible
+			// here entirely, not even listed as viewable, for anyone not on
+			// its roster -- deliberately still bucketed under "Other Trips"
+			// (not "Your Trips") and still rendered with $can_upload=false
+			// below, so this only grants viewing, never upload.
 			$public_trips[] = $trip;
 		}
 	}

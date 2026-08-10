@@ -111,7 +111,11 @@ add_shortcode( 'cb_gate_boards', function () {
 			'meta_value'  => 'active',
 		) ),
 		function ( $t ) use ( $user_id ) {
-			return in_array( $user_id, cb_trip_get_roster( $t->ID ), true );
+			// Admin bypass, matching the map_meta_cap/exclusion-list bypass
+			// below (section 6/7) -- those already grant an admin read
+			// access to every trip board via the 'moderate' cap, but that's
+			// moot if the board's link never appears here to click.
+			return in_array( $user_id, cb_trip_get_roster( $t->ID ), true ) || user_can( $user_id, 'moderate' );
 		}
 	);
 

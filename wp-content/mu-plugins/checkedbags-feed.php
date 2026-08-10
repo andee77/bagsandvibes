@@ -163,7 +163,11 @@ function cb_feed_user_can_view_forum( $forum_id, $user_id ) {
 		return false;
 	}
 
-	return in_array( (int) $user_id, cb_trip_get_roster( $trip_ids[0] ), true );
+	// Same admin bypass as the other two copies of this logic
+	// (checkedbags-gate10.php's map_meta_cap and bbp_get_excluded_forum_ids
+	// filters) -- this file's own comment above already flags this as the
+	// third divergent copy; it was missing the bypass the other two have.
+	return in_array( (int) $user_id, cb_trip_get_roster( $trip_ids[0] ), true ) || user_can( $user_id, 'moderate' );
 }
 
 /**

@@ -265,7 +265,16 @@ add_filter( 'the_content', function ( $content ) {
 	// then this trip's own agreement — being logged in alone used to be
 	// enough to see any trip's full roster/packing notes/request details,
 	// regardless of whether the viewer was actually on that trip.
-	if ( ! in_array( $viewer_id, cb_trip_get_roster( $post->ID ), true ) ) {
+	//
+	// Admin bypass: an admin gets full view access to every trip WITHOUT
+	// being added to cb_roster -- but only when they're not genuinely on
+	// it. $on_roster (not this bypass) is what everything below keys off
+	// of for anything that should stay roster-only (the agreement
+	// re-accept requirement, the Per-Traveler Intake form).
+	$on_roster    = in_array( $viewer_id, cb_trip_get_roster( $post->ID ), true );
+	$admin_bypass = ! $on_roster && user_can( $viewer_id, 'manage_options' );
+
+	if ( ! $on_roster && ! $admin_bypass ) {
 		return $content . '<p class="cb-empty">You don&#8217;t have access to this trip&#8217;s details yet — join it from <a href="' . esc_url( home_url( '/gate-07-pre-planned-vacations/' ) ) . '">All Planned Vacations</a> first.</p>';
 	}
 
@@ -285,9 +294,17 @@ add_filter( 'the_content', function ( $content ) {
 	// Per-Traveler Trip Intake (Phase 8c): same reasoning as the PDF above --
 	// roster membership is the gate, not agreement re-acceptance. Seat/cabin
 	// preference and the insurance decision aren't a legal-terms concern.
-	$intake_html = function_exists( 'cbv_render_traveler_intake_form' ) ? cbv_render_traveler_intake_form( $post->ID ) : '';
+	// Deliberately hidden entirely for an admin-bypass viewer who isn't
+	// genuinely on this trip -- filling out personal travel details doesn't
+	// make sense for a non-traveler, so $on_roster gates this, not just
+	// function_exists().
+	$intake_html = ( $on_roster && function_exists( 'cbv_render_traveler_intake_form' ) ) ? cbv_render_traveler_intake_form( $post->ID ) : '';
 
-	if ( cbv_user_needs_trip_agreement_reaccept( $viewer_id, $post->ID ) ) {
+	// The agreement re-accept requirement only ever applies to a genuine
+	// roster member -- an admin-bypass viewer skips straight through to
+	// full trip details regardless of their own (irrelevant) acceptance
+	// status for this trip.
+	if ( $on_roster && cbv_user_needs_trip_agreement_reaccept( $viewer_id, $post->ID ) ) {
 		return $content . $pdf_html . $intake_html . cbv_render_trip_agreement_prompt( $post->ID );
 	}
 
