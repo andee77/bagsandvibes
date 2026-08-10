@@ -976,6 +976,21 @@ body.checkedbags-dashboard {
 .cbv-intake-field a {
   color: var(--gold);
 }
+/* Required-field validation-error highlight (Trip Details item 7). On an
+   input/select/textarea this outlines the field itself; on a checkbox
+   group (no single element to outline sensibly) it's added to the whole
+   .cbv-intake-field wrapper instead, via a left accent bar. */
+.cbv-intake-field input.cbv-field-invalid,
+.cbv-intake-field select.cbv-field-invalid,
+.cbv-intake-field textarea.cbv-field-invalid {
+  border-color: var(--coral) !important;
+  box-shadow: 0 0 0 1px var(--coral);
+}
+.cbv-intake-field.cbv-field-invalid {
+  border-left: 3px solid var(--coral);
+  padding-left: 0.75rem;
+  margin-left: -0.75rem;
+}
 /* .cb-page-hint's sitewide default (var(--ink), for the light page
    background used on Gate 08/09/10/12/Feed/etc.) is unreadable here --
    this card is dark (var(--horizon) above). Same fix for the boilerplate

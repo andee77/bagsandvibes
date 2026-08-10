@@ -1922,12 +1922,12 @@ define( 'CBV_AIRLINES', array(
  * themselves, same as the existing cbv-intake-insurance-decision/waiver-row
  * pattern already does for a different field).
  */
-function cbv_render_airline_field( $id, $label, $current_value = '' ) {
+function cbv_render_airline_field( $id, $label, $current_value = '', $required = false ) {
 	$is_known = in_array( $current_value, CBV_AIRLINES, true );
 	$is_other = '' !== $current_value && ! $is_known;
 	?>
-	<label><?php echo esc_html( $label ); ?>
-		<select id="<?php echo esc_attr( $id ); ?>" class="cbv-airline-select">
+	<label><?php echo esc_html( $label ); ?> <?php if ( $required ) : ?><span class="cbv-required" aria-hidden="true">*</span><?php endif; ?>
+		<select id="<?php echo esc_attr( $id ); ?>" class="cbv-airline-select" <?php echo $required ? 'required' : ''; ?>>
 			<option value="">—</option>
 			<?php foreach ( CBV_AIRLINES as $airline ) : ?>
 				<option value="<?php echo esc_attr( $airline ); ?>" <?php selected( $is_other ? 'Other' : $current_value, $airline ); ?>><?php echo esc_html( $airline ); ?></option>
@@ -2513,17 +2513,17 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 		<?php if ( $show_air ) : ?>
 		<h4>Air Travel</h4>
 		<div class="cbv-intake-field cbv-intake-field-row">
-			<label>Seat preference
-				<select id="cbv-intake-seat-preference">
+			<label>Seat preference <span class="cbv-required" aria-hidden="true">*</span>
+				<select id="cbv-intake-seat-preference" required>
 					<option value="" <?php selected( $seat_pref, '' ); ?>>—</option>
 					<?php foreach ( CBV_SEAT_POSITIONS as $option ) : ?>
 						<option value="<?php echo esc_attr( $option ); ?>" <?php selected( $seat_pref, $option ); ?>><?php echo esc_html( $option ); ?></option>
 					<?php endforeach; ?>
 				</select>
 			</label>
-			<label>Departure airport <input type="text" id="cbv-intake-departure-airport" value="<?php echo esc_attr( $intake['departure_airport'] ?? '' ); ?>"></label>
-			<label>Flight cabin class
-				<select id="cbv-intake-flight-cabin-class">
+			<label>Departure airport <span class="cbv-required" aria-hidden="true">*</span> <input type="text" id="cbv-intake-departure-airport" required value="<?php echo esc_attr( $intake['departure_airport'] ?? '' ); ?>"></label>
+			<label>Flight cabin class <span class="cbv-required" aria-hidden="true">*</span>
+				<select id="cbv-intake-flight-cabin-class" required>
 					<option value="" <?php selected( $flight_cabin_class, '' ); ?>>—</option>
 					<?php foreach ( CBV_FLIGHT_CABIN_CLASSES as $option ) : ?>
 						<option value="<?php echo esc_attr( $option ); ?>" <?php selected( $flight_cabin_class, $option ); ?>><?php echo esc_html( $option ); ?></option>
@@ -2533,8 +2533,8 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 		</div>
 
 		<div class="cbv-intake-field cbv-intake-field-row">
-			<?php cbv_render_airline_field( 'cbv-intake-preferred-airline', 'Preferred airline', $intake['preferred_airline'] ?? '' ); ?>
-			<label>Frequent flyer / loyalty number <input type="text" id="cbv-intake-frequent-flyer-number" value="<?php echo esc_attr( $intake['frequent_flyer_number'] ?? '' ); ?>"></label>
+			<?php cbv_render_airline_field( 'cbv-intake-preferred-airline', 'Preferred airline', $intake['preferred_airline'] ?? '', true ); ?>
+			<label>Frequent flyer / loyalty number <span class="cbv-required" aria-hidden="true">*</span> <input type="text" id="cbv-intake-frequent-flyer-number" required value="<?php echo esc_attr( $intake['frequent_flyer_number'] ?? '' ); ?>"></label>
 		</div>
 		<?php endif; ?>
 
@@ -2542,59 +2542,59 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 		<h4>Cruise Vacation</h4>
 		<div class="cbv-intake-field">
 			<div class="cbv-intake-field-row">
-				<label>Cruise company <input type="text" id="cbv-intake-cruise-company" value="<?php echo esc_attr( $intake['cruise_company'] ?? '' ); ?>"></label>
-				<label>Cruise program number <input type="text" id="cbv-intake-cruise-program-number" value="<?php echo esc_attr( $intake['cruise_program_number'] ?? '' ); ?>"></label>
+				<label>Cruise company <span class="cbv-required" aria-hidden="true">*</span> <input type="text" id="cbv-intake-cruise-company" required value="<?php echo esc_attr( $intake['cruise_company'] ?? '' ); ?>"></label>
+				<label>Cruise program number <span class="cbv-required" aria-hidden="true">*</span> <input type="text" id="cbv-intake-cruise-program-number" required value="<?php echo esc_attr( $intake['cruise_program_number'] ?? '' ); ?>"></label>
 			</div>
 			<div class="cbv-intake-field-row">
-				<label>Cruise start date <input type="date" id="cbv-intake-cruise-start-date" value="<?php echo esc_attr( $intake['cruise_start_date'] ?? '' ); ?>"></label>
-				<label>Cruise end date <input type="date" id="cbv-intake-cruise-end-date" value="<?php echo esc_attr( $intake['cruise_end_date'] ?? '' ); ?>"></label>
+				<label>Cruise start date <span class="cbv-required" aria-hidden="true">*</span> <input type="date" id="cbv-intake-cruise-start-date" required value="<?php echo esc_attr( $intake['cruise_start_date'] ?? '' ); ?>"></label>
+				<label>Cruise end date <span class="cbv-required" aria-hidden="true">*</span> <input type="date" id="cbv-intake-cruise-end-date" required value="<?php echo esc_attr( $intake['cruise_end_date'] ?? '' ); ?>"></label>
 			</div>
 			<div class="cbv-intake-field-row">
-				<label>Cruise duration
-					<select id="cbv-intake-cruise-duration">
+				<label>Cruise duration <span class="cbv-required" aria-hidden="true">*</span>
+					<select id="cbv-intake-cruise-duration" required>
 						<option value="" <?php selected( $cruise_duration, '' ); ?>>—</option>
 						<?php foreach ( CBV_CRUISE_DURATIONS as $option ) : ?>
 							<option value="<?php echo esc_attr( $option ); ?>" <?php selected( $cruise_duration, $option ); ?>><?php echo esc_html( $option ); ?></option>
 						<?php endforeach; ?>
 					</select>
 				</label>
-				<label>Cruise region
-					<select id="cbv-intake-cruise-region">
+				<label>Cruise region <span class="cbv-required" aria-hidden="true">*</span>
+					<select id="cbv-intake-cruise-region" required>
 						<option value="" <?php selected( $cruise_region, '' ); ?>>—</option>
 						<?php cbv_render_optgroup_options( CBV_CRUISE_REGIONS, $cruise_region ); ?>
 					</select>
 				</label>
-				<label>Cruise departure port
-					<select id="cbv-intake-cruise-departure-port">
+				<label>Cruise departure port <span class="cbv-required" aria-hidden="true">*</span>
+					<select id="cbv-intake-cruise-departure-port" required>
 						<option value="" <?php selected( $cruise_departure_port, '' ); ?>>—</option>
 						<?php cbv_render_optgroup_options( CBV_CRUISE_DEPARTURE_PORTS, $cruise_departure_port ); ?>
 					</select>
 				</label>
 			</div>
 			<div class="cbv-intake-field-row">
-				<label>Pre/post cruise nights
-					<select id="cbv-intake-pre-post-cruise-nights">
+				<label>Pre/post cruise nights <span class="cbv-required" aria-hidden="true">*</span>
+					<select id="cbv-intake-pre-post-cruise-nights" required>
 						<option value="" <?php selected( $pre_post_nights, '' ); ?>>—</option>
 						<option value="Yes" <?php selected( $pre_post_nights, 'Yes' ); ?>>Yes</option>
 						<option value="No" <?php selected( $pre_post_nights, 'No' ); ?>>No</option>
 					</select>
 				</label>
-				<label>Cabin class
-					<select id="cbv-intake-cruise-cabin-class">
+				<label>Cabin class <span class="cbv-required" aria-hidden="true">*</span>
+					<select id="cbv-intake-cruise-cabin-class" required>
 						<option value="" <?php selected( $cruise_cabin_class, '' ); ?>>—</option>
 						<?php foreach ( CBV_CRUISE_CABIN_CLASSES as $option ) : ?>
 							<option value="<?php echo esc_attr( $option ); ?>" <?php selected( $cruise_cabin_class, $option ); ?>><?php echo esc_html( $option ); ?></option>
 						<?php endforeach; ?>
 					</select>
 				</label>
-				<label>Beverage plan
-					<select id="cbv-intake-beverage-plan">
+				<label>Beverage plan <span class="cbv-required" aria-hidden="true">*</span>
+					<select id="cbv-intake-beverage-plan" required>
 						<option value="" <?php selected( $beverage_plan, '' ); ?>>—</option>
 						<option value="Yes" <?php selected( $beverage_plan, 'Yes' ); ?>>Yes</option>
 						<option value="No" <?php selected( $beverage_plan, 'No' ); ?>>No</option>
 					</select>
 				</label>
-				<label>Beverage plan type <input type="text" id="cbv-intake-beverage-plan-type" value="<?php echo esc_attr( $intake['beverage_plan_type'] ?? '' ); ?>"></label>
+				<label>Beverage plan type <span class="cbv-required" aria-hidden="true">*</span> <input type="text" id="cbv-intake-beverage-plan-type" required value="<?php echo esc_attr( $intake['beverage_plan_type'] ?? '' ); ?>"></label>
 			</div>
 		</div>
 		<?php endif; ?>
@@ -2603,11 +2603,11 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 		<h4>Hotel and Resort Vacation</h4>
 		<div class="cbv-intake-field">
 			<div class="cbv-intake-field-row">
-				<label># of nights <input type="text" id="cbv-intake-hotel-nights" value="<?php echo esc_attr( $intake['hotel_nights'] ?? '' ); ?>"></label>
-				<label>Hotel preferences / frequent guest programs <input type="text" id="cbv-intake-hotel-preferences" value="<?php echo esc_attr( $intake['hotel_preferences'] ?? '' ); ?>"></label>
-				<label># of rooms/arrangement <input type="text" id="cbv-intake-hotel-rooms-arrangement" value="<?php echo esc_attr( $intake['hotel_rooms_arrangement'] ?? '' ); ?>"></label>
+				<label># of nights <span class="cbv-required" aria-hidden="true">*</span> <input type="text" id="cbv-intake-hotel-nights" required value="<?php echo esc_attr( $intake['hotel_nights'] ?? '' ); ?>"></label>
+				<label>Hotel preferences / frequent guest programs <span class="cbv-required" aria-hidden="true">*</span> <input type="text" id="cbv-intake-hotel-preferences" required value="<?php echo esc_attr( $intake['hotel_preferences'] ?? '' ); ?>"></label>
+				<label># of rooms/arrangement <span class="cbv-required" aria-hidden="true">*</span> <input type="text" id="cbv-intake-hotel-rooms-arrangement" required value="<?php echo esc_attr( $intake['hotel_rooms_arrangement'] ?? '' ); ?>"></label>
 			</div>
-			<p class="requests-check-group-label">Room (check all that apply):</p>
+			<p class="requests-check-group-label">Room (check all that apply): <span class="cbv-required" aria-hidden="true">*</span></p>
 			<label class="check-row"><input type="checkbox" name="cbv_intake_hotel_room_type" value="Standard Room" <?php checked( in_array( 'Standard Room', $hotel_room_type, true ) ); ?>> Standard Room</label>
 			<label class="check-row"><input type="checkbox" name="cbv_intake_hotel_room_type" value="Garden View" <?php checked( in_array( 'Garden View', $hotel_room_type, true ) ); ?>> Garden View</label>
 			<label class="check-row"><input type="checkbox" name="cbv_intake_hotel_room_type" value="Ocean View/Front" <?php checked( in_array( 'Ocean View/Front', $hotel_room_type, true ) ); ?>> Ocean View/Front</label>
@@ -2625,10 +2625,10 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 		<div class="cbv-intake-field">
 			<h4>Car Rental</h4>
 			<div class="cbv-intake-field-row">
-				<label>Car preferences / frequent renter programs <input type="text" id="cbv-intake-car-preferences" value="<?php echo esc_attr( $intake['car_preferences'] ?? '' ); ?>"></label>
-				<label>Add-ons <input type="text" id="cbv-intake-car-addons" value="<?php echo esc_attr( $intake['car_addons'] ?? '' ); ?>"></label>
+				<label>Car preferences / frequent renter programs <span class="cbv-required" aria-hidden="true">*</span> <input type="text" id="cbv-intake-car-preferences" required value="<?php echo esc_attr( $intake['car_preferences'] ?? '' ); ?>"></label>
+				<label>Add-ons <span class="cbv-required" aria-hidden="true">*</span> <input type="text" id="cbv-intake-car-addons" required value="<?php echo esc_attr( $intake['car_addons'] ?? '' ); ?>"></label>
 			</div>
-			<p class="requests-check-group-label">Car category (check all that apply):</p>
+			<p class="requests-check-group-label">Car category (check all that apply): <span class="cbv-required" aria-hidden="true">*</span></p>
 			<?php foreach ( array( 'Compact', 'Mid Size', 'Full Size', 'Luxury', 'Other' ) as $category ) : ?>
 				<label class="check-row"><input type="checkbox" name="cbv_intake_car_category" value="<?php echo esc_attr( $category ); ?>" <?php checked( in_array( $category, $car_category, true ) ); ?>> <?php echo esc_html( $category ); ?></label>
 			<?php endforeach; ?>
@@ -2638,10 +2638,11 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 		<?php if ( $show_package_tour ) : ?>
 		<div class="cbv-intake-field">
 			<h4>Package Tour</h4>
-			<label>Country or countries of interest <input type="text" id="cbv-intake-package-countries" value="<?php echo esc_attr( $intake['package_countries'] ?? '' ); ?>"></label>
+			<label>Country or countries of interest <span class="cbv-required" aria-hidden="true">*</span> <input type="text" id="cbv-intake-package-countries" required value="<?php echo esc_attr( $intake['package_countries'] ?? '' ); ?>"></label>
+			<p class="requests-check-group-label">Style <span class="cbv-required" aria-hidden="true">*</span></p>
 			<label class="check-row"><input type="checkbox" name="cbv_intake_package_style" value="Escorted" <?php checked( in_array( 'Escorted', $package_style, true ) ); ?>> Escorted</label>
 			<label class="check-row"><input type="checkbox" name="cbv_intake_package_style" value="Independent" <?php checked( in_array( 'Independent', $package_style, true ) ); ?>> Independent</label>
-			<label>Activity level <input type="text" id="cbv-intake-package-activity-level" value="<?php echo esc_attr( $intake['package_activity_level'] ?? '' ); ?>"></label>
+			<label>Activity level <span class="cbv-required" aria-hidden="true">*</span> <input type="text" id="cbv-intake-package-activity-level" required value="<?php echo esc_attr( $intake['package_activity_level'] ?? '' ); ?>"></label>
 		</div>
 		<?php endif; ?>
 
@@ -2653,8 +2654,8 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 		<?php endif; ?>
 
 		<div class="cbv-intake-field">
-			<label>Travel insurance
-				<select id="cbv-intake-insurance-decision">
+			<label>Travel insurance <span class="cbv-required" aria-hidden="true">*</span>
+				<select id="cbv-intake-insurance-decision" required>
 					<option value="" <?php selected( $insurance, '' ); ?>>—</option>
 					<option value="accepted" <?php selected( $insurance, 'accepted' ); ?>>Accepted</option>
 					<option value="declined" <?php selected( $insurance, 'declined' ); ?>>Declined</option>
@@ -2670,7 +2671,7 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 		<div class="cbv-intake-field">
 			<p class="cb-page-hint">Some trip vendors require a signed card authorization for incidental charges during your trip. We never collect card details on this site — download the form, sign it, and email it to us directly instead.</p>
 			<p><a href="<?php echo esc_url( $cc_auth_url ); ?>" target="_blank" rel="noopener">Download the Credit Card Authorization form</a>. This is required for every trip. We never collect card details on this site.</p>
-			<label class="check-row"><input type="checkbox" id="cbv-intake-cc-auth-completed" <?php checked( ! empty( $intake['cc_auth_completed'] ) ); ?>> I have downloaded, completed form. Will email to travel@journeywellglobal.com within 48 hours.</label>
+			<label class="check-row"><input type="checkbox" id="cbv-intake-cc-auth-completed" required <?php checked( ! empty( $intake['cc_auth_completed'] ) ); ?>> I have downloaded, completed form. Will email to travel@journeywellglobal.com within 48 hours. <span class="cbv-required" aria-hidden="true">*</span></label>
 		</div>
 
 		<div class="cbv-intake-field">
@@ -2732,10 +2733,107 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 			} );
 		} );
 
+		// Required-field validation (Trip Details item 7) -- no <form> here
+		// (see this function's own doc comment), so there's no native
+		// submit event to hook; this runs by hand on the Save click, before
+		// the fetch(). checkRequired()/checkGroup() no-op for any field
+		// that doesn't exist in the DOM, which is exactly right here: PHP
+		// only renders a trip-type section's fields when that section is
+		// actually shown, so "required" naturally only ever applies to
+		// whatever's on screen for this trip.
+		function validateTravelerIntake() {
+			var missing = [];
+			document.querySelectorAll( '#cbv-traveler-intake .cbv-field-invalid' ).forEach( function ( el ) {
+				el.classList.remove( 'cbv-field-invalid' );
+			} );
+
+			function checkRequired( id, label ) {
+				var el = document.getElementById( id );
+				if ( ! el || el.offsetParent === null ) { return; } // not rendered, or currently hidden (e.g. airline "Other" field when a named airline is picked)
+				if ( ! el.value || ! el.value.trim() ) {
+					el.classList.add( 'cbv-field-invalid' );
+					missing.push( { el: el, label: label } );
+				}
+			}
+
+			function checkGroup( name, label ) {
+				var boxes = document.querySelectorAll( 'input[name="' + name + '"]' );
+				if ( ! boxes.length ) { return; }
+				var anyChecked = Array.prototype.some.call( boxes, function ( b ) { return b.checked; } );
+				if ( ! anyChecked ) {
+					var group = boxes[ 0 ].closest( '.cbv-intake-field' );
+					if ( group ) { group.classList.add( 'cbv-field-invalid' ); }
+					missing.push( { el: boxes[ 0 ], label: label } );
+				}
+			}
+
+			// Air Travel
+			checkRequired( 'cbv-intake-seat-preference', 'Seat preference' );
+			checkRequired( 'cbv-intake-departure-airport', 'Departure airport' );
+			checkRequired( 'cbv-intake-flight-cabin-class', 'Flight cabin class' );
+			checkRequired( 'cbv-intake-preferred-airline', 'Preferred airline' );
+			checkRequired( 'cbv-intake-preferred-airline-other', 'Airline name' );
+			checkRequired( 'cbv-intake-frequent-flyer-number', 'Frequent flyer / loyalty number' );
+
+			// Cruise Vacation
+			checkRequired( 'cbv-intake-cruise-company', 'Cruise company' );
+			checkRequired( 'cbv-intake-cruise-program-number', 'Cruise program number' );
+			checkRequired( 'cbv-intake-cruise-start-date', 'Cruise start date' );
+			checkRequired( 'cbv-intake-cruise-end-date', 'Cruise end date' );
+			checkRequired( 'cbv-intake-cruise-duration', 'Cruise duration' );
+			checkRequired( 'cbv-intake-cruise-region', 'Cruise region' );
+			checkRequired( 'cbv-intake-cruise-departure-port', 'Cruise departure port' );
+			checkRequired( 'cbv-intake-pre-post-cruise-nights', 'Pre/post cruise nights' );
+			checkRequired( 'cbv-intake-cruise-cabin-class', 'Cabin class' );
+			checkRequired( 'cbv-intake-beverage-plan', 'Beverage plan' );
+			checkRequired( 'cbv-intake-beverage-plan-type', 'Beverage plan type' );
+
+			// Hotel and Resort Vacation
+			checkRequired( 'cbv-intake-hotel-nights', '# of nights' );
+			checkRequired( 'cbv-intake-hotel-preferences', 'Hotel preferences / frequent guest programs' );
+			checkRequired( 'cbv-intake-hotel-rooms-arrangement', '# of rooms/arrangement' );
+			checkGroup( 'cbv_intake_hotel_room_type', 'Room' );
+
+			// Car Rental
+			checkRequired( 'cbv-intake-car-preferences', 'Car preferences / frequent renter programs' );
+			checkRequired( 'cbv-intake-car-addons', 'Add-ons' );
+			checkGroup( 'cbv_intake_car_category', 'Car category' );
+
+			// Package Tour
+			checkRequired( 'cbv-intake-package-countries', 'Country or countries of interest' );
+			checkGroup( 'cbv_intake_package_style', 'Style' );
+			checkRequired( 'cbv-intake-package-activity-level', 'Activity level' );
+
+			// Always required, regardless of trip type
+			checkRequired( 'cbv-intake-insurance-decision', 'Travel insurance decision' );
+
+			var ccAuth = document.getElementById( 'cbv-intake-cc-auth-completed' );
+			if ( ccAuth && ! ccAuth.checked ) {
+				ccAuth.closest( 'label' ).classList.add( 'cbv-field-invalid' );
+				missing.push( { el: ccAuth, label: 'Credit Card Authorization confirmation' } );
+			}
+
+			return missing;
+		}
+
 		var saveBtn = document.getElementById( 'cbv-intake-save-btn' );
 		if ( saveBtn ) {
 			saveBtn.addEventListener( 'click', function () {
 				var tripId = saveBtn.getAttribute( 'data-trip-id' );
+
+				var missing = validateTravelerIntake();
+				var resultEl = document.getElementById( 'cbv-intake-result' );
+				if ( missing.length ) {
+					if ( resultEl ) {
+						resultEl.textContent = 'Please complete: ' + missing.map( function ( m ) { return m.label; } ).join( ', ' ) + '.';
+						resultEl.style.color = 'var(--coral)';
+					}
+					missing[ 0 ].el.scrollIntoView( { behavior: 'smooth', block: 'center' } );
+					missing[ 0 ].el.focus();
+					return;
+				}
+				if ( resultEl ) { resultEl.style.color = ''; }
+
 				var payload = {
 					seat_preference: fieldVal( 'cbv-intake-seat-preference' ),
 					departure_airport: fieldVal( 'cbv-intake-departure-airport' ),
