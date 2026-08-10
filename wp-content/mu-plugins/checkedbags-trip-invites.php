@@ -2040,9 +2040,14 @@ function cbv_trip_has_type( $trip_id, $type_name ) {
 
 add_filter( 'um_account_page_default_tabs_hook', function ( $tabs ) {
 	$tabs[250]['travel-profile'] = array(
-		'icon'   => 'um-faicon-suitcase',
-		'title'  => 'Travel Profile',
-		'custom' => true,
+		'icon'        => 'um-faicon-suitcase',
+		'title'       => 'Travel Profile',
+		'custom'      => true,
+		// UM would otherwise render its own default submit button (labeled
+		// with the tab title, i.e. "Travel Profile") below our own custom
+		// "Save Travel Profile" button -- both post the same form, so it's
+		// a redundant duplicate specific to this tab, not needed elsewhere.
+		'show_button' => false,
 	);
 	return $tabs;
 } );
