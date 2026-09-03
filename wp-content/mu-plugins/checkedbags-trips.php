@@ -779,6 +779,12 @@ function cb_render_pricing_tier_row_fields( $tier_index, $tier ) {
 			<button type="button" class="button-link cb-repeater-remove" style="color:#b32d2e;">Remove Tier</button>
 		</div>
 
+		<p>
+			<label>Short description <span class="description">(shown on the public trip landing page's pricing comparison, if enabled -- optional otherwise)</span><br>
+				<textarea name="cb_pricing_tiers[<?php echo esc_attr( $tier_index ); ?>][description]" rows="2" style="width:100%;max-width:600px;"><?php echo esc_textarea( $tier['description'] ?? '' ); ?></textarea>
+			</label>
+		</p>
+
 		<div class="cb-tier-section">
 			<h4>Occupancy Price Points <span class="description">(one row per headcount sharing this cabin -- e.g. 2 sailors vs. 4 sailors -- with its own explicit per-person price, not a computed split)</span></h4>
 			<div class="cb-repeater" data-repeater="occupancy_points" data-index-token="__POINT_INDEX__">
@@ -1146,6 +1152,7 @@ add_action( 'save_post_cb_trip', function ( $post_id ) {
 			'name'             => sanitize_text_field( wp_unslash( $tier_row['name'] ?? '' ) ),
 			'capacity_low'     => absint( $tier_row['capacity_low'] ?? 0 ),
 			'capacity_high'    => absint( $tier_row['capacity_high'] ?? 0 ),
+			'description'      => sanitize_textarea_field( wp_unslash( $tier_row['description'] ?? '' ) ),
 			'occupancy_points' => $occupancy_points,
 			'addons'           => $addons,
 		);

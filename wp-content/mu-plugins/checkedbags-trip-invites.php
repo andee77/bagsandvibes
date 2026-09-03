@@ -57,6 +57,41 @@ add_action( 'init', function () {
 		},
 	) );
 
+	// PHASE 12 -- Public Trip Landing Page. Opt-in per trip, not automatic
+	// even for Public-visibility trips (see cbv_render_trip_code_meta_box()
+	// and its save handler below for the visibility/trip-code guardrails).
+	register_post_meta( 'cb_trip', 'cb_public_landing_enabled', array(
+		'type'              => 'boolean',
+		'single'            => true,
+		'default'           => false,
+		'show_in_rest'      => true,
+		'auth_callback'     => function () {
+			return current_user_can( 'edit_posts' );
+		},
+	) );
+
+	register_post_meta( 'cb_trip', 'cb_public_landing_tagline', array(
+		'type'              => 'string',
+		'single'            => true,
+		'default'           => '',
+		'show_in_rest'      => true,
+		'sanitize_callback' => 'sanitize_text_field',
+		'auth_callback'     => function () {
+			return current_user_can( 'edit_posts' );
+		},
+	) );
+
+	register_post_meta( 'cb_trip', 'cb_public_landing_disclaimer', array(
+		'type'              => 'string',
+		'single'            => true,
+		'default'           => '',
+		'show_in_rest'      => true,
+		'sanitize_callback' => 'sanitize_textarea_field',
+		'auth_callback'     => function () {
+			return current_user_can( 'edit_posts' );
+		},
+	) );
+
 }, 20 ); // after checkedbags-trips.php's own init (default priority 10) registers cb_trip
 
 /**
@@ -156,8 +191,19 @@ function cbv_render_trip_code_meta_box( $post ) {
 		</select>
 	</p>
 	<p class="description">
-		Public trips get a marketing page + teaser QR and normal manual-approval signup.
+		Public trips get a teaser QR and normal manual-approval signup.
 		Private trips are only reachable via a member's personal invite link.
+	</p>
+
+	<?php $landing_enabled = (bool) get_post_meta( $post->ID, 'cb_public_landing_enabled', true ); ?>
+	<p>
+		<label>
+			<input type="checkbox" name="cbv_public_landing_enabled" value="1" <?php checked( $landing_enabled ); ?> <?php disabled( 'private' === $visibility ); ?>>
+			<strong>Create Public Landing Page</strong>
+		</label><br>
+		<span class="description">
+			A real, SEO-visible marketing page at this trip's own URL (no login required), with tagline/highlights/pricing content edited in the "Public Landing Page Content" box below. Requires Public visibility above.
+		</span>
 	</p>
 
 	<?php
@@ -205,7 +251,14 @@ add_action( 'save_post_cb_trip', function ( $post_id ) {
 			$visibility = 'public';
 		}
 		update_post_meta( $post_id, 'cb_visibility', $visibility );
+	} else {
+		$visibility = get_post_meta( $post_id, 'cb_visibility', true ) ?: 'public';
 	}
+
+	// A Private trip can never have a public landing page, regardless of
+	// what was submitted -- enforced here (not just the disabled checkbox
+	// attribute above, which a determined POST could bypass).
+	update_post_meta( $post_id, 'cb_public_landing_enabled', 'public' === $visibility && ! empty( $_POST['cbv_public_landing_enabled'] ) );
 
 	$submitted = isset( $_POST['cbv_trip_code'] ) ? cbv_sanitize_trip_code( wp_unslash( $_POST['cbv_trip_code'] ) ) : '';
 	$candidate = $submitted ?: cbv_suggest_trip_code( $post_id );
@@ -3004,3 +3057,114 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 	<?php
 	return ob_get_clean();
 }
+
+/* ==========================================================================
+   PHASE 12 — Public Trip Landing Page: admin content fields
+
+   Tagline, Highlights (short repeater, distinct from the full Day-by-Day
+   Itinerary -- checked and confirmed the itinerary's own "description" is a
+   fixed port-schedule enum (Embarkation/Arrival/etc.), not marketing copy,
+   so it can't double as this), and a per-trip disclaimer. Reads only ever
+   happen from cbv_render_public_trip_landing() (added separately, wiring
+   this content into the actual public page); this section is purely the
+   admin-editing side, same "reads via a get_*() helper" pattern as
+   cb_trip_get_itinerary()/cb_trip_get_pricing_tiers() in checkedbags-trips.php.
+   ========================================================================== */
+function cbv_get_trip_highlights( $trip_id ) {
+	$highlights = get_post_meta( $trip_id, 'cb_trip_highlights', true );
+	return is_array( $highlights ) ? $highlights : array();
+}
+
+function cbv_render_highlight_row_fields( $index, $row ) {
+	$icon        = $row['icon'] ?? '';
+	$title       = $row['title'] ?? '';
+	$description = $row['description'] ?? '';
+	?>
+	<div class="cb-repeater-row">
+		<input type="text" name="cb_trip_highlights[<?php echo esc_attr( $index ); ?>][icon]" placeholder="Icon slug (e.g. anchor, sun, users)" value="<?php echo esc_attr( $icon ); ?>">
+		<input type="text" name="cb_trip_highlights[<?php echo esc_attr( $index ); ?>][title]" placeholder="Short title" value="<?php echo esc_attr( $title ); ?>">
+		<input type="text" name="cb_trip_highlights[<?php echo esc_attr( $index ); ?>][description]" placeholder="Brief description" value="<?php echo esc_attr( $description ); ?>">
+		<button type="button" class="button-link cb-repeater-remove" style="color:#b32d2e;">Remove</button>
+	</div>
+	<?php
+}
+
+add_action( 'add_meta_boxes', function () {
+	add_meta_box(
+		'cbv_public_landing_content',
+		'Public Landing Page Content',
+		'cbv_render_public_landing_content_meta_box',
+		'cb_trip',
+		'normal',
+		'default'
+	);
+} );
+
+function cbv_render_public_landing_content_meta_box( $post ) {
+	wp_nonce_field( 'cbv_public_landing_content_save', 'cbv_public_landing_content_nonce' );
+
+	$tagline     = get_post_meta( $post->ID, 'cb_public_landing_tagline', true );
+	$disclaimer  = get_post_meta( $post->ID, 'cb_public_landing_disclaimer', true );
+	$highlights  = cbv_get_trip_highlights( $post->ID );
+	?>
+	<p class="description">Only used when "Create Public Landing Page" is checked in the Trip Code &amp; Visibility box -- safe to fill in ahead of time either way.</p>
+
+	<p>
+		<label for="cb_public_landing_tagline"><strong>Tagline</strong> <span class="description">(short hero line under the trip title)</span></label><br>
+		<input type="text" name="cb_public_landing_tagline" id="cb_public_landing_tagline" style="width:100%;max-width:600px;" value="<?php echo esc_attr( $tagline ); ?>" placeholder="Seven nights. One unforgettable crew.">
+	</p>
+
+	<h4>Highlights <span class="description">(3-6 short cards -- activities/features, not the full day-by-day schedule)</span></h4>
+	<div class="cb-repeater" data-repeater="cb_trip_highlights">
+		<div class="cb-repeater-rows">
+			<?php foreach ( $highlights as $i => $row ) : ?>
+				<?php cbv_render_highlight_row_fields( $i, $row ); ?>
+			<?php endforeach; ?>
+		</div>
+		<template class="cb-repeater-template">
+			<?php cbv_render_highlight_row_fields( '__INDEX__', array() ); ?>
+		</template>
+		<button type="button" class="button cb-repeater-add">+ Add Highlight</button>
+	</div>
+
+	<p style="margin-top:1.5rem;">
+		<label for="cb_public_landing_disclaimer"><strong>Disclaimer / fine print</strong> <span class="description">(shown in a footer bar on the landing page, e.g. "Rates based on double occupancy")</span></label><br>
+		<textarea name="cb_public_landing_disclaimer" id="cb_public_landing_disclaimer" rows="2" style="width:100%;max-width:600px;"><?php echo esc_textarea( $disclaimer ); ?></textarea>
+	</p>
+	<?php
+}
+
+add_action( 'save_post_cb_trip', function ( $post_id ) {
+	if ( ! isset( $_POST['cbv_public_landing_content_nonce'] ) || ! wp_verify_nonce( $_POST['cbv_public_landing_content_nonce'], 'cbv_public_landing_content_save' ) ) {
+		return;
+	}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+
+	if ( isset( $_POST['cb_public_landing_tagline'] ) ) {
+		update_post_meta( $post_id, 'cb_public_landing_tagline', sanitize_text_field( wp_unslash( $_POST['cb_public_landing_tagline'] ) ) );
+	}
+	if ( isset( $_POST['cb_public_landing_disclaimer'] ) ) {
+		update_post_meta( $post_id, 'cb_public_landing_disclaimer', sanitize_textarea_field( wp_unslash( $_POST['cb_public_landing_disclaimer'] ) ) );
+	}
+
+	// Same append-based repeater rebuild as Day-by-Day Itinerary --
+	// cb_repeater_row_is_blank() (checkedbags-trips.php) drops any row left
+	// entirely empty, closing gaps left by removed rows for free.
+	$highlights = array();
+	foreach ( (array) ( $_POST['cb_trip_highlights'] ?? array() ) as $row ) {
+		if ( function_exists( 'cb_repeater_row_is_blank' ) && cb_repeater_row_is_blank( $row ) ) {
+			continue;
+		}
+		$highlights[] = array(
+			'icon'        => sanitize_text_field( wp_unslash( $row['icon'] ?? '' ) ),
+			'title'       => sanitize_text_field( wp_unslash( $row['title'] ?? '' ) ),
+			'description' => sanitize_text_field( wp_unslash( $row['description'] ?? '' ) ),
+		);
+	}
+	update_post_meta( $post_id, 'cb_trip_highlights', $highlights );
+}, 10, 1 );
