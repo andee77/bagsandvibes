@@ -2872,13 +2872,22 @@ body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
   display: flex;
   align-items: flex-end;
   background-color: var(--horizon);
-  background-size: cover;
-  background-position: center;
   border-radius: 6px;
-  overflow: visible;
+  overflow: visible; /* .cbv-landing-badge deliberately hangs below this box's own edge */
   margin-bottom: 3.5rem;
 }
+.cbv-landing-hero-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px; /* clips the image itself, since the container can't use overflow:hidden without also clipping the badge */
+  z-index: 0;
+}
 .cbv-landing-hero-scrim {
+  position: relative;
+  z-index: 1;
   width: 100%;
   padding: 3rem var(--edge) 2.5rem;
   background: linear-gradient(to top, rgba(22,35,43,0.92), rgba(22,35,43,0.15));
