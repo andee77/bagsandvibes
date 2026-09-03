@@ -2468,6 +2468,16 @@ add_action( 'rest_api_init', function () {
 				'additional_adults'       => absint( $body['additional_adults'] ?? 0 ),
 				'additional_children'     => absint( $body['additional_children'] ?? 0 ),
 				'children_ages'           => $str( 'children_ages' ),
+
+				// Categories this traveler personally opted into beyond the
+				// trip's own official cb_trip_type (e.g. a personal flight on
+				// a Cruise-tagged trip) -- restricted to the known field-sets
+				// that actually exist, same rigor as cruise_duration/region
+				// above.
+				'optional_categories'     => array_values( array_intersect(
+					$arr( 'optional_categories' ),
+					array( 'Flight', 'Cruise', 'Hotel', 'Car Rental', 'Package Tour' )
+				) ),
 			);
 
 			update_user_meta( $user_id, '_traveler_intake_' . $trip_id, wp_json_encode( $data ) );
@@ -2524,6 +2534,33 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 	$show_car_rental   = cbv_trip_has_type( $trip_id, 'Car Rental' );
 	$show_package_tour = cbv_trip_has_type( $trip_id, 'Package Tour' );
 
+	// New feature: a traveler can personally opt into any section the trip
+	// ISN'T officially tagged as (e.g. a Cruise-tagged trip where one
+	// traveler also personally needs a flight) -- separate from cb_trip_type
+	// (admin-only, untouched) and stored alongside the rest of this same
+	// traveler's intake record. Only offered as a checkbox when the trip's
+	// own type doesn't already show the section automatically; once shown
+	// (either way), the exact same required-field rules apply -- see
+	// validateTravelerIntake() below, which already skips hidden fields
+	// regardless of why they're hidden, so no validation changes were
+	// needed for this.
+	$saved_optional_categories = (array) ( $intake['optional_categories'] ?? array() );
+	$optional_category_sections = array(
+		'Flight'       => array( 'show' => $show_air, 'section_id' => 'cbv-intake-section-air' ),
+		'Cruise'       => array( 'show' => $show_cruise, 'section_id' => 'cbv-intake-section-cruise' ),
+		'Hotel'        => array( 'show' => $show_hotel, 'section_id' => 'cbv-intake-section-hotel', 'label' => 'Hotel / Resort' ),
+		'Car Rental'   => array( 'show' => $show_car_rental, 'section_id' => 'cbv-intake-section-car-rental' ),
+		'Package Tour' => array( 'show' => $show_package_tour, 'section_id' => 'cbv-intake-section-package-tour' ),
+	);
+	$is_section_visible = function ( $category ) use ( $optional_category_sections, $saved_optional_categories ) {
+		return $optional_category_sections[ $category ]['show'] || in_array( $category, $saved_optional_categories, true );
+	};
+	$show_air_visible          = $is_section_visible( 'Flight' );
+	$show_cruise_visible       = $is_section_visible( 'Cruise' );
+	$show_hotel_visible        = $is_section_visible( 'Hotel' );
+	$show_car_rental_visible   = $is_section_visible( 'Car Rental' );
+	$show_package_tour_visible = $is_section_visible( 'Package Tour' );
+
 	$cc_auth_url = content_url( 'uploads/checkedbags/documents/CC_authorization.pdf' );
 	$waiver_url  = content_url( 'uploads/checkedbags/documents/Allianz_Waiver_form.pdf' );
 	$insurance            = $intake['insurance_decision'] ?? '';
@@ -2545,7 +2582,24 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 		<h3>Trip Registration</h3>
 		<p class="cb-page-hint">A few details we need from you individually — seat and cabin preferences, your travel insurance decision, and required paperwork — so everything&#8217;s ready well before departure.</p>
 
-		<?php if ( $show_air ) : ?>
+		<?php
+		$offered_categories = array_filter( $optional_category_sections, function ( $c ) { return ! $c['show']; } );
+		if ( ! empty( $offered_categories ) ) :
+		?>
+		<div class="cbv-intake-field cbv-intake-optional-categories">
+			<p class="cb-page-hint">Need something else for your own travel, beyond this trip&#8217;s own itinerary? Check any that apply to you personally:</p>
+			<div class="cbv-intake-optional-categories-row">
+				<?php foreach ( $offered_categories as $category => $cfg ) : ?>
+					<label class="check-row">
+						<input type="checkbox" name="cbv_intake_optional_categories" class="cbv-intake-optional-category-toggle" data-target="<?php echo esc_attr( $cfg['section_id'] ); ?>" value="<?php echo esc_attr( $category ); ?>" <?php checked( in_array( $category, $saved_optional_categories, true ) ); ?>>
+						<?php echo esc_html( $cfg['label'] ?? $category ); ?>
+					</label>
+				<?php endforeach; ?>
+			</div>
+		</div>
+		<?php endif; ?>
+
+		<div class="cbv-intake-optional-section" id="cbv-intake-section-air" <?php echo $show_air_visible ? '' : 'hidden'; ?>>
 		<h4>Air Travel</h4>
 		<div class="cbv-intake-field cbv-intake-field-row">
 			<label>Seat preference <span class="cbv-required" aria-hidden="true">*</span>
@@ -2571,9 +2625,9 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 			<?php cbv_render_airline_field( 'cbv-intake-preferred-airline', 'Preferred airline', $intake['preferred_airline'] ?? '', true ); ?>
 			<label>Frequent flyer / loyalty number <span class="cbv-required" aria-hidden="true">*</span> <input type="text" id="cbv-intake-frequent-flyer-number" required value="<?php echo esc_attr( $intake['frequent_flyer_number'] ?? '' ); ?>"></label>
 		</div>
-		<?php endif; ?>
+		</div>
 
-		<?php if ( $show_cruise ) : ?>
+		<div class="cbv-intake-optional-section" id="cbv-intake-section-cruise" <?php echo $show_cruise_visible ? '' : 'hidden'; ?>>
 		<h4>Cruise Vacation</h4>
 		<div class="cbv-intake-field">
 			<div class="cbv-intake-field-row">
@@ -2632,9 +2686,9 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 				<label>Beverage plan type <span class="cbv-required" aria-hidden="true">*</span> <input type="text" id="cbv-intake-beverage-plan-type" required value="<?php echo esc_attr( $intake['beverage_plan_type'] ?? '' ); ?>"></label>
 			</div>
 		</div>
-		<?php endif; ?>
+		</div>
 
-		<?php if ( $show_hotel ) : ?>
+		<div class="cbv-intake-optional-section" id="cbv-intake-section-hotel" <?php echo $show_hotel_visible ? '' : 'hidden'; ?>>
 		<h4>Hotel and Resort Vacation</h4>
 		<div class="cbv-intake-field">
 			<div class="cbv-intake-field-row">
@@ -2654,10 +2708,9 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 			     export's existing fallback to the Gate 12 value -- see
 			     cbv_build_trip_roster_export_data() in checkedbags-roster-export.php. -->
 		</div>
-		<?php endif; ?>
+		</div>
 
-		<?php if ( $show_car_rental ) : ?>
-		<div class="cbv-intake-field">
+		<div class="cbv-intake-field cbv-intake-optional-section" id="cbv-intake-section-car-rental" <?php echo $show_car_rental_visible ? '' : 'hidden'; ?>>
 			<h4>Car Rental</h4>
 			<div class="cbv-intake-field-row">
 				<label>Car preferences / frequent renter programs <span class="cbv-required" aria-hidden="true">*</span> <input type="text" id="cbv-intake-car-preferences" required value="<?php echo esc_attr( $intake['car_preferences'] ?? '' ); ?>"></label>
@@ -2668,10 +2721,8 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 				<label class="check-row"><input type="checkbox" name="cbv_intake_car_category" value="<?php echo esc_attr( $category ); ?>" <?php checked( in_array( $category, $car_category, true ) ); ?>> <?php echo esc_html( $category ); ?></label>
 			<?php endforeach; ?>
 		</div>
-		<?php endif; ?>
 
-		<?php if ( $show_package_tour ) : ?>
-		<div class="cbv-intake-field">
+		<div class="cbv-intake-field cbv-intake-optional-section" id="cbv-intake-section-package-tour" <?php echo $show_package_tour_visible ? '' : 'hidden'; ?>>
 			<h4>Package Tour</h4>
 			<label>Country or countries of interest <span class="cbv-required" aria-hidden="true">*</span> <input type="text" id="cbv-intake-package-countries" required value="<?php echo esc_attr( $intake['package_countries'] ?? '' ); ?>"></label>
 			<p class="requests-check-group-label">Style <span class="cbv-required" aria-hidden="true">*</span></p>
@@ -2679,7 +2730,6 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 			<label class="check-row"><input type="checkbox" name="cbv_intake_package_style" value="Independent" <?php checked( in_array( 'Independent', $package_style, true ) ); ?>> Independent</label>
 			<label>Activity level <span class="cbv-required" aria-hidden="true">*</span> <input type="text" id="cbv-intake-package-activity-level" required value="<?php echo esc_attr( $intake['package_activity_level'] ?? '' ); ?>"></label>
 		</div>
-		<?php endif; ?>
 
 		<?php if ( trim( $insurance_overview ) ) : ?>
 		<div class="cbv-intake-field cbv-intake-insurance-overview">
@@ -2748,6 +2798,22 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 				waiverRow.style.display = ( insuranceSelect.value === 'declined' ) ? '' : 'none';
 			} );
 		}
+
+		// Optional-category checkboxes: reveal/hide the matching section.
+		// The section's own required fields are validated (or skipped, when
+		// hidden) by validateTravelerIntake() below exactly like any
+		// type-driven section -- no special-casing needed there.
+		document.querySelectorAll( '.cbv-intake-optional-category-toggle' ).forEach( function ( toggle ) {
+			toggle.addEventListener( 'change', function () {
+				var target = document.getElementById( toggle.getAttribute( 'data-target' ) );
+				if ( ! target ) { return; }
+				if ( toggle.checked ) {
+					target.removeAttribute( 'hidden' );
+				} else {
+					target.setAttribute( 'hidden', '' );
+				}
+			} );
+		} );
 
 		// Airline "Other" reveal -- shared markup from cbv_render_airline_field(),
 		// so this same block also covers any future airline field added here.
@@ -2907,7 +2973,8 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 					cc_auth_completed: fieldChecked( 'cbv-intake-cc-auth-completed' ),
 					additional_adults: fieldVal( 'cbv-intake-additional-adults' ),
 					additional_children: fieldVal( 'cbv-intake-additional-children' ),
-					children_ages: fieldVal( 'cbv-intake-children-ages' )
+					children_ages: fieldVal( 'cbv-intake-children-ages' ),
+					optional_categories: checkedValuesFor( 'cbv_intake_optional_categories' )
 				};
 				saveBtn.disabled = true;
 				saveBtn.textContent = 'Saving...';
