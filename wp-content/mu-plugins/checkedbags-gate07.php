@@ -254,12 +254,8 @@ add_filter( 'the_content', function ( $content ) {
 		return $content;
 	}
 
-	if ( ! is_user_logged_in() ) {
-		return $content . '<p class="cb-empty">Please <a href="' . esc_url( wp_login_url( get_permalink() ) ) . '">sign in</a> to see trip details.</p>';
-	}
-
 	global $post;
-	$viewer_id = get_current_user_id();
+	$viewer_id = is_user_logged_in() ? get_current_user_id() : 0;
 
 	// Access gate (Phase 4 of the trip-invite build): roster membership,
 	// then this trip's own agreement — being logged in alone used to be
@@ -271,10 +267,21 @@ add_filter( 'the_content', function ( $content ) {
 	// it. $on_roster (not this bypass) is what everything below keys off
 	// of for anything that should stay roster-only (the agreement
 	// re-accept requirement, the Per-Traveler Intake form).
-	$on_roster    = in_array( $viewer_id, cb_trip_get_roster( $post->ID ), true );
-	$admin_bypass = ! $on_roster && user_can( $viewer_id, 'manage_options' );
+	$on_roster    = $viewer_id && in_array( $viewer_id, cb_trip_get_roster( $post->ID ), true );
+	$admin_bypass = $viewer_id && ! $on_roster && user_can( $viewer_id, 'manage_options' );
 
 	if ( ! $on_roster && ! $admin_bypass ) {
+		// PHASE 12: a trip with its public landing page enabled shows that
+		// (genuinely public, no login wall) to anyone who isn't a genuine
+		// member -- checked before either denial message below, so it
+		// takes priority over both the logged-out and logged-in-but-not-
+		// on-roster cases equally.
+		if ( get_post_meta( $post->ID, 'cb_public_landing_enabled', true ) && function_exists( 'cbv_render_public_trip_landing' ) ) {
+			return cbv_render_public_trip_landing( $post->ID );
+		}
+		if ( ! $viewer_id ) {
+			return $content . '<p class="cb-empty">Please <a href="' . esc_url( wp_login_url( get_permalink() ) ) . '">sign in</a> to see trip details.</p>';
+		}
 		return $content . '<p class="cb-empty">You don&#8217;t have access to this trip&#8217;s details yet — join it from <a href="' . esc_url( home_url( '/gate-07-pre-planned-vacations/' ) ) . '">All Planned Vacations</a> first.</p>';
 	}
 

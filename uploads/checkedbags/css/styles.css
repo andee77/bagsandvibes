@@ -2855,3 +2855,190 @@ body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
   line-height: 1;
   cursor: pointer;
 }
+
+/* ==========================================================================
+   Public Trip Landing Page (Section 12) -- reuses the site's own brand
+   tokens/fonts and the existing .phase-tag boarding-pass motif rather than
+   introducing a separate visual style.
+   ========================================================================== */
+.cbv-public-landing {
+  max-width: 1100px;
+  margin: 0 auto;
+  color: var(--ink);
+}
+.cbv-landing-hero {
+  position: relative;
+  min-height: 60vh;
+  display: flex;
+  align-items: flex-end;
+  background-color: var(--horizon);
+  background-size: cover;
+  background-position: center;
+  border-radius: 6px;
+  overflow: visible;
+  margin-bottom: 3.5rem;
+}
+.cbv-landing-hero-scrim {
+  width: 100%;
+  padding: 3rem var(--edge) 2.5rem;
+  background: linear-gradient(to top, rgba(22,35,43,0.92), rgba(22,35,43,0.15));
+  border-radius: 0 0 6px 6px;
+}
+.cbv-landing-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  color: var(--sand);
+  margin: 0 0 0.5rem;
+}
+.cbv-landing-tagline {
+  font-family: var(--font-body);
+  font-size: 1.15rem;
+  color: rgba(251,243,231,0.9);
+  margin: 0;
+  max-width: 640px;
+}
+.cbv-landing-badge {
+  bottom: -1rem;
+  left: var(--edge);
+}
+
+.cbv-landing-basics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin: 0 0 3rem;
+  padding: 0 var(--edge);
+}
+.cbv-landing-basic {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.cbv-landing-basic-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--coral);
+}
+.cbv-landing-basic-value {
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  color: var(--ink);
+}
+
+.cbv-landing-section {
+  padding: 0 var(--edge);
+  margin-bottom: 3.5rem;
+}
+.cbv-landing-section h2 {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.75rem;
+  color: var(--ink);
+  margin: 0 0 1.5rem;
+}
+
+.cbv-landing-highlights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+.cbv-landing-highlight-card {
+  background: var(--horizon);
+  border: 1px solid rgba(232,169,78,0.25);
+  border-radius: 6px;
+  padding: 1.5rem;
+  text-align: center;
+}
+.cbv-landing-highlight-card i {
+  font-size: 1.75rem;
+  color: var(--coral);
+  margin-bottom: 0.75rem;
+  display: inline-block;
+}
+.cbv-landing-highlight-card h3 {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 1rem;
+  margin: 0 0 0.4rem;
+  color: var(--sand);
+}
+.cbv-landing-highlight-card p {
+  font-size: 0.9rem;
+  color: rgba(251,243,231,0.8);
+  margin: 0;
+}
+
+.cbv-landing-pricing {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+}
+.cbv-landing-pricing-card {
+  background: var(--horizon);
+  border: 1px solid var(--gold);
+  border-radius: 6px;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.cbv-landing-pricing-card h3 {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.3rem;
+  margin: 0;
+  color: var(--sand);
+}
+.cbv-landing-pricing-desc {
+  font-size: 0.9rem;
+  color: rgba(251,243,231,0.8);
+  margin: 0;
+}
+.cbv-landing-pricing-amount {
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--coral);
+  margin: 0.5rem 0 0;
+}
+.cbv-landing-pricing-amount span {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 0.85rem;
+  color: rgba(251,243,231,0.7);
+}
+
+.cbv-landing-cta {
+  text-align: center;
+  padding: 2.5rem var(--edge);
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+}
+.cbv-landing-cta-note {
+  font-size: 0.85rem;
+  color: rgba(22,35,43,0.65);
+  max-width: 480px;
+  margin: 0;
+}
+
+.cbv-landing-disclaimer {
+  text-align: center;
+  font-size: 0.78rem;
+  color: rgba(22,35,43,0.55);
+  padding: 1.5rem var(--edge) 2.5rem;
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .cbv-landing-hero { min-height: 45vh; }
+  .cbv-landing-basics { gap: 1.25rem; }
+}
