@@ -2476,7 +2476,7 @@ add_action( 'rest_api_init', function () {
 				// above.
 				'optional_categories'     => array_values( array_intersect(
 					$arr( 'optional_categories' ),
-					array( 'Flight', 'Cruise', 'Hotel', 'Car Rental', 'Package Tour' )
+					array( 'Flight', 'Cruise', 'Hotel', 'Car Rental' ) // Package Tour intentionally excluded -- opt-in removed
 				) ),
 			);
 
@@ -2544,22 +2544,23 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 	// validateTravelerIntake() below, which already skips hidden fields
 	// regardless of why they're hidden, so no validation changes were
 	// needed for this.
+	// Package Tour deliberately excluded from this opt-in system (design
+	// decision after launch) -- it stays reachable only the original way,
+	// purely via the trip's own official cb_trip_type tag.
 	$saved_optional_categories = (array) ( $intake['optional_categories'] ?? array() );
 	$optional_category_sections = array(
-		'Flight'       => array( 'show' => $show_air, 'section_id' => 'cbv-intake-section-air' ),
-		'Cruise'       => array( 'show' => $show_cruise, 'section_id' => 'cbv-intake-section-cruise' ),
-		'Hotel'        => array( 'show' => $show_hotel, 'section_id' => 'cbv-intake-section-hotel', 'label' => 'Hotel / Resort' ),
-		'Car Rental'   => array( 'show' => $show_car_rental, 'section_id' => 'cbv-intake-section-car-rental' ),
-		'Package Tour' => array( 'show' => $show_package_tour, 'section_id' => 'cbv-intake-section-package-tour' ),
+		'Flight'     => array( 'show' => $show_air, 'section_id' => 'cbv-intake-section-air', 'label' => 'Air Travel' ),
+		'Cruise'     => array( 'show' => $show_cruise, 'section_id' => 'cbv-intake-section-cruise' ),
+		'Hotel'      => array( 'show' => $show_hotel, 'section_id' => 'cbv-intake-section-hotel' ),
+		'Car Rental' => array( 'show' => $show_car_rental, 'section_id' => 'cbv-intake-section-car-rental' ),
 	);
 	$is_section_visible = function ( $category ) use ( $optional_category_sections, $saved_optional_categories ) {
 		return $optional_category_sections[ $category ]['show'] || in_array( $category, $saved_optional_categories, true );
 	};
-	$show_air_visible          = $is_section_visible( 'Flight' );
-	$show_cruise_visible       = $is_section_visible( 'Cruise' );
-	$show_hotel_visible        = $is_section_visible( 'Hotel' );
-	$show_car_rental_visible   = $is_section_visible( 'Car Rental' );
-	$show_package_tour_visible = $is_section_visible( 'Package Tour' );
+	$show_air_visible        = $is_section_visible( 'Flight' );
+	$show_cruise_visible     = $is_section_visible( 'Cruise' );
+	$show_hotel_visible      = $is_section_visible( 'Hotel' );
+	$show_car_rental_visible = $is_section_visible( 'Car Rental' );
 
 	$cc_auth_url = content_url( 'uploads/checkedbags/documents/CC_authorization.pdf' );
 	$waiver_url  = content_url( 'uploads/checkedbags/documents/Allianz_Waiver_form.pdf' );
@@ -2722,7 +2723,8 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 			<?php endforeach; ?>
 		</div>
 
-		<div class="cbv-intake-field cbv-intake-optional-section" id="cbv-intake-section-package-tour" <?php echo $show_package_tour_visible ? '' : 'hidden'; ?>>
+		<?php if ( $show_package_tour ) : ?>
+		<div class="cbv-intake-field">
 			<h4>Package Tour</h4>
 			<label>Country or countries of interest <span class="cbv-required" aria-hidden="true">*</span> <input type="text" id="cbv-intake-package-countries" required value="<?php echo esc_attr( $intake['package_countries'] ?? '' ); ?>"></label>
 			<p class="requests-check-group-label">Style <span class="cbv-required" aria-hidden="true">*</span></p>
@@ -2730,6 +2732,7 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 			<label class="check-row"><input type="checkbox" name="cbv_intake_package_style" value="Independent" <?php checked( in_array( 'Independent', $package_style, true ) ); ?>> Independent</label>
 			<label>Activity level <span class="cbv-required" aria-hidden="true">*</span> <input type="text" id="cbv-intake-package-activity-level" required value="<?php echo esc_attr( $intake['package_activity_level'] ?? '' ); ?>"></label>
 		</div>
+		<?php endif; ?>
 
 		<?php if ( trim( $insurance_overview ) ) : ?>
 		<div class="cbv-intake-field cbv-intake-insurance-overview">

@@ -1008,11 +1008,47 @@ body.checkedbags-dashboard {
    "Why Travel Insurance Matters" paragraph text, which was inheriting
    Kadence's own default <p> color (also dark) instead of this card's
    cream convention -- confirmed live as literally the same color as the
-   card background, i.e. fully invisible, not just low-contrast. */
+   card background, i.e. fully invisible, not just low-contrast.
+   max-width: none overrides .cb-page-hint's sitewide 640px cap so the
+   intro paragraph stretches to this card's own full width, matching the
+   rest of the content, instead of stopping short partway across. */
 .trip-detail-traveler-intake .cb-page-hint,
 .cbv-intake-insurance-overview p {
   color: rgba(251,243,231,0.85);
   opacity: 1;
+  max-width: none;
+}
+/* Tightened paragraph spacing, scoped to this card only -- Kadence's
+   default <p> margin (sitewide, not something this stylesheet otherwise
+   controls) reads too wide across this form's many instructional
+   paragraphs. Specificity here (class + descendant tag) beats the
+   sitewide bare .cb-page-hint rule's own margin too, so this correctly
+   tightens both wpautop output and .cb-page-hint instances within this
+   one card without touching paragraph spacing anywhere else on the site. */
+.trip-detail-traveler-intake p {
+  margin: 0 0 0.75rem;
+}
+/* "Why Travel Insurance Matters" reads one size too large relative to the
+   rest of this form. The h4 selector here is deliberately qualified with
+   .trip-detail-traveler-intake (not just .cbv-intake-insurance-overview
+   h4) to out-specificity that card's own later .trip-detail-traveler-intake
+   h4 rule (font-size: 1rem) -- confirmed live that the unqualified version
+   was silently overridden by it (equal specificity, later in the file). */
+.trip-detail-traveler-intake .cbv-intake-insurance-overview h4,
+.cbv-intake-insurance-overview p {
+  font-size: 0.9rem;
+}
+/* Bulletproof guard: several class-based display rules on this page
+   (.cbv-intake-field, .cbv-intake-optional-section) unconditionally set
+   display:flex with equal-or-higher specificity than the browser's own
+   [hidden]{display:none} default, which an author-origin rule always wins
+   over at equal specificity -- silently defeating the hidden attribute
+   used to reveal/hide the optional-category sections (confirmed live via
+   a standalone reproduction). !important here is deliberate and scoped to
+   this one universal safety property, matching the standard fix for this
+   exact well-known class of bug. */
+[hidden] {
+  display: none !important;
 }
 .trip-roster-list {
   list-style: none;
