@@ -946,20 +946,32 @@ body.checkedbags-dashboard {
   flex-direction: column;
   gap: 0.5rem;
 }
+/* display:block, not flex -- a flex container splits each direct text
+   run AND each inline element into its OWN flex item, so with
+   flex-direction:column a "* Field Name" leading-asterisk pair (a text
+   node adjacent to the .cbv-required span, both direct children of this
+   label) rendered as two stacked rows instead of one inline line, pushing
+   the field's input/select down an extra row -- confirmed live as a
+   regression from moving the asterisk in front of the label text. Block
+   flow lets the asterisk and label text share one line naturally (normal
+   inline layout), while the input/select below still starts its own line
+   because it's a block-level element in its own right (margin-top below
+   replaces the old flex `gap`). */
 .cbv-intake-field label {
   color: rgba(251,243,231,0.85);
   font-size: 0.85rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
+  display: block;
 }
 .cbv-intake-field label.check-row {
+  display: flex;
   flex-direction: row;
   align-items: center;
   gap: 0.5rem;
 }
 .cbv-intake-field label.check-row input {
+  display: inline-block;
   width: auto;
+  margin-top: 0;
 }
 .cbv-intake-optional-section:not(.cbv-intake-field) {
   display: flex;
@@ -973,6 +985,8 @@ body.checkedbags-dashboard {
   gap: 0.5rem 1.5rem;
 }
 .cbv-intake-field input, .cbv-intake-field select {
+  display: block;
+  margin-top: 0.3rem;
   padding: 0.5rem;
   border-radius: 4px;
   border: 1px solid rgba(251,243,231,0.3);
@@ -1504,7 +1518,9 @@ body.checkedbags-dashboard {
 }
 .suggestion-form input, .suggestion-form textarea,
 .trip-request-form input, .trip-request-form select, .trip-request-form textarea {
+  display: block;
   width: 100%;
+  margin-top: 0.3rem;
   padding: 0.5rem;
   border-radius: 4px;
   border: 1px solid rgba(251,243,231,0.3);
@@ -1515,20 +1531,23 @@ body.checkedbags-dashboard {
   color: var(--sand);
   font-family: var(--font-body);
 }
+/* display:block, not flex -- same leading-asterisk stacking bug as
+   .cbv-intake-field label above, fixed the same way. */
 .trip-request-form label {
   color: rgba(251,243,231,0.8);
   font-size: 0.85rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
+  display: block;
 }
 .trip-request-form label.check-row {
+  display: flex;
   flex-direction: row;
   align-items: center;
   gap: 0.5rem;
 }
 .trip-request-form label.check-row input {
+  display: inline-block;
   width: auto;
+  margin-top: 0;
 }
 .requests-fine-print {
   font-size: 0.78rem;
