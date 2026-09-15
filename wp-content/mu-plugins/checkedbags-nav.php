@@ -31,13 +31,18 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function cb_render_primary_nav() {
 
+	// "label" is now the primary visible text; "gate" only shows as a hover
+	// badge (see .nav-gate-badge in styles.css). Travel Rules/Vacation
+	// Requests gate numbers are deliberately swapped from their original
+	// 11/12 pairing -- kept consistent with the Dashboard gate cards and the
+	// Gate page ribbon (template-dashboard.php, template-gate.php).
 	$gate_nav = array(
-		array( 'label' => 'Gate 07', 'title' => 'Pre-Planned Vacations', 'url' => 'https://bagsandvibes.com/gate-07-pre-planned-vacations/' ),
-		array( 'label' => 'Gate 08', 'title' => 'Photo Gallery',          'url' => 'https://bagsandvibes.com/gate-08-photo-gallery/' ),
-		array( 'label' => 'Gate 09', 'title' => 'Payments',                'url' => 'https://bagsandvibes.com/gate-09-payments/' ),
-		array( 'label' => 'Gate 10', 'title' => 'Discussion Boards',       'url' => 'https://bagsandvibes.com/gate-10-discussion-boards/' ),
-		array( 'label' => 'Gate 11', 'title' => 'Travel Rules',            'url' => 'https://bagsandvibes.com/gate-11-travel-rules/' ),
-		array( 'label' => 'Gate 12', 'title' => 'Vacation Requests',       'url' => 'https://bagsandvibes.com/gate-12-vacation-requests/' ),
+		array( 'label' => 'Planned Vacations',  'gate' => 'GATE 07', 'url' => 'https://bagsandvibes.com/gate-07-pre-planned-vacations/' ),
+		array( 'label' => 'Photo Gallery',      'gate' => 'GATE 08', 'url' => 'https://bagsandvibes.com/gate-08-photo-gallery/' ),
+		array( 'label' => 'Payments',           'gate' => 'GATE 09', 'url' => 'https://bagsandvibes.com/gate-09-payments/' ),
+		array( 'label' => 'Discussion Boards',  'gate' => 'GATE 10', 'url' => 'https://bagsandvibes.com/gate-10-discussion-boards/' ),
+		array( 'label' => 'Vacation Requests',  'gate' => 'GATE 11', 'url' => 'https://bagsandvibes.com/gate-12-vacation-requests/' ),
+		array( 'label' => 'Travel Rules',       'gate' => 'GATE 12', 'url' => 'https://bagsandvibes.com/gate-11-travel-rules/' ),
 	);
 
 	// "Following" and "Find Members" are built in the next phase of this
@@ -90,7 +95,10 @@ function cb_render_primary_nav() {
 				<button type="button" class="nav-dropdown-toggle" aria-expanded="false">Navigation</button>
 				<ul class="nav-dropdown-menu">
 					<?php foreach ( $gate_nav as $g ) : ?>
-						<li><a href="<?php echo esc_url( $g['url'] ); ?>" title="<?php echo esc_attr( $g['title'] ); ?>"><?php echo esc_html( $g['label'] ); ?></a></li>
+						<li class="nav-gate-item">
+							<a href="<?php echo esc_url( $g['url'] ); ?>"><?php echo esc_html( $g['label'] ); ?></a>
+							<span class="nav-gate-badge" aria-hidden="true"><?php echo esc_html( $g['gate'] ); ?></span>
+						</li>
 					<?php endforeach; ?>
 				</ul>
 			</li>

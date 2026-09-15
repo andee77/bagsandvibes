@@ -31,7 +31,7 @@ $is_trip_guest = in_array( 'trip_guest', (array) $current_user->roles, true );
 $gates = array(
 	array(
 		'number' => 'GATE 07',
-		'title'  => 'All Planned Vacations',
+		'title'  => 'Planned Vacations',
 		'desc'   => "See every trip your crew has on the books, past and upcoming.",
 		'url'    => 'https://bagsandvibes.com/gate-07-pre-planned-vacations/',
 	),
@@ -43,7 +43,7 @@ $gates = array(
 	),
 	array(
 		'number' => 'GATE 09',
-		'title'  => 'Payment Section',
+		'title'  => 'Payments',
 		'desc'   => "Track deposits, balances, and who's paid what.",
 		'url'    => 'https://bagsandvibes.com/gate-09-payments/',
 	),
@@ -53,17 +53,21 @@ $gates = array(
 		'desc'   => 'Talk logistics, split rooms, and settle itinerary debates.',
 		'url'    => 'https://bagsandvibes.com/gate-10-discussion-boards/',
 	),
+	// Gate number swapped from GATE 12 -- see checkedbags-nav.php's
+	// $gate_nav comment for why. Reordered ahead of Travel Rules below so
+	// the grid still reads ascending (07,08,09,10,11,12).
 	array(
 		'number' => 'GATE 11',
-		'title'  => 'Travel Rules',
-		'desc'   => 'The house rules for group trips — read before you pack.',
-		'url'    => 'https://bagsandvibes.com/gate-11-travel-rules/',
-	),
-	array(
-		'number' => 'GATE 12',
 		'title'  => 'Vacation Request',
 		'desc'   => 'Pitch a new destination or start your own trip.',
 		'url'    => 'https://bagsandvibes.com/gate-12-vacation-requests/',
+	),
+	// Gate number swapped from GATE 11 -- see above.
+	array(
+		'number' => 'GATE 12',
+		'title'  => 'Travel Rules',
+		'desc'   => 'The house rules for group trips — read before you pack.',
+		'url'    => 'https://bagsandvibes.com/gate-11-travel-rules/',
 	),
 );
 
