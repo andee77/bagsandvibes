@@ -82,7 +82,6 @@
         pre_post_cruise_nights: val('req-pre-post-cruise-nights'),
         cruise_cabin_class: val('req-cruise-cabin-class'),
         beverage_plan: val('req-beverage-plan'),
-        beverage_plan_type: val('req-beverage-plan-type'),
 
         // Hotel and Resort Vacation
         hotel_nights: val('req-hotel-nights'),

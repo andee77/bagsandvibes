@@ -209,8 +209,8 @@ function cbv_render_payment_disclaimer_banner( $user_id ) {
 		</div>
 		<label>
 			<input type="checkbox" id="cbv-payment-disclaimer-checkbox">
-			I have read and understand how CBGV Commitment Fee and Travel Payment are handled.
 			<span class="cbv-required" aria-hidden="true">*</span>
+			I have read and understand how CBGV Commitment Fee and Travel Payment are handled.
 		</label>
 		<p><button type="button" class="btn btn-ticket" id="cbv-payment-disclaimer-accept" disabled>Continue to Payments</button></p>
 		<div id="cbv-payment-disclaimer-result"></div>

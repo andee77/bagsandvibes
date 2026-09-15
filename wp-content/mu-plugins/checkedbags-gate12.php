@@ -159,7 +159,6 @@ function cbv_trip_request_field_defs() {
 		'pre_post_cruise_nights' => array( 'type' => 'text' ),
 		'cruise_cabin_class'     => array( 'type' => 'text' ),
 		'beverage_plan'          => array( 'type' => 'text' ),
-		'beverage_plan_type'     => array( 'type' => 'text' ),
 
 		// Hotel and Resort Vacation (CIF section) -- shown when "Hotel/Resort" is checked
 		'hotel_nights'            => array( 'type' => 'text' ),
@@ -282,7 +281,6 @@ function cb_render_request_meta_box( $post ) {
 		'Pre/post cruise nights' => $f( 'pre_post_cruise_nights' ),
 		'Cabin class'            => $f( 'cruise_cabin_class' ),
 		'Beverage plan'          => $f( 'beverage_plan' ),
-		'Beverage plan type'     => $f( 'beverage_plan_type' ),
 		'Cruise preferences (legacy)' => $f( 'cruise_preferences' ),
 		'Cruise itinerary (legacy)'   => $f( 'cruise_itinerary' ),
 		'Cruise length (legacy)'      => $f( 'cruise_length' ),
@@ -614,7 +612,7 @@ add_shortcode( 'cb_gate_requests', function () {
 
 		<fieldset>
 			<legend>Destination &amp; Timing</legend>
-			<label>Where (specific place, or general vibe) <span class="cbv-required" aria-hidden="true">*</span> <input type="text" id="req-destination" required placeholder="e.g. Amalfi Coast, or 'warm Caribbean beach'"></label>
+			<label><span class="cbv-required" aria-hidden="true">*</span> Where (specific place, or general vibe) <input type="text" id="req-destination" required placeholder="e.g. Amalfi Coast, or 'warm Caribbean beach'"></label>
 			<label>Dates <select id="req-date-flexibility">
 				<option value="Fixed dates">Fixed dates</option>
 				<option value="Flexible window">Flexible window</option>
@@ -694,7 +692,6 @@ add_shortcode( 'cb_gate_requests', function () {
 			<label>Beverage plan <select id="req-beverage-plan">
 				<option value="">—</option><option value="Yes">Yes</option><option value="No">No</option>
 			</select></label>
-			<label>Beverage plan type <input type="text" id="req-beverage-plan-type"></label>
 		</fieldset>
 
 		<fieldset id="req-section-hotel" class="req-conditional-section" style="display:none;">

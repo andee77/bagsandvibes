@@ -218,7 +218,7 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 		'Cruise Company', 'Cruise Program Number', 'Cruise Itinerary (Legacy)',
 		'Cruise Start Date', 'Cruise End Date', 'Cruise Duration', 'Cruise Region',
 		'Cruise Departure Port', 'Pre/Post Cruise Nights',
-		'Cruise Cabin Class', 'Beverage Plan', 'Beverage Plan Type',
+		'Cruise Cabin Class', 'Beverage Plan',
 		'Car Preferences', 'Car Add-ons', 'Car Category',
 		'Package Tour Countries', 'Package Tour Style', 'Package Activity Level',
 		// Preferences
@@ -305,7 +305,6 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 		$pre_post_cruise_nights = $merge( $intake['pre_post_cruise_nights'] ?? '', $req( 'pre_post_cruise_nights' ) );
 		$cruise_cabin_class     = $merge( $intake['cruise_cabin_class'] ?? '', $req( 'cruise_cabin_class' ) );
 		$beverage_plan          = $merge( $intake['beverage_plan'] ?? '', $req( 'beverage_plan' ) );
-		$beverage_plan_type     = $merge( $intake['beverage_plan_type'] ?? '', $req( 'beverage_plan_type' ) );
 
 		$car_preferences = $merge( $intake['car_preferences'] ?? '', $req( 'car_preferences' ) );
 		$car_addons      = $merge( $intake['car_addons'] ?? '', $req( 'car_addons' ) );
@@ -393,7 +392,6 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 			$pre_post_cruise_nights,
 			$cruise_cabin_class,
 			$beverage_plan,
-			$beverage_plan_type,
 			$car_preferences,
 			$car_addons,
 			$car_category,

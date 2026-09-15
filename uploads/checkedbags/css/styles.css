@@ -61,7 +61,7 @@ img { user-select: none; -webkit-user-drag: none; }
    isn't real. */
 .cbv-required {
   color: var(--coral);
-  margin-left: 0.15rem;
+  margin-right: 0.15rem;
   font-weight: 700;
 }
 
@@ -2745,6 +2745,17 @@ body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
 }
 .cbv-exchange-rates-section h3 {
   margin-top: 0;
+  color: rgba(251,243,231,0.85);
+}
+/* Kadence's default h3 color and .cb-page-hint's sitewide default (both
+   var(--ink), meant for the light page background) are unreadable here --
+   this section is dark (var(--horizon) above), same class of bug as
+   .trip-detail-traveler-intake's own .cb-page-hint fix elsewhere in this
+   file. Confirmed live: the intro paragraph was effectively invisible,
+   not just low-contrast. */
+.cbv-exchange-rates-section .cb-page-hint {
+  color: rgba(251,243,231,0.85);
+  opacity: 1;
 }
 .cbv-exchange-rates-table {
   width: 100%;
