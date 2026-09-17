@@ -276,6 +276,17 @@ function cb_trip_meets_minimum_group_size( $trip_id ) {
 // cost per person" -- used by the price-range summary below AND by the
 // Client Proposal / Internal Data Sheet PDF itemized invoice tables
 // (Piece 5), so the two can never drift apart on the math.
+//
+// Per-Cabin pricing (some cruise lines, e.g. Virgin, quote a whole-cabin
+// total rather than a per-person one) is normalized to per-person HERE,
+// not in each caller -- every consumer below (Gate 07's price range, the
+// Trip Details "Overridden by Pricing Tiers" notice, the Proposal PDF's
+// "Total / Person" column, the public landing page's "From $X / person")
+// already only ever calls this one function, so fixing the conversion in
+// one place makes all of them correct automatically, with no per-caller
+// changes needed. pricing_basis missing entirely (every point on every
+// trip entered before this feature existed) defaults to 'per_person' --
+// exactly today's implicit assumption, so no data migration is needed.
 function cb_pricing_occupancy_point_total( $point ) {
 	$total = (float) ( $point['voyage_fare'] ?? 0 )
 		+ (float) ( $point['taxes_fees'] ?? 0 )
@@ -283,10 +294,35 @@ function cb_pricing_occupancy_point_total( $point ) {
 		+ (float) ( $point['insurance'] ?? 0 )
 		- (float) ( $point['discount'] ?? 0 );
 
+	if ( 'per_cabin' === ( $point['pricing_basis'] ?? 'per_person' ) ) {
+		$total = $total / max( 1, (int) ( $point['occupancy_count'] ?? 0 ) );
+	}
+
 	// Defensive floor -- a discount entered larger than the base cost would
 	// otherwise produce a negative total, which then displays publicly on
 	// Gate 07's price range. Doesn't fix bad data already entered on a real
 	// trip, only prevents the display bug going forward.
+	return max( 0.0, $total );
+}
+
+/**
+ * The companion cabin-total figure -- always "what the whole cabin costs,"
+ * regardless of which basis this point was actually entered in. Not used
+ * by any of the pre-existing per-person consumers above; only by the two
+ * displays that deliberately show both framings side by side (Proposal PDF,
+ * public landing page pricing card).
+ */
+function cb_pricing_occupancy_point_cabin_total( $point ) {
+	if ( 'per_cabin' === ( $point['pricing_basis'] ?? 'per_person' ) ) {
+		$total = (float) ( $point['voyage_fare'] ?? 0 )
+			+ (float) ( $point['taxes_fees'] ?? 0 )
+			+ (float) ( $point['gratuities'] ?? 0 )
+			+ (float) ( $point['insurance'] ?? 0 )
+			- (float) ( $point['discount'] ?? 0 );
+	} else {
+		$total = cb_pricing_occupancy_point_total( $point ) * max( 1, (int) ( $point['occupancy_count'] ?? 0 ) );
+	}
+
 	return max( 0.0, $total );
 }
 
@@ -733,16 +769,28 @@ function cb_render_occupancy_point_row_fields( $tier_index, $point_index, $point
 	$gratuities      = $point['gratuities'] ?? '';
 	$insurance       = $point['insurance'] ?? '';
 	$discount        = $point['discount'] ?? '';
+	$per_cabin       = 'per_cabin' === ( $point['pricing_basis'] ?? 'per_person' );
 	$prefix          = 'cb_pricing_tiers[' . $tier_index . '][occupancy_points][' . $point_index . ']';
 	?>
 	<div class="cb-repeater-row cb-occupancy-point-row">
-		<input type="number" name="<?php echo esc_attr( $prefix ); ?>[occupancy_count]" placeholder="# Sailors" value="<?php echo esc_attr( $occupancy_count ); ?>">
-		<input type="number" step="0.01" name="<?php echo esc_attr( $prefix ); ?>[voyage_fare]" placeholder="Voyage Fare" value="<?php echo esc_attr( $voyage_fare ); ?>">
-		<input type="number" step="0.01" name="<?php echo esc_attr( $prefix ); ?>[taxes_fees]" placeholder="Taxes & Fees" value="<?php echo esc_attr( $taxes_fees ); ?>">
-		<input type="number" step="0.01" name="<?php echo esc_attr( $prefix ); ?>[gratuities]" placeholder="Gratuities" value="<?php echo esc_attr( $gratuities ); ?>">
-		<input type="number" step="0.01" name="<?php echo esc_attr( $prefix ); ?>[insurance]" placeholder="Insurance" value="<?php echo esc_attr( $insurance ); ?>">
-		<input type="number" step="0.01" name="<?php echo esc_attr( $prefix ); ?>[discount]" placeholder="Discount" value="<?php echo esc_attr( $discount ); ?>">
-		<button type="button" class="button-link cb-repeater-remove" style="color:#b32d2e;">Remove</button>
+		<label class="cb-occupancy-point-basis">
+			<input type="checkbox" name="<?php echo esc_attr( $prefix ); ?>[pricing_basis_per_cabin]" value="1" <?php checked( $per_cabin ); ?>>
+			This entry is priced per cabin (total for the whole cabin), not per person -- uses "# Sailors" below to compute the per-person equivalent.
+		</label>
+		<div class="cb-occupancy-point-fields">
+			<input type="number" name="<?php echo esc_attr( $prefix ); ?>[occupancy_count]" placeholder="# Sailors" value="<?php echo esc_attr( $occupancy_count ); ?>">
+			<input type="number" step="0.01" name="<?php echo esc_attr( $prefix ); ?>[voyage_fare]" placeholder="Voyage Fare" value="<?php echo esc_attr( $voyage_fare ); ?>">
+			<input type="number" step="0.01" name="<?php echo esc_attr( $prefix ); ?>[taxes_fees]" placeholder="Taxes & Fees" value="<?php echo esc_attr( $taxes_fees ); ?>">
+			<input type="number" step="0.01" name="<?php echo esc_attr( $prefix ); ?>[gratuities]" placeholder="Gratuities" value="<?php echo esc_attr( $gratuities ); ?>">
+			<input type="number" step="0.01" name="<?php echo esc_attr( $prefix ); ?>[insurance]" placeholder="Insurance" value="<?php echo esc_attr( $insurance ); ?>">
+			<input type="number" step="0.01" name="<?php echo esc_attr( $prefix ); ?>[discount]" placeholder="Discount" value="<?php echo esc_attr( $discount ); ?>">
+			<button type="button" class="button-link cb-repeater-remove" style="color:#b32d2e;">Remove</button>
+		</div>
+		<?php if ( ! empty( $point ) ) : ?>
+			<p class="cb-occupancy-point-computed description">
+				= $<?php echo esc_html( number_format( cb_pricing_occupancy_point_total( $point ), 2 ) ); ?> per person &middot; $<?php echo esc_html( number_format( cb_pricing_occupancy_point_cabin_total( $point ), 2 ) ); ?> per cabin
+			</p>
+		<?php endif; ?>
 	</div>
 	<?php
 }
@@ -786,7 +834,7 @@ function cb_render_pricing_tier_row_fields( $tier_index, $tier ) {
 		</p>
 
 		<div class="cb-tier-section">
-			<h4>Occupancy Price Points <span class="description">(one row per headcount sharing this cabin -- e.g. 2 sailors vs. 4 sailors -- with its own explicit per-person price, not a computed split)</span></h4>
+			<h4>Occupancy Price Points <span class="description">(one row per headcount sharing this cabin -- e.g. 2 sailors vs. 4 sailors -- with its own explicit price, not a computed split; check "Per Cabin" below a row if that cruise line quotes a whole-cabin total instead of a per-person one)</span></h4>
 			<div class="cb-repeater" data-repeater="occupancy_points" data-index-token="__POINT_INDEX__">
 				<div class="cb-repeater-row cb-occupancy-point-row cb-repeater-header">
 					<span># Sailors</span><span>Voyage Fare</span><span>Taxes &amp; Fees</span><span>Gratuities</span><span>Insurance</span><span>Discount</span><span></span>
@@ -982,7 +1030,17 @@ add_action( 'admin_footer', function () {
 		.cb-tier-section { margin-top: 10px; }
 		.cb-tier-section h4 { margin: 0 0 6px; }
 		.cb-tier-section h4 .description { font-weight: normal; font-size: 12px; color: #666; }
-		[data-repeater="occupancy_points"] .cb-repeater-row { display: grid; grid-template-columns: 90px 1fr 1fr 1fr 1fr 1fr auto; gap: 8px; align-items: center; }
+		/* Header row keeps the flat grid (just column labels); each real data
+		   row is now a small block -- the Per Cabin checkbox stacked above
+		   its own fields grid, per the explicit design ask -- so the shared
+		   Add/Remove script (which does removeBtn.closest('.cb-repeater-row'))
+		   still removes the WHOLE block in one go, not just the fields grid. */
+		[data-repeater="occupancy_points"] .cb-repeater-row.cb-repeater-header { display: grid; grid-template-columns: 90px 1fr 1fr 1fr 1fr 1fr auto; gap: 8px; align-items: center; }
+		[data-repeater="occupancy_points"] .cb-repeater-row:not(.cb-repeater-header) { display: block; padding: 8px; border: 1px solid #e2e4e7; border-radius: 4px; background: #f9f9f9; }
+		.cb-occupancy-point-basis { display: block; font-size: 12px; color: #444; margin-bottom: 6px; }
+		.cb-occupancy-point-basis input { width: auto; margin-right: 4px; }
+		.cb-occupancy-point-fields { display: grid; grid-template-columns: 90px 1fr 1fr 1fr 1fr 1fr auto; gap: 8px; align-items: center; }
+		.cb-occupancy-point-computed { margin: 6px 0 0; }
 		[data-repeater="addons"] .cb-repeater-row { display: grid; grid-template-columns: 1fr 80px auto; gap: 8px; align-items: center; }
 	</style>
 	<script>
@@ -1134,6 +1192,12 @@ add_action( 'save_post_cb_trip', function ( $post_id ) {
 				'gratuities'      => floatval( $point_row['gratuities'] ?? 0 ),
 				'insurance'       => floatval( $point_row['insurance'] ?? 0 ),
 				'discount'        => floatval( $point_row['discount'] ?? 0 ),
+				// Checkbox, not a select/radio -- unchecked means the key is
+				// simply absent from $_POST, so a genuinely blank template
+				// row stays correctly detected as blank by
+				// cb_repeater_row_is_blank() above (a select/radio would
+				// always submit some value, even for an untouched row).
+				'pricing_basis'   => ! empty( $point_row['pricing_basis_per_cabin'] ) ? 'per_cabin' : 'per_person',
 			);
 		}
 

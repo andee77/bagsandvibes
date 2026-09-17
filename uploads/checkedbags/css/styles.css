@@ -3100,6 +3100,15 @@ body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
   font-size: 0.85rem;
   color: rgba(251,243,231,0.7);
 }
+/* Only rendered at all when this tier's cheapest point was entered per-
+   cabin -- muted/small so the primary per-person figure above stays the
+   clean, prominent one; not shown on any trip priced purely per-person. */
+.cbv-landing-pricing-cabin-note {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  color: rgba(251,243,231,0.55);
+  margin: 0.15rem 0 0;
+}
 
 /* Itinerary section -- one full-width dark card (matching the Highlights/
    Pricing cards' own background/border treatment) wrapping a table instead

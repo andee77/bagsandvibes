@@ -196,6 +196,21 @@ function cbv_render_public_trip_landing( $trip_id ) {
 					$points = (array) ( $tier['occupancy_points'] ?? array() );
 					$totals = array_map( 'cb_pricing_occupancy_point_total', $points );
 					$from   = ! empty( $totals ) ? min( $totals ) : null;
+
+					// Secondary per-cabin line -- tied to the SAME occupancy
+					// point that produced "From $X / person" above (not an
+					// independent cheapest-cabin search), so the two figures
+					// on this card always describe one real point rather
+					// than two different ones. Only shown when that specific
+					// point was actually entered per-cabin -- a tier priced
+					// entirely per-person (every trip before this feature
+					// existed) renders identically to before, no new clutter.
+					$cheapest_point   = null;
+					if ( null !== $from ) {
+						$cheapest_index = array_search( $from, $totals, true );
+						$cheapest_point = false !== $cheapest_index ? $points[ $cheapest_index ] : null;
+					}
+					$show_cabin_total = $cheapest_point && 'per_cabin' === ( $cheapest_point['pricing_basis'] ?? 'per_person' );
 					?>
 					<div class="cbv-landing-pricing-card">
 						<h3><?php echo esc_html( $tier['name'] ?? '' ); ?></h3>
@@ -204,6 +219,9 @@ function cbv_render_public_trip_landing( $trip_id ) {
 						<?php endif; ?>
 						<?php if ( null !== $from ) : ?>
 							<p class="cbv-landing-pricing-amount">From $<?php echo esc_html( number_format_i18n( $from ) ); ?> <span>/ person</span></p>
+							<?php if ( $show_cabin_total ) : ?>
+								<p class="cbv-landing-pricing-cabin-note">$<?php echo esc_html( number_format_i18n( cb_pricing_occupancy_point_cabin_total( $cheapest_point ) ) ); ?> per cabin</p>
+							<?php endif; ?>
 						<?php endif; ?>
 					</div>
 				<?php endforeach; ?>

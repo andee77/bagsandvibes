@@ -353,7 +353,16 @@ function cb_proposal_render_pricing_html( $trip ) {
 			if ( ! empty( $tier['occupancy_points'] ) ) {
 				$rows = '';
 				foreach ( $tier['occupancy_points'] as $point ) {
-					$total = cb_pricing_occupancy_point_total( $point );
+					$per_cabin_basis = 'per_cabin' === ( $point['pricing_basis'] ?? 'per_person' );
+					$per_person_total = cb_pricing_occupancy_point_total( $point );
+					$cabin_total      = cb_pricing_occupancy_point_cabin_total( $point );
+					// Itemized fields (Voyage Fare, Taxes & Fees, etc.) are
+					// whatever the admin actually typed -- a per-cabin/whole-
+					// booking amount for a Per Cabin row, same as they'd be
+					// billed by the cruise line, not silently divided down.
+					// The Basis column exists specifically so that isn't
+					// ambiguous, and the two Total columns give the correct
+					// figure either way regardless of entry basis.
 					$rows .= '<tr>'
 						. '<td>' . (int) $point['occupancy_count'] . '</td>'
 						. '<td>' . cb_proposal_format_money( $point['voyage_fare'] ) . '</td>'
@@ -361,11 +370,13 @@ function cb_proposal_render_pricing_html( $trip ) {
 						. '<td>' . cb_proposal_format_money( $point['gratuities'] ) . '</td>'
 						. '<td>' . cb_proposal_format_money( $point['insurance'] ) . '</td>'
 						. '<td>' . cb_proposal_format_money( $point['discount'] ) . '</td>'
-						. '<td><strong>' . cb_proposal_format_money( $total ) . '</strong></td>'
+						. '<td>' . ( $per_cabin_basis ? 'Per Cabin' : 'Per Person' ) . '</td>'
+						. '<td><strong>' . cb_proposal_format_money( $per_person_total ) . '</strong></td>'
+						. '<td>' . cb_proposal_format_money( $cabin_total ) . '</td>'
 						. '</tr>';
 				}
 				$html .= '<table class="cb-table"><thead><tr>'
-					. '<th># Sailors</th><th>Voyage Fare</th><th>Taxes &amp; Fees</th><th>Gratuities</th><th>Insurance</th><th>Discount</th><th>Total / Person</th>'
+					. '<th># Sailors</th><th>Voyage Fare</th><th>Taxes &amp; Fees</th><th>Gratuities</th><th>Insurance</th><th>Discount</th><th>Basis</th><th>Total / Person</th><th>Total / Cabin</th>'
 					. '</tr></thead><tbody>' . $rows . '</tbody></table>';
 			}
 
