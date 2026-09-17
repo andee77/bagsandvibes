@@ -18,14 +18,17 @@
  *
  *              Every data source here is reused, not new: Day-by-Day
  *              Itinerary (first row's port/country as the trip's
- *              "departs from"), Pricing Tiers/Occupancy Points (the
- *              pricing comparison strip), cover photo, cb_trip_code (the
- *              "Reserve Your Spot" CTA, reusing the existing [cbv_join]
+ *              "departs from", and -- opt-in via its own admin checkbox --
+ *              the full schedule as its own section, same field set as the
+ *              Client Proposal PDF's itinerary table but with this page's
+ *              own styling), Pricing Tiers/Occupancy Points (the pricing
+ *              comparison strip), cover photo, cb_trip_code (the "Reserve
+ *              Your Spot" CTA, reusing the existing [cbv_join]
  *              manual-approval registration flow verbatim -- no new
  *              signup mechanism), and the itinerary PDF. Only the hero
- *              tagline, Highlights repeater, and disclaimer text
- *              (checkedbags-trip-invites.php Phase 12 admin fields) are
- *              genuinely new content.
+ *              tagline, Highlights repeater, disclaimer text, and Show-
+ *              Itinerary checkbox (checkedbags-trip-invites.php Phase 12
+ *              admin fields) are genuinely new content/toggles.
  * Author:      Built with Claude for JourneyWell Global LLC
  *
  * WHERE THIS FILE GOES:
@@ -130,6 +133,57 @@ function cbv_render_public_trip_landing( $trip_id ) {
 						<p><?php echo esc_html( $highlight['description'] ?? '' ); ?></p>
 					</div>
 				<?php endforeach; ?>
+			</div>
+		</div>
+		<?php endif; ?>
+
+		<?php
+		// Independent admin toggle (Public Landing Page Content box), not
+		// just data presence -- an admin may have the full schedule filled
+		// in on a trip without wanting it public yet. Reuses the exact same
+		// $itinerary array already fetched above for the "Departs from"
+		// field -- one cb_trip_get_itinerary() call per page load, not two.
+		// Column set/order (day/date/port/country/description/time/
+		// tender_mode) matches cb_proposal_render_itinerary_html()'s own
+		// Client Proposal PDF table verbatim -- same underlying data, same
+		// shape -- but rendered with this page's real sand/coral/mono
+		// styling instead of adapting that function's PDF-only inline CSS
+		// (cb_proposal_get_template_css() targets Dompdf specifically, not
+		// a live browser stylesheet), and with friendlier date/time
+		// formatting appropriate for a public marketing page rather than
+		// the PDF's raw stored values.
+		$show_itinerary = get_post_meta( $trip_id, 'cb_public_landing_show_itinerary', true );
+		?>
+		<?php if ( $show_itinerary && ! empty( $itinerary ) ) : ?>
+		<div class="cbv-landing-section">
+			<h2>Itinerary</h2>
+			<div class="cbv-landing-itinerary">
+				<table class="cbv-landing-itinerary-table">
+					<thead>
+						<tr>
+							<th>Day</th>
+							<th>Date</th>
+							<th>Port</th>
+							<th>Country</th>
+							<th>Type</th>
+							<th>Time</th>
+							<th>Tender</th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php foreach ( $itinerary as $day ) : ?>
+							<tr>
+								<td class="cbv-landing-itinerary-day"><?php echo esc_html( $day['day'] ?? '' ); ?></td>
+								<td><?php echo esc_html( ! empty( $day['date'] ) ? date_i18n( 'M j, Y', strtotime( $day['date'] ) ) : '' ); ?></td>
+								<td><?php echo esc_html( $day['port'] ?? '' ); ?></td>
+								<td><?php echo esc_html( $day['country'] ?? '' ); ?></td>
+								<td><?php echo esc_html( $day['description'] ?? '' ); ?></td>
+								<td><?php echo esc_html( ! empty( $day['time'] ) ? date_i18n( 'g:i A', strtotime( $day['time'] ) ) : '' ); ?></td>
+								<td><?php echo esc_html( $day['tender_mode'] ?? '' ); ?></td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
 			</div>
 		</div>
 		<?php endif; ?>

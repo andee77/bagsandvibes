@@ -3101,6 +3101,51 @@ body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
   color: rgba(251,243,231,0.7);
 }
 
+/* Itinerary section -- one full-width dark card (matching the Highlights/
+   Pricing cards' own background/border treatment) wrapping a table instead
+   of a card grid, since day-by-day data is inherently tabular. overflow-x
+   lets the 7 columns scroll horizontally on narrow screens rather than
+   squishing unreadably -- same reasoning as the site's other data tables. */
+.cbv-landing-itinerary {
+  background: var(--horizon);
+  border: 1px solid rgba(232,169,78,0.25);
+  border-radius: 6px;
+  padding: 1.5rem;
+  overflow-x: auto;
+}
+.cbv-landing-itinerary-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.cbv-landing-itinerary-table th {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--coral);
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 2px solid var(--gold);
+  white-space: nowrap;
+}
+.cbv-landing-itinerary-table td {
+  padding: 0.6rem 0.75rem;
+  color: rgba(251,243,231,0.85);
+  border-bottom: 1px solid rgba(251,243,231,0.12);
+  vertical-align: top;
+  white-space: nowrap;
+}
+.cbv-landing-itinerary-table tr:last-child td {
+  border-bottom: none;
+}
+.cbv-landing-itinerary-day {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--sand);
+}
+
 .cbv-landing-cta {
   text-align: center;
   padding: 2.5rem var(--edge);

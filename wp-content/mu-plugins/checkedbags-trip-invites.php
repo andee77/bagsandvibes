@@ -3059,11 +3059,17 @@ function cbv_render_traveler_intake_form( $trip_id ) {
    Tagline, Highlights (short repeater, distinct from the full Day-by-Day
    Itinerary -- checked and confirmed the itinerary's own "description" is a
    fixed port-schedule enum (Embarkation/Arrival/etc.), not marketing copy,
-   so it can't double as this), and a per-trip disclaimer. Reads only ever
-   happen from cbv_render_public_trip_landing() (added separately, wiring
-   this content into the actual public page); this section is purely the
-   admin-editing side, same "reads via a get_*() helper" pattern as
-   cb_trip_get_itinerary()/cb_trip_get_pricing_tiers() in checkedbags-trips.php.
+   so it can't double as this), a per-trip disclaimer, and a checkbox
+   gating a full Day-by-Day Itinerary section (cb_public_landing_show_
+   itinerary -- reads cb_trip_get_itinerary() directly, no new data store;
+   deliberately a separate toggle from cb_public_landing_enabled, so a trip
+   can have its landing page on without necessarily exposing the full
+   schedule, or vice versa have it prepped ahead of enabling the page).
+   Reads only ever happen from cbv_render_public_trip_landing() (added
+   separately, wiring this content into the actual public page); this
+   section is purely the admin-editing side, same "reads via a get_*()
+   helper" pattern as cb_trip_get_itinerary()/cb_trip_get_pricing_tiers()
+   in checkedbags-trips.php.
    ========================================================================== */
 function cbv_get_trip_highlights( $trip_id ) {
 	$highlights = get_post_meta( $trip_id, 'cb_trip_highlights', true );
@@ -3098,15 +3104,23 @@ add_action( 'add_meta_boxes', function () {
 function cbv_render_public_landing_content_meta_box( $post ) {
 	wp_nonce_field( 'cbv_public_landing_content_save', 'cbv_public_landing_content_nonce' );
 
-	$tagline     = get_post_meta( $post->ID, 'cb_public_landing_tagline', true );
-	$disclaimer  = get_post_meta( $post->ID, 'cb_public_landing_disclaimer', true );
-	$highlights  = cbv_get_trip_highlights( $post->ID );
+	$tagline        = get_post_meta( $post->ID, 'cb_public_landing_tagline', true );
+	$disclaimer     = get_post_meta( $post->ID, 'cb_public_landing_disclaimer', true );
+	$show_itinerary = (bool) get_post_meta( $post->ID, 'cb_public_landing_show_itinerary', true );
+	$highlights     = cbv_get_trip_highlights( $post->ID );
 	?>
 	<p class="description">Only used when "Create Public Landing Page" is checked in the Trip Code &amp; Visibility box -- safe to fill in ahead of time either way.</p>
 
 	<p>
 		<label for="cb_public_landing_tagline"><strong>Tagline</strong> <span class="description">(short hero line under the trip title)</span></label><br>
 		<input type="text" name="cb_public_landing_tagline" id="cb_public_landing_tagline" style="width:100%;max-width:600px;" value="<?php echo esc_attr( $tagline ); ?>" placeholder="Seven nights. One unforgettable crew.">
+	</p>
+
+	<p>
+		<label>
+			<input type="checkbox" name="cbv_public_landing_show_itinerary" value="1" <?php checked( $show_itinerary ); ?>>
+			<strong>Show Itinerary on Public Landing Page</strong> <span class="description">(adds a full Day-by-Day Itinerary section below Highlights, reusing whatever is filled in on the Day-by-Day Itinerary box further down this screen -- independent of whether the landing page itself is enabled in the Trip Code &amp; Visibility box)</span>
+		</label>
 	</p>
 
 	<h4>Highlights <span class="description">(3-6 short cards -- activities/features, not the full day-by-day schedule)</span></h4>
@@ -3146,6 +3160,11 @@ add_action( 'save_post_cb_trip', function ( $post_id ) {
 	if ( isset( $_POST['cb_public_landing_disclaimer'] ) ) {
 		update_post_meta( $post_id, 'cb_public_landing_disclaimer', sanitize_textarea_field( wp_unslash( $_POST['cb_public_landing_disclaimer'] ) ) );
 	}
+	// Independent of cb_public_landing_enabled (Trip Code & Visibility box) --
+	// this only controls whether the Itinerary section shows up WITHIN an
+	// already-enabled landing page, same as Highlights/Pricing being content
+	// toggles rather than page-visibility toggles.
+	update_post_meta( $post_id, 'cb_public_landing_show_itinerary', ! empty( $_POST['cbv_public_landing_show_itinerary'] ) );
 
 	// Same append-based repeater rebuild as Day-by-Day Itinerary --
 	// cb_repeater_row_is_blank() (checkedbags-trips.php) drops any row left
