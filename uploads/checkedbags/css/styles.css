@@ -2590,6 +2590,13 @@ body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
   position: relative !important;
   width: 190px !important;
   height: 190px !important;
+  /* UM's base rule also sets margin: 0 0 0 30px (left-only, meant for its
+     own flush-left avatar layout) -- confirmed live that this asymmetric
+     margin was still shifting the centered avatar ~15px right of the
+     name/bio block's true center (half the 30px, since text-align:center
+     centers this inline-block's margin box, not just its content).
+     Zeroed so the avatar's visual center exactly matches .um-profile-meta's. */
+  margin: 0 !important;
   border-radius: 50%;
   overflow: hidden;
   border: 4px solid var(--sand);
