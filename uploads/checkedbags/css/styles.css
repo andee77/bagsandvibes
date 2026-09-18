@@ -2604,11 +2604,32 @@ body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
    UM's own header layout, not ours. Left alone, it shifts the real photo
    up out of the circle's clip window, leaving the top of the circle empty
    and cropping the bottom of the source image out of view. Reset to fill
-   the circle exactly (confirmed live via computed style, not assumed). */
-.um-header .um-profile-photo-img {
+   the circle exactly (confirmed live via computed style, not assumed).
+   width/height:100% (of .um-profile-photo, not a fixed px value) plus the
+   .um-page-user prefix are both load-bearing: UM's own JS adds a
+   container-width class (uimob340/500/800/960) to this page, and its
+   responsive stylesheet has its OWN width/height/top rules per breakpoint
+   for this exact element (e.g. "div.uimob960 .um-profile-photo
+   a.um-profile-photo-img { width:140px; height:140px; top:-70px; }") at
+   HIGHER specificity than a plain .um-header .um-profile-photo-img rule,
+   even with !important on both -- confirmed by enumerating
+   document.styleSheets live, not assumed, after a fixed-190px version of
+   this rule was silently overridden at the uimob960 breakpoint, shifting
+   the photo out of the circle. .um-page-user (present on this page's
+   <body>) plus the full .um-header > .um-profile-photo > .um-profile-photo-img
+   ancestry pushes this selector's specificity above every uimob breakpoint
+   rule uniformly, and 100% sizing (of whatever pixel size
+   .um-profile-photo itself resolves to at that breakpoint, forced below)
+   means it stays correct even if UM changes those breakpoint numbers in a
+   future update. */
+.um-page-user .um-header .um-profile-photo .um-profile-photo-img {
   position: absolute !important;
   top: 0 !important;
   left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+.um-page-user .um-header .um-profile-photo {
   width: 190px !important;
   height: 190px !important;
 }
@@ -2617,23 +2638,32 @@ body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
   text-align: center;
 }
 /* UM's own .um-name defaults to float:left (its stock header layout puts
-   the avatar flush-left with the name/meta flowing beside it) -- left over
-   after .um-profile-photo above was centered independently, the name (and
-   the whole .um-main-meta block containing it + the bio text) stayed
-   pinned to the left edge instead of following the avatar to center.
-   Confirmed live via computed style (float:left and a non-centered
-   .um-main-meta box, not just a text-align issue) before writing this --
-   the math checks out exactly: centering the 626px .um-main-meta box
-   inside the 906px .um-header puts its center at the same x-position as
-   the centered avatar. !important for the same reason as
-   .um-profile-photo above -- UM's own CSS loads after ours. */
-.um-main-meta {
-  margin-left: auto !important;
-  margin-right: auto !important;
-}
+   the avatar flush-left with the name/meta flowing beside it) -- confirmed
+   live via computed style, not assumed. Still needed even after the fix
+   below: this is a separate, unconditional UM default (not tied to the
+   cover-photo padding hack), so it stays in effect regardless. */
 .um-name {
   float: none !important;
   margin: 0 !important;
+}
+/* The actual reason the name/bio block stayed off-center even after the
+   .um-name float fix above (confirmed live via document.styleSheets, not
+   assumed, after that first attempt didn't fully fix it): UM injects a
+   dynamic per-page <style> block sizing .um-profile-meta's left padding
+   to leave room for a LEFT-positioned avatar in UM's own default
+   cover-photo layout (e.g. "padding-left: 250px" against only 30px on the
+   right -- a real, asymmetric offset, not just an unapplied text-align).
+   UM already ships the exact fix needed for its OWN "no cover photo"
+   case (.um-header.no-cover .um-profile-meta -- zero padding, centered
+   text); applying the same treatment unconditionally is correct here
+   since this site's avatar is always centered, cover photo or not.
+   !important is required to beat that dynamic inline padding -- a
+   non-important rule, so this wins on importance regardless of the
+   dynamic style's higher selector specificity. */
+.um-header .um-profile-meta {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  text-align: center !important;
 }
 .cb-member-since {
   text-align: center;
