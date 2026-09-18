@@ -2672,6 +2672,15 @@ body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
   padding-right: 0 !important;
   text-align: center !important;
 }
+/* The name heading stays centered under the avatar (inherits text-align:
+   center from .um-profile-meta above), but the bio paragraph itself reads
+   better left-aligned -- especially now that members can write up to
+   1000 characters (checkedbags-member-profile-hooks.php), including
+   multi-line/bulleted content that gets visually ragged and harder to
+   read when center-aligned. */
+.um-header .um-meta-text {
+  text-align: left !important;
+}
 .cb-member-since {
   text-align: center;
   font-family: var(--font-mono);
