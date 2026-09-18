@@ -54,6 +54,30 @@ add_filter( 'um_account_tab_general_fields', function ( $args, $shortcode_args )
 }, 10, 2 );
 
 /* ==========================================================================
+   1b. Per-request from the account holder: 1000-character Bio limit on
+       their own profile (user ID 1, andeejourneywellglobal-com), 500 for
+       every other member -- up from UM's sitewide default of 180.
+       UM's own Bio-length limit is a single sitewide value
+       (profile_bio_maxchars, no native per-user override), read via
+       UM()->options()->get() at three points confirmed by reading UM's
+       own source directly: the live "characters remaining" hint on the
+       edit form (um-actions-profile.php), and the actual server-side
+       length validation on both the Account page and the inline
+       ?um_action=edit save paths (um-actions-form.php) -- all three read
+       through this one documented per-option filter
+       (um_get_option_filter__{$option_id}, class-options.php), so hooking
+       it once here covers all three consistently; the UI hint and the
+       real enforced limit can never drift apart. Editing a Bio is always
+       a "my own profile" action in UM (no one can edit anyone else's), so
+       get_current_user_id() at request time -- on both the GET that
+       renders the field and the POST that saves it -- always correctly
+       reflects whose limit should apply.
+   ========================================================================== */
+add_filter( 'um_get_option_filter__profile_bio_maxchars', function ( $value ) {
+	return 1 === get_current_user_id() ? 1000 : 500;
+} );
+
+/* ==========================================================================
    2. "Member since {date}" -- our own concept, not native to UM, appended
       just after UM's own header (avatar, cover, name).
    ========================================================================== */
