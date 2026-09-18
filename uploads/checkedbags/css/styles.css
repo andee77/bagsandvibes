@@ -2616,6 +2616,25 @@ body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
 .um-header h1 {
   text-align: center;
 }
+/* UM's own .um-name defaults to float:left (its stock header layout puts
+   the avatar flush-left with the name/meta flowing beside it) -- left over
+   after .um-profile-photo above was centered independently, the name (and
+   the whole .um-main-meta block containing it + the bio text) stayed
+   pinned to the left edge instead of following the avatar to center.
+   Confirmed live via computed style (float:left and a non-centered
+   .um-main-meta box, not just a text-align issue) before writing this --
+   the math checks out exactly: centering the 626px .um-main-meta box
+   inside the 906px .um-header puts its center at the same x-position as
+   the centered avatar. !important for the same reason as
+   .um-profile-photo above -- UM's own CSS loads after ours. */
+.um-main-meta {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+.um-name {
+  float: none !important;
+  margin: 0 !important;
+}
 .cb-member-since {
   text-align: center;
   font-family: var(--font-mono);

@@ -105,6 +105,22 @@ $cb_current_gate = isset( $cb_gate_page_config[ get_the_ID() ] ) ? $cb_gate_page
 		while ( have_posts() ) :
 			the_post();
 			?>
+			<?php
+			// The Member Profile page ('user', UM's own core page) also uses
+			// this shared shell -- it got assigned the Gate Page template by
+			// checkedbags-landing.php's auto-default-new-pages logic when UM
+			// first created it, not a deliberate per-page choice. Harmless
+			// everywhere else this template is used (Gate 07-12, forums,
+			// trip pages -- the_title() there is the actual page/trip name,
+			// meant to show), but on the profile page the_title() renders
+			// the member's own display name, duplicating the name UM's own
+			// um_profile_header already renders below via .um-name --
+			// confirmed live via DOM inspection (two literal "Andee P" text
+			// nodes: one here in .gate-ribbon-title, one in UM's .um-name).
+			// Suppressed for this one page only; every other consumer of
+			// this shared template is untouched.
+			if ( ! is_page( 'user' ) ) :
+			?>
 			<div class="gate-ribbon">
 				<?php if ( $cb_current_gate && $cb_current_gate['number'] ) : ?>
 					<span class="gate-ribbon-number"><?php echo esc_html( $cb_current_gate['number'] ); ?></span>
@@ -112,6 +128,7 @@ $cb_current_gate = isset( $cb_gate_page_config[ get_the_ID() ] ) ? $cb_gate_page
 				<?php endif; ?>
 				<span class="gate-ribbon-title"><?php the_title(); ?></span>
 			</div>
+			<?php endif; ?>
 			<div class="gate-page-content"><?php the_content(); ?></div>
 			<?php
 		endwhile;
