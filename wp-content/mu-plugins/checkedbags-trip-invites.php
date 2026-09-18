@@ -492,6 +492,114 @@ add_action( 'um_registration_complete', function ( $user_id, $args ) {
 }, 10, 2 );
 
 /* ==========================================================================
+   New Member Welcome email -- a genuinely separate, additional email on
+   top of whichever approval email UM already sends (Full Members get UM's
+   branded 'approved_email' -- "Cleared for Boarding"; Trip Guests get
+   UM's own unbranded native 'welcome_email', unchanged either way here).
+
+   Single hook covers BOTH signup paths: confirmed by reading UM's own
+   approve() source (includes/common/class-users.php) that Full Members
+   (admin manual approval) and Trip Guests (the UM()->common()->users()->
+   approve() call above, for the invite-token path) both funnel through
+   that exact same method, which fires um_after_user_is_approved once the
+   status has actually changed to 'approved'.
+
+   Fires exactly once per member, no extra bookkeeping needed: UM's own
+   can_be_approved() refuses to run (and thus never reaches this hook) for
+   a user who is already 'approved' -- so a later Trip Guest -> Full
+   Member promotion (a role change on an already-approved user) can never
+   re-trigger this. Also confirmed UM's separate reactivate() method (for
+   a previously 'inactive' account) fires its own distinct
+   um_after_user_is_reactivated hook instead, so reactivating a dormant
+   member doesn't re-send this either.
+
+   Plain wp_mail(), not a new UM email type/theme-override template --
+   this doesn't need UM's per-status routing or its email-tag replacement
+   system, and matches the existing precedent for a genuinely custom
+   notification in this codebase (cbv_notify_admin_of_appointment_request()
+   in checkedbags-appointment-requests.php). HTML body styled to match the
+   same branded wrapper as the theme's own
+   ultimate-member/email/approved_email.php override, so it looks like it
+   belongs next to that email, not like a second unrelated system.
+   ========================================================================== */
+add_action( 'um_after_user_is_approved', 'cbv_send_new_member_welcome_email' );
+
+function cbv_send_new_member_welcome_email( $user_id ) {
+	$user = get_userdata( $user_id );
+	if ( ! $user || ! $user->user_email ) {
+		return;
+	}
+
+	$site_name  = get_bloginfo( 'name' );
+	$login_url  = function_exists( 'um_get_core_page' ) ? um_get_core_page( 'login' ) : wp_login_url();
+
+	$subject = 'Welcome to Checked Bags and Good Vibes! Your journey starts here';
+
+	ob_start();
+	?>
+	<div style="max-width: 560px;padding: 20px;background: #ffffff;border-radius: 5px;margin: 40px auto;font-family: Open Sans,Helvetica,Arial;font-size: 15px;color: #666">
+		<div style="color: #444444;font-weight: normal">
+			<div style="text-align: center;font-weight: 600;font-size: 26px;padding: 10px 0;border-bottom: solid 3px #eeeeee"><?php echo esc_html( $site_name ); ?></div>
+			<div style="clear: both">&nbsp;</div>
+		</div>
+		<div style="padding: 30px 30px 10px 30px;border-bottom: 3px solid #eeeeee;line-height: 1.6;color: #444">
+			<p>Welcome to Checked Bags and Good Vibes! I created this platform under Journeywell Global with one clear mission: to make travel a seamless, essential part of your personal healing journey. We all know that escaping the daily grind is necessary for our peace, but the stress of planning, booking, and managing logistics often ruins the calm before you even leave home. I wanted to eliminate that barrier completely. Checked Bags and Good Vibes is your stress-free, one-stop hub for restorative travel.</p>
+
+			<p>Whether you&#8217;re looking to:</p>
+			<ul style="margin: 0 0 15px 0;padding-left: 22px;">
+				<li>Join a transformative Iwosan Journeys retreat</li>
+				<li>Create a custom yearly travel tradition with your closest group</li>
+				<li>Jump into an existing community trip</li>
+			</ul>
+			<p>&hellip;every detail is fully taken care of. You don&#8217;t have to worry about the heavy lifting, just pack your bags, bring your open heart, and get ready to recharge. Your journey to calm, joy, and renewal starts right here. Let&#8217;s explore the world and heal together!</p>
+
+			<div style="background: #eee;color: #444;padding: 12px 15px;border-radius: 3px;font-weight: bold;font-size: 16px;margin: 25px 0 12px">Understanding Your Access Level</div>
+			<p>To keep our community connected while respecting every traveler&#8217;s privacy, our platform features two distinct membership tiers:</p>
+			<ul style="margin: 0 0 15px 0;padding-left: 22px;">
+				<li><strong>Full Members:</strong> Enjoy complete access to the platform. You can explore all public and private trips, share memories in the photo gallery, and request custom-curated group itineraries.</li>
+				<li><strong>Trip Guests:</strong> Special access provided to guests invited to a specific trip. Guests can view and manage all details for their designated journey without access to the broader site.</li>
+			</ul>
+
+			<div style="background: #eee;color: #444;padding: 12px 15px;border-radius: 3px;font-weight: bold;font-size: 16px;margin: 25px 0 12px">Creating a Custom Curated Trip (Groups of 4+)</div>
+			<p>As a Full Member, you can easily request custom, hassle-free travel for groups of 4 or more. Whether you&#8217;re planning for:</p>
+			<ul style="margin: 0 0 15px 0;padding-left: 22px;">
+				<li>Family Reunions &amp; Milestones</li>
+				<li>Friends&#8217; Trips &amp; Annual Getaways</li>
+				<li>Corporate &amp; Team Wellness Retreats</li>
+				<li>Hobby &amp; Interest Groups (wellness, yoga, foodies, and more)</li>
+			</ul>
+
+			<p><strong>How Custom Group Travel Works:</strong></p>
+			<ol style="margin: 0 0 15px 0;padding-left: 22px;">
+				<li><strong>Submit Your Request:</strong> Log into your Full Member account and fill out our simple Group Travel Form with your preferred dates, group size (4+ travelers), and vision.</li>
+				<li><strong>We Build the Experience:</strong> Our team designs a tailored itinerary, handles accommodation bookings, coordinates activities, and manages individual payments for your group.</li>
+				<li><strong>Invite Your Guests &amp; Go:</strong> Send unique Trip Guest access links to your group so they can view the itinerary and trip details directly&#8212;no extra stress for you.</li>
+			</ol>
+
+			<p>Thank you for joining our community. Log into your account today to explore the gallery, browse upcoming trips, or start designing your next group getaway!</p>
+		</div>
+		<div style="padding: 20px 0;text-align: center"><a style="background: #555555;color: #fff;padding: 12px 30px;text-decoration: none;border-radius: 3px;letter-spacing: 0.3px" href="<?php echo esc_url( $login_url ); ?>">Log In Now</a></div>
+		<div style="color: #999;padding: 0 30px 20px 30px">
+			<div>Warmly,</div>
+			<div style="margin-top: 8px;color: #444">
+				Andrea Peaten Headen<br>
+				Founder, Checked Bags and Good Vibes<br>
+				Journeywell Global
+			</div>
+		</div>
+	</div>
+	<?php
+	$body = ob_get_clean();
+
+	wp_mail(
+		$user->user_email,
+		$subject,
+		$body,
+		array( 'Content-Type: text/html; charset=UTF-8' )
+	);
+}
+
+/* ==========================================================================
    Join landing page — [cbv_join] — the teaser a QR code or shared link
    points to (bagsandvibes.com/join?trip=CODE or ?invite=TOKEN). Put this
    shortcode on a page with the slug "join".
