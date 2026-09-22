@@ -986,6 +986,19 @@ body.checkedbags-dashboard {
 }
 .cbv-intake-field input, .cbv-intake-field select {
   display: block;
+  /* Without an explicit width, a <select> (a replaced element, like
+     <input>) doesn't stretch to fill a display:block parent the way a
+     plain div would -- it keeps its native intrinsic width, sized to fit
+     its WIDEST <option> text, regardless of the selected value or the
+     column width its label was actually allotted. This was masked before
+     the display:block switch above (block used to be flex, and flex's
+     default align-items:stretch filled the width for free); confirmed
+     live via computed style that Cruise Region/Departure Port -- the two
+     dropdowns with the longest option text on this form -- were
+     overflowing ~75px past their own label and into the next column.
+     .trip-request-form's near-identical rule already has this; this one
+     was simply missed when display:block was introduced. */
+  width: 100%;
   margin-top: 0.3rem;
   padding: 0.5rem;
   border-radius: 4px;
