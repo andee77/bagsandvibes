@@ -53,21 +53,21 @@ $gates = array(
 		'desc'   => 'Talk logistics, split rooms, and settle itinerary debates.',
 		'url'    => 'https://bagsandvibes.com/gate-10-discussion-boards/',
 	),
-	// Gate number swapped from GATE 12 -- see checkedbags-nav.php's
-	// $gate_nav comment for why. Reordered ahead of Travel Rules below so
-	// the grid still reads ascending (07,08,09,10,11,12).
+	// Vacation Requests is GATE 11 (page slug gate-11-vacation-requests);
+	// listed ahead of Travel Rules below so the grid reads ascending
+	// (07,08,09,10,11,12). See checkedbags-nav.php's $gate_nav comment.
 	array(
 		'number' => 'GATE 11',
 		'title'  => 'Vacation Request',
 		'desc'   => 'Pitch a new destination or start your own trip.',
-		'url'    => 'https://bagsandvibes.com/gate-12-vacation-requests/',
+		'url'    => 'https://bagsandvibes.com/gate-11-vacation-requests/',
 	),
-	// Gate number swapped from GATE 11 -- see above.
+	// Travel Rules is GATE 12 (page slug gate-12-travel-rules).
 	array(
 		'number' => 'GATE 12',
 		'title'  => 'Travel Rules',
 		'desc'   => 'The house rules for group trips — read before you pack.',
-		'url'    => 'https://bagsandvibes.com/gate-11-travel-rules/',
+		'url'    => 'https://bagsandvibes.com/gate-12-travel-rules/',
 	),
 );
 

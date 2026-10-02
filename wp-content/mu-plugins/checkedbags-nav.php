@@ -39,17 +39,19 @@ function cb_render_primary_nav() {
 	}
 
 	// "label" is now the primary visible text; "gate" only shows as a hover
-	// badge (see .nav-gate-badge in styles.css). Travel Rules/Vacation
-	// Requests gate numbers are deliberately swapped from their original
-	// 11/12 pairing -- kept consistent with the Dashboard gate cards and the
-	// Gate page ribbon (template-dashboard.php, template-gate.php).
+	// badge (see .nav-gate-badge in styles.css). Vacation Requests is GATE 11
+	// and Travel Rules is GATE 12 (originally the other way round); the page
+	// slugs now match those numbers (gate-11-vacation-requests,
+	// gate-12-travel-rules), kept consistent with the Dashboard gate cards and
+	// the Gate page ribbon (template-dashboard.php, template-gate.php). The
+	// old slugs 301 to the new ones (checkedbags-redirects.php).
 	$gate_nav = array(
 		array( 'label' => 'Planned Vacations',  'gate' => 'GATE 07', 'url' => 'https://bagsandvibes.com/gate-07-pre-planned-vacations/' ),
 		array( 'label' => 'Photo Gallery',      'gate' => 'GATE 08', 'url' => 'https://bagsandvibes.com/gate-08-photo-gallery/' ),
 		array( 'label' => 'Payments',           'gate' => 'GATE 09', 'url' => 'https://bagsandvibes.com/gate-09-payments/' ),
 		array( 'label' => 'Discussion Boards',  'gate' => 'GATE 10', 'url' => 'https://bagsandvibes.com/gate-10-discussion-boards/' ),
-		array( 'label' => 'Vacation Requests',  'gate' => 'GATE 11', 'url' => 'https://bagsandvibes.com/gate-12-vacation-requests/' ),
-		array( 'label' => 'Travel Rules',       'gate' => 'GATE 12', 'url' => 'https://bagsandvibes.com/gate-11-travel-rules/' ),
+		array( 'label' => 'Vacation Requests',  'gate' => 'GATE 11', 'url' => 'https://bagsandvibes.com/gate-11-vacation-requests/' ),
+		array( 'label' => 'Travel Rules',       'gate' => 'GATE 12', 'url' => 'https://bagsandvibes.com/gate-12-travel-rules/' ),
 	);
 
 	// "Following" and "Find Members" are built in the next phase of this

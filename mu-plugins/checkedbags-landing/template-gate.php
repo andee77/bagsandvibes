@@ -49,12 +49,12 @@ $cb_gate_page_config = array(
 	132 => array( 'number' => 'GATE 09', 'bg_style' => 'frame', 'bg_url' => 'https://bagsandvibes.com/wp-content/uploads/2026/07/1-Sunset-Mountian-Beach-scaled.png' ),
 	114 => array( 'number' => 'GATE 10', 'bg_style' => 'frame', 'bg_url' => 'https://bagsandvibes.com/wp-content/uploads/2026/07/friends-at-rooftop-party-scaled.jpg' ),
 	134 => array( 'number' => 'GATE 08', 'bg_style' => 'left-video', 'bg_url' => 'https://bagsandvibes.com/wp-content/uploads/2026/07/now-loading-JET.mp4' ),
-	// Post 136 = Travel Rules (gate-11-travel-rules); number swapped to
-	// GATE 12 -- see checkedbags-nav.php's $gate_nav comment.
+	// Post 136 = Travel Rules (gate-12-travel-rules) = GATE 12 -- see
+	// checkedbags-nav.php's $gate_nav comment.
 	136 => array( 'number' => 'GATE 12', 'bg_style' => 'left-video', 'bg_url' => 'https://bagsandvibes.com/wp-content/uploads/2026/07/ship-view-from-above.mp4' ),
 	158 => array( 'number' => null, 'bg_style' => 'full', 'bg_url' => 'https://bagsandvibes.com/wp-content/uploads/2026/07/red-mountians.avif' ),
-	// Post 139 = Vacation Requests (gate-12-vacation-requests); number
-	// swapped to GATE 11 -- see checkedbags-nav.php's $gate_nav comment.
+	// Post 139 = Vacation Requests (gate-11-vacation-requests) = GATE 11 --
+	// see checkedbags-nav.php's $gate_nav comment.
 	139 => array(
 		'number'   => 'GATE 11',
 		'bg_style' => 'scatter',

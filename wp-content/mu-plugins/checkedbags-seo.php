@@ -34,23 +34,20 @@ if ( ! defined( 'ABSPATH' ) ) {
  * the noindex rule and the Yoast sitemap exclusion below so they can never
  * drift apart.
  *
- * gate-11-vacation-requests and gate-12-travel-rules are the slugs the two
- * pages are being renamed to (they used to be swapped relative to the
- * displayed gate numbers; see checkedbags-redirects.php). Both the new and
- * the old slugs are listed during the changeover; a slug that matches no
- * page is simply skipped.
+ * gate-11-vacation-requests and gate-12-travel-rules used to be swapped
+ * relative to the gate numbers shown on the pages (gate-12-vacation-requests
+ * and gate-11-travel-rules). The old URLs now 301 to the new ones before any
+ * page renders (checkedbags-redirects.php), so only the new slugs are listed.
  */
 function cbv_login_gated_page_slugs() {
 	return array(
 		// Login-gated -- shows only "please sign in" to an anonymous visitor.
 		'following',
 		'member-feed',
-		'gate-12-vacation-requests',
 		'gate-11-vacation-requests',
 		'gate-08-photo-gallery',
 		'gate-09-payments',
 		'gate-10-discussion-boards',
-		'gate-11-travel-rules',
 		'gate-12-travel-rules',
 		'gate-07-pre-planned-vacations',
 		'members',
