@@ -1,0 +1,176 @@
+/*
+ * Public Trip Landing (redesign) -- shell styles only (Step 1).
+ * Loaded only by template-trip-landing.php. Everything is scoped under
+ * body.cbv-lp; !important is deliberate on properties Kadence's global CSS
+ * (body, a, headings) would otherwise win. Section styles are added step by
+ * step as each section is built.
+ * Design reference: docs/design/event-page-design-reference.html
+ */
+body.cbv-lp {
+	--cbv-ink: #16232B;
+	--cbv-deep: #0E171D;
+	--cbv-horizon: #1B3A4B;
+	--cbv-cream: #FBF3E7;
+	--cbv-gold: #E8A94E;
+	--cbv-coral: #FF6B4A;
+	--cbv-teal: #2E7D6E;
+	margin: 0 !important;
+	background: var(--cbv-ink) !important;
+	color: var(--cbv-cream) !important;
+	font-family: 'Work Sans', system-ui, sans-serif !important;
+	overflow-x: clip;
+}
+
+body.cbv-lp .cbv-lp-main {
+	display: block;
+	min-height: 60vh;
+}
+
+/* ---- Header ---- */
+body.cbv-lp .cbv-lp-header {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	background: rgba(22, 35, 43, 0.94);
+	border-bottom: 1px solid rgba(232, 169, 78, 0.3);
+}
+
+body.cbv-lp .cbv-lp-header-inner {
+	max-width: 1240px;
+	margin: 0 auto;
+	padding: 18px 32px;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 24px;
+	flex-wrap: wrap;
+}
+
+body.cbv-lp .cbv-lp-wordmark {
+	font-family: 'Fraunces', serif !important;
+	font-style: italic;
+	font-weight: 500;
+	font-size: 22px;
+	color: var(--cbv-cream) !important;
+	text-decoration: none !important;
+}
+
+body.cbv-lp .cbv-lp-amp {
+	color: var(--cbv-coral);
+	font-style: normal;
+}
+
+body.cbv-lp .cbv-lp-nav {
+	display: flex;
+	gap: 26px;
+	align-items: center;
+	flex-wrap: wrap;
+	font-family: 'Space Mono', monospace;
+	font-size: 12px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+body.cbv-lp .cbv-lp-nav a {
+	color: var(--cbv-cream) !important;
+	text-decoration: none !important;
+}
+
+body.cbv-lp .cbv-lp-nav a.cbv-lp-nav-signin {
+	border: 1px solid rgba(251, 243, 231, 0.5);
+	padding: 12px 16px;
+	border-radius: 2px;
+}
+
+/* ---- Footer ---- */
+body.cbv-lp .cbv-lp-footer {
+	border-top: 1px solid rgba(232, 169, 78, 0.35);
+	background: var(--cbv-ink);
+}
+
+body.cbv-lp .cbv-lp-footer-inner {
+	max-width: 1240px;
+	margin: 0 auto;
+	padding: 44px 32px;
+	box-sizing: border-box;
+	display: flex;
+	justify-content: space-between;
+	gap: 24px;
+	flex-wrap: wrap;
+	align-items: flex-start;
+}
+
+body.cbv-lp .cbv-lp-footer-brand {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+body.cbv-lp .cbv-lp-footer-name {
+	font-family: 'Fraunces', serif;
+	font-style: italic;
+	font-size: 20px;
+	color: var(--cbv-gold);
+}
+
+body.cbv-lp .cbv-lp-footer-sub {
+	font-size: 14px;
+	color: rgba(251, 243, 231, 0.72);
+}
+
+body.cbv-lp .cbv-lp-footer-links {
+	display: flex;
+	gap: 24px;
+	flex-wrap: wrap;
+	font-size: 14px;
+}
+
+body.cbv-lp .cbv-lp-footer-links a {
+	color: rgba(251, 243, 231, 0.85) !important;
+	text-decoration: none !important;
+}
+
+body.cbv-lp .cbv-lp-footer-url {
+	font-family: 'Space Mono', monospace;
+	font-size: 12px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--cbv-gold);
+	word-break: break-all;
+}
+
+/* ---- Admin preview banner (admins only; never rendered for the public) ---- */
+body.cbv-lp .cbv-lp-preview-banner {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 16px;
+	align-items: baseline;
+	padding: 10px 32px;
+	background: var(--cbv-gold);
+	color: var(--cbv-ink);
+	font-family: 'Space Mono', monospace;
+	font-size: 12px;
+	letter-spacing: 0.04em;
+}
+
+/* ---- Step 1 only: today's landing content, shown on a cream page so it
+        stays legible inside the new dark shell. Removed when the real
+        sections replace it. ---- */
+body.cbv-lp .cbv-lp-legacy-wrap {
+	background: var(--cbv-cream);
+	color: var(--cbv-ink);
+	padding: 32px 16px 64px;
+}
+
+@media (max-width: 600px) {
+	body.cbv-lp .cbv-lp-header-inner,
+	body.cbv-lp .cbv-lp-footer-inner {
+		padding-left: 16px;
+		padding-right: 16px;
+	}
+
+	body.cbv-lp .cbv-lp-preview-banner {
+		padding: 10px 16px;
+	}
+}

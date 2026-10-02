@@ -270,6 +270,18 @@ add_filter( 'the_content', function ( $content ) {
 	$on_roster    = $viewer_id && in_array( $viewer_id, cb_trip_get_roster( $post->ID ), true );
 	$admin_bypass = $viewer_id && ! $on_roster && user_can( $viewer_id, 'manage_options' );
 
+	// Landing redesign (checkedbags-lp-core.php): an admin previewing with
+	// ?preview=new, or a public visitor on a trip that has the master switch
+	// on AND its own "Use new landing design" box checked, gets the new
+	// design. Every other view (private, denied, legacy) falls straight
+	// through to the existing code below, untouched.
+	if ( function_exists( 'cbv_lp_trip_view' ) && function_exists( 'cbv_lp_render_trip' ) ) {
+		$lp_view = cbv_lp_trip_view( $post->ID );
+		if ( 'new' === $lp_view || 'new_preview' === $lp_view ) {
+			return cbv_lp_render_trip( $post->ID, $lp_view );
+		}
+	}
+
 	if ( ! $on_roster && ! $admin_bypass ) {
 		// PHASE 12: a trip with its public landing page enabled shows that
 		// (genuinely public, no login wall) to anyone who isn't a genuine
