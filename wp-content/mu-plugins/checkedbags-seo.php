@@ -38,6 +38,7 @@ add_filter( 'wp_robots', function ( $robots ) {
 		'gate-08-photo-gallery',
 		'gate-09-payments',
 		'gate-10-discussion-boards',
+		'gate-11-travel-rules',
 		'gate-07-pre-planned-vacations',
 		'members',
 		'reaccept-terms',

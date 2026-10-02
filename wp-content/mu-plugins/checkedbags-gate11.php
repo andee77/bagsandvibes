@@ -23,6 +23,32 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Every other Gate page is nothing but its shortcode, so an anonymous
+ * visitor gets only that shortcode's "please sign in" line. This page is
+ * different: the base policy text (Master Traveler Agreement, Code of
+ * Conduct ...) is typed into the WordPress page itself, above the
+ * [cb_gate_rules] shortcode, so it was being served to anyone -- and to
+ * search engines -- while only the per-member part below it checked login.
+ * For a logged-out visitor, replace the WHOLE page body with the same
+ * one-line sign-in prompt the shortcode shows, so the text never leaves the
+ * server. Keyed on the shortcode being present (not a slug or ID) so it
+ * survives the page being renamed. Hooked on the_content itself, so it also
+ * covers excerpts and the REST API's rendered content, not just the template.
+ */
+add_filter( 'the_content', function ( $content ) {
+	if ( is_user_logged_in() ) {
+		return $content;
+	}
+
+	$post = get_post();
+	if ( ! $post || 'page' !== $post->post_type || ! has_shortcode( $post->post_content, 'cb_gate_rules' ) ) {
+		return $content;
+	}
+
+	return '<p class="cb-empty">Please <a href="' . esc_url( wp_login_url( get_permalink( $post ) ) ) . '">sign in</a> to view travel rules.</p>';
+}, 5 );
+
 add_shortcode( 'cb_gate_rules', function () {
 
 	if ( ! is_user_logged_in() ) {
