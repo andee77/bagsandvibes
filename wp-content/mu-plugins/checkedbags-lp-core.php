@@ -126,6 +126,9 @@ function cbv_lp_render_trip( $trip_id, $view = 'new' ) {
 		<div class="cbv-lp-preview-banner" role="note">
 			<strong>New landing design &middot; admin preview</strong>
 			<span><?php echo esc_html( cbv_lp_public_status_text( $trip_id ) ); ?></span>
+			<?php if ( function_exists( 'cbv_lp_context_summary' ) ) : ?>
+				<span><?php echo esc_html( cbv_lp_context_summary( $trip_id ) ); ?></span>
+			<?php endif; ?>
 		</div>
 		<?php
 	}
