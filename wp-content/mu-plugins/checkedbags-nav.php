@@ -31,6 +31,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function cb_render_primary_nav() {
 
+	// A logged-out visitor on a Gate / Login / Register page used to get the
+	// full member menu (Dashboard, My Profile, Account, Logout ...), every
+	// item of which just bounced them to a sign-in prompt.
+	if ( ! is_user_logged_in() ) {
+		return cb_render_logged_out_nav();
+	}
+
 	// "label" is now the primary visible text; "gate" only shows as a hover
 	// badge (see .nav-gate-badge in styles.css). Travel Rules/Vacation
 	// Requests gate numbers are deliberately swapped from their original
@@ -113,6 +120,33 @@ function cb_render_primary_nav() {
 			</li>
 
 			<li><a href="https://bagsandvibes.com/logout/">Logout</a></li>
+		</ul>
+	</nav>
+	<?php
+	return ob_get_clean();
+}
+
+/**
+ * The menu for someone who isn't signed in: same toggle + <nav> markup and
+ * classes as the member menu (so the same CSS and app.js drive it), but only
+ * the three places that make sense without an account.
+ */
+function cb_render_logged_out_nav() {
+	$login_url    = function_exists( 'um_get_core_page' ) ? um_get_core_page( 'login' ) : wp_login_url();
+	$register_url = function_exists( 'um_get_core_page' ) ? um_get_core_page( 'register' ) : home_url( '/register/' );
+
+	ob_start();
+	?>
+	<button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="primary-nav">
+		<span class="nav-toggle-label">Menu</span>
+		<span class="nav-toggle-bars" aria-hidden="true"></span>
+	</button>
+
+	<nav class="primary-nav" id="primary-nav" aria-label="Site navigation">
+		<ul class="gate-nav-list">
+			<li><a href="<?php echo esc_url( home_url( '/' ) ); ?>">Home</a></li>
+			<li><a href="<?php echo esc_url( $login_url ); ?>">Sign in</a></li>
+			<li><a href="<?php echo esc_url( $register_url ); ?>">Register</a></li>
 		</ul>
 	</nav>
 	<?php
