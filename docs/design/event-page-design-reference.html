@@ -1,0 +1,595 @@
+<!--
+  CBGV EVENT PAGE — DESIGN REFERENCE (Family & Friends Cruise mockup, approved Oct 2, 2026)
+  Source of truth for the visual redesign of the Public Trip Landing Page (/trip/{slug}/).
+  This is a static export of the Claude design canvas. It is a REFERENCE, not code to ship:
+    - Copy, prices and dates here are Valiant Lady / VL2710255NPP specifics; the live template
+      must pull them from the Trip CPT fields per trip.
+    - Image/video sources show as [MEDIA-LIBRARY-URL:xxxxxxxx] placeholders; Andee will upload
+      the real files to the Media Library.
+    - "GATE 14"–"GATE 25" section labels are intentional (continue after Dashboard Gates 07–12).
+    - Cabin-type accordion uses <details name="cabin-type"> (exclusive open) + ::details-content
+      transition; Travel Documents uses plain <details>.
+-->
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500;1,9..144,600&amp;family=Work+Sans:wght@400;500;600&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#16232B}
+a{color:#16232B}a:hover{color:#1B3A4B}
+.upgrade{background-image:linear-gradient(90deg,rgba(22,35,43,.95) 0%,rgba(22,35,43,.8) 55%,rgba(22,35,43,.4) 100%),url([MEDIA-LIBRARY-URL:b41251a4]);background-size:cover;background-position:center}
+details summary{cursor:pointer;list-style:none}
+details summary::-webkit-details-marker{display:none}
+details[open] .chev{transform:rotate(45deg)}
+@media (max-width:900px){.lob-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media (max-width:600px){.lob-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+:root{interpolate-size:allow-keywords}
+details[name=cabin-type]::details-content{block-size:0;overflow:hidden;transition:block-size .35s ease,content-visibility .35s allow-discrete}
+details[name=cabin-type][open]::details-content{block-size:auto}
+details[name=cabin-type] summary:hover{background:#1B3A4B!important}
+</style>
+</head><body>
+<div style="font-family: 'Work Sans', system-ui, sans-serif; color: #FBF3E7; background: #16232B; min-height: 100vh">
+
+<!-- NAV -->
+<header style="position: sticky; top: 0; z-index: 10; background: rgba(22,35,43,0.94); border-bottom: 1px solid rgba(232,169,78,0.3)">
+<div style="max-width: 1240px; margin: 0 auto; padding: 18px 32px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap">
+<a href="#top" style="font-family: 'Fraunces', serif; font-style: italic; font-weight: 500; font-size: 22px; color: #FBF3E7; text-decoration: none">Checked Bags <span style="color: #FF6B4A; font-style: normal">&amp;</span> Good Vibes</a>
+<nav aria-label="Event sections" style="display: flex; gap: 26px; align-items: center; flex-wrap: wrap; font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase">
+<a href="#route" style="color: #FBF3E7; text-decoration: none">Route</a>
+<a href="#scarlet" style="color: #FBF3E7; text-decoration: none">Scarlet Night</a>
+<a href="#fares" style="color: #FBF3E7; text-decoration: none">Fares</a>
+<a href="#pack" style="color: #FBF3E7; text-decoration: none">Pack List</a>
+<a href="#docs" style="color: #FBF3E7; text-decoration: none">Travel Docs</a>
+<a href="#signin" style="color: #FBF3E7; text-decoration: none; border: 1px solid rgba(251,243,231,0.5); padding: 12px 16px; border-radius: 2px">Members Sign In</a>
+</nav>
+</div>
+</header>
+
+<!-- HERO: video loop of Terminal V, Miami -->
+<section id="top" style="position: relative; min-height: 780px; display: flex; align-items: flex-end; overflow: hidden; background: #16232B">
+<video ref="{{ vidRef }}" src="[MEDIA-LIBRARY-URL:e6a988c7]" poster="[MEDIA-LIBRARY-URL:686f75df]" autoPlay="true" loop="true" playsInline="true" aria-hidden="true" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover"></video>
+<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, rgba(22,35,43,0.55) 0%, rgba(22,35,43,0.2) 38%, rgba(22,35,43,0.94) 100%)"></div>
+<div style="position: relative; max-width: 1240px; width: 100%; margin: 0 auto; padding: 140px 32px 72px; box-sizing: border-box; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 48px; align-items: end">
+<div style="display: flex; flex-direction: column; gap: 18px">
+<p style="margin: 0; font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: 0.25em; text-transform: uppercase; color: #E8A94E">Now boarding · Annual event · Oct 25 – 30, 2027</p>
+<h1 style="margin: 0; font-family: 'Fraunces', serif; font-style: italic; font-weight: 500; font-size: clamp(52px, 7vw, 96px); line-height: 0.98; color: #FBF3E7">The Family &amp; Friends Cruise</h1>
+<p style="margin: 0; font-size: 19px; line-height: 1.55; max-width: 520px; color: rgba(251,243,231,0.92)">A high-vibe reunion for you, your family, and your chosen crew. Five days of pure freedom aboard Virgin Voyages' Valiant Lady.</p>
+</div>
+
+<div style="background: #FBF3E7; color: #16232B; border-radius: 6px; display: flex; box-shadow: 0 24px 60px rgba(0,0,0,0.45); transform: rotate(-1.5deg); overflow: hidden">
+<div style="flex-grow: 1; padding: 26px 28px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; justify-content: space-between; align-items: center; font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase">
+<span>Boarding Pass · Sailor</span>
+<span style="background: #16232B; color: #E8A94E; padding: 4px 8px; font-weight: 700">Gate [##]</span>
+</div>
+<div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column">
+<span style="font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: #4A5A63">FROM</span>
+<span style="font-family: 'Fraunces', serif; font-weight: 600; font-size: 44px; line-height: 1">MIA</span>
+<span style="font-size: 13px">Miami</span>
+</div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 2px">
+<span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.08em; color: #4A5A63">VIA POP</span>
+<svg width="76" height="20" viewBox="0 0 76 20" fill="none" stroke="#16232B" stroke-width="1.5" aria-hidden="true"><path d="M2 10h60" stroke-dasharray="4 4"></path><path d="M62 4l10 6-10 6"></path></svg>
+</div>
+<div style="display: flex; flex-direction: column">
+<span style="font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: #4A5A63">TO</span>
+<span style="font-family: 'Fraunces', serif; font-weight: 600; font-size: 44px; line-height: 1">BIM</span>
+<span style="font-size: 13px">Bimini, Bahamas</span>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; border-top: 1px dashed rgba(22,35,43,0.35); padding-top: 16px">
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63">DEPARTS</span><span style="font-weight: 600; font-size: 15px">Oct 25, 2027</span></div>
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63">RETURNS</span><span style="font-weight: 600; font-size: 15px">Oct 30, 2027</span></div>
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63">VESSEL</span><span style="font-weight: 600; font-size: 15px">Valiant Lady</span></div>
+</div>
+</div>
+<div style="width: 132px; flex-shrink: 0; border-left: 2px dashed rgba(22,35,43,0.4); background: #FF6B4A; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 16px; box-sizing: border-box">
+<span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #16232B; text-align: center">TEAR HERE</span>
+<a href="#fares" style="font-family: 'Space Mono', monospace; font-weight: 700; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-align: center; color: #16232B; background: #FBF3E7; padding: 14px 10px; border-radius: 2px; text-decoration: none; line-height: 1.3">Claim your seat</a>
+</div>
+</div>
+</div>
+</section>
+
+<!-- DEPARTURE BOARD -->
+<section aria-label="Group status" style="background: #0E171D; border-top: 1px solid rgba(232,169,78,0.3); border-bottom: 1px solid rgba(232,169,78,0.3)">
+<div style="max-width: 1240px; margin: 0 auto; padding: 36px 32px; display: flex; align-items: center; justify-content: space-between; gap: 32px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.2em; color: #E8A94E">DEPARTURE STATUS</span>
+<span style="font-family: 'Fraunces', serif; font-size: 26px">25 travelers needed to depart</span>
+</div>
+<div style="display: flex; align-items: center; gap: 6px; font-family: 'Space Mono', monospace; font-weight: 700; font-size: 40px">
+<span style="background: #1B3A4B; width: 52px; height: 68px; display: flex; align-items: center; justify-content: center; border-radius: 4px; border-bottom: 3px solid #0E171D">#</span>
+<span style="background: #1B3A4B; width: 52px; height: 68px; display: flex; align-items: center; justify-content: center; border-radius: 4px; border-bottom: 3px solid #0E171D">#</span>
+<span style="color: #E8A94E; font-size: 18px; letter-spacing: 0.1em; padding: 0 12px">OF</span>
+<span style="background: #1B3A4B; width: 52px; height: 68px; display: flex; align-items: center; justify-content: center; border-radius: 4px; border-bottom: 3px solid #0E171D">2</span>
+<span style="background: #1B3A4B; width: 52px; height: 68px; display: flex; align-items: center; justify-content: center; border-radius: 4px; border-bottom: 3px solid #0E171D">5</span>
+</div>
+<span style="font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: 0.12em; color: #16232B; background: #E8A94E; padding: 10px 14px; border-radius: 2px; font-weight: 700">BOARDING · ON TIME</span>
+</div>
+</section>
+
+<!-- INTRO -->
+<section style="max-width: 1240px; margin: 0 auto; padding: 100px 32px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 64px; align-items: center">
+<div style="display: flex; flex-direction: column; gap: 20px">
+<p style="margin: 0; font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.2em; color: #E8A94E">GATE 14 · THE TRIP</p>
+<h2 style="margin: 0; font-family: 'Fraunces', serif; font-style: italic; font-weight: 500; font-size: 52px; line-height: 1.05">The people who make your world run, on one ship.</h2>
+<p style="margin: 0; font-size: 17px; line-height: 1.7; color: rgba(251,243,231,0.86)">This isn't just a cruise. It's a space for genuine renewal and deep reconnection, leaving the stress of routine behind. As Miami's skyline slips away, we toast on the top deck to five days of pure freedom, and we come home fully connected, deeply refreshed, and bound tighter than ever.</p>
+<div style="display: flex; gap: 10px; flex-wrap: wrap; font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.06em">
+<span style="border: 1px solid rgba(232,169,78,0.6); color: #E8A94E; padding: 8px 12px; border-radius: 2px">5 NIGHTS</span>
+<span style="border: 1px solid rgba(232,169,78,0.6); color: #E8A94E; padding: 8px 12px; border-radius: 2px">VALIANT LADY</span>
+<span style="border: 1px solid rgba(232,169,78,0.6); color: #E8A94E; padding: 8px 12px; border-radius: 2px">ADULTS ONLY · 18+</span>
+<span style="border: 1px solid rgba(232,169,78,0.6); color: #E8A94E; padding: 8px 12px; border-radius: 2px">LOW 80s °F</span>
+</div>
+</div>
+<figure style="margin: 0; background: #FBF3E7; padding: 12px 12px 40px; transform: rotate(2deg); box-shadow: 0 20px 44px rgba(0,0,0,0.45)">
+<img src="[MEDIA-LIBRARY-URL:66620ec4]" alt="Virgin Voyages' Valiant Lady at sea" style="width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block">
+<figcaption style="font-family: 'Space Mono', monospace; font-size: 12px; color: #16232B; padding-top: 12px; text-align: center">Our ride: Valiant Lady</figcaption>
+</figure>
+</section>
+
+<!-- ROUTE -->
+<section id="route" style="background: #1B3A4B">
+<div style="max-width: 1240px; margin: 0 auto; padding: 96px 32px; display: flex; flex-direction: column; gap: 48px">
+<div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<p style="margin: 0; font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.2em; color: #E8A94E">GATE 15 · FLIGHT PATH</p>
+<h2 style="margin: 0; font-family: 'Fraunces', serif; font-style: italic; font-weight: 500; font-size: 52px">The Route</h2>
+</div>
+<span style="font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: 0.1em; color: rgba(251,243,231,0.85)">MIA → SEA → POP → SEA → BIM → MIA</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px">
+
+<div style="background: #16232B; border-radius: 4px; overflow: hidden; display: flex; flex-direction: column">
+<div style="height: 8px; background: repeating-linear-gradient(90deg, #E8A94E 0 10px, transparent 10px 18px)"></div>
+<div style="padding: 26px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.12em; color: #E8A94E">DAY 01 · MON OCT 25 · MIAMI</span>
+<span style="font-family: 'Fraunces', serif; font-size: 26px">Sail-away toast</span>
+<span style="font-size: 15px; line-height: 1.6; color: rgba(251,243,231,0.82)">Board Valiant Lady before 5:00 pm sail-away and raise a glass on the top deck as Miami's skyline slips away.</span>
+<span style="align-self: flex-start; background: #FBF3E7; color: #16232B; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; padding: 8px 10px; border-radius: 3px; transform: rotate(-2deg)">● Tonight: PJ Party on the top deck</span>
+</div>
+</div>
+
+<div style="background: #16232B; border-radius: 4px; overflow: hidden; display: flex; flex-direction: column">
+<img src="[MEDIA-LIBRARY-URL:c78dbbe1]" alt="Guest in a sparkling outfit and crown at Scarlet Night" style="width: 100%; height: 200px; object-fit: cover; object-position: center 30%; display: block">
+<div style="padding: 26px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.12em; color: #E8A94E">DAY 02 · TUE OCT 26 · AT SEA</span>
+<span style="font-family: 'Fraunces', serif; font-size: 26px">Relaxation mode</span>
+<span style="font-size: 15px; line-height: 1.6; color: rgba(251,243,231,0.82)">Sink into a slow day at sea, then dress in crimson as our circle takes over the deck.</span>
+<span style="align-self: flex-start; background: #FF6B4A; color: #16232B; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; padding: 8px 10px; border-radius: 3px; transform: rotate(2deg)">● Tonight: Scarlet Night</span>
+</div>
+</div>
+
+<div style="background: #16232B; border-radius: 4px; overflow: hidden; display: flex; flex-direction: column">
+<div style="height: 8px; background: repeating-linear-gradient(90deg, #E8A94E 0 10px, transparent 10px 18px)"></div>
+<div style="padding: 26px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.12em; color: #E8A94E">DAY 03 · WED OCT 27 · PUERTO PLATA</span>
+<span style="font-family: 'Fraunces', serif; font-size: 26px">Dominican Republic</span>
+<span style="font-size: 15px; line-height: 1.6; color: rgba(251,243,231,0.82)">Docked 10:00 am – 6:00 pm. Soak up vibrant island culture and tropical views together. Waterfall hikes, cable car rides, or a beach day.</span>
+<span style="align-self: flex-start; background: #FBF3E7; color: #16232B; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; padding: 8px 10px; border-radius: 3px; transform: rotate(-2deg)">● Group excursion: [TBD]</span>
+</div>
+</div>
+
+<div style="background: #16232B; border-radius: 4px; overflow: hidden; display: flex; flex-direction: column">
+<img src="[MEDIA-LIBRARY-URL:aa8ee93f]" alt="Traveler at the ship's rail during a golden sunset" style="width: 100%; height: 200px; object-fit: cover; display: block">
+<div style="padding: 26px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.12em; color: #E8A94E">DAY 04 · THU OCT 28 · AT SEA</span>
+<span style="font-family: 'Fraunces', serif; font-size: 26px">Brunch &amp; golden hour</span>
+<span style="font-size: 15px; line-height: 1.6; color: rgba(251,243,231,0.82)">A lazy late-morning brunch at The Wake, then a sunset dinner as the sky turns gold.</span>
+</div>
+</div>
+
+<div style="background: #16232B; border-radius: 4px; overflow: hidden; display: flex; flex-direction: column">
+<img src="[MEDIA-LIBRARY-URL:8bd26c0c]" alt="Couple toasting in the pool at The Beach Club at Bimini" style="width: 100%; height: 200px; object-fit: cover; display: block">
+<div style="padding: 26px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.12em; color: #E8A94E">DAY 05 · FRI OCT 29 · BIMINI</span>
+<span style="font-family: 'Fraunces', serif; font-size: 26px">The grand finale</span>
+<span style="font-size: 15px; line-height: 1.6; color: rgba(251,243,231,0.82)">Docked 9:00 am – 6:00 pm. We take over private cabanas at The Beach Club at Bimini. Craft drinks, easy laughs, and a boat ride across crystal blue water.</span>
+<span style="align-self: flex-start; background: #FF6B4A; color: #16232B; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; padding: 8px 10px; border-radius: 3px; transform: rotate(2deg)">● Private cabana takeover</span>
+</div>
+</div>
+
+<div style="background: #16232B; border-radius: 4px; overflow: hidden; display: flex; flex-direction: column">
+<div style="height: 8px; background: repeating-linear-gradient(90deg, #E8A94E 0 10px, transparent 10px 18px)"></div>
+<div style="padding: 26px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.12em; color: #E8A94E">DAY 06 · SAT OCT 30 · MIAMI</span>
+<span style="font-family: 'Fraunces', serif; font-size: 26px">One last coffee</span>
+<span style="font-size: 15px; line-height: 1.6; color: rgba(251,243,231,0.82)">Back in Miami at 6:30 am. Before we step off, we gather to swap photos and sketch out next year's plans.</span>
+<span style="align-self: flex-start; background: #FBF3E7; color: #16232B; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; padding: 8px 10px; border-radius: 3px; transform: rotate(-2deg)">● Post-cruise hotel available</span>
+</div>
+</div>
+
+</div>
+</div>
+</section>
+
+<!-- SCARLET NIGHT -->
+<section id="scarlet" style="background: #5E0B12">
+<div style="max-width: 1240px; margin: 0 auto; padding: 100px 32px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 56px; align-items: center">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px">
+<img src="[MEDIA-LIBRARY-URL:c78dbbe1]" alt="Smiling guest in a crown under pink stage lights" style="width: 100%; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 4px; display: block">
+<img src="[MEDIA-LIBRARY-URL:b41251a4]" alt="Guest dancing at the Scarlet Night deck party by the pool" style="width: 100%; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 4px; display: block; margin-top: 48px">
+</div>
+<div style="display: flex; flex-direction: column; gap: 20px">
+<p style="margin: 0; font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.2em; color: #FFB3A6">GATE 16 · DAY 02 · AFTER DARK</p>
+<h2 style="margin: 0; font-family: 'Fraunces', serif; font-style: italic; font-weight: 500; font-size: 64px; line-height: 1">Scarlet Night</h2>
+<p style="margin: 0; font-size: 17px; line-height: 1.7; color: rgba(251,243,231,0.92)">The ship's signature party. Night falls, the whole ship lights up red, and our circle takes over the deck parties and dances under the stars.</p>
+<div style="background: #FBF3E7; color: #16232B; border-radius: 4px; padding: 22px 24px; display: flex; flex-direction: column; gap: 8px; transform: rotate(-1.5deg); align-self: flex-start; max-width: 420px">
+<span style="font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; color: #8A1A12">DRESS CODE · ALL RED</span>
+<span style="font-size: 15px; line-height: 1.6">Red jumpsuit, dress, or button-down. The night often ends in the pool, so wear something that can get wet.</span>
+</div>
+</div>
+</div>
+</section>
+
+<!-- LIFE ON BOARD -->
+<section style="max-width: 1240px; margin: 0 auto; padding: 100px 32px; display: flex; flex-direction: column; gap: 48px">
+<div style="display: flex; flex-direction: column; gap: 12px; max-width: 640px">
+<p style="margin: 0; font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.2em; color: #E8A94E">GATE 17 · LIFE ON BOARD</p>
+<h2 style="margin: 0; font-family: 'Fraunces', serif; font-style: italic; font-weight: 500; font-size: 52px; line-height: 1.05">Slow mornings. Loud nights.</h2>
+<p style="margin: 0; font-size: 17px; line-height: 1.65; color: rgba(251,243,231,0.85)">Balcony hammocks, a swing over the ocean, a record shop at sea, rooftop hot tubs, and showtime after dinner.</p>
+</div>
+<div class="lob-grid" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 24px 20px">
+<figure style="margin: 0; background: #FBF3E7; padding: 9px 9px 30px; transform: rotate(-3deg); box-shadow: 0 16px 36px rgba(0,0,0,0.4)">
+<img src="[MEDIA-LIBRARY-URL:ea0e3d24]" alt="Feet up in a balcony hammock with a cocktail" style="width: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block">
+<figcaption style="font-family: 'Space Mono', monospace; font-size: 11px; color: #16232B; padding-top: 9px; text-align: center">Balcony hours</figcaption>
+</figure>
+<figure style="margin: 24px 0 0; background: #FBF3E7; padding: 9px 9px 30px; transform: rotate(2.5deg); box-shadow: 0 16px 36px rgba(0,0,0,0.4)">
+<img src="[MEDIA-LIBRARY-URL:3c09624e]" alt="Sailor with coffee and pastries in a red egg chair on a Sea Terrace" style="width: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block">
+<figcaption style="font-family: 'Space Mono', monospace; font-size: 11px; color: #16232B; padding-top: 9px; text-align: center">Egg-chair coffee</figcaption>
+</figure>
+<figure style="margin: 0; background: #FBF3E7; padding: 9px 9px 30px; transform: rotate(-1.5deg); box-shadow: 0 16px 36px rgba(0,0,0,0.4)">
+<img src="[MEDIA-LIBRARY-URL:824d803b]" alt="Traveler on a deck swing facing the sea" style="width: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block">
+<figcaption style="font-family: 'Space Mono', monospace; font-size: 11px; color: #16232B; padding-top: 9px; text-align: center">Sea-day swing</figcaption>
+</figure>
+<figure style="margin: 24px 0 0; background: #FBF3E7; padding: 9px 9px 30px; transform: rotate(3deg); box-shadow: 0 16px 36px rgba(0,0,0,0.4)">
+<img src="[MEDIA-LIBRARY-URL:2dc5367c]" alt="Friends relaxing in the Redemption Spa sauna with porthole ocean views" style="width: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block">
+<figcaption style="font-family: 'Space Mono', monospace; font-size: 11px; color: #16232B; padding-top: 9px; text-align: center">Sauna with a view</figcaption>
+</figure>
+<figure style="margin: 0; background: #FBF3E7; padding: 9px 9px 30px; transform: rotate(-2deg); box-shadow: 0 16px 36px rgba(0,0,0,0.4)">
+<img src="[MEDIA-LIBRARY-URL:4a99cec9]" alt="Guest flipping her hair in the onboard record shop" style="width: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block">
+<figcaption style="font-family: 'Space Mono', monospace; font-size: 11px; color: #16232B; padding-top: 9px; text-align: center">Record shop at sea</figcaption>
+</figure>
+<figure style="margin: 24px 0 0; background: #FBF3E7; padding: 9px 9px 30px; transform: rotate(2deg); box-shadow: 0 16px 36px rgba(0,0,0,0.4)">
+<img src="[MEDIA-LIBRARY-URL:caaba8aa]" alt="Guest in a red hat toasting on a rooftop terrace" style="width: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block">
+<figcaption style="font-family: 'Space Mono', monospace; font-size: 11px; color: #16232B; padding-top: 9px; text-align: center">Rooftop toast</figcaption>
+</figure>
+<figure style="margin: 0; background: #FBF3E7; padding: 9px 9px 30px; transform: rotate(-2.5deg); box-shadow: 0 16px 36px rgba(0,0,0,0.4)">
+<img src="[MEDIA-LIBRARY-URL:63bd9168]" alt="Razzle Dazzle restaurant with black and white stripes" style="width: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block">
+<figcaption style="font-family: 'Space Mono', monospace; font-size: 11px; color: #16232B; padding-top: 9px; text-align: center">Dinner at Razzle Dazzle</figcaption>
+</figure>
+<figure style="margin: 24px 0 0; background: #FBF3E7; padding: 9px 9px 30px; transform: rotate(1.5deg); box-shadow: 0 16px 36px rgba(0,0,0,0.4)">
+<img src="[MEDIA-LIBRARY-URL:50473cfb]" alt="Friends sharing noodles and soju at Gunbae Korean BBQ" style="width: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block">
+<figcaption style="font-family: 'Space Mono', monospace; font-size: 11px; color: #16232B; padding-top: 9px; text-align: center">Gunbae with friends</figcaption>
+</figure>
+<figure style="margin: 0; background: #FBF3E7; padding: 9px 9px 30px; transform: rotate(-3deg); box-shadow: 0 16px 36px rgba(0,0,0,0.4)">
+<img src="[MEDIA-LIBRARY-URL:97a2cd26]" alt="Friends dressed in red eating pizza on Scarlet Night" style="width: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block">
+<figcaption style="font-family: 'Space Mono', monospace; font-size: 11px; color: #16232B; padding-top: 9px; text-align: center">Scarlet Night slice</figcaption>
+</figure>
+<figure style="margin: 24px 0 0; background: #FBF3E7; padding: 9px 9px 30px; transform: rotate(2.5deg); box-shadow: 0 16px 36px rgba(0,0,0,0.4)">
+<img src="[MEDIA-LIBRARY-URL:c36a2562]" alt="Performers getting ready backstage" style="width: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block">
+<figcaption style="font-family: 'Space Mono', monospace; font-size: 11px; color: #16232B; padding-top: 9px; text-align: center">Showtime</figcaption>
+</figure>
+</div>
+</section>
+
+<!-- FARE BOARD -->
+<section id="fares" style="background: #FBF3E7; color: #16232B">
+<div style="max-width: 1240px; margin: 0 auto; padding: 96px 32px; display: flex; flex-direction: column; gap: 36px">
+<div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<p style="margin: 0; font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.2em; color: #8A3A1F">GATE 18 · FARE CLASSES</p>
+<h2 style="margin: 0; font-family: 'Fraunces', serif; font-style: italic; font-weight: 500; font-size: 52px">Pick your cabin</h2>
+</div>
+<p style="margin: 0; max-width: 420px; font-size: 15px; line-height: 1.6"><strong>All-in prices per cabin for 2 sailors:</strong> cruise fare, taxes &amp; fees, gratuities and Voyage Protection. $500 per person holds your cabin, and payment plans are available. <strong>Always included on Virgin:</strong> all restaurants, Wi-Fi, soda and water, group fitness and entertainment.</p>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 28px; align-items: start">
+<div style="display: flex; flex-direction: column; gap: 16px; position: sticky; top: 90px">
+<img src="[MEDIA-LIBRARY-URL:8a6cc90b]" alt="Sea Terrace cabin with sheer ombré curtains" style="width: 100%; height: 320px; object-fit: cover; border-radius: 4px; display: block">
+<img src="[MEDIA-LIBRARY-URL:caaba8aa]" alt="Guest toasting on a RockStar suite rooftop terrace" style="width: 100%; height: 220px; object-fit: cover; border-radius: 4px; display: block">
+</div>
+<div style="grid-column: span 2; display: flex; flex-direction: column; border: 2px solid #16232B; border-radius: 4px; overflow: hidden">
+<div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; padding: 12px 22px; background: #FF6B4A; color: #16232B; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.12em"><span>CABIN · TAP A TYPE TO SEE PRICES</span><span>BASE</span><span>ESSENTIAL</span><span>PREMIUM</span></div>
+<details name="cabin-type">
+<summary style="padding: 12px 22px; background: #16232B; color: #E8A94E; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: center; border-bottom: 1px solid rgba(232,169,78,0.25); transition: background .2s; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.14em"><span>INSIDER · INTERIOR</span><span style="display: flex; align-items: center; gap: 14px"><span style="color: rgba(251,243,231,0.75); font-weight: 400">FROM $2,042</span><span class="chev" style="font-size: 20px; line-height: 1; color: #E8A94E; transition: transform .2s">+</span></span></summary>
+<div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; padding: 14px 22px; align-items: center; border-bottom: 1px dashed rgba(22,35,43,0.3);"><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600">The Insider</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63">YOU CHOOSE YOUR CABIN</span></span><span style="font-family: 'Space Mono', monospace; font-weight: 700; font-size: 16px">$2,042</span><span style="font-family: 'Space Mono', monospace; font-weight: 400; font-size: 16px">$2,118</span><span style="font-family: 'Space Mono', monospace; font-weight: 400; font-size: 16px">$2,608</span></div>
+</details>
+<details name="cabin-type">
+<summary style="padding: 12px 22px; background: #16232B; color: #E8A94E; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: center; border-bottom: 1px solid rgba(232,169,78,0.25); transition: background .2s; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.14em"><span>SEA VIEW · OCEAN WINDOW</span><span style="display: flex; align-items: center; gap: 14px"><span style="color: rgba(251,243,231,0.75); font-weight: 400">FROM $2,094</span><span class="chev" style="font-size: 20px; line-height: 1; color: #E8A94E; transition: transform .2s">+</span></span></summary>
+<div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; padding: 14px 22px; align-items: center; border-bottom: 1px dashed rgba(22,35,43,0.3);"><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600">The Sea View</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63">YOU CHOOSE YOUR CABIN</span></span><span style="font-family: 'Space Mono', monospace; font-weight: 700; font-size: 16px">$2,094</span><span style="font-family: 'Space Mono', monospace; font-weight: 400; font-size: 16px">$2,174</span><span style="font-family: 'Space Mono', monospace; font-weight: 400; font-size: 16px">$2,662</span></div>
+</details>
+<details name="cabin-type">
+<summary style="padding: 12px 22px; background: #16232B; color: #E8A94E; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: center; border-bottom: 1px solid rgba(232,169,78,0.25); transition: background .2s; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.14em"><span>SEA TERRACE · BALCONY + HAMMOCK</span><span style="display: flex; align-items: center; gap: 14px"><span style="color: rgba(251,243,231,0.75); font-weight: 400">FROM $2,250</span><span class="chev" style="font-size: 20px; line-height: 1; color: #E8A94E; transition: transform .2s">+</span></span></summary>
+<div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; padding: 14px 22px; align-items: center; border-bottom: 1px dashed rgba(22,35,43,0.3);"><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600">Ltd View Sea Terrace</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63">PARTIAL VIEW</span></span><span style="font-family: 'Space Mono', monospace; font-weight: 700; font-size: 16px">$2,250</span><span style="font-family: 'Space Mono', monospace; font-weight: 400; font-size: 16px">$2,336</span><span style="font-family: 'Space Mono', monospace; font-weight: 400; font-size: 16px">$2,824</span></div>
+<div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; padding: 14px 22px; align-items: center; border-bottom: 1px dashed rgba(22,35,43,0.3); background: rgba(232,169,78,0.2);"><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600">The Sea Terrace</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #8A3A1F">★ GROUP FAVORITE</span></span><span style="font-family: 'Space Mono', monospace; font-weight: 700; font-size: 16px">$2,456</span><span style="font-family: 'Space Mono', monospace; font-weight: 400; font-size: 16px">$2,552</span><span style="font-family: 'Space Mono', monospace; font-weight: 400; font-size: 16px">$3,042</span></div>
+<div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; padding: 14px 22px; align-items: center; border-bottom: 1px dashed rgba(22,35,43,0.3);"><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600">Central Sea Terrace</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63">MIDSHIP</span></span><span style="font-family: 'Space Mono', monospace; font-weight: 700; font-size: 16px">$2,610</span><span style="font-family: 'Space Mono', monospace; font-weight: 400; font-size: 16px">$2,716</span><span style="font-family: 'Space Mono', monospace; font-weight: 400; font-size: 16px">$3,204</span></div>
+<div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; padding: 14px 22px; align-items: center; border-bottom: 1px dashed rgba(22,35,43,0.3);"><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600">XL Sea Terrace</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63">EXTRA-LARGE TERRACE</span></span><span style="font-family: 'Space Mono', monospace; font-weight: 700; font-size: 16px">$3,176</span><span style="font-family: 'Space Mono', monospace; font-weight: 400; font-size: 16px">$3,312</span><span style="font-family: 'Space Mono', monospace; font-weight: 400; font-size: 16px">$3,800</span></div>
+</details>
+<details name="cabin-type">
+<summary style="padding: 12px 22px; background: #16232B; color: #E8A94E; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: center; border-bottom: 1px solid rgba(232,169,78,0.25); transition: background .2s; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.14em"><span>ROCKSTAR QUARTERS · SUITES</span><span style="display: flex; align-items: center; gap: 14px"><span style="color: rgba(251,243,231,0.75); font-weight: 400">FROM $6,404</span><span class="chev" style="font-size: 20px; line-height: 1; color: #E8A94E; transition: transform .2s">+</span></span></summary>
+<div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; padding: 14px 22px; align-items: center; border-bottom: 1px dashed rgba(22,35,43,0.3)"><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600">Seriously Suite</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63"></span></span><span style="grid-column: span 3; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap"><span style="font-family: 'Space Mono', monospace; font-weight: 700; font-size: 16px">$6,404</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63">SUITE FARE</span></span></div>
+<div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; padding: 14px 22px; align-items: center; border-bottom: 1px dashed rgba(22,35,43,0.3)"><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600">Brilliant Suite</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63"></span></span><span style="grid-column: span 3; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap"><span style="font-family: 'Space Mono', monospace; font-weight: 700; font-size: 16px">$6,730</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63">SUITE FARE</span></span></div>
+<div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; padding: 14px 22px; align-items: center; border-bottom: 1px dashed rgba(22,35,43,0.3)"><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600">Sweet Aft Suite</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63">PRETTY BIG TERRACE</span></span><span style="grid-column: span 3; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap"><span style="font-family: 'Space Mono', monospace; font-weight: 700; font-size: 16px">$7,272</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63">SUITE FARE</span></span></div>
+<div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; padding: 14px 22px; align-items: center; border-bottom: 1px dashed rgba(22,35,43,0.3)"><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600">Cheeky Corner Suite</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63">PRETTY BIG TERRACE</span></span><span style="grid-column: span 3; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap"><span style="font-family: 'Space Mono', monospace; font-weight: 700; font-size: 16px">$7,382</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63">SUITE FARE</span></span></div>
+<div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; padding: 14px 22px; align-items: center; border-bottom: 1px dashed rgba(22,35,43,0.3)"><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600">Cheeky Corner Suite</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63">EVEN BIGGER TERRACE</span></span><span style="grid-column: span 3; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap"><span style="font-family: 'Space Mono', monospace; font-weight: 700; font-size: 16px">$7,382</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63">SUITE FARE</span></span></div>
+<div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; padding: 14px 22px; align-items: center; border-bottom: 1px dashed rgba(22,35,43,0.3)"><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600">Sweet Aft Suite</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63">EVEN BIGGER TERRACE</span></span><span style="grid-column: span 3; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap"><span style="font-family: 'Space Mono', monospace; font-weight: 700; font-size: 16px">$7,436</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63">SUITE FARE</span></span></div>
+<div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; padding: 14px 22px; align-items: center; border-bottom: 1px dashed rgba(22,35,43,0.3)"><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600">Cheeky Corner Suite</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63">BIGGEST TERRACE</span></span><span style="grid-column: span 3; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap"><span style="font-family: 'Space Mono', monospace; font-weight: 700; font-size: 16px">$7,490</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63">SUITE FARE</span></span></div>
+<div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; padding: 14px 22px; align-items: center; border-bottom: 1px dashed rgba(22,35,43,0.3)"><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600">Sweet Aft Suite</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63">BIGGEST TERRACE</span></span><span style="grid-column: span 3; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap"><span style="font-family: 'Space Mono', monospace; font-weight: 700; font-size: 16px">$7,544</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63">SUITE FARE</span></span></div>
+</details>
+<details name="cabin-type">
+<summary style="padding: 12px 22px; background: #16232B; color: #E8A94E; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: center; border-bottom: 1px solid rgba(232,169,78,0.25); transition: background .2s; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.14em"><span>MEGA ROCKSTAR QUARTERS</span><span style="display: flex; align-items: center; gap: 14px"><span style="color: rgba(251,243,231,0.75); font-weight: 400">FROM $10,798</span><span class="chev" style="font-size: 20px; line-height: 1; color: #E8A94E; transition: transform .2s">+</span></span></summary>
+<div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; padding: 14px 22px; align-items: center; border-bottom: 1px dashed rgba(22,35,43,0.3)"><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600">Gorgeous Suite</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63"></span></span><span style="grid-column: span 3; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap"><span style="font-family: 'Space Mono', monospace; font-weight: 700; font-size: 16px">$10,798</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63">SUITE FARE</span></span></div>
+<div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; padding: 14px 22px; align-items: center; border-bottom: 1px dashed rgba(22,35,43,0.3)"><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600">Posh Suite</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63"></span></span><span style="grid-column: span 3; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap"><span style="font-family: 'Space Mono', monospace; font-weight: 700; font-size: 16px">$14,326</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63">SUITE FARE</span></span></div>
+<div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; padding: 14px 22px; align-items: center; border-bottom: 1px dashed rgba(22,35,43,0.3)"><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600">Fab Suite</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63"></span></span><span style="grid-column: span 3; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap"><span style="font-family: 'Space Mono', monospace; font-weight: 700; font-size: 16px">$15,682</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63">SUITE FARE</span></span></div>
+<div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; padding: 14px 22px; align-items: center; border-bottom: 1px dashed rgba(22,35,43,0.3)"><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600">Massive Suite</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63"></span></span><span style="grid-column: span 3; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap"><span style="font-family: 'Space Mono', monospace; font-weight: 700; font-size: 16px">$19,804</span><span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #4A5A63">SUITE FARE</span></span></div>
+</details>
+<div style="padding: 16px 22px; background: #16232B; color: #FBF3E7; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap">
+<span style="font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.08em">FINAL PAYMENT DUE · JUNE 27, 2027 · TIPS &amp; PROTECTION INCLUDED</span>
+<a href="#book" style="font-family: 'Space Mono', monospace; font-weight: 700; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: #16232B; background: #FF6B4A; padding: 14px 20px; border-radius: 2px; text-decoration: none">Reserve a cabin →</a>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- WHAT'S INCLUDED -->
+<section style="background: #1B3A4B">
+<div style="max-width: 1240px; margin: 0 auto; padding: 96px 32px; display: flex; flex-direction: column; gap: 32px">
+<div style="display: flex; flex-direction: column; gap: 12px; max-width: 720px">
+<p style="margin: 0; font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.2em; color: #E8A94E">GATE 19 · WHAT'S INCLUDED</p>
+<h2 style="margin: 0; font-family: 'Fraunces', serif; font-style: italic; font-weight: 500; font-size: 52px; line-height: 1.05">Every fare comes with extras</h2>
+<p style="margin: 0; font-size: 16px; line-height: 1.6; color: rgba(251,243,231,0.88)">Your extras depend on your cabin and your fare. On every one: all restaurants, soda and water, group fitness, entertainment, and our group perks.</p>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; align-items: start"><div style="background: #FBF3E7; color: #16232B;  border-radius: 4px; padding: 26px 24px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; color: #8A3A1F">FARE</span>
+<span style="font-family: 'Fraunces', serif; font-size: 26px; font-weight: 600; line-height: 1.1">Base</span>
+<span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #8A3A1F">INSIDER · SEA VIEW · SEA TERRACE</span>
+<ul style="margin: 6px 0 0; padding-left: 18px; font-size: 14px; line-height: 1.5"><li style="margin-bottom: 7px">Tips &amp; Voyage Protection included</li><li style="margin-bottom: 7px">Basic Wi-Fi, 1 device</li><li style="margin-bottom: 7px">Dining reservations open Oct 10, 2027</li><li style="margin-bottom: 7px"><strong>Sea Terrace cabins add $50 onboard credit</strong></li><li style="margin-bottom: 7px">Non-refundable, no changes</li></ul>
+</div><div style="background: #FBF3E7; color: #16232B;  border-radius: 4px; padding: 26px 24px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; color: #8A3A1F">FARE</span>
+<span style="font-family: 'Fraunces', serif; font-size: 26px; font-weight: 600; line-height: 1.1">Essential</span>
+<span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #8A3A1F">INSIDER · SEA VIEW · SEA TERRACE</span>
+<ul style="margin: 6px 0 0; padding-left: 18px; font-size: 14px; line-height: 1.5"><li style="margin-bottom: 7px">Tips &amp; Voyage Protection included</li><li style="margin-bottom: 7px">Faster Wi-Fi with calling, 1 device</li><li style="margin-bottom: 7px">Dining reservations open Sep 10, 2027</li><li style="margin-bottom: 7px"><strong>Sea Terrace cabins add $50 onboard credit</strong></li><li style="margin-bottom: 7px">Date &amp; cabin changes; credit if you cancel</li></ul>
+</div><div style="background: #E8A94E; color: #16232B;  border-radius: 4px; padding: 26px 24px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; color: #5A3A10">FARE · MOST PERKS</span>
+<span style="font-family: 'Fraunces', serif; font-size: 26px; font-weight: 600; line-height: 1.1">Premium</span>
+<span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #5A3A10">INSIDER · SEA VIEW · SEA TERRACE</span>
+<ul style="margin: 6px 0 0; padding-left: 18px; font-size: 14px; line-height: 1.5"><li style="margin-bottom: 7px">Tips &amp; Voyage Protection included</li><li style="margin-bottom: 7px">Premium Wi-Fi with streaming, 2 devices</li><li style="margin-bottom: 7px">$75 premium bar tab per sailor</li><li style="margin-bottom: 7px">Dining reservations open Aug 26, 2027</li><li style="margin-bottom: 7px">Priority pre-voyage support</li><li style="margin-bottom: 7px"><strong>Sea Terrace cabins add $50 onboard credit</strong></li><li style="margin-bottom: 7px">Date, cabin &amp; name changes</li></ul>
+</div></div>
+<div style="display: flex; flex-direction: column; gap: 18px"><div style="background: #16232B; color: #FBF3E7; border: 1px solid rgba(232,169,78,0.6); border-radius: 4px; padding: 24px 28px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; color: #E8A94E">SUITES</span>
+<span style="font-family: 'Fraunces', serif; font-size: 26px; font-weight: 600; line-height: 1.1">RockStar Quarters</span>
+<span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #E8A94E">SERIOUSLY · BRILLIANT · CHEEKY CORNER · SWEET AFT</span>
+<ul style="margin: 8px 0 0; padding-left: 18px; font-size: 14px; line-height: 1.5; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 6px 36px"><li>Tips &amp; Voyage Protection included</li><li>VIP early boarding</li><li>First to book: dining &amp; experiences open Jun 27, 2027</li><li>Curated in-room bar, first round on Virgin</li><li>Members-only Richard's Rooftop</li><li>24/7 RockStar Agents &amp; room delivery</li><li>$50 onboard credit</li><li>Wi-Fi with calling, 1 device</li></ul>
+</div><div style="background: #16232B; color: #FBF3E7; border: 1px solid rgba(232,169,78,0.6); border-radius: 4px; padding: 24px 28px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; color: #E8A94E">SUITES</span>
+<span style="font-family: 'Fraunces', serif; font-size: 26px; font-weight: 600; line-height: 1.1">Mega RockStar</span>
+<span style="font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #E8A94E">GORGEOUS · POSH · FAB · MASSIVE</span>
+<ul style="margin: 8px 0 0; padding-left: 18px; font-size: 14px; line-height: 1.5; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 6px 36px"><li>Everything in RockStar, plus:</li><li>Bottomless in-room bar + daily bar tab</li><li>Your own dedicated Mega RockStar agent</li><li>Work-from-sea Wi-Fi, 2 devices, plus a Classic Wi-Fi pass</li><li>$50 onboard credit</li><li>Free parking at PortMiami Terminal V</li><li>Outdoor terrace shower</li></ul>
+</div></div>
+<p style="margin: 0; font-size: 13px; color: rgba(251,243,231,0.7)">Change rules apply until 45 days before sailing; name changes until 48 hours before. Credit means Future Voyage Credit per Virgin's cancellation schedule.</p>
+</div>
+</section>
+
+<!-- UPGRADES -->
+<section id="upgrades" class="upgrade">
+<div style="max-width: 1240px; margin: 0 auto; padding: 110px 32px; display: flex; flex-direction: column; gap: 40px">
+<div style="display: flex; flex-direction: column; gap: 12px; max-width: 560px">
+<p style="margin: 0; font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.2em; color: #E8A94E">GATE 20 · UPGRADES</p>
+<h2 style="margin: 0; font-family: 'Fraunces', serif; font-style: italic; font-weight: 500; font-size: 52px; line-height: 1.05">Upgrade to First Class</h2>
+<p style="margin: 0; font-size: 17px; line-height: 1.6; color: rgba(251,243,231,0.9)">The cruise gets you on the ship. The group package gets you into every moment we've planned together.</p>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; max-width: 900px">
+<div style="background: #FBF3E7; color: #16232B; border-radius: 4px; padding: 28px; display: flex; flex-direction: column; gap: 16px; position: relative">
+<span style="position: absolute; top: 18px; right: 18px; border: 2px solid #8A3A1F; color: #8A3A1F; font-family: 'Space Mono', monospace; font-weight: 700; font-size: 11px; letter-spacing: 0.12em; padding: 6px 8px; transform: rotate(6deg)">FIRST CLASS</span>
+<span style="font-family: 'Fraunces', serif; font-size: 28px; font-weight: 600">Full Experience</span>
+<span style="font-family: 'Space Mono', monospace; font-weight: 700; font-size: 26px">$[PRICE] <span style="font-size: 13px; font-weight: 400">/ person</span></span>
+<span style="font-size: 15px; line-height: 1.6">Sail-away toast · Scarlet Night meetup · Golden-hour group dinner · Bimini cabana takeover · [Confirm inclusions]</span>
+<a href="#book" style="align-self: flex-start; font-family: 'Space Mono', monospace; font-weight: 700; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: #FBF3E7; background: #16232B; padding: 14px 18px; border-radius: 2px; text-decoration: none">Add to my trip</a>
+</div>
+<div style="background: rgba(22,35,43,0.6); border: 1px solid rgba(251,243,231,0.5); border-radius: 4px; padding: 28px; display: flex; flex-direction: column; gap: 16px">
+<span style="font-family: 'Fraunces', serif; font-size: 28px; font-weight: 600">Cabana Pass</span>
+<span style="font-family: 'Space Mono', monospace; font-weight: 700; font-size: 26px">$[PRICE] <span style="font-size: 13px; font-weight: 400">/ person</span></span>
+<span style="font-size: 15px; line-height: 1.6; color: rgba(251,243,231,0.92)">A spot in our private cabanas at The Beach Club at Bimini · [Confirm inclusions]</span>
+<a href="#book" style="align-self: flex-start; font-family: 'Space Mono', monospace; font-weight: 700; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: #FBF3E7; border: 1px solid #FBF3E7; padding: 14px 18px; border-radius: 2px; text-decoration: none">Add to my trip</a>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 12px; max-width: 900px; border-top: 1px dashed rgba(251,243,231,0.4); padding-top: 24px">
+<span style="font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: 0.14em; color: #E8A94E">ADD A CABIN SURPRISE</span>
+<div style="display: flex; flex-wrap: wrap; gap: 10px; font-family: 'Space Mono', monospace; font-size: 13px">
+<span style="background: rgba(251,243,231,0.12); border: 1px solid rgba(251,243,231,0.4); padding: 10px 14px; border-radius: 2px">Chocolates from $20</span>
+<span style="background: rgba(251,243,231,0.12); border: 1px solid rgba(251,243,231,0.4); padding: 10px 14px; border-radius: 2px">Beer bucket from $35</span>
+<span style="background: rgba(251,243,231,0.12); border: 1px solid rgba(251,243,231,0.4); padding: 10px 14px; border-radius: 2px">Flowers from $60</span>
+<span style="background: rgba(251,243,231,0.12); border: 1px solid rgba(251,243,231,0.4); padding: 10px 14px; border-radius: 2px">Spa escape from $79</span>
+<span style="background: rgba(251,243,231,0.12); border: 1px solid rgba(251,243,231,0.4); padding: 10px 14px; border-radius: 2px">Moët bubbles $105</span>
+<span style="background: rgba(251,243,231,0.12); border: 1px solid rgba(251,243,231,0.4); padding: 10px 14px; border-radius: 2px">Bar tab from $200</span>
+</div>
+<span style="font-size: 14px; color: rgba(251,243,231,0.8)">Waiting in your cabin when you board. Tell us when you register.</span>
+</div>
+</div>
+</section>
+
+<!-- PACK LIST -->
+<section id="pack" style="max-width: 1240px; margin: 0 auto; padding: 100px 32px; display: flex; flex-direction: column; gap: 44px">
+<div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<p style="margin: 0; font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.2em; color: #E8A94E">GATE 21 · PACK LIST</p>
+<h2 style="margin: 0; font-family: 'Fraunces', serif; font-style: italic; font-weight: 500; font-size: 52px">Pack List: Vibes Only</h2>
+</div>
+<span style="font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: 0.08em; color: #16232B; background: #E8A94E; padding: 10px 14px; border-radius: 2px; font-weight: 700">FORECAST · LOW 80s °F · WARM &amp; TROPICAL</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px">
+
+<div style="background: #FBF3E7; color: #16232B; border-radius: 4px 4px 4px 4px; padding: 28px 26px; display: flex; flex-direction: column; gap: 14px; position: relative">
+<span style="width: 14px; height: 14px; border-radius: 50%; background: #16232B; position: absolute; top: 18px; right: 18px"></span>
+<span style="font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; color: #8A3A1F">TAG 01 · THEME NIGHTS</span>
+<span style="font-family: 'Fraunces', serif; font-size: 24px; font-weight: 600">Must-pack outfits</span>
+<ul style="margin: 0; padding-left: 18px; font-size: 15px; line-height: 1.6; display: flex; flex-direction: column; gap: 8px">
+<li><strong>Scarlet Night:</strong> an all-red look, with a swimsuit underneath that can get wet.</li>
+<li><strong>PJ Party (Night 1):</strong> cute, comfy sleepwear or silk sets you're happy to wear in public.</li>
+<li><strong>80s Workout (optional):</strong> neon or retro activewear for the throwback fitness classes.</li>
+</ul>
+</div>
+
+<div style="background: #FBF3E7; color: #16232B; border-radius: 4px; padding: 28px 26px; display: flex; flex-direction: column; gap: 14px; position: relative">
+<span style="width: 14px; height: 14px; border-radius: 50%; background: #16232B; position: absolute; top: 18px; right: 18px"></span>
+<span style="font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; color: #8A3A1F">TAG 02 · DAYS</span>
+<span style="font-family: 'Fraunces', serif; font-size: 24px; font-weight: 600">Daywear &amp; excursions</span>
+<ul style="margin: 0; padding-left: 18px; font-size: 15px; line-height: 1.6; display: flex; flex-direction: column; gap: 8px">
+<li>3–4 lightweight outfits: linen, sundresses, breathable tees, polos.</li>
+<li>2–3 swimsuits plus cover-ups. Cover-up and footwear are required in indoor restaurants.</li>
+<li>Breathable gear and water shoes for Puerto Plata.</li>
+</ul>
+</div>
+
+<div style="background: #FBF3E7; color: #16232B; border-radius: 4px; padding: 28px 26px; display: flex; flex-direction: column; gap: 14px; position: relative">
+<span style="width: 14px; height: 14px; border-radius: 50%; background: #16232B; position: absolute; top: 18px; right: 18px"></span>
+<span style="font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; color: #8A3A1F">TAG 03 · NIGHTS</span>
+<span style="font-family: 'Fraunces', serif; font-size: 24px; font-weight: 600">Evening, smart casual</span>
+<ul style="margin: 0; padding-left: 18px; font-size: 15px; line-height: 1.6; display: flex; flex-direction: column; gap: 8px">
+<li>3–4 resort-casual looks: jumpsuits, sundresses, dark denim, chinos, linen button-downs.</li>
+<li>A light layer for chilly A/C and windy top decks.</li>
+</ul>
+</div>
+
+<div style="background: #FBF3E7; color: #16232B; border-radius: 4px; padding: 28px 26px; display: flex; flex-direction: column; gap: 14px; position: relative">
+<span style="width: 14px; height: 14px; border-radius: 50%; background: #16232B; position: absolute; top: 18px; right: 18px"></span>
+<span style="font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; color: #8A3A1F">TAG 04 · CABIN KIT</span>
+<span style="font-family: 'Fraunces', serif; font-size: 24px; font-weight: 600">Cabin essentials</span>
+<ul style="margin: 0; padding-left: 18px; font-size: 15px; line-height: 1.6; display: flex; flex-direction: column; gap: 8px">
+<li>Magnetic hooks. Cabin walls are metal.</li>
+<li>Waterproof phone pouch and dry bag.</li>
+<li>Reusable water bottle.</li>
+<li>Reef-safe sunscreen, polarized shades, wide-brim hat.</li>
+</ul>
+</div>
+
+<div style="grid-column: 1 / -1; background: #16232B; border: 2px dashed rgba(255,107,74,0.7); border-radius: 4px; padding: 22px 28px; display: flex; flex-direction: column; gap: 10px; position: relative">
+<span style="font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; color: #FF6B4A">✕ LEAVE AT HOME</span>
+<span style="font-family: 'Fraunces', serif; font-size: 24px; font-weight: 600">Not boarding</span>
+<ul style="margin: 0; padding-left: 18px; font-size: 15px; line-height: 1.6; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px 40px; color: rgba(251,243,231,0.88)">
+<li>Irons and steamers (prohibited). Wrinkle-release spray works best.</li>
+<li>Formal wear. Not required anywhere on board.</li>
+<li>Towels. Provided on board and at Bimini.</li>
+</ul>
+</div>
+
+</div>
+</section>
+
+<!-- HOW TO BOOK -->
+<section id="book" style="background: #1B3A4B">
+<div style="max-width: 1240px; margin: 0 auto; padding: 96px 32px; display: flex; flex-direction: column; gap: 40px">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<p style="margin: 0; font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.2em; color: #E8A94E">GATE 22 · CHECK-IN</p>
+<h2 style="margin: 0; font-family: 'Fraunces', serif; font-style: italic; font-weight: 500; font-size: 52px">Three steps to the gangway</h2>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px">
+<div style="border: 1px solid rgba(232,169,78,0.5); border-radius: 4px; padding: 28px; display: flex; flex-direction: column; gap: 12px">
+<span style="font-family: 'Space Mono', monospace; font-size: 36px; font-weight: 700; color: #FF6B4A">01</span>
+<span style="font-family: 'Fraunces', serif; font-size: 24px">Register for the trip</span>
+<span style="font-size: 15px; line-height: 1.6; color: rgba(251,243,231,0.85)">Tell us who's coming and which cabin you want, and tick the boxes if you also need a flight or a Miami hotel.</span>
+</div>
+<div style="border: 1px solid rgba(232,169,78,0.5); border-radius: 4px; padding: 28px; display: flex; flex-direction: column; gap: 12px">
+<span style="font-family: 'Space Mono', monospace; font-size: 36px; font-weight: 700; color: #FF6B4A">02</span>
+<span style="font-family: 'Fraunces', serif; font-size: 24px">Pay your deposit</span>
+<span style="font-size: 15px; line-height: 1.6; color: rgba(251,243,231,0.85)">CBGV books your cabin inside our group through InteleTravel, our official booking partner, then Virgin Voyages emails you a secure payment link for your deposit. Pay in full or spread it out with a plan.</span>
+</div>
+<div style="border: 1px solid rgba(232,169,78,0.5); border-radius: 4px; padding: 28px; display: flex; flex-direction: column; gap: 12px">
+<span style="font-family: 'Space Mono', monospace; font-size: 36px; font-weight: 700; color: #FF6B4A">03</span>
+<span style="font-family: 'Fraunces', serif; font-size: 24px">You're cleared for boarding</span>
+<span style="font-size: 15px; line-height: 1.6; color: rgba(251,243,231,0.85)">Log in anytime to see your trip, payments and updates in your boarding-pass wallet.</span>
+</div>
+</div>
+<div style="display: flex; gap: 16px; flex-wrap: wrap">
+<a href="#register" style="display: inline-flex; align-items: center; gap: 12px; font-family: 'Space Mono', monospace; font-weight: 700; font-size: 14px; letter-spacing: 0.06em; text-transform: uppercase; color: #16232B; background: #FBF3E7; padding: 18px 26px; border-radius: 2px; text-decoration: none"><span style="width: 8px; height: 8px; border-radius: 50%; background: #FF6B4A"></span>Register now</a>
+<a href="#contact" style="display: inline-flex; align-items: center; font-family: 'Space Mono', monospace; font-size: 14px; letter-spacing: 0.06em; text-transform: uppercase; color: #FBF3E7; border: 1px solid rgba(251,243,231,0.6); padding: 18px 26px; border-radius: 2px; text-decoration: none">Booking 5+ cabins? Talk to us</a>
+</div>
+</div>
+</section>
+
+<!-- GROUP PERKS -->
+<section style="max-width: 1240px; margin: 0 auto; padding: 72px 32px 0; display: flex; flex-direction: column; gap: 28px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<p style="margin: 0; font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.2em; color: #E8A94E">GATE 23 · GROUP PERKS</p>
+<h2 style="margin: 0; font-family: 'Fraunces', serif; font-style: italic; font-weight: 500; font-size: 44px">Better together, on paper too</h2>
+<p style="margin: 0; font-size: 16px; line-height: 1.6; color: rgba(251,243,231,0.85); max-width: 640px">Book inside our group, not on your own, and these come with your cabin.</p>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 20px"><div style="background: #16232B; border: 1px solid rgba(232,169,78,0.45); border-radius: 4px; padding: 22px; display: flex; flex-direction: column; gap: 8px"><span style="font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; color: #E8A94E">$50 BAR TAB</span><span style="font-size: 15px; line-height: 1.55; color: rgba(251,243,231,0.88)">Every cabin booked in our group gets a $50 group bar tab.</span></div><div style="background: #16232B; border: 1px solid rgba(232,169,78,0.45); border-radius: 4px; padding: 22px; display: flex; flex-direction: column; gap: 8px"><span style="font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; color: #E8A94E">DINING CONCIERGE</span><span style="font-size: 15px; line-height: 1.55; color: rgba(251,243,231,0.88)">Virgin's group concierge books a dinner for the crew.</span></div><div style="background: #16232B; border: 1px solid rgba(232,169,78,0.45); border-radius: 4px; padding: 22px; display: flex; flex-direction: column; gap: 8px"><span style="font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; color: #E8A94E">PRICE LOCKED</span><span style="font-size: 15px; line-height: 1.55; color: rgba(251,243,231,0.88)">Our group fare is locked the day the group opens.</span></div><div style="background: #16232B; border: 1px solid rgba(232,169,78,0.45); border-radius: 4px; padding: 22px; display: flex; flex-direction: column; gap: 8px"><span style="font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; color: #E8A94E">0% APR OPTION</span><span style="font-size: 15px; line-height: 1.55; color: rgba(251,243,231,0.88)">Book by Oct 25, 2026 for Flex Pay financing, for those who qualify.</span></div><div style="background: #16232B; border: 1px solid rgba(232,169,78,0.45); border-radius: 4px; padding: 22px; display: flex; flex-direction: column; gap: 8px"><span style="font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; color: #E8A94E">PRIVATE MORNING SPACE</span><span style="font-size: 15px; line-height: 1.55; color: rgba(251,243,231,0.88)">Two hours of private space just for our crew on a sea-day morning.</span></div></div>
+</section>
+
+<!-- MEMBER HINT -->
+<section style="max-width: 1240px; margin: 0 auto; padding: 72px 32px">
+<div style="background: #2E7D6E; border-radius: 4px; padding: 26px 30px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.18em; color: #FBF3E7">FREQUENT FLYER PERK</span>
+<span style="font-family: 'Fraunces', serif; font-size: 22px; color: #FBF3E7">Full Members get first dibs on cabins before trips go public.</span>
+</div>
+<a href="#join" style="font-family: 'Space Mono', monospace; font-weight: 700; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: #16232B; background: #FBF3E7; padding: 14px 20px; border-radius: 2px; text-decoration: none">See membership</a>
+</div>
+</section>
+
+<!-- COUNTDOWN -->
+<section style="max-width: 1240px; margin: 0 auto; padding: 96px 32px; display: flex; flex-direction: column; gap: 44px">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<p style="margin: 0; font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.2em; color: #E8A94E">GATE 24 · COUNTDOWN</p>
+<h2 style="margin: 0; font-family: 'Fraunces', serif; font-style: italic; font-weight: 500; font-size: 52px">Countdown to boarding</h2>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0"><div style="display: flex; flex-direction: column; gap: 8px; padding: 22px 18px 0 0; border-top: 2px dashed rgba(232,169,78,0.6)"><span style="width: 14px; height: 14px; border-radius: 50%; background: #2E7D6E; margin-top: -30px"></span><span style="font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: #E8A94E">OCT 25, 2026</span><span style="font-family: 'Fraunces', serif; font-size: 21px">0% APR deadline</span><span style="font-size: 14px; line-height: 1.55; color: rgba(251,243,231,0.8)">Last day to book with Flex Pay 0% financing, for those who qualify.</span></div><div style="display: flex; flex-direction: column; gap: 8px; padding: 22px 18px 0 0; border-top: 2px dashed rgba(232,169,78,0.6)"><span style="width: 14px; height: 14px; border-radius: 50%; background: #FF6B4A; margin-top: -30px"></span><span style="font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: #E8A94E">JUNE 27, 2027</span><span style="font-family: 'Fraunces', serif; font-size: 21px">Final payment due</span><span style="font-size: 14px; line-height: 1.55; color: rgba(251,243,231,0.8)">120 days out. Saved cards are charged automatically.</span></div><div style="display: flex; flex-direction: column; gap: 8px; padding: 22px 18px 0 0; border-top: 2px dashed rgba(232,169,78,0.6)"><span style="width: 14px; height: 14px; border-radius: 50%; background: #E8A94E; margin-top: -30px"></span><span style="font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: #E8A94E">JUNE 28, 2027</span><span style="font-family: 'Fraunces', serif; font-size: 21px">Shore Things open</span><span style="font-size: 14px; line-height: 1.55; color: rgba(251,243,231,0.8)">Book Puerto Plata and Bimini excursions. Paid in full when added.</span></div><div style="display: flex; flex-direction: column; gap: 8px; padding: 22px 18px 0 0; border-top: 2px dashed rgba(232,169,78,0.6)"><span style="width: 14px; height: 14px; border-radius: 50%; background: #E8A94E; margin-top: -30px"></span><span style="font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: #E8A94E">JUN 27 – OCT 10, 2027</span><span style="font-family: 'Fraunces', serif; font-size: 21px">Dining opens</span><span style="font-size: 14px; line-height: 1.55; color: rgba(251,243,231,0.8)">Depends on your fare: RockStar Jun 27, Premium Aug 26, Essential Sep 10, Base Oct 10.</span></div><div style="display: flex; flex-direction: column; gap: 8px; padding: 22px 18px 0 0; border-top: 2px dashed rgba(232,169,78,0.6)"><span style="width: 14px; height: 14px; border-radius: 50%; background: #E8A94E; margin-top: -30px"></span><span style="font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: #E8A94E">OCT 7, 2027</span><span style="font-family: 'Fraunces', serif; font-size: 21px">Check-in &amp; travel docs</span><span style="font-size: 14px; line-height: 1.55; color: rgba(251,243,231,0.8)">Upload passports, pick arrival times and download the Virgin Sailor App.</span></div><div style="display: flex; flex-direction: column; gap: 8px; padding: 22px 18px 0 0; border-top: 2px dashed rgba(232,169,78,0.6)"><span style="width: 14px; height: 14px; border-radius: 50%; background: #E8A94E; margin-top: -30px"></span><span style="font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: #E8A94E">OCT 24, 2027</span><span style="font-family: 'Fraunces', serif; font-size: 21px">Health check</span><span style="font-size: 14px; line-height: 1.55; color: rgba(251,243,231,0.8)">One quick form the day before.</span></div><div style="display: flex; flex-direction: column; gap: 8px; padding: 22px 18px 0 0; border-top: 2px dashed rgba(232,169,78,0.6)"><span style="width: 14px; height: 14px; border-radius: 50%; background: #FF6B4A; margin-top: -30px"></span><span style="font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: #E8A94E">OCT 25, 2027</span><span style="font-family: 'Fraunces', serif; font-size: 21px">Cleared for boarding</span><span style="font-size: 14px; line-height: 1.55; color: rgba(251,243,231,0.8)">Terminal V. Sail-away at 5:00 pm.</span></div></div>
+</section>
+
+<!-- TRAVEL DOCUMENTS -->
+<section id="docs" style="background: #0E171D">
+<div style="max-width: 900px; margin: 0 auto; padding: 96px 32px; display: flex; flex-direction: column; gap: 28px">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<p style="margin: 0; font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.2em; color: #E8A94E">GATE 25 · TRAVEL DOCUMENTS</p>
+<h2 style="margin: 0; font-family: 'Fraunces', serif; font-style: italic; font-weight: 500; font-size: 44px">The fine print, folded neatly</h2>
+</div>
+<div style="display: flex; flex-direction: column; border-top: 1px solid rgba(251,243,231,0.2)">
+<details style="border-bottom: 1px solid rgba(251,243,231,0.2)">
+<summary style="padding: 22px 0; display: flex; justify-content: space-between; align-items: center; font-family: 'Fraunces', serif; font-size: 22px">Cancellation policy <span class="chev" style="font-family: 'Space Mono', monospace; color: #E8A94E; font-size: 26px; transition: transform .2s">+</span></summary>
+<ul style="margin: 0 0 22px; padding-left: 20px; font-size: 15px; line-height: 1.7; color: rgba(251,243,231,0.85)"><li style="margin-bottom: 8px"><strong>Base fares are non-refundable</strong> (taxes and fees excepted), though Voyage Protection may reimburse a cancellation for a covered reason. The schedule below applies to Essential, Premium and RockStar fares.</li><li style="margin-bottom: 8px"><strong>More than 120 days out:</strong> a 7-day grace period after booking for a full refund, deposit included.</li><li style="margin-bottom: 8px"><strong>After the grace period, until 120 days out:</strong> full refund of payments, except the deposit, which becomes Future Voyage Credit.</li><li style="margin-bottom: 8px"><strong>119 to 45 days out:</strong> money paid becomes Future Voyage Credit, good for 1 year from the original sail date.</li><li style="margin-bottom: 8px"><strong>44 days or less:</strong> payments are final, but you can send someone in your place up to 48 hours before sailing.</li><li style="margin-bottom: 8px">Taxes and fees are always refunded, whenever you cancel.</li></ul>
+</details>
+<details style="border-bottom: 1px solid rgba(251,243,231,0.2)">
+<summary style="padding: 22px 0; display: flex; justify-content: space-between; align-items: center; font-family: 'Fraunces', serif; font-size: 22px">Cruise protection, built in <span class="chev" style="font-family: 'Space Mono', monospace; color: #E8A94E; font-size: 26px; transition: transform .2s">+</span></summary>
+<p style="margin: 0 0 14px; font-size: 15px; line-height: 1.7; color: rgba(251,243,231,0.85)">Virgin Voyages Voyage Protection, administered by Aon Affinity and underwritten by Arch Insurance Company. Highlights:</p><ul style="margin: 0 0 14px; padding-left: 20px; font-size: 15px; line-height: 1.7; color: rgba(251,243,231,0.85)"><li style="margin-bottom: 8px"><strong>Trip cancellation:</strong> up to 100% of your trip cost (max $50,000) for covered reasons, like you, a family member or travel companion getting sick or hurt.</li><li style="margin-bottom: 8px"><strong>Trip interruption:</strong> up to 150% of trip cost (max $75,000).</li><li style="margin-bottom: 8px"><strong>Trip delay:</strong> up to $1,000 ($250 a day) for delays of 6+ hours.</li><li style="margin-bottom: 8px"><strong>Emergency medical:</strong> up to $25,000 each for accident and sickness expenses, plus $50,000 medical evacuation.</li><li style="margin-bottom: 8px"><strong>Baggage:</strong> up to $1,500 for loss or damage, and $500 if bags are delayed 24+ hours on the way.</li><li style="margin-bottom: 8px">24/7 emergency assistance from CareFree Travel Assistance: 1-877-303-5909 (U.S. &amp; Canada).</li></ul><p style="margin: 0 0 22px; font-size: 13px; line-height: 1.6; color: rgba(251,243,231,0.65)">Medical and baggage coverage may be secondary to other insurance you have. Coverage is subject to the policy's terms, conditions and exclusions, which vary by state of residence. Claims: aontravelclaim.com.</p>
+</details>
+<details style="border-bottom: 1px solid rgba(251,243,231,0.2)">
+<summary style="padding: 22px 0; display: flex; justify-content: space-between; align-items: center; font-family: 'Fraunces', serif; font-size: 22px">Payment plans &amp; deadlines <span class="chev" style="font-family: 'Space Mono', monospace; color: #E8A94E; font-size: 26px; transition: transform .2s">+</span></summary>
+<ul style="margin: 0 0 22px; padding-left: 20px; font-size: 15px; line-height: 1.7; color: rgba(251,243,231,0.85)"><li style="margin-bottom: 8px"><strong>Final payment is due June 27, 2027</strong>, 120 days before sailing.</li><li style="margin-bottom: 8px">If a card is saved with Virgin, the balance is charged automatically that morning. Apple Pay and PayPal are not auto-charged, so pay those by the due date.</li><li style="margin-bottom: 8px">Pay in full any time before then to skip the auto-charge.</li><li style="margin-bottom: 8px"><strong>Flex Pay by Upgrade:</strong> book by Oct 25, 2026 (365+ days before sailing) and qualified sailors can get 0% APR over 12 months. Terms depend on credit; APRs range from 0% to 36% and not everyone is eligible.</li><li style="margin-bottom: 8px">Cruise protection must be added <em>before</em> final payment.</li><li style="margin-bottom: 8px">Booking after June 27, 2027? Full payment is due at booking.</li></ul>
+</details>
+<details style="border-bottom: 1px solid rgba(251,243,231,0.2)">
+<summary style="padding: 22px 0; display: flex; justify-content: space-between; align-items: center; font-family: 'Fraunces', serif; font-size: 22px">ID required for boarding <span class="chev" style="font-family: 'Space Mono', monospace; color: #E8A94E; font-size: 26px; transition: transform .2s">+</span></summary>
+<ul style="margin: 0 0 22px; padding-left: 20px; font-size: 15px; line-height: 1.7; color: rgba(251,243,231,0.85)"><li style="margin-bottom: 8px">Bring a valid, government-issued passport. Virgin only accepts passports as ID for check-in.</li><li style="margin-bottom: 8px">Your passport name, birth date and nationality must match your booking.</li><li style="margin-bottom: 8px">Online check-in opens about 18 days before sailing (around Oct 7, 2027).</li><li style="margin-bottom: 8px">Linking a card at check-in places a temporary $250 hold, released after the voyage.</li></ul>
+</details>
+<details style="border-bottom: 1px solid rgba(251,243,231,0.2)">
+<summary style="padding: 22px 0; display: flex; justify-content: space-between; align-items: center; font-family: 'Fraunces', serif; font-size: 22px">Special rates, accessibility &amp; upgrades <span class="chev" style="font-family: 'Space Mono', monospace; color: #E8A94E; font-size: 26px; transition: transform .2s">+</span></summary>
+<ul style="margin: 0 0 22px; padding-left: 20px; font-size: 15px; line-height: 1.7; color: rgba(251,243,231,0.85)"><li style="margin-bottom: 8px"><strong>Florida residents, military and first responders</strong> may qualify for special Virgin rates. Let us know when you register and we'll check.</li><li style="margin-bottom: 8px"><strong>Need an accessible cabin?</strong> Virgin has accessible cabins in several categories. Tell us early so we can hold the right one.</li><li style="margin-bottom: 8px"><strong>Want an egg chair instead of a hammock?</strong> A few forward Sea Terraces have one. Ask us and we'll check which cabins.</li><li style="margin-bottom: 8px"><strong>Dreaming bigger?</strong> Virgin's Level Upgrade lets you bid on a better cabin in the weeks before sailing.</li><li style="margin-bottom: 8px">Name changes depend on your fare: none on Base, sailors 2–4 on Essential, everyone on Premium and RockStar (up to 48 hours before sailing). Date changes on Essential and up are allowed until 45 days out.</li></ul>
+</details>
+<details style="border-bottom: 1px solid rgba(251,243,231,0.2)">
+<summary style="padding: 22px 0; display: flex; justify-content: space-between; align-items: center; font-family: 'Fraunces', serif; font-size: 22px">Miami hotels &amp; flights <span class="chev" style="font-family: 'Space Mono', monospace; color: #E8A94E; font-size: 26px; transition: transform .2s">+</span></summary>
+<ul style="margin: 0 0 22px; padding-left: 20px; font-size: 15px; line-height: 1.7; color: rgba(251,243,231,0.85)"><li style="margin-bottom: 8px">Valiant Lady sails from Terminal V at PortMiami.</li><li style="margin-bottom: 8px">Pre- and post-cruise Miami hotel nights can be added to your booking. Tick "I need a hotel" when you register.</li><li style="margin-bottom: 8px">Need flights? Tick "I need a flight" and we'll book air once your cabin is paid in full.</li></ul>
+</details>
+</div>
+</div>
+</section>
+
+<!-- FOOTER -->
+<footer style="border-top: 1px solid rgba(232,169,78,0.35); background: #16232B">
+<div style="max-width: 1240px; margin: 0 auto; padding: 44px 32px; display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; align-items: flex-start">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-family: 'Fraunces', serif; font-style: italic; font-size: 20px; color: #E8A94E">Checked Bags &amp; Good Vibes</span>
+<span style="font-size: 14px; color: rgba(251,243,231,0.72)">A JourneyWell Global LLC brand · Bookings via InteleTravel</span>
+</div>
+<div style="display: flex; gap: 24px; font-size: 14px">
+<a href="#privacy" style="color: rgba(251,243,231,0.85); text-decoration: none">Privacy</a>
+<a href="#terms" style="color: rgba(251,243,231,0.85); text-decoration: none">Terms</a>
+<a href="#contact" style="color: rgba(251,243,231,0.85); text-decoration: none">Contact</a>
+</div>
+<span style="font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.06em; color: #E8A94E">BAGSANDVIBES.COM/EVENTS</span>
+</div>
+</footer>
+
+</div>
+</body></html>
