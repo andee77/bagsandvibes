@@ -392,10 +392,17 @@ function cbv_lp_tokens( $trip_id ) {
 		'party'                => $l['party'],
 	);
 
-	// Key dates (e.g. date:final_payment) are supplied later by the provider
-	// library, computed from this trip's start date.
+	// Key dates (e.g. date:final_payment) come from the provider library and the
+	// trip's own overrides (checkedbags-lp-providers.php), computed from this
+	// trip's start date.
 	foreach ( (array) apply_filters( 'cbv_lp_key_dates', array(), $trip_id ) as $key => $text ) {
 		$tokens[ 'date:' . $key ] = (string) $text;
+	}
+
+	// {days:key}: whole days from that key date to the trip's start (so wording
+	// like "120 days before sailing" stays true when a trip changes the date).
+	foreach ( (array) apply_filters( 'cbv_lp_key_days', array(), $trip_id ) as $key => $n ) {
+		$tokens[ 'days:' . $key ] = (string) (int) $n;
 	}
 
 	return $tokens;
