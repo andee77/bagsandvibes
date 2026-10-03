@@ -27,7 +27,7 @@ Virgin Voyages is seeded from the reference (separate approval; text reviewed in
 |---|---|---|
 | 1 | Switches, shared predicate, template shell, `?preview=new` | Live (d00c845) |
 | 2 | Event types, labels, tokens, light markup, trip settings box | Live (cb722e7) |
-| 3 | Provider Library, trip Provider picker, inheritance, key dates | Live (4499f2d); revision 2 (documents append, key-date override, footnote, trip key-date box, `{days}`) built and tested, awaiting deploy approval |
+| 3 | Provider Library, trip Provider picker, inheritance, key dates | Live (4499f2d); revision 2 (Step 3b: key-date override, footnote, trip key-date box, `{days}`) live (9a7938b) |
 | 3b | Virgin Voyages seed | Text revised 2026-10-03; nothing written. The seed writes ONLY verified lines and prints a report of everything it skipped (see below) |
 | 4 | CSS foundation, hero, boarding pass (+ itinerary stop codes) | |
 | 5 | Status board, intro | |
@@ -38,7 +38,7 @@ Virgin Voyages is seeded from the reference (separate approval; text reviewed in
 | 9b | **Registration: opt-outs and decline acknowledgment** (new, see below; number to be assigned) | |
 | 10 | Included cards, upgrades | |
 | 11 | Pack list, perks, timeline (provider merge) | |
-| 12 | How to book, member hint, travel docs, footer | |
+| 12 | How to book, member hint, travel docs (trip-side document editor, see below), footer | |
 | 13 | Wedding sections (story, schedule, RSVP) | |
 | 14 | "Copy this trip" | |
 | 15 | Unlisted + access code | |
@@ -88,6 +88,12 @@ Open items before building 9b:
 - `funds_final` = 45 days before the start (the Ticket Contract wins: "45 days or less" is final); `date_change_deadline` = 46; `name_change_cutoff` = 2.
 - The Voyage Protection document is left out of the seed until Aon's plan document is available.
 - Wording that depends on the final-payment date uses `{days:final_payment}` rather than a typed number, so a trip with a different deadline stays correct.
+
+## Step 12: trip-side document editor (rules recorded 2026-10-03)
+- **A trip document with the same title as a provider document REPLACES it; otherwise trip documents are appended.** (Today, in Step 3b, the provider's documents are shown first and the trip's own are only appended; the same-title replace rule arrives with this editor.)
+- Minor follow-ups for this step, from the Step 3b review (both concern the trip key-date box):
+  1. A trip row should be able to **un-hide a provider token-only date** (a provider key date that is not shown in the timeline but feeds `{date:key}` / `{days:key}`), i.e. put it in the timeline for that trip.
+  2. A **new trip-only key date should require a title** (today a row with a date and no title is accepted).
 
 ## Open decisions and unverified claims (running list)
 - Registration and price-breakdown items listed under Steps 8 and 9b.
