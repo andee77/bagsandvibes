@@ -251,6 +251,7 @@ Then add rows with **+ Add / override a date**. Each row:
 5. Check with the **Preview new design** link.
 
 ### Common mistakes
+- **Typing the date into the Key field.** The Key is a short name such as `final_payment`, not a date. The date goes in **OR a fixed date (wins)** (or **Days before start**). A date typed into Key creates a meaningless new date instead of changing the provider's. *(A later step turns Key into a dropdown of the provider's keys.)*
 - Using a different key from the provider (for example `final_pay` vs `final_payment`) and getting a **new** date instead of a change. Copy the key exactly from the table at the top of the box.
 - Filling in both "days before start" and a fixed date and expecting the offset to count. The fixed date wins.
 - Overriding a date and forgetting a sentence elsewhere that still has the old number typed in. Use tokens.

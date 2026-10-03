@@ -92,9 +92,10 @@ Open items before building 9b:
 
 ## Step 12: trip-side document editor (rules recorded 2026-10-03)
 - **A trip document with the same title as a provider document REPLACES it; otherwise trip documents are appended.** (Today, in Step 3b, the provider's documents are shown first and the trip's own are only appended; the same-title replace rule arrives with this editor.)
-- Minor follow-ups for this step, from the Step 3b review (both concern the trip key-date box):
+- Follow-ups for this step, from the Step 3b review and admin check (all concern the trip key-date box):
   1. A trip row should be able to **un-hide a provider token-only date** (a provider key date that is not shown in the timeline but feeds `{date:key}` / `{days:key}`), i.e. put it in the timeline for that trip.
   2. A **new trip-only key date should require a title** (today a new key with a date but a blank title is saved as-is; a row with neither key nor title is dropped).
+  3. **The trip box's Key field becomes a dropdown** of the provider's keys, plus a "New date..." choice that reveals a text field for a custom key. (Admin check 2026-10-03: on a first try the admin typed the date into the free-text Key field. A dropdown also prevents typos that silently create a new date instead of overriding one.) If the trip has no provider, only "New date..." is offered.
 
 ## Open decisions and unverified claims (running list)
 - Registration and price-breakdown items listed under Steps 8 and 9b.
