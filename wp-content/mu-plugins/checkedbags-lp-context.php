@@ -306,10 +306,13 @@ function cbv_lp_context_summary( $trip_id ) {
 	foreach ( cbv_lp_enabled_sections( $trip_id ) as $key ) {
 		$names[] = cbv_lp_sections()[ $key ];
 	}
+	$provider = function_exists( 'cbv_lp_provider_name' ) ? cbv_lp_provider_name( $trip_id ) : '';
+
 	return sprintf(
-		'Event type: %1$s (%2$s). Sections on: %3$s.',
+		'Event type: %1$s (%2$s). Provider: %3$s. Sections on: %4$s.',
 		$types[ $type ]['label'],
 		cbv_lp_event_type_is_automatic( $trip_id ) ? 'automatic, from Trip Type' : 'set on this trip',
+		'' !== $provider ? $provider : 'none',
 		$names ? implode( ', ', $names ) : 'none'
 	);
 }

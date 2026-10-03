@@ -34,6 +34,16 @@ add_action( 'init', function () {
 		},
 	) );
 
+	register_post_meta( 'cb_trip', 'cbv_lp_provider_id', array(
+		'type'          => 'integer',
+		'single'        => true,
+		'default'       => 0,
+		'show_in_rest'  => false,
+		'auth_callback' => function () {
+			return current_user_can( 'edit_posts' );
+		},
+	) );
+
 	register_post_meta( 'cb_trip', 'cbv_lp_accommodation_noun', array(
 		'type'              => 'string',
 		'single'            => true,
@@ -60,6 +70,14 @@ function cbv_lp_render_settings_box( $post ) {
 	$overrides  = get_post_meta( $post->ID, 'cbv_lp_sections', true );
 	$overrides  = is_array( $overrides ) ? $overrides : array();
 	$noun       = get_post_meta( $post->ID, 'cbv_lp_accommodation_noun', true );
+	$provider   = (int) get_post_meta( $post->ID, 'cbv_lp_provider_id', true );
+	$providers  = get_posts( array(
+		'post_type'      => 'cb_provider',
+		'post_status'    => 'publish',
+		'posts_per_page' => -1,
+		'orderby'        => 'title',
+		'order'          => 'ASC',
+	) );
 	?>
 	<p class="description">
 		Used only by the new landing design (preview with <code>?preview=new</code>). The current public design ignores these settings.
@@ -75,6 +93,18 @@ function cbv_lp_render_settings_box( $post ) {
 		</select>
 	</p>
 	<p class="description">Sets which sections are on by default and what the page calls things (cabin / room / villa, Sailors / Guests ...). Same template for every type.</p>
+
+	<p>
+		<label for="cbv_lp_provider_id"><strong>Provider</strong> <span class="description">(cruise line, resort brand ...)</span></label><br>
+		<select name="cbv_lp_provider_id" id="cbv_lp_provider_id">
+			<option value="0">None</option>
+			<?php foreach ( $providers as $p ) : ?>
+				<option value="<?php echo (int) $p->ID; ?>" <?php selected( $provider, (int) $p->ID ); ?>><?php echo esc_html( $p->post_title ); ?></option>
+			<?php endforeach; ?>
+		</select>
+		<a href="<?php echo esc_url( admin_url( 'edit.php?post_type=cb_provider' ) ); ?>" target="_blank" rel="noopener">Manage Provider Library</a>
+	</p>
+	<p class="description">The trip inherits that provider's price-column names, "what's included" cards, how-to-book steps, travel documents and key dates. Anything entered on the trip itself replaces the provider's version of that group.</p>
 
 	<p>
 		<label for="cbv_lp_accommodation_noun"><strong>Accommodation word</strong> <span class="description">(optional; overrides the event type's word, e.g. "suite" or "cottage")</span></label><br>
@@ -136,6 +166,16 @@ function cbv_lp_sanitize_settings( $raw ) {
 		}
 	}
 
+	// Only a real, published provider is kept; anything else (a stale id, a
+	// trip or page id, junk) becomes "None".
+	$provider_id = isset( $raw['provider_id'] ) && is_scalar( $raw['provider_id'] ) ? absint( $raw['provider_id'] ) : 0;
+	if ( $provider_id ) {
+		$provider_post = get_post( $provider_id );
+		if ( ! $provider_post || 'cb_provider' !== $provider_post->post_type || 'publish' !== $provider_post->post_status ) {
+			$provider_id = 0;
+		}
+	}
+
 	$noun = isset( $raw['noun'] ) ? sanitize_text_field( wp_unslash( $raw['noun'] ) ) : '';
 	$noun = function_exists( 'mb_substr' ) ? mb_substr( $noun, 0, 30 ) : substr( $noun, 0, 30 );
 
@@ -143,6 +183,7 @@ function cbv_lp_sanitize_settings( $raw ) {
 		'event_type' => $event_type,
 		'sections'   => $sections,
 		'noun'       => $noun,
+		'provider_id' => $provider_id,
 	);
 }
 
@@ -161,9 +202,11 @@ add_action( 'save_post_cb_trip', function ( $post_id ) {
 		'event_type' => $_POST['cbv_lp_event_type'] ?? '',
 		'sections'   => $_POST['cbv_lp_sections'] ?? array(),
 		'noun'       => $_POST['cbv_lp_accommodation_noun'] ?? '',
+		'provider_id' => $_POST['cbv_lp_provider_id'] ?? 0,
 	) );
 
 	update_post_meta( $post_id, 'cbv_lp_event_type', $clean['event_type'] );
 	update_post_meta( $post_id, 'cbv_lp_sections', $clean['sections'] );
 	update_post_meta( $post_id, 'cbv_lp_accommodation_noun', $clean['noun'] );
+	update_post_meta( $post_id, 'cbv_lp_provider_id', $clean['provider_id'] );
 } );
