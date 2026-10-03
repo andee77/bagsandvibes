@@ -5,7 +5,13 @@ Working notes for the CBGV admin manual. A new section is added after each build
 **Last updated:** 2026-10-03 (covers Steps 1, 2, 3 and 3b).
 
 ## How to read this file
-- "Trip" means a trip in **wp-admin → Trips**. "Provider" means an entry in **wp-admin → Provider Library**.
+- **Screens** (always listed by their full address; these are the list and add-new screens, so they work for any trip or provider):
+  - Trips, list: https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_trip
+  - Trips, add new: https://bagsandvibes.com/wp-admin/post-new.php?post_type=cb_trip
+  - Trip Types (the existing categories): https://bagsandvibes.com/wp-admin/edit-tags.php?taxonomy=cb_trip_type&post_type=cb_trip
+  - Provider Library, list: https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_provider
+  - Provider Library, add new: https://bagsandvibes.com/wp-admin/post-new.php?post_type=cb_provider
+- To edit a trip or a provider, open its list screen above and click the name. "Edit a trip" below always means that.
 - Fields shown in **bold** are the exact labels you will see on screen.
 - Nothing here changes what the public sees until a trip is switched live (see section 1). You can fill everything in safely ahead of time.
 
@@ -17,7 +23,7 @@ The new design is being built one step at a time. **Right now the new page is on
 ## 1. Turning the new design on for a trip (Step 1)
 
 ### Where it is
-Edit a trip. In the right-hand column there is a box called **New Landing Design**. Only administrators see it.
+Trips list: https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_trip, then click the trip's name. In the right-hand column there is a box called **New Landing Design**. Only administrators see it.
 
 ### What it does
 | Item | What it does |
@@ -49,7 +55,7 @@ If any one is missing, visitors see the current design (or no landing page, if t
 ## 2. Landing Page Settings and event types (Step 2)
 
 ### Where it is
-Edit a trip. In the main column there is a box called **Landing Page Settings (new design)**.
+Trips list: https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_trip, then click the trip's name. In the main column there is a box called **Landing Page Settings (new design)**.
 
 ### Order to do things in
 1. Choose the **Event type**.
@@ -71,7 +77,7 @@ Sets three things for the page: which sections are on by default, what the page 
 | Party / Add-on | spots | Guests | Parties and add-ons |
 | Corporate | rooms | Attendees | Corporate events |
 
-- **Automatic** (the first choice in the list) picks the type from the trip's existing **Trip Type** (Cruise, Resort, Hotel and Retreat map to Cruise or Resort; everything else maps to Destination). The setting says what it is currently choosing.
+- **Automatic** (the first choice in the list) picks the type from the trip's existing **Trip Type** (list: https://bagsandvibes.com/wp-admin/edit-tags.php?taxonomy=cb_trip_type&post_type=cb_trip; Cruise, Resort, Hotel and Retreat map to Cruise or Resort; everything else maps to Destination). The setting says what it is currently choosing.
 - If you pick a type yourself, it always wins over the automatic one.
 - This is separate from Trip Type. Changing the event type does not change the trip's Trip Type, filters or listings.
 
@@ -103,10 +109,10 @@ Event-type wording and the sections' on/off choices start taking effect as each 
 A **provider** is a cruise line, resort brand and so on. You enter its reusable text **once** here, and every trip that picks that provider shows it, instead of retyping the same cancellation policy, how-to-book steps and key dates on every trip.
 
 ### Where it is
-**wp-admin → Provider Library** (left menu). Providers are internal only: they never appear as pages on the website and are not searchable.
+Provider Library list: https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_provider (also **Provider Library** in the left menu of wp-admin). Providers are internal only: they never appear as pages on the website and are not searchable.
 
 ### Creating a provider
-1. **Provider Library → Add New**.
+1. Open https://bagsandvibes.com/wp-admin/post-new.php?post_type=cb_provider (Provider Library, add new).
 2. Type the provider's name as the title (for example "Virgin Voyages").
 3. Fill in the boxes below as far as you want. Everything is optional; you can add more later.
 4. Click **Publish**. **A provider must be Published before trips can choose it.** A draft will not appear in the trip's Provider list.
@@ -171,7 +177,7 @@ Wherever text is entered (bullets, steps, documents, footnote, key-date descript
 - Prefer `{days:final_payment}` to typing "120 days": if one trip has a different deadline, the number stays correct.
 
 ### Choosing a provider on a trip
-On the trip, in **Landing Page Settings (new design)**, use the **Provider** dropdown (the link beside it, **Manage Provider Library**, opens the library). Choose **None** for a trip with no provider. Click **Update**.
+On the trip (https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_trip, then the trip's name), in **Landing Page Settings (new design)**, use the **Provider** dropdown. The link beside it, **Manage Provider Library**, opens https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_provider. Choose **None** for a trip with no provider. Click **Update**.
 
 ### Changing or deleting a provider
 - Edits to a provider apply to every trip that uses it. The public page may take a few minutes to show them while the site's page cache refreshes.
@@ -192,7 +198,7 @@ On the trip, in **Landing Page Settings (new design)**, use the **Provider** dro
 ### What they are
 A key date is a named date counted from the trip's **start date**. Example: **Final payment due**, key `final_payment`, 120 days before start. On a trip starting October 25, 2027 that is June 27, 2027. Key dates drive three things from one list: the `{date:key}` and `{days:key}` tokens in any text, and (in a later step) the countdown timeline.
 
-### On a provider (Provider Library → **Key dates** box)
+### On a provider (open the provider from https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_provider, then the **Key dates** box)
 Each row:
 
 | Field | What it does |
@@ -209,7 +215,7 @@ Each row:
 - If two rows on a provider use the same key, the second is renamed automatically (`final_payment_2`). Check that each key is unique so your tokens point at the date you mean.
 - The provider's dates are always counted from days before start. Only a trip can use a fixed date.
 
-### On a trip (trip edit screen → **Key dates for this trip (new landing design)**)
+### On a trip (open the trip from https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_trip, then the **Key dates for this trip (new landing design)** box)
 Use this when one trip differs from its provider: for example a group contract with a different final-payment deadline. 
 
 If the trip has a provider with key dates, the box first shows a small table: the provider's date, what it works out to for this trip, and what it is on this trip.
