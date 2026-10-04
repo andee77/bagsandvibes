@@ -132,7 +132,15 @@ function cbv_lp_render_trip( $trip_id, $view = 'new' ) {
 		</div>
 		<?php
 	}
-	echo '<div class="cbv-lp-legacy-wrap">' . cbv_render_public_trip_landing( $trip_id ) . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput -- the renderer escapes its own output
+	$legacy = cbv_render_public_trip_landing( $trip_id );
+	if ( function_exists( 'cbv_lp_render_hero' ) ) {
+		// Step 4: the new hero + boarding pass replace the current hero and
+		// "Departs from / Dates" strip; the rest of today's content stays
+		// underneath until its own step replaces it.
+		echo cbv_lp_render_hero( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
+		$legacy = cbv_lp_strip_legacy_hero( $legacy );
+	}
+	echo '<div class="cbv-lp-legacy-wrap">' . $legacy . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput -- the renderer escapes its own output
 	return ob_get_clean();
 }
 

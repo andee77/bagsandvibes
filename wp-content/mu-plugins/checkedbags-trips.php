@@ -690,6 +690,7 @@ function cb_render_itinerary_row_fields( $index, $row ) {
 	$date        = $row['date'] ?? '';
 	$port        = $row['port'] ?? '';
 	$country     = $row['country'] ?? '';
+	$stop_code   = $row['stop_code'] ?? '';
 	$description = $row['description'] ?? '';
 	$time        = $row['time'] ?? '';
 	$tender_mode = $row['tender_mode'] ?? '';
@@ -698,6 +699,7 @@ function cb_render_itinerary_row_fields( $index, $row ) {
 		<input type="number" name="cb_itinerary[<?php echo esc_attr( $index ); ?>][day]" placeholder="Day #" value="<?php echo esc_attr( $day ); ?>">
 		<input type="date" name="cb_itinerary[<?php echo esc_attr( $index ); ?>][date]" value="<?php echo esc_attr( $date ); ?>">
 		<input type="text" name="cb_itinerary[<?php echo esc_attr( $index ); ?>][port]" placeholder="Port" value="<?php echo esc_attr( $port ); ?>">
+		<input type="text" name="cb_itinerary[<?php echo esc_attr( $index ); ?>][stop_code]" placeholder="Code" maxlength="5" title="Short port code for the new landing page boarding pass, e.g. MIA" value="<?php echo esc_attr( $stop_code ); ?>">
 		<input type="text" name="cb_itinerary[<?php echo esc_attr( $index ); ?>][country]" placeholder="Country" value="<?php echo esc_attr( $country ); ?>">
 		<select name="cb_itinerary[<?php echo esc_attr( $index ); ?>][description]">
 			<option value="">-- Type --</option>
@@ -1020,7 +1022,7 @@ add_action( 'admin_footer', function () {
 		.cb-repeater-template { display: none; }
 
 		/* Day-by-Day Itinerary */
-		[data-repeater="cb_itinerary"] .cb-repeater-row { display: grid; grid-template-columns: 70px 130px 1fr 1fr 140px 90px 100px auto; gap: 8px; align-items: center; }
+		[data-repeater="cb_itinerary"] .cb-repeater-row { display: grid; grid-template-columns: 70px 130px 1fr 80px 1fr 140px 90px 100px auto; gap: 8px; align-items: center; }
 
 		/* Pricing Tiers + its nested Occupancy Points / Add-ons */
 		.cb-tier-row { border: 1px solid #ccd0d4; border-radius: 4px; padding: 12px; background: #fff; }
@@ -1161,6 +1163,8 @@ add_action( 'save_post_cb_trip', function ( $post_id ) {
 			'date'        => sanitize_text_field( wp_unslash( $row['date'] ?? '' ) ),
 			'port'        => sanitize_text_field( wp_unslash( $row['port'] ?? '' ) ),
 			'country'     => sanitize_text_field( wp_unslash( $row['country'] ?? '' ) ),
+			// Short port code (MIA, BIM ...) for the new landing page's boarding pass: letters/digits only, upper case, 5 max.
+			'stop_code'   => substr( strtoupper( preg_replace( '/[^A-Za-z0-9]/', '', (string) wp_unslash( $row['stop_code'] ?? '' ) ) ), 0, 5 ),
 			'description' => sanitize_text_field( wp_unslash( $row['description'] ?? '' ) ),
 			'time'        => sanitize_text_field( wp_unslash( $row['time'] ?? '' ) ),
 			'tender_mode' => sanitize_text_field( wp_unslash( $row['tender_mode'] ?? '' ) ),
