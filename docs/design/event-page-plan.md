@@ -28,7 +28,7 @@ Virgin Voyages is seeded from the reference (separate approval; text reviewed in
 |---|---|---|
 | 1 | Switches, shared predicate, template shell, `?preview=new` | Live (d00c845) |
 | 2 | Event types, labels, tokens, light markup, trip settings box | Live (cb722e7) |
-| 3 | Provider Library, trip Provider picker, inheritance, key dates | Live (4499f2d); revision 2 (Step 3b: key-date override, footnote, trip key-date box, `{days}`) live (9a7938b) |
+| 3 | Provider Library, trip Provider picker, inheritance, key dates | Live (4499f2d); revision 2 (Step 3b: key-date override, footnote, trip key-date box, `{days}`) live (9a7938b), admin check passed 2026-10-04 |
 | 3b | Virgin Voyages seed | Text revised 2026-10-03; nothing written. The seed writes ONLY verified lines and prints a report of everything it skipped (see below) |
 | 4 | CSS foundation, hero, boarding pass (+ itinerary stop codes) | |
 | 5 | Status board, intro | |
