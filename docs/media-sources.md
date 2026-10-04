@@ -15,6 +15,13 @@ Status key: **prepared** = the file exists but is not on the live site yet; **in
 
 The three files above are currently held in `docs/design/files.zip`, which is not committed to the repo.
 
+| File name | What it shows | Source | Status |
+|---|---|---|---|
+| `terminal-v-hero-poster-ship.jpg` | A frame from 24 seconds into the same Terminal V hero video: the ship centred, with the terminal and skyline | First Mates marketing toolkit (frame taken from the toolkit video) | **chosen as the poster for trip 181** (Annual Family and Friends) instead of the first-frame `terminal-v-hero-poster.jpg`; incoming, to be uploaded and attached after Step 4 is deployed. Phones show only the poster, so this is the picture most phone visitors will see |
+
+## How the hero uses them (Step 4)
+The hero shows the video (larger screens) or the poster picture (phones and fallback) in a frame that fills the width; the edges may be cropped by the frame, never by editing the file. Each trip's **Picture focus point** keeps the subject in view, and the frame must never hide Virgin's logo/branding or change what the picture shows.
+
 ## Images in the design reference (file names to be recorded on upload)
 Reference ID is the `MEDIA-LIBRARY-URL` placeholder in the design reference.
 
@@ -39,5 +46,10 @@ Reference ID is the `MEDIA-LIBRARY-URL` placeholder in the design reference.
 
 The design reference's hero video (`e6a988c7`) and poster (`686f75df`) are the Terminal V hero above; confirm the match when the files are uploaded.
 
+## Brand rules for Virgin assets ("With Love From" guidelines, Nov 2024)
+- The Virgin Voyages logo only in Virgin red, from the official toolkit file; never recoloured, redrawn or rebuilt from text.
+- No recreated Virgin campaign elements: the "with Love from" script lockup, promo stamps, Virgin campaign fonts. Use finished assets as delivered. Our own headings and design stay in CBGV's brand, and "With love from..." is never CBGV copy.
+- **An image carrying an offer stamp may only be used while that offer is valid.** Record the offer's end date on that asset's line here (add "offer ends YYYY-MM-DD" to the Status column) and remove the image from the site when it ends. None of the assets listed so far is recorded as carrying an offer stamp; confirm each when its file is uploaded.
+
 ## When you add an asset
-Add a line here at the same time: file name, what it shows, "First Mates marketing toolkit". Keep the original toolkit download so any asset can be traced back.
+Add a line here at the same time: file name, what it shows, "First Mates marketing toolkit", and the offer end date if the image carries an offer stamp. Keep the original toolkit download so any asset can be traced back.

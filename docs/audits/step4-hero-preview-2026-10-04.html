@@ -1,0 +1,2902 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'><title>Step 4 hero preview</title>
+<style>body{font-family:system-ui,sans-serif;background:#eee;margin:0;padding:24px;color:#16232B}h1{font-size:22px}h2{font-size:15px;margin:28px 0 8px}p.n{max-width:820px;font-size:14px;line-height:1.5}.f{background:#fff;display:inline-block;box-shadow:0 2px 10px rgba(0,0,0,.2);overflow:hidden}iframe{border:0;display:block;transform-origin:0 0}</style></head><body>
+<h1>Step 4: hero and boarding pass, visual check</h1>
+<p class='n'>These are the REAL hero and boarding-pass markup produced by the new code, shown with the real stylesheet. The picture is neutral placeholder art (a circle marked SUBJECT and a LOGO tag), not Virgin media: the focus point is set to Right here so you can see how the crop follows it. Nothing here is live. Source: docs/design/event-page-design-reference.html.</p>
+<h2>Phone 375px: full (video poster, route, trip code, vessel)</h2><div class='f' style='width:375px;height:820px'><iframe title='Phone 375px: full (video poster, route, trip code, vessel)' style='width:375px;height:820px;transform:scale(1.0)' srcdoc="&lt;!doctype html&gt;&lt;html lang=&#x27;en&#x27;&gt;&lt;head&gt;&lt;meta charset=&#x27;utf-8&#x27;&gt;&lt;meta name=&#x27;viewport&#x27; content=&#x27;width=device-width, initial-scale=1&#x27;&gt;&lt;link rel=&#x27;stylesheet&#x27; href=&#x27;https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&amp;family=Work+Sans:wght@400;500;600&amp;family=Space+Mono:wght@400;700&amp;display=swap&#x27;&gt;&lt;style&gt;/*
+ * Public Trip Landing (redesign) -- shell styles only (Step 1).
+ * Loaded only by template-trip-landing.php. Everything is scoped under
+ * body.cbv-lp; !important is deliberate on properties Kadence&#x27;s global CSS
+ * (body, a, headings) would otherwise win. Section styles are added step by
+ * step as each section is built.
+ * Design reference: docs/design/event-page-design-reference.html
+ */
+body.cbv-lp {
+	--cbv-ink: #16232B;
+	--cbv-deep: #0E171D;
+	--cbv-horizon: #1B3A4B;
+	--cbv-cream: #FBF3E7;
+	--cbv-gold: #E8A94E;
+	--cbv-coral: #FF6B4A;
+	--cbv-teal: #2E7D6E;
+	margin: 0 !important;
+	background: var(--cbv-ink) !important;
+	color: var(--cbv-cream) !important;
+	font-family: &#x27;Work Sans&#x27;, system-ui, sans-serif !important;
+	overflow-x: clip;
+}
+
+body.cbv-lp .cbv-lp-main {
+	display: block;
+	min-height: 60vh;
+}
+
+/* ---- Header ---- */
+body.cbv-lp .cbv-lp-header {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	background: rgba(22, 35, 43, 0.94);
+	border-bottom: 1px solid rgba(232, 169, 78, 0.3);
+}
+
+body.cbv-lp .cbv-lp-header-inner {
+	max-width: 1240px;
+	margin: 0 auto;
+	padding: 18px 32px;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 24px;
+	flex-wrap: wrap;
+}
+
+body.cbv-lp .cbv-lp-wordmark {
+	font-family: &#x27;Fraunces&#x27;, serif !important;
+	font-style: italic;
+	font-weight: 500;
+	font-size: 22px;
+	color: var(--cbv-cream) !important;
+	text-decoration: none !important;
+}
+
+body.cbv-lp .cbv-lp-amp {
+	color: var(--cbv-coral);
+	font-style: normal;
+}
+
+body.cbv-lp .cbv-lp-nav {
+	display: flex;
+	gap: 26px;
+	align-items: center;
+	flex-wrap: wrap;
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 12px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+body.cbv-lp .cbv-lp-nav a {
+	color: var(--cbv-cream) !important;
+	text-decoration: none !important;
+}
+
+body.cbv-lp .cbv-lp-nav a.cbv-lp-nav-signin {
+	border: 1px solid rgba(251, 243, 231, 0.5);
+	padding: 12px 16px;
+	border-radius: 2px;
+}
+
+/* ---- Footer ---- */
+body.cbv-lp .cbv-lp-footer {
+	border-top: 1px solid rgba(232, 169, 78, 0.35);
+	background: var(--cbv-ink);
+}
+
+body.cbv-lp .cbv-lp-footer-inner {
+	max-width: 1240px;
+	margin: 0 auto;
+	padding: 44px 32px;
+	box-sizing: border-box;
+	display: flex;
+	justify-content: space-between;
+	gap: 24px;
+	flex-wrap: wrap;
+	align-items: flex-start;
+}
+
+body.cbv-lp .cbv-lp-footer-brand {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+body.cbv-lp .cbv-lp-footer-name {
+	font-family: &#x27;Fraunces&#x27;, serif;
+	font-style: italic;
+	font-size: 20px;
+	color: var(--cbv-gold);
+}
+
+body.cbv-lp .cbv-lp-footer-sub {
+	font-size: 14px;
+	color: rgba(251, 243, 231, 0.72);
+}
+
+body.cbv-lp .cbv-lp-footer-links {
+	display: flex;
+	gap: 24px;
+	flex-wrap: wrap;
+	font-size: 14px;
+}
+
+body.cbv-lp .cbv-lp-footer-links a {
+	color: rgba(251, 243, 231, 0.85) !important;
+	text-decoration: none !important;
+}
+
+body.cbv-lp .cbv-lp-footer-url {
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 12px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--cbv-gold);
+	word-break: break-all;
+}
+
+/* ---- Admin preview banner (admins only; never rendered for the public) ---- */
+body.cbv-lp .cbv-lp-preview-banner {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 16px;
+	align-items: baseline;
+	padding: 10px 32px;
+	background: var(--cbv-gold);
+	color: var(--cbv-ink);
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 12px;
+	letter-spacing: 0.04em;
+}
+
+/* ---- Step 1 only: today&#x27;s landing content, shown on a cream page so it
+        stays legible inside the new dark shell. Removed when the real
+        sections replace it. ---- */
+body.cbv-lp .cbv-lp-legacy-wrap {
+	background: var(--cbv-cream);
+	color: var(--cbv-ink);
+	padding: 32px 16px 64px;
+}
+
+@media (max-width: 600px) {
+	body.cbv-lp .cbv-lp-header-inner,
+	body.cbv-lp .cbv-lp-footer-inner {
+		padding-left: 16px;
+		padding-right: 16px;
+	}
+
+	body.cbv-lp .cbv-lp-preview-banner {
+		padding: 10px 16px;
+	}
+}
+
+/* ==========================================================================
+   Step 4: CSS foundation, hero and boarding pass.
+   Shared pieces first (later sections reuse them), then the hero.
+   ========================================================================== */
+
+/* ---- Foundation ---- */
+html:has(body.cbv-lp) {
+	scroll-behavior: smooth;
+	scroll-padding-top: 84px; /* sticky header */
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html:has(body.cbv-lp) {
+		scroll-behavior: auto;
+	}
+}
+
+body.cbv-lp :focus-visible {
+	outline: 3px solid var(--cbv-gold);
+	outline-offset: 3px;
+}
+
+body.cbv-lp [hidden] {
+	display: none !important;
+}
+
+body.cbv-lp .cbv-lp-inner {
+	max-width: 1240px;
+	margin: 0 auto;
+	padding-left: 32px;
+	padding-right: 32px;
+	box-sizing: border-box;
+}
+
+body.cbv-lp .cbv-lp-eyebrow {
+	margin: 0 !important;
+	font-family: &#x27;Space Mono&#x27;, monospace !important;
+	font-size: 13px;
+	letter-spacing: 0.25em;
+	text-transform: uppercase;
+	color: var(--cbv-gold) !important;
+}
+
+body.cbv-lp .cbv-lp-lede {
+	margin: 0 !important;
+	font-size: 19px;
+	line-height: 1.55;
+	max-width: 520px;
+	color: rgba(251, 243, 231, 0.92) !important;
+}
+
+/* ---- Hero ---- */
+body.cbv-lp .cbv-lp-hero {
+	position: relative;
+	min-height: 780px;
+	display: flex;
+	align-items: flex-end;
+	overflow: hidden;
+	background: var(--cbv-ink);
+}
+
+/* The frame crops to fill; the focus point (inline object-position) keeps
+   the subject in view. Pictures and video are never altered or covered by
+   anything that would hide branding. */
+body.cbv-lp .cbv-lp-hero-media {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	max-width: none;
+}
+
+body.cbv-lp .cbv-lp-hero-scrim {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: linear-gradient(180deg, rgba(22, 35, 43, 0.55) 0%, rgba(22, 35, 43, 0.2) 38%, rgba(22, 35, 43, 0.94) 100%);
+}
+
+body.cbv-lp .cbv-lp-hero-inner {
+	position: relative;
+	max-width: 1240px;
+	width: 100%;
+	margin: 0 auto;
+	padding: 140px 32px 72px;
+	box-sizing: border-box;
+	display: grid;
+	/* two columns only once the pass has room for its route, dates and stub (about 520px); narrower screens stack */
+	grid-template-columns: repeat(auto-fit, minmax(min(520px, 100%), 1fr));
+	gap: 48px;
+	align-items: end;
+}
+
+body.cbv-lp .cbv-lp-hero-copy {
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+	min-width: 0;
+}
+
+body.cbv-lp .cbv-lp-hero-title {
+	margin: 0 !important;
+	font-family: &#x27;Fraunces&#x27;, serif !important;
+	font-style: italic;
+	font-weight: 500 !important;
+	font-size: clamp(44px, 7vw, 96px) !important;
+	line-height: 0.98 !important;
+	color: var(--cbv-cream) !important;
+	overflow-wrap: anywhere;
+}
+
+body.cbv-lp .cbv-lp-video-toggle {
+	position: absolute;
+	top: 16px;
+	right: 32px;
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
+	padding: 0 14px;
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 12px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--cbv-cream);
+	background: rgba(14, 23, 29, 0.72);
+	border: 1px solid rgba(251, 243, 231, 0.5);
+	border-radius: 2px;
+	cursor: pointer;
+}
+
+/* ---- Boarding pass ---- */
+body.cbv-lp .cbv-lp-pass {
+	background: var(--cbv-cream);
+	color: var(--cbv-ink);
+	border-radius: 6px;
+	display: flex;
+	box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+	transform: rotate(-1.5deg);
+	overflow: hidden;
+	min-width: 0;
+	max-width: 720px; /* stacked (single-column) layouts: a ticket, not a banner */
+}
+
+body.cbv-lp .cbv-lp-pass-main {
+	flex: 1 1 auto;
+	min-width: 0;
+	padding: 26px 28px;
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+}
+
+body.cbv-lp .cbv-lp-pass-top {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 11px;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+}
+
+body.cbv-lp .cbv-lp-pass-chip {
+	background: var(--cbv-ink);
+	color: var(--cbv-gold);
+	padding: 4px 8px;
+	font-weight: 700;
+	overflow-wrap: anywhere;
+}
+
+body.cbv-lp .cbv-lp-pass-route {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	flex-wrap: wrap;
+}
+
+body.cbv-lp .cbv-lp-pass-stop {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+body.cbv-lp .cbv-lp-pass-tag {
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 11px;
+	letter-spacing: 0.1em;
+	color: #4A5A63;
+}
+
+body.cbv-lp .cbv-lp-pass-code {
+	font-family: &#x27;Fraunces&#x27;, serif;
+	font-weight: 600;
+	font-size: 44px;
+	line-height: 1;
+}
+
+body.cbv-lp .cbv-lp-pass-code--name {
+	font-size: 24px;
+	line-height: 1.15;
+}
+
+body.cbv-lp .cbv-lp-pass-place {
+	font-size: 13px;
+}
+
+body.cbv-lp .cbv-lp-pass-via {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+}
+
+body.cbv-lp .cbv-lp-pass-via .cbv-lp-pass-tag {
+	font-size: 10px;
+	letter-spacing: 0.08em;
+}
+
+body.cbv-lp .cbv-lp-pass-facts {
+	display: grid;
+	grid-template-columns: repeat(var(--cbv-lp-cols, 3), minmax(0, 1fr));
+	gap: 12px;
+	margin: 0;
+	border-top: 1px dashed rgba(22, 35, 43, 0.35);
+	padding-top: 16px;
+}
+
+body.cbv-lp .cbv-lp-pass-facts div {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+body.cbv-lp .cbv-lp-pass-facts dt {
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 10px;
+	letter-spacing: 0.1em;
+	color: #4A5A63;
+}
+
+body.cbv-lp .cbv-lp-pass-facts dd {
+	margin: 0;
+	font-weight: 600;
+	font-size: 15px;
+	overflow-wrap: anywhere;
+}
+
+body.cbv-lp .cbv-lp-pass-stub {
+	width: 132px;
+	flex-shrink: 0;
+	border-left: 2px dashed rgba(22, 35, 43, 0.4);
+	background: var(--cbv-coral);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	padding: 16px;
+	box-sizing: border-box;
+}
+
+body.cbv-lp .cbv-lp-pass-tear {
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 10px;
+	letter-spacing: 0.12em;
+	color: var(--cbv-ink);
+	text-align: center;
+}
+
+body.cbv-lp .cbv-lp-pass-cta {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 44px;
+	box-sizing: border-box;
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-weight: 700;
+	font-size: 13px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	text-align: center;
+	line-height: 1.3;
+	color: var(--cbv-ink) !important;
+	background: var(--cbv-cream);
+	padding: 14px 10px;
+	border-radius: 2px;
+	text-decoration: none !important;
+}
+
+@media (max-width: 600px) {
+	body.cbv-lp .cbv-lp-hero {
+		min-height: 0;
+	}
+
+	body.cbv-lp .cbv-lp-hero-inner {
+		padding: 88px 16px 40px;
+		gap: 32px;
+	}
+
+	body.cbv-lp .cbv-lp-eyebrow {
+		font-size: 12px;
+		letter-spacing: 0.18em;
+	}
+
+	body.cbv-lp .cbv-lp-lede {
+		font-size: 17px;
+	}
+
+	body.cbv-lp .cbv-lp-video-toggle {
+		right: 16px;
+	}
+
+	/* The pass stands up straight and its stub becomes a bar underneath. */
+	body.cbv-lp .cbv-lp-pass {
+		flex-direction: column;
+		transform: none;
+	}
+
+	body.cbv-lp .cbv-lp-pass-main {
+		padding: 20px 18px;
+	}
+
+	body.cbv-lp .cbv-lp-pass-code {
+		font-size: 38px;
+	}
+
+	body.cbv-lp .cbv-lp-pass-stub {
+		width: 100%;
+		border-left: 0;
+		border-top: 2px dashed rgba(22, 35, 43, 0.4);
+		flex-direction: row;
+		justify-content: space-between;
+		padding: 12px 18px;
+	}
+
+	body.cbv-lp .cbv-lp-pass-cta {
+		flex: 1 1 auto;
+		max-width: 220px;
+	}
+}
+&lt;/style&gt;&lt;/head&gt;&lt;body class=&#x27;cbv-lp&#x27;&gt;&lt;header class=&quot;cbv-lp-header&quot;&gt;&lt;div class=&quot;cbv-lp-header-inner&quot;&gt;&lt;a class=&quot;cbv-lp-wordmark&quot; href=&quot;#&quot;&gt;Checked Bags &lt;span class=&quot;cbv-lp-amp&quot;&gt;&amp;amp;&lt;/span&gt; Good Vibes&lt;/a&gt;&lt;nav class=&quot;cbv-lp-nav&quot; aria-label=&quot;Event sections&quot;&gt;&lt;a class=&quot;cbv-lp-nav-signin&quot; href=&quot;#&quot;&gt;Members Sign In&lt;/a&gt;&lt;/nav&gt;&lt;/div&gt;&lt;/header&gt;&lt;main class=&#x27;cbv-lp-main&#x27; id=&#x27;top&#x27;&gt;	&lt;section class=&quot;cbv-lp-hero&quot; id=&quot;hero&quot; aria-labelledby=&quot;cbv-lp-title&quot;&gt;
+					&lt;img class=&quot;cbv-lp-hero-media&quot; src=&quot;data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%271600%27%20height%3D%27900%27%20viewBox%3D%270%200%201600%20900%27%3E%3Cdefs%3E%3ClinearGradient%20id%3D%27g%27%20x1%3D%270%27%20y1%3D%270%27%20x2%3D%271%27%20y2%3D%271%27%3E%3Cstop%20offset%3D%270%27%20stop-color%3D%27%232a6f86%27/%3E%3Cstop%20offset%3D%271%27%20stop-color%3D%27%23d98c4a%27/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%271600%27%20height%3D%27900%27%20fill%3D%27url%28%23g%29%27/%3E%3Ccircle%20cx%3D%271280%27%20cy%3D%27420%27%20r%3D%27150%27%20fill%3D%27%23fbf3e7%27/%3E%3Ctext%20x%3D%271280%27%20y%3D%27436%27%20font-size%3D%2746%27%20text-anchor%3D%27middle%27%20fill%3D%27%2316232b%27%20font-family%3D%27sans-serif%27%3ESUBJECT%3C/text%3E%3Crect%20x%3D%2740%27%20y%3D%2740%27%20width%3D%27260%27%20height%3D%2770%27%20fill%3D%27%23ff6b4a%27/%3E%3Ctext%20x%3D%27170%27%20y%3D%2786%27%20font-size%3D%2734%27%20text-anchor%3D%27middle%27%20fill%3D%27%2316232b%27%20font-family%3D%27sans-serif%27%3ELOGO%3C/text%3E%3C/svg%3E&quot; alt=&quot;&quot; style=&quot;object-position:right center;&quot; fetchpriority=&quot;high&quot;&gt;
+							&lt;video class=&quot;cbv-lp-hero-media cbv-lp-hero-video&quot; muted loop playsinline preload=&quot;none&quot; aria-hidden=&quot;true&quot; tabindex=&quot;-1&quot; hidden
+				data-src=&quot;http://bagsandvibes.com/wp-content/uploads/a/hero.mp4&quot;
+								style=&quot;object-position:right center;&quot;&gt;&lt;/video&gt;
+				&lt;div class=&quot;cbv-lp-hero-scrim&quot;&gt;&lt;/div&gt;
+
+		&lt;div class=&quot;cbv-lp-hero-inner&quot;&gt;
+			&lt;div class=&quot;cbv-lp-hero-copy&quot;&gt;
+									&lt;p class=&quot;cbv-lp-eyebrow&quot;&gt;Now boarding · Oct 25–30, 2027&lt;/p&gt;
+								&lt;h1 class=&quot;cbv-lp-hero-title&quot; id=&quot;cbv-lp-title&quot;&gt;The Family &amp;#038; Friends Cruise&lt;/h1&gt;
+									&lt;p class=&quot;cbv-lp-lede&quot;&gt;A high-vibe reunion for you, your family, and your chosen crew. Five days of pure freedom aboard Virgin Voyages&amp;#039; Valiant Lady.&lt;/p&gt;
+							&lt;/div&gt;
+
+			&lt;div class=&quot;cbv-lp-pass&quot;&gt;
+				&lt;div class=&quot;cbv-lp-pass-main&quot;&gt;
+					&lt;div class=&quot;cbv-lp-pass-top&quot;&gt;
+						&lt;span&gt;Boarding Pass · Sailor&lt;/span&gt;
+													&lt;span class=&quot;cbv-lp-pass-chip&quot;&gt;VL2710255NPP&lt;/span&gt;
+											&lt;/div&gt;
+
+											&lt;div class=&quot;cbv-lp-pass-route&quot;&gt;
+								&lt;div class=&quot;cbv-lp-pass-stop&quot;&gt;
+		&lt;span class=&quot;cbv-lp-pass-tag&quot;&gt;FROM&lt;/span&gt;
+		&lt;span class=&quot;cbv-lp-pass-code&quot;&gt;MIA&lt;/span&gt;
+					&lt;span class=&quot;cbv-lp-pass-place&quot;&gt;Miami, USA&lt;/span&gt;
+			&lt;/div&gt;
+								&lt;div class=&quot;cbv-lp-pass-via&quot;&gt;
+																	&lt;span class=&quot;cbv-lp-pass-tag&quot;&gt;VIA POP&lt;/span&gt;
+																&lt;svg width=&quot;76&quot; height=&quot;20&quot; viewBox=&quot;0 0 76 20&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.5&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;&gt;&lt;path d=&quot;M2 10h60&quot; stroke-dasharray=&quot;4 4&quot;&gt;&lt;/path&gt;&lt;path d=&quot;M62 4l10 6-10 6&quot;&gt;&lt;/path&gt;&lt;/svg&gt;
+							&lt;/div&gt;
+								&lt;div class=&quot;cbv-lp-pass-stop&quot;&gt;
+		&lt;span class=&quot;cbv-lp-pass-tag&quot;&gt;TO&lt;/span&gt;
+		&lt;span class=&quot;cbv-lp-pass-code&quot;&gt;BIM&lt;/span&gt;
+					&lt;span class=&quot;cbv-lp-pass-place&quot;&gt;Bimini, Bahamas&lt;/span&gt;
+			&lt;/div&gt;
+							&lt;/div&gt;
+					
+											&lt;dl class=&quot;cbv-lp-pass-facts&quot; style=&quot;--cbv-lp-cols:3&quot;&gt;
+															&lt;div&gt;
+									&lt;dt&gt;DEPARTS&lt;/dt&gt;
+									&lt;dd&gt;Oct 25, 2027&lt;/dd&gt;
+								&lt;/div&gt;
+															&lt;div&gt;
+									&lt;dt&gt;RETURNS&lt;/dt&gt;
+									&lt;dd&gt;Oct 30, 2027&lt;/dd&gt;
+								&lt;/div&gt;
+															&lt;div&gt;
+									&lt;dt&gt;VESSEL&lt;/dt&gt;
+									&lt;dd&gt;Valiant Lady&lt;/dd&gt;
+								&lt;/div&gt;
+													&lt;/dl&gt;
+									&lt;/div&gt;
+				&lt;div class=&quot;cbv-lp-pass-stub&quot;&gt;
+					&lt;span class=&quot;cbv-lp-pass-tear&quot; aria-hidden=&quot;true&quot;&gt;TEAR HERE&lt;/span&gt;
+					&lt;a class=&quot;cbv-lp-pass-cta&quot; href=&quot;http://bagsandvibes.com/join/?trip=VL2710255NPP&quot;&gt;Claim your seat&lt;/a&gt;
+				&lt;/div&gt;
+			&lt;/div&gt;
+		&lt;/div&gt;
+
+					&lt;button type=&quot;button&quot; class=&quot;cbv-lp-video-toggle&quot; hidden aria-pressed=&quot;false&quot;&gt;Pause background video&lt;/button&gt;
+			&lt;/section&gt;
+	
+&lt;/main&gt;&lt;/body&gt;&lt;/html&gt;"></iframe></div>
+<h2>Phone 375px: minimal trip (no media, no route, no code)</h2><div class='f' style='width:375px;height:520px'><iframe title='Phone 375px: minimal trip (no media, no route, no code)' style='width:375px;height:520px;transform:scale(1.0)' srcdoc="&lt;!doctype html&gt;&lt;html lang=&#x27;en&#x27;&gt;&lt;head&gt;&lt;meta charset=&#x27;utf-8&#x27;&gt;&lt;meta name=&#x27;viewport&#x27; content=&#x27;width=device-width, initial-scale=1&#x27;&gt;&lt;link rel=&#x27;stylesheet&#x27; href=&#x27;https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&amp;family=Work+Sans:wght@400;500;600&amp;family=Space+Mono:wght@400;700&amp;display=swap&#x27;&gt;&lt;style&gt;/*
+ * Public Trip Landing (redesign) -- shell styles only (Step 1).
+ * Loaded only by template-trip-landing.php. Everything is scoped under
+ * body.cbv-lp; !important is deliberate on properties Kadence&#x27;s global CSS
+ * (body, a, headings) would otherwise win. Section styles are added step by
+ * step as each section is built.
+ * Design reference: docs/design/event-page-design-reference.html
+ */
+body.cbv-lp {
+	--cbv-ink: #16232B;
+	--cbv-deep: #0E171D;
+	--cbv-horizon: #1B3A4B;
+	--cbv-cream: #FBF3E7;
+	--cbv-gold: #E8A94E;
+	--cbv-coral: #FF6B4A;
+	--cbv-teal: #2E7D6E;
+	margin: 0 !important;
+	background: var(--cbv-ink) !important;
+	color: var(--cbv-cream) !important;
+	font-family: &#x27;Work Sans&#x27;, system-ui, sans-serif !important;
+	overflow-x: clip;
+}
+
+body.cbv-lp .cbv-lp-main {
+	display: block;
+	min-height: 60vh;
+}
+
+/* ---- Header ---- */
+body.cbv-lp .cbv-lp-header {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	background: rgba(22, 35, 43, 0.94);
+	border-bottom: 1px solid rgba(232, 169, 78, 0.3);
+}
+
+body.cbv-lp .cbv-lp-header-inner {
+	max-width: 1240px;
+	margin: 0 auto;
+	padding: 18px 32px;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 24px;
+	flex-wrap: wrap;
+}
+
+body.cbv-lp .cbv-lp-wordmark {
+	font-family: &#x27;Fraunces&#x27;, serif !important;
+	font-style: italic;
+	font-weight: 500;
+	font-size: 22px;
+	color: var(--cbv-cream) !important;
+	text-decoration: none !important;
+}
+
+body.cbv-lp .cbv-lp-amp {
+	color: var(--cbv-coral);
+	font-style: normal;
+}
+
+body.cbv-lp .cbv-lp-nav {
+	display: flex;
+	gap: 26px;
+	align-items: center;
+	flex-wrap: wrap;
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 12px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+body.cbv-lp .cbv-lp-nav a {
+	color: var(--cbv-cream) !important;
+	text-decoration: none !important;
+}
+
+body.cbv-lp .cbv-lp-nav a.cbv-lp-nav-signin {
+	border: 1px solid rgba(251, 243, 231, 0.5);
+	padding: 12px 16px;
+	border-radius: 2px;
+}
+
+/* ---- Footer ---- */
+body.cbv-lp .cbv-lp-footer {
+	border-top: 1px solid rgba(232, 169, 78, 0.35);
+	background: var(--cbv-ink);
+}
+
+body.cbv-lp .cbv-lp-footer-inner {
+	max-width: 1240px;
+	margin: 0 auto;
+	padding: 44px 32px;
+	box-sizing: border-box;
+	display: flex;
+	justify-content: space-between;
+	gap: 24px;
+	flex-wrap: wrap;
+	align-items: flex-start;
+}
+
+body.cbv-lp .cbv-lp-footer-brand {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+body.cbv-lp .cbv-lp-footer-name {
+	font-family: &#x27;Fraunces&#x27;, serif;
+	font-style: italic;
+	font-size: 20px;
+	color: var(--cbv-gold);
+}
+
+body.cbv-lp .cbv-lp-footer-sub {
+	font-size: 14px;
+	color: rgba(251, 243, 231, 0.72);
+}
+
+body.cbv-lp .cbv-lp-footer-links {
+	display: flex;
+	gap: 24px;
+	flex-wrap: wrap;
+	font-size: 14px;
+}
+
+body.cbv-lp .cbv-lp-footer-links a {
+	color: rgba(251, 243, 231, 0.85) !important;
+	text-decoration: none !important;
+}
+
+body.cbv-lp .cbv-lp-footer-url {
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 12px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--cbv-gold);
+	word-break: break-all;
+}
+
+/* ---- Admin preview banner (admins only; never rendered for the public) ---- */
+body.cbv-lp .cbv-lp-preview-banner {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 16px;
+	align-items: baseline;
+	padding: 10px 32px;
+	background: var(--cbv-gold);
+	color: var(--cbv-ink);
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 12px;
+	letter-spacing: 0.04em;
+}
+
+/* ---- Step 1 only: today&#x27;s landing content, shown on a cream page so it
+        stays legible inside the new dark shell. Removed when the real
+        sections replace it. ---- */
+body.cbv-lp .cbv-lp-legacy-wrap {
+	background: var(--cbv-cream);
+	color: var(--cbv-ink);
+	padding: 32px 16px 64px;
+}
+
+@media (max-width: 600px) {
+	body.cbv-lp .cbv-lp-header-inner,
+	body.cbv-lp .cbv-lp-footer-inner {
+		padding-left: 16px;
+		padding-right: 16px;
+	}
+
+	body.cbv-lp .cbv-lp-preview-banner {
+		padding: 10px 16px;
+	}
+}
+
+/* ==========================================================================
+   Step 4: CSS foundation, hero and boarding pass.
+   Shared pieces first (later sections reuse them), then the hero.
+   ========================================================================== */
+
+/* ---- Foundation ---- */
+html:has(body.cbv-lp) {
+	scroll-behavior: smooth;
+	scroll-padding-top: 84px; /* sticky header */
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html:has(body.cbv-lp) {
+		scroll-behavior: auto;
+	}
+}
+
+body.cbv-lp :focus-visible {
+	outline: 3px solid var(--cbv-gold);
+	outline-offset: 3px;
+}
+
+body.cbv-lp [hidden] {
+	display: none !important;
+}
+
+body.cbv-lp .cbv-lp-inner {
+	max-width: 1240px;
+	margin: 0 auto;
+	padding-left: 32px;
+	padding-right: 32px;
+	box-sizing: border-box;
+}
+
+body.cbv-lp .cbv-lp-eyebrow {
+	margin: 0 !important;
+	font-family: &#x27;Space Mono&#x27;, monospace !important;
+	font-size: 13px;
+	letter-spacing: 0.25em;
+	text-transform: uppercase;
+	color: var(--cbv-gold) !important;
+}
+
+body.cbv-lp .cbv-lp-lede {
+	margin: 0 !important;
+	font-size: 19px;
+	line-height: 1.55;
+	max-width: 520px;
+	color: rgba(251, 243, 231, 0.92) !important;
+}
+
+/* ---- Hero ---- */
+body.cbv-lp .cbv-lp-hero {
+	position: relative;
+	min-height: 780px;
+	display: flex;
+	align-items: flex-end;
+	overflow: hidden;
+	background: var(--cbv-ink);
+}
+
+/* The frame crops to fill; the focus point (inline object-position) keeps
+   the subject in view. Pictures and video are never altered or covered by
+   anything that would hide branding. */
+body.cbv-lp .cbv-lp-hero-media {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	max-width: none;
+}
+
+body.cbv-lp .cbv-lp-hero-scrim {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: linear-gradient(180deg, rgba(22, 35, 43, 0.55) 0%, rgba(22, 35, 43, 0.2) 38%, rgba(22, 35, 43, 0.94) 100%);
+}
+
+body.cbv-lp .cbv-lp-hero-inner {
+	position: relative;
+	max-width: 1240px;
+	width: 100%;
+	margin: 0 auto;
+	padding: 140px 32px 72px;
+	box-sizing: border-box;
+	display: grid;
+	/* two columns only once the pass has room for its route, dates and stub (about 520px); narrower screens stack */
+	grid-template-columns: repeat(auto-fit, minmax(min(520px, 100%), 1fr));
+	gap: 48px;
+	align-items: end;
+}
+
+body.cbv-lp .cbv-lp-hero-copy {
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+	min-width: 0;
+}
+
+body.cbv-lp .cbv-lp-hero-title {
+	margin: 0 !important;
+	font-family: &#x27;Fraunces&#x27;, serif !important;
+	font-style: italic;
+	font-weight: 500 !important;
+	font-size: clamp(44px, 7vw, 96px) !important;
+	line-height: 0.98 !important;
+	color: var(--cbv-cream) !important;
+	overflow-wrap: anywhere;
+}
+
+body.cbv-lp .cbv-lp-video-toggle {
+	position: absolute;
+	top: 16px;
+	right: 32px;
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
+	padding: 0 14px;
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 12px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--cbv-cream);
+	background: rgba(14, 23, 29, 0.72);
+	border: 1px solid rgba(251, 243, 231, 0.5);
+	border-radius: 2px;
+	cursor: pointer;
+}
+
+/* ---- Boarding pass ---- */
+body.cbv-lp .cbv-lp-pass {
+	background: var(--cbv-cream);
+	color: var(--cbv-ink);
+	border-radius: 6px;
+	display: flex;
+	box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+	transform: rotate(-1.5deg);
+	overflow: hidden;
+	min-width: 0;
+	max-width: 720px; /* stacked (single-column) layouts: a ticket, not a banner */
+}
+
+body.cbv-lp .cbv-lp-pass-main {
+	flex: 1 1 auto;
+	min-width: 0;
+	padding: 26px 28px;
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+}
+
+body.cbv-lp .cbv-lp-pass-top {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 11px;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+}
+
+body.cbv-lp .cbv-lp-pass-chip {
+	background: var(--cbv-ink);
+	color: var(--cbv-gold);
+	padding: 4px 8px;
+	font-weight: 700;
+	overflow-wrap: anywhere;
+}
+
+body.cbv-lp .cbv-lp-pass-route {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	flex-wrap: wrap;
+}
+
+body.cbv-lp .cbv-lp-pass-stop {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+body.cbv-lp .cbv-lp-pass-tag {
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 11px;
+	letter-spacing: 0.1em;
+	color: #4A5A63;
+}
+
+body.cbv-lp .cbv-lp-pass-code {
+	font-family: &#x27;Fraunces&#x27;, serif;
+	font-weight: 600;
+	font-size: 44px;
+	line-height: 1;
+}
+
+body.cbv-lp .cbv-lp-pass-code--name {
+	font-size: 24px;
+	line-height: 1.15;
+}
+
+body.cbv-lp .cbv-lp-pass-place {
+	font-size: 13px;
+}
+
+body.cbv-lp .cbv-lp-pass-via {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+}
+
+body.cbv-lp .cbv-lp-pass-via .cbv-lp-pass-tag {
+	font-size: 10px;
+	letter-spacing: 0.08em;
+}
+
+body.cbv-lp .cbv-lp-pass-facts {
+	display: grid;
+	grid-template-columns: repeat(var(--cbv-lp-cols, 3), minmax(0, 1fr));
+	gap: 12px;
+	margin: 0;
+	border-top: 1px dashed rgba(22, 35, 43, 0.35);
+	padding-top: 16px;
+}
+
+body.cbv-lp .cbv-lp-pass-facts div {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+body.cbv-lp .cbv-lp-pass-facts dt {
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 10px;
+	letter-spacing: 0.1em;
+	color: #4A5A63;
+}
+
+body.cbv-lp .cbv-lp-pass-facts dd {
+	margin: 0;
+	font-weight: 600;
+	font-size: 15px;
+	overflow-wrap: anywhere;
+}
+
+body.cbv-lp .cbv-lp-pass-stub {
+	width: 132px;
+	flex-shrink: 0;
+	border-left: 2px dashed rgba(22, 35, 43, 0.4);
+	background: var(--cbv-coral);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	padding: 16px;
+	box-sizing: border-box;
+}
+
+body.cbv-lp .cbv-lp-pass-tear {
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 10px;
+	letter-spacing: 0.12em;
+	color: var(--cbv-ink);
+	text-align: center;
+}
+
+body.cbv-lp .cbv-lp-pass-cta {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 44px;
+	box-sizing: border-box;
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-weight: 700;
+	font-size: 13px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	text-align: center;
+	line-height: 1.3;
+	color: var(--cbv-ink) !important;
+	background: var(--cbv-cream);
+	padding: 14px 10px;
+	border-radius: 2px;
+	text-decoration: none !important;
+}
+
+@media (max-width: 600px) {
+	body.cbv-lp .cbv-lp-hero {
+		min-height: 0;
+	}
+
+	body.cbv-lp .cbv-lp-hero-inner {
+		padding: 88px 16px 40px;
+		gap: 32px;
+	}
+
+	body.cbv-lp .cbv-lp-eyebrow {
+		font-size: 12px;
+		letter-spacing: 0.18em;
+	}
+
+	body.cbv-lp .cbv-lp-lede {
+		font-size: 17px;
+	}
+
+	body.cbv-lp .cbv-lp-video-toggle {
+		right: 16px;
+	}
+
+	/* The pass stands up straight and its stub becomes a bar underneath. */
+	body.cbv-lp .cbv-lp-pass {
+		flex-direction: column;
+		transform: none;
+	}
+
+	body.cbv-lp .cbv-lp-pass-main {
+		padding: 20px 18px;
+	}
+
+	body.cbv-lp .cbv-lp-pass-code {
+		font-size: 38px;
+	}
+
+	body.cbv-lp .cbv-lp-pass-stub {
+		width: 100%;
+		border-left: 0;
+		border-top: 2px dashed rgba(22, 35, 43, 0.4);
+		flex-direction: row;
+		justify-content: space-between;
+		padding: 12px 18px;
+	}
+
+	body.cbv-lp .cbv-lp-pass-cta {
+		flex: 1 1 auto;
+		max-width: 220px;
+	}
+}
+&lt;/style&gt;&lt;/head&gt;&lt;body class=&#x27;cbv-lp&#x27;&gt;&lt;header class=&quot;cbv-lp-header&quot;&gt;&lt;div class=&quot;cbv-lp-header-inner&quot;&gt;&lt;a class=&quot;cbv-lp-wordmark&quot; href=&quot;#&quot;&gt;Checked Bags &lt;span class=&quot;cbv-lp-amp&quot;&gt;&amp;amp;&lt;/span&gt; Good Vibes&lt;/a&gt;&lt;nav class=&quot;cbv-lp-nav&quot; aria-label=&quot;Event sections&quot;&gt;&lt;a class=&quot;cbv-lp-nav-signin&quot; href=&quot;#&quot;&gt;Members Sign In&lt;/a&gt;&lt;/nav&gt;&lt;/div&gt;&lt;/header&gt;&lt;main class=&#x27;cbv-lp-main&#x27; id=&#x27;top&#x27;&gt;	&lt;section class=&quot;cbv-lp-hero&quot; id=&quot;hero&quot; aria-labelledby=&quot;cbv-lp-title&quot;&gt;
+						&lt;div class=&quot;cbv-lp-hero-scrim&quot;&gt;&lt;/div&gt;
+
+		&lt;div class=&quot;cbv-lp-hero-inner&quot;&gt;
+			&lt;div class=&quot;cbv-lp-hero-copy&quot;&gt;
+									&lt;p class=&quot;cbv-lp-eyebrow&quot;&gt;Now booking · Mar 5, 2027&lt;/p&gt;
+								&lt;h1 class=&quot;cbv-lp-hero-title&quot; id=&quot;cbv-lp-title&quot;&gt;Weekend Retreat&lt;/h1&gt;
+							&lt;/div&gt;
+
+			&lt;div class=&quot;cbv-lp-pass&quot;&gt;
+				&lt;div class=&quot;cbv-lp-pass-main&quot;&gt;
+					&lt;div class=&quot;cbv-lp-pass-top&quot;&gt;
+						&lt;span&gt;Boarding Pass · Guest&lt;/span&gt;
+											&lt;/div&gt;
+
+					
+											&lt;dl class=&quot;cbv-lp-pass-facts&quot; style=&quot;--cbv-lp-cols:1&quot;&gt;
+															&lt;div&gt;
+									&lt;dt&gt;CHECK-IN&lt;/dt&gt;
+									&lt;dd&gt;Mar 5, 2027&lt;/dd&gt;
+								&lt;/div&gt;
+													&lt;/dl&gt;
+									&lt;/div&gt;
+				&lt;div class=&quot;cbv-lp-pass-stub&quot;&gt;
+					&lt;span class=&quot;cbv-lp-pass-tear&quot; aria-hidden=&quot;true&quot;&gt;TEAR HERE&lt;/span&gt;
+					&lt;a class=&quot;cbv-lp-pass-cta&quot; href=&quot;http://bagsandvibes.com/join/&quot;&gt;Claim your seat&lt;/a&gt;
+				&lt;/div&gt;
+			&lt;/div&gt;
+		&lt;/div&gt;
+
+			&lt;/section&gt;
+	
+&lt;/main&gt;&lt;/body&gt;&lt;/html&gt;"></iframe></div>
+<h2>Phone 375px: long title, no port codes, long trip code</h2><div class='f' style='width:375px;height:1100px'><iframe title='Phone 375px: long title, no port codes, long trip code' style='width:375px;height:1100px;transform:scale(1.0)' srcdoc="&lt;!doctype html&gt;&lt;html lang=&#x27;en&#x27;&gt;&lt;head&gt;&lt;meta charset=&#x27;utf-8&#x27;&gt;&lt;meta name=&#x27;viewport&#x27; content=&#x27;width=device-width, initial-scale=1&#x27;&gt;&lt;link rel=&#x27;stylesheet&#x27; href=&#x27;https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&amp;family=Work+Sans:wght@400;500;600&amp;family=Space+Mono:wght@400;700&amp;display=swap&#x27;&gt;&lt;style&gt;/*
+ * Public Trip Landing (redesign) -- shell styles only (Step 1).
+ * Loaded only by template-trip-landing.php. Everything is scoped under
+ * body.cbv-lp; !important is deliberate on properties Kadence&#x27;s global CSS
+ * (body, a, headings) would otherwise win. Section styles are added step by
+ * step as each section is built.
+ * Design reference: docs/design/event-page-design-reference.html
+ */
+body.cbv-lp {
+	--cbv-ink: #16232B;
+	--cbv-deep: #0E171D;
+	--cbv-horizon: #1B3A4B;
+	--cbv-cream: #FBF3E7;
+	--cbv-gold: #E8A94E;
+	--cbv-coral: #FF6B4A;
+	--cbv-teal: #2E7D6E;
+	margin: 0 !important;
+	background: var(--cbv-ink) !important;
+	color: var(--cbv-cream) !important;
+	font-family: &#x27;Work Sans&#x27;, system-ui, sans-serif !important;
+	overflow-x: clip;
+}
+
+body.cbv-lp .cbv-lp-main {
+	display: block;
+	min-height: 60vh;
+}
+
+/* ---- Header ---- */
+body.cbv-lp .cbv-lp-header {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	background: rgba(22, 35, 43, 0.94);
+	border-bottom: 1px solid rgba(232, 169, 78, 0.3);
+}
+
+body.cbv-lp .cbv-lp-header-inner {
+	max-width: 1240px;
+	margin: 0 auto;
+	padding: 18px 32px;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 24px;
+	flex-wrap: wrap;
+}
+
+body.cbv-lp .cbv-lp-wordmark {
+	font-family: &#x27;Fraunces&#x27;, serif !important;
+	font-style: italic;
+	font-weight: 500;
+	font-size: 22px;
+	color: var(--cbv-cream) !important;
+	text-decoration: none !important;
+}
+
+body.cbv-lp .cbv-lp-amp {
+	color: var(--cbv-coral);
+	font-style: normal;
+}
+
+body.cbv-lp .cbv-lp-nav {
+	display: flex;
+	gap: 26px;
+	align-items: center;
+	flex-wrap: wrap;
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 12px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+body.cbv-lp .cbv-lp-nav a {
+	color: var(--cbv-cream) !important;
+	text-decoration: none !important;
+}
+
+body.cbv-lp .cbv-lp-nav a.cbv-lp-nav-signin {
+	border: 1px solid rgba(251, 243, 231, 0.5);
+	padding: 12px 16px;
+	border-radius: 2px;
+}
+
+/* ---- Footer ---- */
+body.cbv-lp .cbv-lp-footer {
+	border-top: 1px solid rgba(232, 169, 78, 0.35);
+	background: var(--cbv-ink);
+}
+
+body.cbv-lp .cbv-lp-footer-inner {
+	max-width: 1240px;
+	margin: 0 auto;
+	padding: 44px 32px;
+	box-sizing: border-box;
+	display: flex;
+	justify-content: space-between;
+	gap: 24px;
+	flex-wrap: wrap;
+	align-items: flex-start;
+}
+
+body.cbv-lp .cbv-lp-footer-brand {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+body.cbv-lp .cbv-lp-footer-name {
+	font-family: &#x27;Fraunces&#x27;, serif;
+	font-style: italic;
+	font-size: 20px;
+	color: var(--cbv-gold);
+}
+
+body.cbv-lp .cbv-lp-footer-sub {
+	font-size: 14px;
+	color: rgba(251, 243, 231, 0.72);
+}
+
+body.cbv-lp .cbv-lp-footer-links {
+	display: flex;
+	gap: 24px;
+	flex-wrap: wrap;
+	font-size: 14px;
+}
+
+body.cbv-lp .cbv-lp-footer-links a {
+	color: rgba(251, 243, 231, 0.85) !important;
+	text-decoration: none !important;
+}
+
+body.cbv-lp .cbv-lp-footer-url {
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 12px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--cbv-gold);
+	word-break: break-all;
+}
+
+/* ---- Admin preview banner (admins only; never rendered for the public) ---- */
+body.cbv-lp .cbv-lp-preview-banner {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 16px;
+	align-items: baseline;
+	padding: 10px 32px;
+	background: var(--cbv-gold);
+	color: var(--cbv-ink);
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 12px;
+	letter-spacing: 0.04em;
+}
+
+/* ---- Step 1 only: today&#x27;s landing content, shown on a cream page so it
+        stays legible inside the new dark shell. Removed when the real
+        sections replace it. ---- */
+body.cbv-lp .cbv-lp-legacy-wrap {
+	background: var(--cbv-cream);
+	color: var(--cbv-ink);
+	padding: 32px 16px 64px;
+}
+
+@media (max-width: 600px) {
+	body.cbv-lp .cbv-lp-header-inner,
+	body.cbv-lp .cbv-lp-footer-inner {
+		padding-left: 16px;
+		padding-right: 16px;
+	}
+
+	body.cbv-lp .cbv-lp-preview-banner {
+		padding: 10px 16px;
+	}
+}
+
+/* ==========================================================================
+   Step 4: CSS foundation, hero and boarding pass.
+   Shared pieces first (later sections reuse them), then the hero.
+   ========================================================================== */
+
+/* ---- Foundation ---- */
+html:has(body.cbv-lp) {
+	scroll-behavior: smooth;
+	scroll-padding-top: 84px; /* sticky header */
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html:has(body.cbv-lp) {
+		scroll-behavior: auto;
+	}
+}
+
+body.cbv-lp :focus-visible {
+	outline: 3px solid var(--cbv-gold);
+	outline-offset: 3px;
+}
+
+body.cbv-lp [hidden] {
+	display: none !important;
+}
+
+body.cbv-lp .cbv-lp-inner {
+	max-width: 1240px;
+	margin: 0 auto;
+	padding-left: 32px;
+	padding-right: 32px;
+	box-sizing: border-box;
+}
+
+body.cbv-lp .cbv-lp-eyebrow {
+	margin: 0 !important;
+	font-family: &#x27;Space Mono&#x27;, monospace !important;
+	font-size: 13px;
+	letter-spacing: 0.25em;
+	text-transform: uppercase;
+	color: var(--cbv-gold) !important;
+}
+
+body.cbv-lp .cbv-lp-lede {
+	margin: 0 !important;
+	font-size: 19px;
+	line-height: 1.55;
+	max-width: 520px;
+	color: rgba(251, 243, 231, 0.92) !important;
+}
+
+/* ---- Hero ---- */
+body.cbv-lp .cbv-lp-hero {
+	position: relative;
+	min-height: 780px;
+	display: flex;
+	align-items: flex-end;
+	overflow: hidden;
+	background: var(--cbv-ink);
+}
+
+/* The frame crops to fill; the focus point (inline object-position) keeps
+   the subject in view. Pictures and video are never altered or covered by
+   anything that would hide branding. */
+body.cbv-lp .cbv-lp-hero-media {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	max-width: none;
+}
+
+body.cbv-lp .cbv-lp-hero-scrim {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: linear-gradient(180deg, rgba(22, 35, 43, 0.55) 0%, rgba(22, 35, 43, 0.2) 38%, rgba(22, 35, 43, 0.94) 100%);
+}
+
+body.cbv-lp .cbv-lp-hero-inner {
+	position: relative;
+	max-width: 1240px;
+	width: 100%;
+	margin: 0 auto;
+	padding: 140px 32px 72px;
+	box-sizing: border-box;
+	display: grid;
+	/* two columns only once the pass has room for its route, dates and stub (about 520px); narrower screens stack */
+	grid-template-columns: repeat(auto-fit, minmax(min(520px, 100%), 1fr));
+	gap: 48px;
+	align-items: end;
+}
+
+body.cbv-lp .cbv-lp-hero-copy {
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+	min-width: 0;
+}
+
+body.cbv-lp .cbv-lp-hero-title {
+	margin: 0 !important;
+	font-family: &#x27;Fraunces&#x27;, serif !important;
+	font-style: italic;
+	font-weight: 500 !important;
+	font-size: clamp(44px, 7vw, 96px) !important;
+	line-height: 0.98 !important;
+	color: var(--cbv-cream) !important;
+	overflow-wrap: anywhere;
+}
+
+body.cbv-lp .cbv-lp-video-toggle {
+	position: absolute;
+	top: 16px;
+	right: 32px;
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
+	padding: 0 14px;
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 12px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--cbv-cream);
+	background: rgba(14, 23, 29, 0.72);
+	border: 1px solid rgba(251, 243, 231, 0.5);
+	border-radius: 2px;
+	cursor: pointer;
+}
+
+/* ---- Boarding pass ---- */
+body.cbv-lp .cbv-lp-pass {
+	background: var(--cbv-cream);
+	color: var(--cbv-ink);
+	border-radius: 6px;
+	display: flex;
+	box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+	transform: rotate(-1.5deg);
+	overflow: hidden;
+	min-width: 0;
+	max-width: 720px; /* stacked (single-column) layouts: a ticket, not a banner */
+}
+
+body.cbv-lp .cbv-lp-pass-main {
+	flex: 1 1 auto;
+	min-width: 0;
+	padding: 26px 28px;
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+}
+
+body.cbv-lp .cbv-lp-pass-top {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 11px;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+}
+
+body.cbv-lp .cbv-lp-pass-chip {
+	background: var(--cbv-ink);
+	color: var(--cbv-gold);
+	padding: 4px 8px;
+	font-weight: 700;
+	overflow-wrap: anywhere;
+}
+
+body.cbv-lp .cbv-lp-pass-route {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	flex-wrap: wrap;
+}
+
+body.cbv-lp .cbv-lp-pass-stop {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+body.cbv-lp .cbv-lp-pass-tag {
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 11px;
+	letter-spacing: 0.1em;
+	color: #4A5A63;
+}
+
+body.cbv-lp .cbv-lp-pass-code {
+	font-family: &#x27;Fraunces&#x27;, serif;
+	font-weight: 600;
+	font-size: 44px;
+	line-height: 1;
+}
+
+body.cbv-lp .cbv-lp-pass-code--name {
+	font-size: 24px;
+	line-height: 1.15;
+}
+
+body.cbv-lp .cbv-lp-pass-place {
+	font-size: 13px;
+}
+
+body.cbv-lp .cbv-lp-pass-via {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+}
+
+body.cbv-lp .cbv-lp-pass-via .cbv-lp-pass-tag {
+	font-size: 10px;
+	letter-spacing: 0.08em;
+}
+
+body.cbv-lp .cbv-lp-pass-facts {
+	display: grid;
+	grid-template-columns: repeat(var(--cbv-lp-cols, 3), minmax(0, 1fr));
+	gap: 12px;
+	margin: 0;
+	border-top: 1px dashed rgba(22, 35, 43, 0.35);
+	padding-top: 16px;
+}
+
+body.cbv-lp .cbv-lp-pass-facts div {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+body.cbv-lp .cbv-lp-pass-facts dt {
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 10px;
+	letter-spacing: 0.1em;
+	color: #4A5A63;
+}
+
+body.cbv-lp .cbv-lp-pass-facts dd {
+	margin: 0;
+	font-weight: 600;
+	font-size: 15px;
+	overflow-wrap: anywhere;
+}
+
+body.cbv-lp .cbv-lp-pass-stub {
+	width: 132px;
+	flex-shrink: 0;
+	border-left: 2px dashed rgba(22, 35, 43, 0.4);
+	background: var(--cbv-coral);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	padding: 16px;
+	box-sizing: border-box;
+}
+
+body.cbv-lp .cbv-lp-pass-tear {
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 10px;
+	letter-spacing: 0.12em;
+	color: var(--cbv-ink);
+	text-align: center;
+}
+
+body.cbv-lp .cbv-lp-pass-cta {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 44px;
+	box-sizing: border-box;
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-weight: 700;
+	font-size: 13px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	text-align: center;
+	line-height: 1.3;
+	color: var(--cbv-ink) !important;
+	background: var(--cbv-cream);
+	padding: 14px 10px;
+	border-radius: 2px;
+	text-decoration: none !important;
+}
+
+@media (max-width: 600px) {
+	body.cbv-lp .cbv-lp-hero {
+		min-height: 0;
+	}
+
+	body.cbv-lp .cbv-lp-hero-inner {
+		padding: 88px 16px 40px;
+		gap: 32px;
+	}
+
+	body.cbv-lp .cbv-lp-eyebrow {
+		font-size: 12px;
+		letter-spacing: 0.18em;
+	}
+
+	body.cbv-lp .cbv-lp-lede {
+		font-size: 17px;
+	}
+
+	body.cbv-lp .cbv-lp-video-toggle {
+		right: 16px;
+	}
+
+	/* The pass stands up straight and its stub becomes a bar underneath. */
+	body.cbv-lp .cbv-lp-pass {
+		flex-direction: column;
+		transform: none;
+	}
+
+	body.cbv-lp .cbv-lp-pass-main {
+		padding: 20px 18px;
+	}
+
+	body.cbv-lp .cbv-lp-pass-code {
+		font-size: 38px;
+	}
+
+	body.cbv-lp .cbv-lp-pass-stub {
+		width: 100%;
+		border-left: 0;
+		border-top: 2px dashed rgba(22, 35, 43, 0.4);
+		flex-direction: row;
+		justify-content: space-between;
+		padding: 12px 18px;
+	}
+
+	body.cbv-lp .cbv-lp-pass-cta {
+		flex: 1 1 auto;
+		max-width: 220px;
+	}
+}
+&lt;/style&gt;&lt;/head&gt;&lt;body class=&#x27;cbv-lp&#x27;&gt;&lt;header class=&quot;cbv-lp-header&quot;&gt;&lt;div class=&quot;cbv-lp-header-inner&quot;&gt;&lt;a class=&quot;cbv-lp-wordmark&quot; href=&quot;#&quot;&gt;Checked Bags &lt;span class=&quot;cbv-lp-amp&quot;&gt;&amp;amp;&lt;/span&gt; Good Vibes&lt;/a&gt;&lt;nav class=&quot;cbv-lp-nav&quot; aria-label=&quot;Event sections&quot;&gt;&lt;a class=&quot;cbv-lp-nav-signin&quot; href=&quot;#&quot;&gt;Members Sign In&lt;/a&gt;&lt;/nav&gt;&lt;/div&gt;&lt;/header&gt;&lt;main class=&#x27;cbv-lp-main&#x27; id=&#x27;top&#x27;&gt;	&lt;section class=&quot;cbv-lp-hero&quot; id=&quot;hero&quot; aria-labelledby=&quot;cbv-lp-title&quot;&gt;
+						&lt;div class=&quot;cbv-lp-hero-scrim&quot;&gt;&lt;/div&gt;
+
+		&lt;div class=&quot;cbv-lp-hero-inner&quot;&gt;
+			&lt;div class=&quot;cbv-lp-hero-copy&quot;&gt;
+									&lt;p class=&quot;cbv-lp-eyebrow&quot;&gt;Now booking · Jun 1 – Jul 14, 2027&lt;/p&gt;
+								&lt;h1 class=&quot;cbv-lp-hero-title&quot; id=&quot;cbv-lp-title&quot;&gt;An Extraordinarily Long Trip Title That Keeps Going To Test Wrapping On Narrow Phones&lt;/h1&gt;
+									&lt;p class=&quot;cbv-lp-lede&quot;&gt;Lede text.&lt;/p&gt;
+							&lt;/div&gt;
+
+			&lt;div class=&quot;cbv-lp-pass&quot;&gt;
+				&lt;div class=&quot;cbv-lp-pass-main&quot;&gt;
+					&lt;div class=&quot;cbv-lp-pass-top&quot;&gt;
+						&lt;span&gt;Boarding Pass · Traveler&lt;/span&gt;
+													&lt;span class=&quot;cbv-lp-pass-chip&quot;&gt;LONGCODE-2027-ABCDEFGHIJKLMNOP&lt;/span&gt;
+											&lt;/div&gt;
+
+											&lt;div class=&quot;cbv-lp-pass-route&quot;&gt;
+								&lt;div class=&quot;cbv-lp-pass-stop&quot;&gt;
+		&lt;span class=&quot;cbv-lp-pass-tag&quot;&gt;FROM&lt;/span&gt;
+		&lt;span class=&quot;cbv-lp-pass-code cbv-lp-pass-code--name&quot;&gt;Reykjavik&lt;/span&gt;
+			&lt;/div&gt;
+								&lt;div class=&quot;cbv-lp-pass-via&quot;&gt;
+																	&lt;span class=&quot;cbv-lp-pass-tag&quot;&gt;VIA Tórshavn&lt;/span&gt;
+																&lt;svg width=&quot;76&quot; height=&quot;20&quot; viewBox=&quot;0 0 76 20&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.5&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;&gt;&lt;path d=&quot;M2 10h60&quot; stroke-dasharray=&quot;4 4&quot;&gt;&lt;/path&gt;&lt;path d=&quot;M62 4l10 6-10 6&quot;&gt;&lt;/path&gt;&lt;/svg&gt;
+							&lt;/div&gt;
+								&lt;div class=&quot;cbv-lp-pass-stop&quot;&gt;
+		&lt;span class=&quot;cbv-lp-pass-tag&quot;&gt;TO&lt;/span&gt;
+		&lt;span class=&quot;cbv-lp-pass-code cbv-lp-pass-code--name&quot;&gt;Edinburgh&lt;/span&gt;
+			&lt;/div&gt;
+							&lt;/div&gt;
+					
+											&lt;dl class=&quot;cbv-lp-pass-facts&quot; style=&quot;--cbv-lp-cols:3&quot;&gt;
+															&lt;div&gt;
+									&lt;dt&gt;STARTS&lt;/dt&gt;
+									&lt;dd&gt;Jun 1, 2027&lt;/dd&gt;
+								&lt;/div&gt;
+															&lt;div&gt;
+									&lt;dt&gt;ENDS&lt;/dt&gt;
+									&lt;dd&gt;Jul 14, 2027&lt;/dd&gt;
+								&lt;/div&gt;
+															&lt;div&gt;
+									&lt;dt&gt;STAY&lt;/dt&gt;
+									&lt;dd&gt;The Grand Northern Atlantic Hotel &amp;amp; Spa&lt;/dd&gt;
+								&lt;/div&gt;
+													&lt;/dl&gt;
+									&lt;/div&gt;
+				&lt;div class=&quot;cbv-lp-pass-stub&quot;&gt;
+					&lt;span class=&quot;cbv-lp-pass-tear&quot; aria-hidden=&quot;true&quot;&gt;TEAR HERE&lt;/span&gt;
+					&lt;a class=&quot;cbv-lp-pass-cta&quot; href=&quot;http://bagsandvibes.com/join/?trip=LONGCODE-2027-ABCDEFGHIJKLMNOP&quot;&gt;Claim your seat&lt;/a&gt;
+				&lt;/div&gt;
+			&lt;/div&gt;
+		&lt;/div&gt;
+
+			&lt;/section&gt;
+	
+&lt;/main&gt;&lt;/body&gt;&lt;/html&gt;"></iframe></div>
+<h2>Tablet 768px: full</h2><div class='f' style='width:768px;height:700px'><iframe title='Tablet 768px: full' style='width:768px;height:700px;transform:scale(1.0)' srcdoc="&lt;!doctype html&gt;&lt;html lang=&#x27;en&#x27;&gt;&lt;head&gt;&lt;meta charset=&#x27;utf-8&#x27;&gt;&lt;meta name=&#x27;viewport&#x27; content=&#x27;width=device-width, initial-scale=1&#x27;&gt;&lt;link rel=&#x27;stylesheet&#x27; href=&#x27;https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&amp;family=Work+Sans:wght@400;500;600&amp;family=Space+Mono:wght@400;700&amp;display=swap&#x27;&gt;&lt;style&gt;/*
+ * Public Trip Landing (redesign) -- shell styles only (Step 1).
+ * Loaded only by template-trip-landing.php. Everything is scoped under
+ * body.cbv-lp; !important is deliberate on properties Kadence&#x27;s global CSS
+ * (body, a, headings) would otherwise win. Section styles are added step by
+ * step as each section is built.
+ * Design reference: docs/design/event-page-design-reference.html
+ */
+body.cbv-lp {
+	--cbv-ink: #16232B;
+	--cbv-deep: #0E171D;
+	--cbv-horizon: #1B3A4B;
+	--cbv-cream: #FBF3E7;
+	--cbv-gold: #E8A94E;
+	--cbv-coral: #FF6B4A;
+	--cbv-teal: #2E7D6E;
+	margin: 0 !important;
+	background: var(--cbv-ink) !important;
+	color: var(--cbv-cream) !important;
+	font-family: &#x27;Work Sans&#x27;, system-ui, sans-serif !important;
+	overflow-x: clip;
+}
+
+body.cbv-lp .cbv-lp-main {
+	display: block;
+	min-height: 60vh;
+}
+
+/* ---- Header ---- */
+body.cbv-lp .cbv-lp-header {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	background: rgba(22, 35, 43, 0.94);
+	border-bottom: 1px solid rgba(232, 169, 78, 0.3);
+}
+
+body.cbv-lp .cbv-lp-header-inner {
+	max-width: 1240px;
+	margin: 0 auto;
+	padding: 18px 32px;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 24px;
+	flex-wrap: wrap;
+}
+
+body.cbv-lp .cbv-lp-wordmark {
+	font-family: &#x27;Fraunces&#x27;, serif !important;
+	font-style: italic;
+	font-weight: 500;
+	font-size: 22px;
+	color: var(--cbv-cream) !important;
+	text-decoration: none !important;
+}
+
+body.cbv-lp .cbv-lp-amp {
+	color: var(--cbv-coral);
+	font-style: normal;
+}
+
+body.cbv-lp .cbv-lp-nav {
+	display: flex;
+	gap: 26px;
+	align-items: center;
+	flex-wrap: wrap;
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 12px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+body.cbv-lp .cbv-lp-nav a {
+	color: var(--cbv-cream) !important;
+	text-decoration: none !important;
+}
+
+body.cbv-lp .cbv-lp-nav a.cbv-lp-nav-signin {
+	border: 1px solid rgba(251, 243, 231, 0.5);
+	padding: 12px 16px;
+	border-radius: 2px;
+}
+
+/* ---- Footer ---- */
+body.cbv-lp .cbv-lp-footer {
+	border-top: 1px solid rgba(232, 169, 78, 0.35);
+	background: var(--cbv-ink);
+}
+
+body.cbv-lp .cbv-lp-footer-inner {
+	max-width: 1240px;
+	margin: 0 auto;
+	padding: 44px 32px;
+	box-sizing: border-box;
+	display: flex;
+	justify-content: space-between;
+	gap: 24px;
+	flex-wrap: wrap;
+	align-items: flex-start;
+}
+
+body.cbv-lp .cbv-lp-footer-brand {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+body.cbv-lp .cbv-lp-footer-name {
+	font-family: &#x27;Fraunces&#x27;, serif;
+	font-style: italic;
+	font-size: 20px;
+	color: var(--cbv-gold);
+}
+
+body.cbv-lp .cbv-lp-footer-sub {
+	font-size: 14px;
+	color: rgba(251, 243, 231, 0.72);
+}
+
+body.cbv-lp .cbv-lp-footer-links {
+	display: flex;
+	gap: 24px;
+	flex-wrap: wrap;
+	font-size: 14px;
+}
+
+body.cbv-lp .cbv-lp-footer-links a {
+	color: rgba(251, 243, 231, 0.85) !important;
+	text-decoration: none !important;
+}
+
+body.cbv-lp .cbv-lp-footer-url {
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 12px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--cbv-gold);
+	word-break: break-all;
+}
+
+/* ---- Admin preview banner (admins only; never rendered for the public) ---- */
+body.cbv-lp .cbv-lp-preview-banner {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 16px;
+	align-items: baseline;
+	padding: 10px 32px;
+	background: var(--cbv-gold);
+	color: var(--cbv-ink);
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 12px;
+	letter-spacing: 0.04em;
+}
+
+/* ---- Step 1 only: today&#x27;s landing content, shown on a cream page so it
+        stays legible inside the new dark shell. Removed when the real
+        sections replace it. ---- */
+body.cbv-lp .cbv-lp-legacy-wrap {
+	background: var(--cbv-cream);
+	color: var(--cbv-ink);
+	padding: 32px 16px 64px;
+}
+
+@media (max-width: 600px) {
+	body.cbv-lp .cbv-lp-header-inner,
+	body.cbv-lp .cbv-lp-footer-inner {
+		padding-left: 16px;
+		padding-right: 16px;
+	}
+
+	body.cbv-lp .cbv-lp-preview-banner {
+		padding: 10px 16px;
+	}
+}
+
+/* ==========================================================================
+   Step 4: CSS foundation, hero and boarding pass.
+   Shared pieces first (later sections reuse them), then the hero.
+   ========================================================================== */
+
+/* ---- Foundation ---- */
+html:has(body.cbv-lp) {
+	scroll-behavior: smooth;
+	scroll-padding-top: 84px; /* sticky header */
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html:has(body.cbv-lp) {
+		scroll-behavior: auto;
+	}
+}
+
+body.cbv-lp :focus-visible {
+	outline: 3px solid var(--cbv-gold);
+	outline-offset: 3px;
+}
+
+body.cbv-lp [hidden] {
+	display: none !important;
+}
+
+body.cbv-lp .cbv-lp-inner {
+	max-width: 1240px;
+	margin: 0 auto;
+	padding-left: 32px;
+	padding-right: 32px;
+	box-sizing: border-box;
+}
+
+body.cbv-lp .cbv-lp-eyebrow {
+	margin: 0 !important;
+	font-family: &#x27;Space Mono&#x27;, monospace !important;
+	font-size: 13px;
+	letter-spacing: 0.25em;
+	text-transform: uppercase;
+	color: var(--cbv-gold) !important;
+}
+
+body.cbv-lp .cbv-lp-lede {
+	margin: 0 !important;
+	font-size: 19px;
+	line-height: 1.55;
+	max-width: 520px;
+	color: rgba(251, 243, 231, 0.92) !important;
+}
+
+/* ---- Hero ---- */
+body.cbv-lp .cbv-lp-hero {
+	position: relative;
+	min-height: 780px;
+	display: flex;
+	align-items: flex-end;
+	overflow: hidden;
+	background: var(--cbv-ink);
+}
+
+/* The frame crops to fill; the focus point (inline object-position) keeps
+   the subject in view. Pictures and video are never altered or covered by
+   anything that would hide branding. */
+body.cbv-lp .cbv-lp-hero-media {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	max-width: none;
+}
+
+body.cbv-lp .cbv-lp-hero-scrim {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: linear-gradient(180deg, rgba(22, 35, 43, 0.55) 0%, rgba(22, 35, 43, 0.2) 38%, rgba(22, 35, 43, 0.94) 100%);
+}
+
+body.cbv-lp .cbv-lp-hero-inner {
+	position: relative;
+	max-width: 1240px;
+	width: 100%;
+	margin: 0 auto;
+	padding: 140px 32px 72px;
+	box-sizing: border-box;
+	display: grid;
+	/* two columns only once the pass has room for its route, dates and stub (about 520px); narrower screens stack */
+	grid-template-columns: repeat(auto-fit, minmax(min(520px, 100%), 1fr));
+	gap: 48px;
+	align-items: end;
+}
+
+body.cbv-lp .cbv-lp-hero-copy {
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+	min-width: 0;
+}
+
+body.cbv-lp .cbv-lp-hero-title {
+	margin: 0 !important;
+	font-family: &#x27;Fraunces&#x27;, serif !important;
+	font-style: italic;
+	font-weight: 500 !important;
+	font-size: clamp(44px, 7vw, 96px) !important;
+	line-height: 0.98 !important;
+	color: var(--cbv-cream) !important;
+	overflow-wrap: anywhere;
+}
+
+body.cbv-lp .cbv-lp-video-toggle {
+	position: absolute;
+	top: 16px;
+	right: 32px;
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
+	padding: 0 14px;
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 12px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--cbv-cream);
+	background: rgba(14, 23, 29, 0.72);
+	border: 1px solid rgba(251, 243, 231, 0.5);
+	border-radius: 2px;
+	cursor: pointer;
+}
+
+/* ---- Boarding pass ---- */
+body.cbv-lp .cbv-lp-pass {
+	background: var(--cbv-cream);
+	color: var(--cbv-ink);
+	border-radius: 6px;
+	display: flex;
+	box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+	transform: rotate(-1.5deg);
+	overflow: hidden;
+	min-width: 0;
+	max-width: 720px; /* stacked (single-column) layouts: a ticket, not a banner */
+}
+
+body.cbv-lp .cbv-lp-pass-main {
+	flex: 1 1 auto;
+	min-width: 0;
+	padding: 26px 28px;
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+}
+
+body.cbv-lp .cbv-lp-pass-top {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 11px;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+}
+
+body.cbv-lp .cbv-lp-pass-chip {
+	background: var(--cbv-ink);
+	color: var(--cbv-gold);
+	padding: 4px 8px;
+	font-weight: 700;
+	overflow-wrap: anywhere;
+}
+
+body.cbv-lp .cbv-lp-pass-route {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	flex-wrap: wrap;
+}
+
+body.cbv-lp .cbv-lp-pass-stop {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+body.cbv-lp .cbv-lp-pass-tag {
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 11px;
+	letter-spacing: 0.1em;
+	color: #4A5A63;
+}
+
+body.cbv-lp .cbv-lp-pass-code {
+	font-family: &#x27;Fraunces&#x27;, serif;
+	font-weight: 600;
+	font-size: 44px;
+	line-height: 1;
+}
+
+body.cbv-lp .cbv-lp-pass-code--name {
+	font-size: 24px;
+	line-height: 1.15;
+}
+
+body.cbv-lp .cbv-lp-pass-place {
+	font-size: 13px;
+}
+
+body.cbv-lp .cbv-lp-pass-via {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+}
+
+body.cbv-lp .cbv-lp-pass-via .cbv-lp-pass-tag {
+	font-size: 10px;
+	letter-spacing: 0.08em;
+}
+
+body.cbv-lp .cbv-lp-pass-facts {
+	display: grid;
+	grid-template-columns: repeat(var(--cbv-lp-cols, 3), minmax(0, 1fr));
+	gap: 12px;
+	margin: 0;
+	border-top: 1px dashed rgba(22, 35, 43, 0.35);
+	padding-top: 16px;
+}
+
+body.cbv-lp .cbv-lp-pass-facts div {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+body.cbv-lp .cbv-lp-pass-facts dt {
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 10px;
+	letter-spacing: 0.1em;
+	color: #4A5A63;
+}
+
+body.cbv-lp .cbv-lp-pass-facts dd {
+	margin: 0;
+	font-weight: 600;
+	font-size: 15px;
+	overflow-wrap: anywhere;
+}
+
+body.cbv-lp .cbv-lp-pass-stub {
+	width: 132px;
+	flex-shrink: 0;
+	border-left: 2px dashed rgba(22, 35, 43, 0.4);
+	background: var(--cbv-coral);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	padding: 16px;
+	box-sizing: border-box;
+}
+
+body.cbv-lp .cbv-lp-pass-tear {
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 10px;
+	letter-spacing: 0.12em;
+	color: var(--cbv-ink);
+	text-align: center;
+}
+
+body.cbv-lp .cbv-lp-pass-cta {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 44px;
+	box-sizing: border-box;
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-weight: 700;
+	font-size: 13px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	text-align: center;
+	line-height: 1.3;
+	color: var(--cbv-ink) !important;
+	background: var(--cbv-cream);
+	padding: 14px 10px;
+	border-radius: 2px;
+	text-decoration: none !important;
+}
+
+@media (max-width: 600px) {
+	body.cbv-lp .cbv-lp-hero {
+		min-height: 0;
+	}
+
+	body.cbv-lp .cbv-lp-hero-inner {
+		padding: 88px 16px 40px;
+		gap: 32px;
+	}
+
+	body.cbv-lp .cbv-lp-eyebrow {
+		font-size: 12px;
+		letter-spacing: 0.18em;
+	}
+
+	body.cbv-lp .cbv-lp-lede {
+		font-size: 17px;
+	}
+
+	body.cbv-lp .cbv-lp-video-toggle {
+		right: 16px;
+	}
+
+	/* The pass stands up straight and its stub becomes a bar underneath. */
+	body.cbv-lp .cbv-lp-pass {
+		flex-direction: column;
+		transform: none;
+	}
+
+	body.cbv-lp .cbv-lp-pass-main {
+		padding: 20px 18px;
+	}
+
+	body.cbv-lp .cbv-lp-pass-code {
+		font-size: 38px;
+	}
+
+	body.cbv-lp .cbv-lp-pass-stub {
+		width: 100%;
+		border-left: 0;
+		border-top: 2px dashed rgba(22, 35, 43, 0.4);
+		flex-direction: row;
+		justify-content: space-between;
+		padding: 12px 18px;
+	}
+
+	body.cbv-lp .cbv-lp-pass-cta {
+		flex: 1 1 auto;
+		max-width: 220px;
+	}
+}
+&lt;/style&gt;&lt;/head&gt;&lt;body class=&#x27;cbv-lp&#x27;&gt;&lt;header class=&quot;cbv-lp-header&quot;&gt;&lt;div class=&quot;cbv-lp-header-inner&quot;&gt;&lt;a class=&quot;cbv-lp-wordmark&quot; href=&quot;#&quot;&gt;Checked Bags &lt;span class=&quot;cbv-lp-amp&quot;&gt;&amp;amp;&lt;/span&gt; Good Vibes&lt;/a&gt;&lt;nav class=&quot;cbv-lp-nav&quot; aria-label=&quot;Event sections&quot;&gt;&lt;a class=&quot;cbv-lp-nav-signin&quot; href=&quot;#&quot;&gt;Members Sign In&lt;/a&gt;&lt;/nav&gt;&lt;/div&gt;&lt;/header&gt;&lt;main class=&#x27;cbv-lp-main&#x27; id=&#x27;top&#x27;&gt;	&lt;section class=&quot;cbv-lp-hero&quot; id=&quot;hero&quot; aria-labelledby=&quot;cbv-lp-title&quot;&gt;
+					&lt;img class=&quot;cbv-lp-hero-media&quot; src=&quot;data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%271600%27%20height%3D%27900%27%20viewBox%3D%270%200%201600%20900%27%3E%3Cdefs%3E%3ClinearGradient%20id%3D%27g%27%20x1%3D%270%27%20y1%3D%270%27%20x2%3D%271%27%20y2%3D%271%27%3E%3Cstop%20offset%3D%270%27%20stop-color%3D%27%232a6f86%27/%3E%3Cstop%20offset%3D%271%27%20stop-color%3D%27%23d98c4a%27/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%271600%27%20height%3D%27900%27%20fill%3D%27url%28%23g%29%27/%3E%3Ccircle%20cx%3D%271280%27%20cy%3D%27420%27%20r%3D%27150%27%20fill%3D%27%23fbf3e7%27/%3E%3Ctext%20x%3D%271280%27%20y%3D%27436%27%20font-size%3D%2746%27%20text-anchor%3D%27middle%27%20fill%3D%27%2316232b%27%20font-family%3D%27sans-serif%27%3ESUBJECT%3C/text%3E%3Crect%20x%3D%2740%27%20y%3D%2740%27%20width%3D%27260%27%20height%3D%2770%27%20fill%3D%27%23ff6b4a%27/%3E%3Ctext%20x%3D%27170%27%20y%3D%2786%27%20font-size%3D%2734%27%20text-anchor%3D%27middle%27%20fill%3D%27%2316232b%27%20font-family%3D%27sans-serif%27%3ELOGO%3C/text%3E%3C/svg%3E&quot; alt=&quot;&quot; style=&quot;object-position:right center;&quot; fetchpriority=&quot;high&quot;&gt;
+							&lt;video class=&quot;cbv-lp-hero-media cbv-lp-hero-video&quot; muted loop playsinline preload=&quot;none&quot; aria-hidden=&quot;true&quot; tabindex=&quot;-1&quot; hidden
+				data-src=&quot;http://bagsandvibes.com/wp-content/uploads/a/hero.mp4&quot;
+								style=&quot;object-position:right center;&quot;&gt;&lt;/video&gt;
+				&lt;div class=&quot;cbv-lp-hero-scrim&quot;&gt;&lt;/div&gt;
+
+		&lt;div class=&quot;cbv-lp-hero-inner&quot;&gt;
+			&lt;div class=&quot;cbv-lp-hero-copy&quot;&gt;
+									&lt;p class=&quot;cbv-lp-eyebrow&quot;&gt;Now boarding · Oct 25–30, 2027&lt;/p&gt;
+								&lt;h1 class=&quot;cbv-lp-hero-title&quot; id=&quot;cbv-lp-title&quot;&gt;The Family &amp;#038; Friends Cruise&lt;/h1&gt;
+									&lt;p class=&quot;cbv-lp-lede&quot;&gt;A high-vibe reunion for you, your family, and your chosen crew. Five days of pure freedom aboard Virgin Voyages&amp;#039; Valiant Lady.&lt;/p&gt;
+							&lt;/div&gt;
+
+			&lt;div class=&quot;cbv-lp-pass&quot;&gt;
+				&lt;div class=&quot;cbv-lp-pass-main&quot;&gt;
+					&lt;div class=&quot;cbv-lp-pass-top&quot;&gt;
+						&lt;span&gt;Boarding Pass · Sailor&lt;/span&gt;
+													&lt;span class=&quot;cbv-lp-pass-chip&quot;&gt;VL2710255NPP&lt;/span&gt;
+											&lt;/div&gt;
+
+											&lt;div class=&quot;cbv-lp-pass-route&quot;&gt;
+								&lt;div class=&quot;cbv-lp-pass-stop&quot;&gt;
+		&lt;span class=&quot;cbv-lp-pass-tag&quot;&gt;FROM&lt;/span&gt;
+		&lt;span class=&quot;cbv-lp-pass-code&quot;&gt;MIA&lt;/span&gt;
+					&lt;span class=&quot;cbv-lp-pass-place&quot;&gt;Miami, USA&lt;/span&gt;
+			&lt;/div&gt;
+								&lt;div class=&quot;cbv-lp-pass-via&quot;&gt;
+																	&lt;span class=&quot;cbv-lp-pass-tag&quot;&gt;VIA POP&lt;/span&gt;
+																&lt;svg width=&quot;76&quot; height=&quot;20&quot; viewBox=&quot;0 0 76 20&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.5&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;&gt;&lt;path d=&quot;M2 10h60&quot; stroke-dasharray=&quot;4 4&quot;&gt;&lt;/path&gt;&lt;path d=&quot;M62 4l10 6-10 6&quot;&gt;&lt;/path&gt;&lt;/svg&gt;
+							&lt;/div&gt;
+								&lt;div class=&quot;cbv-lp-pass-stop&quot;&gt;
+		&lt;span class=&quot;cbv-lp-pass-tag&quot;&gt;TO&lt;/span&gt;
+		&lt;span class=&quot;cbv-lp-pass-code&quot;&gt;BIM&lt;/span&gt;
+					&lt;span class=&quot;cbv-lp-pass-place&quot;&gt;Bimini, Bahamas&lt;/span&gt;
+			&lt;/div&gt;
+							&lt;/div&gt;
+					
+											&lt;dl class=&quot;cbv-lp-pass-facts&quot; style=&quot;--cbv-lp-cols:3&quot;&gt;
+															&lt;div&gt;
+									&lt;dt&gt;DEPARTS&lt;/dt&gt;
+									&lt;dd&gt;Oct 25, 2027&lt;/dd&gt;
+								&lt;/div&gt;
+															&lt;div&gt;
+									&lt;dt&gt;RETURNS&lt;/dt&gt;
+									&lt;dd&gt;Oct 30, 2027&lt;/dd&gt;
+								&lt;/div&gt;
+															&lt;div&gt;
+									&lt;dt&gt;VESSEL&lt;/dt&gt;
+									&lt;dd&gt;Valiant Lady&lt;/dd&gt;
+								&lt;/div&gt;
+													&lt;/dl&gt;
+									&lt;/div&gt;
+				&lt;div class=&quot;cbv-lp-pass-stub&quot;&gt;
+					&lt;span class=&quot;cbv-lp-pass-tear&quot; aria-hidden=&quot;true&quot;&gt;TEAR HERE&lt;/span&gt;
+					&lt;a class=&quot;cbv-lp-pass-cta&quot; href=&quot;http://bagsandvibes.com/join/?trip=VL2710255NPP&quot;&gt;Claim your seat&lt;/a&gt;
+				&lt;/div&gt;
+			&lt;/div&gt;
+		&lt;/div&gt;
+
+					&lt;button type=&quot;button&quot; class=&quot;cbv-lp-video-toggle&quot; hidden aria-pressed=&quot;false&quot;&gt;Pause background video&lt;/button&gt;
+			&lt;/section&gt;
+	
+&lt;/main&gt;&lt;/body&gt;&lt;/html&gt;"></iframe></div>
+<h2>Desktop 1280px: full (shown at 70%)</h2><div class='f' style='width:896px;height:560px'><iframe title='Desktop 1280px: full (shown at 70%)' style='width:1280px;height:800px;transform:scale(0.7)' srcdoc="&lt;!doctype html&gt;&lt;html lang=&#x27;en&#x27;&gt;&lt;head&gt;&lt;meta charset=&#x27;utf-8&#x27;&gt;&lt;meta name=&#x27;viewport&#x27; content=&#x27;width=device-width, initial-scale=1&#x27;&gt;&lt;link rel=&#x27;stylesheet&#x27; href=&#x27;https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&amp;family=Work+Sans:wght@400;500;600&amp;family=Space+Mono:wght@400;700&amp;display=swap&#x27;&gt;&lt;style&gt;/*
+ * Public Trip Landing (redesign) -- shell styles only (Step 1).
+ * Loaded only by template-trip-landing.php. Everything is scoped under
+ * body.cbv-lp; !important is deliberate on properties Kadence&#x27;s global CSS
+ * (body, a, headings) would otherwise win. Section styles are added step by
+ * step as each section is built.
+ * Design reference: docs/design/event-page-design-reference.html
+ */
+body.cbv-lp {
+	--cbv-ink: #16232B;
+	--cbv-deep: #0E171D;
+	--cbv-horizon: #1B3A4B;
+	--cbv-cream: #FBF3E7;
+	--cbv-gold: #E8A94E;
+	--cbv-coral: #FF6B4A;
+	--cbv-teal: #2E7D6E;
+	margin: 0 !important;
+	background: var(--cbv-ink) !important;
+	color: var(--cbv-cream) !important;
+	font-family: &#x27;Work Sans&#x27;, system-ui, sans-serif !important;
+	overflow-x: clip;
+}
+
+body.cbv-lp .cbv-lp-main {
+	display: block;
+	min-height: 60vh;
+}
+
+/* ---- Header ---- */
+body.cbv-lp .cbv-lp-header {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	background: rgba(22, 35, 43, 0.94);
+	border-bottom: 1px solid rgba(232, 169, 78, 0.3);
+}
+
+body.cbv-lp .cbv-lp-header-inner {
+	max-width: 1240px;
+	margin: 0 auto;
+	padding: 18px 32px;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 24px;
+	flex-wrap: wrap;
+}
+
+body.cbv-lp .cbv-lp-wordmark {
+	font-family: &#x27;Fraunces&#x27;, serif !important;
+	font-style: italic;
+	font-weight: 500;
+	font-size: 22px;
+	color: var(--cbv-cream) !important;
+	text-decoration: none !important;
+}
+
+body.cbv-lp .cbv-lp-amp {
+	color: var(--cbv-coral);
+	font-style: normal;
+}
+
+body.cbv-lp .cbv-lp-nav {
+	display: flex;
+	gap: 26px;
+	align-items: center;
+	flex-wrap: wrap;
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 12px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+body.cbv-lp .cbv-lp-nav a {
+	color: var(--cbv-cream) !important;
+	text-decoration: none !important;
+}
+
+body.cbv-lp .cbv-lp-nav a.cbv-lp-nav-signin {
+	border: 1px solid rgba(251, 243, 231, 0.5);
+	padding: 12px 16px;
+	border-radius: 2px;
+}
+
+/* ---- Footer ---- */
+body.cbv-lp .cbv-lp-footer {
+	border-top: 1px solid rgba(232, 169, 78, 0.35);
+	background: var(--cbv-ink);
+}
+
+body.cbv-lp .cbv-lp-footer-inner {
+	max-width: 1240px;
+	margin: 0 auto;
+	padding: 44px 32px;
+	box-sizing: border-box;
+	display: flex;
+	justify-content: space-between;
+	gap: 24px;
+	flex-wrap: wrap;
+	align-items: flex-start;
+}
+
+body.cbv-lp .cbv-lp-footer-brand {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+body.cbv-lp .cbv-lp-footer-name {
+	font-family: &#x27;Fraunces&#x27;, serif;
+	font-style: italic;
+	font-size: 20px;
+	color: var(--cbv-gold);
+}
+
+body.cbv-lp .cbv-lp-footer-sub {
+	font-size: 14px;
+	color: rgba(251, 243, 231, 0.72);
+}
+
+body.cbv-lp .cbv-lp-footer-links {
+	display: flex;
+	gap: 24px;
+	flex-wrap: wrap;
+	font-size: 14px;
+}
+
+body.cbv-lp .cbv-lp-footer-links a {
+	color: rgba(251, 243, 231, 0.85) !important;
+	text-decoration: none !important;
+}
+
+body.cbv-lp .cbv-lp-footer-url {
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 12px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--cbv-gold);
+	word-break: break-all;
+}
+
+/* ---- Admin preview banner (admins only; never rendered for the public) ---- */
+body.cbv-lp .cbv-lp-preview-banner {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 16px;
+	align-items: baseline;
+	padding: 10px 32px;
+	background: var(--cbv-gold);
+	color: var(--cbv-ink);
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 12px;
+	letter-spacing: 0.04em;
+}
+
+/* ---- Step 1 only: today&#x27;s landing content, shown on a cream page so it
+        stays legible inside the new dark shell. Removed when the real
+        sections replace it. ---- */
+body.cbv-lp .cbv-lp-legacy-wrap {
+	background: var(--cbv-cream);
+	color: var(--cbv-ink);
+	padding: 32px 16px 64px;
+}
+
+@media (max-width: 600px) {
+	body.cbv-lp .cbv-lp-header-inner,
+	body.cbv-lp .cbv-lp-footer-inner {
+		padding-left: 16px;
+		padding-right: 16px;
+	}
+
+	body.cbv-lp .cbv-lp-preview-banner {
+		padding: 10px 16px;
+	}
+}
+
+/* ==========================================================================
+   Step 4: CSS foundation, hero and boarding pass.
+   Shared pieces first (later sections reuse them), then the hero.
+   ========================================================================== */
+
+/* ---- Foundation ---- */
+html:has(body.cbv-lp) {
+	scroll-behavior: smooth;
+	scroll-padding-top: 84px; /* sticky header */
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html:has(body.cbv-lp) {
+		scroll-behavior: auto;
+	}
+}
+
+body.cbv-lp :focus-visible {
+	outline: 3px solid var(--cbv-gold);
+	outline-offset: 3px;
+}
+
+body.cbv-lp [hidden] {
+	display: none !important;
+}
+
+body.cbv-lp .cbv-lp-inner {
+	max-width: 1240px;
+	margin: 0 auto;
+	padding-left: 32px;
+	padding-right: 32px;
+	box-sizing: border-box;
+}
+
+body.cbv-lp .cbv-lp-eyebrow {
+	margin: 0 !important;
+	font-family: &#x27;Space Mono&#x27;, monospace !important;
+	font-size: 13px;
+	letter-spacing: 0.25em;
+	text-transform: uppercase;
+	color: var(--cbv-gold) !important;
+}
+
+body.cbv-lp .cbv-lp-lede {
+	margin: 0 !important;
+	font-size: 19px;
+	line-height: 1.55;
+	max-width: 520px;
+	color: rgba(251, 243, 231, 0.92) !important;
+}
+
+/* ---- Hero ---- */
+body.cbv-lp .cbv-lp-hero {
+	position: relative;
+	min-height: 780px;
+	display: flex;
+	align-items: flex-end;
+	overflow: hidden;
+	background: var(--cbv-ink);
+}
+
+/* The frame crops to fill; the focus point (inline object-position) keeps
+   the subject in view. Pictures and video are never altered or covered by
+   anything that would hide branding. */
+body.cbv-lp .cbv-lp-hero-media {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	max-width: none;
+}
+
+body.cbv-lp .cbv-lp-hero-scrim {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: linear-gradient(180deg, rgba(22, 35, 43, 0.55) 0%, rgba(22, 35, 43, 0.2) 38%, rgba(22, 35, 43, 0.94) 100%);
+}
+
+body.cbv-lp .cbv-lp-hero-inner {
+	position: relative;
+	max-width: 1240px;
+	width: 100%;
+	margin: 0 auto;
+	padding: 140px 32px 72px;
+	box-sizing: border-box;
+	display: grid;
+	/* two columns only once the pass has room for its route, dates and stub (about 520px); narrower screens stack */
+	grid-template-columns: repeat(auto-fit, minmax(min(520px, 100%), 1fr));
+	gap: 48px;
+	align-items: end;
+}
+
+body.cbv-lp .cbv-lp-hero-copy {
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+	min-width: 0;
+}
+
+body.cbv-lp .cbv-lp-hero-title {
+	margin: 0 !important;
+	font-family: &#x27;Fraunces&#x27;, serif !important;
+	font-style: italic;
+	font-weight: 500 !important;
+	font-size: clamp(44px, 7vw, 96px) !important;
+	line-height: 0.98 !important;
+	color: var(--cbv-cream) !important;
+	overflow-wrap: anywhere;
+}
+
+body.cbv-lp .cbv-lp-video-toggle {
+	position: absolute;
+	top: 16px;
+	right: 32px;
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
+	padding: 0 14px;
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 12px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--cbv-cream);
+	background: rgba(14, 23, 29, 0.72);
+	border: 1px solid rgba(251, 243, 231, 0.5);
+	border-radius: 2px;
+	cursor: pointer;
+}
+
+/* ---- Boarding pass ---- */
+body.cbv-lp .cbv-lp-pass {
+	background: var(--cbv-cream);
+	color: var(--cbv-ink);
+	border-radius: 6px;
+	display: flex;
+	box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+	transform: rotate(-1.5deg);
+	overflow: hidden;
+	min-width: 0;
+	max-width: 720px; /* stacked (single-column) layouts: a ticket, not a banner */
+}
+
+body.cbv-lp .cbv-lp-pass-main {
+	flex: 1 1 auto;
+	min-width: 0;
+	padding: 26px 28px;
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+}
+
+body.cbv-lp .cbv-lp-pass-top {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 11px;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+}
+
+body.cbv-lp .cbv-lp-pass-chip {
+	background: var(--cbv-ink);
+	color: var(--cbv-gold);
+	padding: 4px 8px;
+	font-weight: 700;
+	overflow-wrap: anywhere;
+}
+
+body.cbv-lp .cbv-lp-pass-route {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	flex-wrap: wrap;
+}
+
+body.cbv-lp .cbv-lp-pass-stop {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+body.cbv-lp .cbv-lp-pass-tag {
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 11px;
+	letter-spacing: 0.1em;
+	color: #4A5A63;
+}
+
+body.cbv-lp .cbv-lp-pass-code {
+	font-family: &#x27;Fraunces&#x27;, serif;
+	font-weight: 600;
+	font-size: 44px;
+	line-height: 1;
+}
+
+body.cbv-lp .cbv-lp-pass-code--name {
+	font-size: 24px;
+	line-height: 1.15;
+}
+
+body.cbv-lp .cbv-lp-pass-place {
+	font-size: 13px;
+}
+
+body.cbv-lp .cbv-lp-pass-via {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+}
+
+body.cbv-lp .cbv-lp-pass-via .cbv-lp-pass-tag {
+	font-size: 10px;
+	letter-spacing: 0.08em;
+}
+
+body.cbv-lp .cbv-lp-pass-facts {
+	display: grid;
+	grid-template-columns: repeat(var(--cbv-lp-cols, 3), minmax(0, 1fr));
+	gap: 12px;
+	margin: 0;
+	border-top: 1px dashed rgba(22, 35, 43, 0.35);
+	padding-top: 16px;
+}
+
+body.cbv-lp .cbv-lp-pass-facts div {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+body.cbv-lp .cbv-lp-pass-facts dt {
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 10px;
+	letter-spacing: 0.1em;
+	color: #4A5A63;
+}
+
+body.cbv-lp .cbv-lp-pass-facts dd {
+	margin: 0;
+	font-weight: 600;
+	font-size: 15px;
+	overflow-wrap: anywhere;
+}
+
+body.cbv-lp .cbv-lp-pass-stub {
+	width: 132px;
+	flex-shrink: 0;
+	border-left: 2px dashed rgba(22, 35, 43, 0.4);
+	background: var(--cbv-coral);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	padding: 16px;
+	box-sizing: border-box;
+}
+
+body.cbv-lp .cbv-lp-pass-tear {
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-size: 10px;
+	letter-spacing: 0.12em;
+	color: var(--cbv-ink);
+	text-align: center;
+}
+
+body.cbv-lp .cbv-lp-pass-cta {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 44px;
+	box-sizing: border-box;
+	font-family: &#x27;Space Mono&#x27;, monospace;
+	font-weight: 700;
+	font-size: 13px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	text-align: center;
+	line-height: 1.3;
+	color: var(--cbv-ink) !important;
+	background: var(--cbv-cream);
+	padding: 14px 10px;
+	border-radius: 2px;
+	text-decoration: none !important;
+}
+
+@media (max-width: 600px) {
+	body.cbv-lp .cbv-lp-hero {
+		min-height: 0;
+	}
+
+	body.cbv-lp .cbv-lp-hero-inner {
+		padding: 88px 16px 40px;
+		gap: 32px;
+	}
+
+	body.cbv-lp .cbv-lp-eyebrow {
+		font-size: 12px;
+		letter-spacing: 0.18em;
+	}
+
+	body.cbv-lp .cbv-lp-lede {
+		font-size: 17px;
+	}
+
+	body.cbv-lp .cbv-lp-video-toggle {
+		right: 16px;
+	}
+
+	/* The pass stands up straight and its stub becomes a bar underneath. */
+	body.cbv-lp .cbv-lp-pass {
+		flex-direction: column;
+		transform: none;
+	}
+
+	body.cbv-lp .cbv-lp-pass-main {
+		padding: 20px 18px;
+	}
+
+	body.cbv-lp .cbv-lp-pass-code {
+		font-size: 38px;
+	}
+
+	body.cbv-lp .cbv-lp-pass-stub {
+		width: 100%;
+		border-left: 0;
+		border-top: 2px dashed rgba(22, 35, 43, 0.4);
+		flex-direction: row;
+		justify-content: space-between;
+		padding: 12px 18px;
+	}
+
+	body.cbv-lp .cbv-lp-pass-cta {
+		flex: 1 1 auto;
+		max-width: 220px;
+	}
+}
+&lt;/style&gt;&lt;/head&gt;&lt;body class=&#x27;cbv-lp&#x27;&gt;&lt;header class=&quot;cbv-lp-header&quot;&gt;&lt;div class=&quot;cbv-lp-header-inner&quot;&gt;&lt;a class=&quot;cbv-lp-wordmark&quot; href=&quot;#&quot;&gt;Checked Bags &lt;span class=&quot;cbv-lp-amp&quot;&gt;&amp;amp;&lt;/span&gt; Good Vibes&lt;/a&gt;&lt;nav class=&quot;cbv-lp-nav&quot; aria-label=&quot;Event sections&quot;&gt;&lt;a class=&quot;cbv-lp-nav-signin&quot; href=&quot;#&quot;&gt;Members Sign In&lt;/a&gt;&lt;/nav&gt;&lt;/div&gt;&lt;/header&gt;&lt;main class=&#x27;cbv-lp-main&#x27; id=&#x27;top&#x27;&gt;	&lt;section class=&quot;cbv-lp-hero&quot; id=&quot;hero&quot; aria-labelledby=&quot;cbv-lp-title&quot;&gt;
+					&lt;img class=&quot;cbv-lp-hero-media&quot; src=&quot;data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%271600%27%20height%3D%27900%27%20viewBox%3D%270%200%201600%20900%27%3E%3Cdefs%3E%3ClinearGradient%20id%3D%27g%27%20x1%3D%270%27%20y1%3D%270%27%20x2%3D%271%27%20y2%3D%271%27%3E%3Cstop%20offset%3D%270%27%20stop-color%3D%27%232a6f86%27/%3E%3Cstop%20offset%3D%271%27%20stop-color%3D%27%23d98c4a%27/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%271600%27%20height%3D%27900%27%20fill%3D%27url%28%23g%29%27/%3E%3Ccircle%20cx%3D%271280%27%20cy%3D%27420%27%20r%3D%27150%27%20fill%3D%27%23fbf3e7%27/%3E%3Ctext%20x%3D%271280%27%20y%3D%27436%27%20font-size%3D%2746%27%20text-anchor%3D%27middle%27%20fill%3D%27%2316232b%27%20font-family%3D%27sans-serif%27%3ESUBJECT%3C/text%3E%3Crect%20x%3D%2740%27%20y%3D%2740%27%20width%3D%27260%27%20height%3D%2770%27%20fill%3D%27%23ff6b4a%27/%3E%3Ctext%20x%3D%27170%27%20y%3D%2786%27%20font-size%3D%2734%27%20text-anchor%3D%27middle%27%20fill%3D%27%2316232b%27%20font-family%3D%27sans-serif%27%3ELOGO%3C/text%3E%3C/svg%3E&quot; alt=&quot;&quot; style=&quot;object-position:right center;&quot; fetchpriority=&quot;high&quot;&gt;
+							&lt;video class=&quot;cbv-lp-hero-media cbv-lp-hero-video&quot; muted loop playsinline preload=&quot;none&quot; aria-hidden=&quot;true&quot; tabindex=&quot;-1&quot; hidden
+				data-src=&quot;http://bagsandvibes.com/wp-content/uploads/a/hero.mp4&quot;
+								style=&quot;object-position:right center;&quot;&gt;&lt;/video&gt;
+				&lt;div class=&quot;cbv-lp-hero-scrim&quot;&gt;&lt;/div&gt;
+
+		&lt;div class=&quot;cbv-lp-hero-inner&quot;&gt;
+			&lt;div class=&quot;cbv-lp-hero-copy&quot;&gt;
+									&lt;p class=&quot;cbv-lp-eyebrow&quot;&gt;Now boarding · Oct 25–30, 2027&lt;/p&gt;
+								&lt;h1 class=&quot;cbv-lp-hero-title&quot; id=&quot;cbv-lp-title&quot;&gt;The Family &amp;#038; Friends Cruise&lt;/h1&gt;
+									&lt;p class=&quot;cbv-lp-lede&quot;&gt;A high-vibe reunion for you, your family, and your chosen crew. Five days of pure freedom aboard Virgin Voyages&amp;#039; Valiant Lady.&lt;/p&gt;
+							&lt;/div&gt;
+
+			&lt;div class=&quot;cbv-lp-pass&quot;&gt;
+				&lt;div class=&quot;cbv-lp-pass-main&quot;&gt;
+					&lt;div class=&quot;cbv-lp-pass-top&quot;&gt;
+						&lt;span&gt;Boarding Pass · Sailor&lt;/span&gt;
+													&lt;span class=&quot;cbv-lp-pass-chip&quot;&gt;VL2710255NPP&lt;/span&gt;
+											&lt;/div&gt;
+
+											&lt;div class=&quot;cbv-lp-pass-route&quot;&gt;
+								&lt;div class=&quot;cbv-lp-pass-stop&quot;&gt;
+		&lt;span class=&quot;cbv-lp-pass-tag&quot;&gt;FROM&lt;/span&gt;
+		&lt;span class=&quot;cbv-lp-pass-code&quot;&gt;MIA&lt;/span&gt;
+					&lt;span class=&quot;cbv-lp-pass-place&quot;&gt;Miami, USA&lt;/span&gt;
+			&lt;/div&gt;
+								&lt;div class=&quot;cbv-lp-pass-via&quot;&gt;
+																	&lt;span class=&quot;cbv-lp-pass-tag&quot;&gt;VIA POP&lt;/span&gt;
+																&lt;svg width=&quot;76&quot; height=&quot;20&quot; viewBox=&quot;0 0 76 20&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.5&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;&gt;&lt;path d=&quot;M2 10h60&quot; stroke-dasharray=&quot;4 4&quot;&gt;&lt;/path&gt;&lt;path d=&quot;M62 4l10 6-10 6&quot;&gt;&lt;/path&gt;&lt;/svg&gt;
+							&lt;/div&gt;
+								&lt;div class=&quot;cbv-lp-pass-stop&quot;&gt;
+		&lt;span class=&quot;cbv-lp-pass-tag&quot;&gt;TO&lt;/span&gt;
+		&lt;span class=&quot;cbv-lp-pass-code&quot;&gt;BIM&lt;/span&gt;
+					&lt;span class=&quot;cbv-lp-pass-place&quot;&gt;Bimini, Bahamas&lt;/span&gt;
+			&lt;/div&gt;
+							&lt;/div&gt;
+					
+											&lt;dl class=&quot;cbv-lp-pass-facts&quot; style=&quot;--cbv-lp-cols:3&quot;&gt;
+															&lt;div&gt;
+									&lt;dt&gt;DEPARTS&lt;/dt&gt;
+									&lt;dd&gt;Oct 25, 2027&lt;/dd&gt;
+								&lt;/div&gt;
+															&lt;div&gt;
+									&lt;dt&gt;RETURNS&lt;/dt&gt;
+									&lt;dd&gt;Oct 30, 2027&lt;/dd&gt;
+								&lt;/div&gt;
+															&lt;div&gt;
+									&lt;dt&gt;VESSEL&lt;/dt&gt;
+									&lt;dd&gt;Valiant Lady&lt;/dd&gt;
+								&lt;/div&gt;
+													&lt;/dl&gt;
+									&lt;/div&gt;
+				&lt;div class=&quot;cbv-lp-pass-stub&quot;&gt;
+					&lt;span class=&quot;cbv-lp-pass-tear&quot; aria-hidden=&quot;true&quot;&gt;TEAR HERE&lt;/span&gt;
+					&lt;a class=&quot;cbv-lp-pass-cta&quot; href=&quot;http://bagsandvibes.com/join/?trip=VL2710255NPP&quot;&gt;Claim your seat&lt;/a&gt;
+				&lt;/div&gt;
+			&lt;/div&gt;
+		&lt;/div&gt;
+
+					&lt;button type=&quot;button&quot; class=&quot;cbv-lp-video-toggle&quot; hidden aria-pressed=&quot;false&quot;&gt;Pause background video&lt;/button&gt;
+			&lt;/section&gt;
+	
+&lt;/main&gt;&lt;/body&gt;&lt;/html&gt;"></iframe></div>
+</body></html>

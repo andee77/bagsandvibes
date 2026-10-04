@@ -30,7 +30,7 @@ Virgin Voyages is seeded from the reference (separate approval; text reviewed in
 | 2 | Event types, labels, tokens, light markup, trip settings box | Live (cb722e7) |
 | 3 | Provider Library, trip Provider picker, inheritance, key dates | Live (4499f2d); revision 2 (Step 3b: key-date override, footnote, trip key-date box, `{days}`) live (9a7938b), admin check passed 2026-10-04 |
 | 3b | Virgin Voyages seed | Text revised 2026-10-03; nothing written. The seed writes ONLY verified lines and prints a report of everything it skipped (see below) |
-| 4 | CSS foundation, hero, boarding pass (+ itinerary stop codes) | |
+| 4 | CSS foundation, hero, boarding pass (+ itinerary stop codes) | Live 2026-10-04 (da5962f; 123 checks + 13 mutation tests). Public pages unchanged: the new design is still preview-only. New `checkedbags-lp-hero.php`, `trip-landing.js`; edits to `checkedbags-lp-core.php`, `checkedbags-trips.php` (Code column), `trip-landing.css`. Visual check: `docs/audits/step4-hero-preview-2026-10-04.html` |
 | 5 | Status board, intro | |
 | 6 | Route (itinerary extras) | |
 | 7 | Featured moment, gallery | |
@@ -90,6 +90,17 @@ Open items before building 9b:
 - The Voyage Protection document is left out of the seed until Aon's plan document is available.
 - Wording that depends on the final-payment date uses `{days:final_payment}` rather than a typed number, so a trip with a different deadline stays correct.
 
+## Step 4: decisions recorded 2026-10-04
+- **Fields:** hero video, optional smaller (720p) video, poster picture, a **focus point** (nine presets, stored as `object-position`) and the vessel / venue name (`cbv_lp_venue_name`, also the `{vessel}` token). Port codes are a new "Code" column on the existing itinerary rows (`stop_code`, letters/digits, upper case, 5 max).
+- **Hero video loads by script, not by markup:** no `src` in the HTML; `trip-landing.js` loads it only on screens 768px and wider, not for reduced-motion or data-saver visitors, choosing the 720p file below 1400px wide when one exists; a Pause button appears once it plays. Everyone else sees the poster picture (poster, else cover photo, else featured image, else a plain dark hero).
+- **Boarding pass:** chip = trip code (hidden if empty); FROM = first stop, TO = last stop that differs from FROM, VIA = different stops in between (max 3); At Sea rows ignored; a code typed on any row for a port applies to every row with the same port name (so the return to the start port is never mistaken for a different place); stops without codes show their port name; Show Itinerary off hides the route (dates and vessel stay). "Claim your seat" links to the trip's registration (`/join/?trip=CODE`); it may point at the price board once Step 9 exists.
+- **Layout:** two columns (copy + pass) only when there is room for a 520px pass; stacked below that; on phones the stub becomes a bar under the pass.
+- **Old hero:** the current renderer's hero and "Departs from / Dates" strip are removed from the new design's markup (so there is a single `<h1>`); the rest of today's content stays under the new hero until later steps replace it.
+- **Not built in Step 4 (decided):** the "Annual event" part of the reference's gold line (no field for it; the line shows the event type's word + dates), and the section nav links in the header (they arrive with their sections).
+- **Trip 181 poster (2026-10-04):** the poster for trip 181 is `terminal-v-hero-poster-ship.jpg` (a frame from 24s of the toolkit video: ship centred, terminal and skyline), not the first-frame image. Attached via the Hero & boarding pass box after Step 4 is deployed (a trip-record write: needs your go-ahead at that point).
+- **Trip 181 code (2026-10-04):** changed from CBV-2028-ANN to CBV-2027-ANN (it sails in 2027 and the code had not been shared anywhere; read-only check found the old code stored nowhere else).
+- **Media rule applied:** the focus point exists so a frame never hides Virgin's logo/branding or changes what the photo shows.
+
 ## Step 12: trip-side document editor (rules recorded 2026-10-03)
 - **A trip document with the same title as a provider document REPLACES it; otherwise trip documents are appended.** (Today, in Step 3b, the provider's documents are shown first and the trip's own are only appended; the same-title replace rule arrives with this editor.)
 - Follow-ups for this step, from the Step 3b review and admin check (all concern the trip key-date box):
@@ -99,6 +110,9 @@ Open items before building 9b:
 
 ## Go-live checklist (Step 17; list started 2026-10-04)
 - **Media: source is the First Mates marketing toolkit (FirstMates.com); use unaltered** (web compression only, no cropping, editing or logos on the asset). Every Virgin image and video, including the Terminal V hero video, comes from there. Each asset is listed in `docs/media-sources.md`. (This replaces the earlier "usage rights unconfirmed" wording.)
+- **Photo frames never hide Virgin's logo or branding and never change what the photo shows.** Where the subject is not centred, set a per-image focus point (`object-position`) so the crop keeps it in view. Applied from Step 4 on.
+- **Virgin brand rules** (Virgin "With Love From" brand guidelines, Nov 2024): the Virgin Voyages logo appears only in Virgin red from the official toolkit file and is never recoloured; no recreated Virgin campaign elements (the "with Love from" script lockup, promo stamps, Virgin campaign fonts); "With love from..." is never used as CBGV copy; our own headings and design stay in CBGV's brand. Checked at each step that touches media and again at final QA.
+- **Offer stamps:** a toolkit image carrying an offer stamp is used only while that offer is valid; each such image is listed in `docs/media-sources.md` with its offer end date and removed when the offer ends. Check the list at go-live.
 - Further items are added here as steps ship.
 
 ## Open decisions and unverified claims (running list)

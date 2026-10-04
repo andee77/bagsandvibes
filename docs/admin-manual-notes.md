@@ -2,7 +2,7 @@
 
 Working notes for the CBGV admin manual. A new section is added after each build step, written for an admin who is not technical. At the end of the build this file becomes the admin user manual.
 
-**Last updated:** 2026-10-04 (covers Steps 1, 2, 3 and 3b, plus the media rule).
+**Last updated:** 2026-10-04 (covers Steps 1, 2, 3, 3b and 4, plus the media rule).
 
 ## How to read this file
 - **Screens** (always listed by their full address; these are the list and add-new screens, so they work for any trip or provider):
@@ -16,7 +16,7 @@ Working notes for the CBGV admin manual. A new section is added after each build
 - Nothing here changes what the public sees until a trip is switched live (see section 1). You can fill everything in safely ahead of time.
 
 ## What you can see today, and what comes later
-The new design is being built one step at a time. **Right now the new page is only a frame**: new header and footer, plus today's trip content inside it. The new sections (status board, price board, included cards, timeline, travel documents and so on) are built in later steps. Everything you enter in the boxes below is saved and waiting; **most of it will not show on the page until the step that draws that section is finished.** This file tells you when each section starts showing.
+The new design is being built one step at a time. **Right now the new page is a frame with the new hero and boarding pass at the top** (Step 4): new header and footer, the hero and boarding pass, then today's trip content underneath. The remaining new sections (status board, price board, included cards, timeline, travel documents and so on) are built in later steps. Everything you enter in the boxes below is saved and waiting; **most of it will not show on the page until the step that draws that section is finished.** This file tells you when each section starts showing.
 
 ---
 
@@ -166,7 +166,7 @@ Wherever text is entered (bullets, steps, documents, footnote, key-date descript
 | `{trip_code}` | the trip code |
 | `{start}` / `{end}` | the start and end dates, like "October 25, 2027" |
 | `{deposit}` | the trip's deposit amount, like "$250" |
-| `{vessel}` | the trip's vessel or venue name |
+| `{vessel}` | the trip's vessel or venue name (the **Vessel / venue name** field in section 5) |
 | `{accommodation}` / `{accommodation_plural}` | cabin / cabins (or the trip's word) |
 | `{party}` | Sailors / Guests / and so on |
 | `{date:key}` | a key date, like "June 27, 2027" (see 3a) |
@@ -273,15 +273,98 @@ The tokens work in provider text as soon as the section that holds that text is 
 - Give it a clear file name and descriptive alt text (what the picture shows).
 - Add a line to the media sources list, `docs/media-sources.md`: file name, what it shows, "First Mates marketing toolkit". Keep the original download from the toolkit so any file can be traced back.
 
+### Virgin's brand rules ("With Love From" brand guidelines, Nov 2024)
+- **The Virgin Voyages logo may only appear in Virgin red, from the official toolkit file. Never recolour it.** That includes putting it on a dark or coloured background in a different colour, or tinting it.
+- **Don't recreate Virgin campaign elements.** That means the "with Love from" script lockup, promo stamps, and Virgin's campaign fonts. Use Virgin's finished assets exactly as delivered. Our own headings, fonts and design stay in the Checked Bags & Good Vibes brand.
+- **Don't use "With love from..." as Checked Bags & Good Vibes wording** (titles, taglines, buttons, emails). It is Virgin's campaign line.
+- **A toolkit image that carries an offer stamp may only be used while that offer is valid.** Note the offer's end date next to the file in the media sources list, and take the image off the page when the offer ends.
+- Do not draw, trace or rebuild a Virgin logo or lockup in text, in CSS, or as a new image. If a logo is needed, use the toolkit file.
+- The never-recolour rule applies to Virgin's logo FILE. Photos or video that show Virgin signage (e.g. the terminal sign) can sit under the standard hero overlay.
+
 ### Common mistakes
-- Saving a picture from Virgin's website because it was handy. Use the toolkit version instead.
+- Saving a picture from Virgin's website because it was handy.
+- Recolouring, outlining or adding a shadow to a Virgin logo, or recreating it from text or a font.
+- Typing "With love from..." in a tagline, or building a script-style lockup in Virgin's style.
+- Leaving an image with an offer stamp on the page after the offer has ended. Use the toolkit version instead.
 - Cropping or putting a logo on the file before uploading. (The page may display a picture in a frame that shows only part of it; that is fine because the file itself is untouched.)
 - Uploading a file and forgetting to list it in the media sources list.
+- Letting a frame cut off Virgin's logo or branding, or crop so tightly that the photo shows something different. **A frame must never hide Virgin's logo/branding or change what the photo shows.** If the subject isn't in the middle of the picture, set that image's focus point so the visible part keeps the subject. (Each image gets its own focus-point setting from Step 4.)
+
+---
+
+## 5. Hero and boarding pass (Step 4)
+
+The top of the new page: a full-width hero (looping video or a picture, the trip title and tagline) with a **boarding pass** card showing where the trip goes, when, and a "Claim your seat" button.
+
+### Where it is
+- Trips list: https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_trip, then click the trip's name.
+- **Hero & boarding pass (new design)** box (main column): video, poster, focus point, vessel name.
+- **Day-by-Day Itinerary** box (same screen): a new **Code** column for each stop.
+- The words and numbers the pass uses also come from boxes you already fill in (listed below).
+
+### Where each part of the hero and pass comes from
+| On the page | Comes from |
+|---|---|
+| Small gold line above the title ("Now boarding · Oct 25-30, 2027") | The event type's word (Now boarding, Now booking ...) plus the trip's start and end dates. |
+| Big title | The trip's title. |
+| Line under the title | **Tagline** in the **Public Landing Page Content** box. |
+| Trip code chip (top right of the pass) | **Trip Code** in the **Trip Code & Visibility** box. No trip code, no chip. |
+| FROM / VIA / TO | The **Day-by-Day Itinerary** rows and their **Code** column. Only shown when **Show Itinerary on Public Landing Page** is ticked (Public Landing Page Content box). |
+| Departs / Returns (Check-in / Check-out ...) | The trip's start and end dates. The labels follow the event type. |
+| Vessel (Property, Venue ...) | **Vessel / venue name** in the Hero & boarding pass box. |
+| "Claim your seat" button | Goes to the registration page for this trip (uses the trip code). |
+| Background | The hero video (larger screens) and the poster picture (see below). |
+
+### The fields in the Hero & boarding pass box
+| Field | What it does |
+|---|---|
+| **Hero video** | The looping background video (MP4, no sound needed). Choose it from the Media Library. |
+| **Smaller hero video (optional)** | A 720p copy for medium screens and slower connections. If you only choose this one, it is used for every screen. |
+| **Poster picture** | The still picture shown before the video loads, on phones, and when the video is off. If empty, the trip's cover photo (then its featured image) is used. If there is none of those, the hero is a plain dark background. |
+| **Picture focus point** | Centre (default), Top, Bottom, Left, Right or a corner. The hero is a wide frame and crops the edges of the picture. Choose where the main subject is so it stays in view. |
+| **Vessel / venue name** | Shown on the pass; also available as `{vessel}` in text. |
+| **Code** (in each itinerary row) | A short port code such as MIA or BIM. Letters and numbers only, up to 5; it is capitalised for you. |
+
+### Order to do things in
+1. Upload the Virgin video and picture from the First Mates toolkit (see section 4), unaltered.
+2. Open the trip. In **Hero & boarding pass**, choose the video, the smaller video if you have one, and the poster picture.
+3. Pick the **Picture focus point** if the subject is not in the middle.
+4. Type the **Vessel / venue name**.
+5. In **Day-by-Day Itinerary**, type a **Code** on each stop (at least the first stop, the farthest stop and the stops you want shown on the way).
+6. Check that **Show Itinerary on Public Landing Page** is ticked, that the trip has a **Trip Code** and a **Tagline**, and click **Update**.
+7. Open the **Preview new design** link (section 1) and look at the top of the page on a computer and on a phone.
+
+### How FROM, VIA and TO are chosen
+- **FROM** is the first stop in the itinerary.
+- **TO** is the farthest stop that is not the same place as FROM. On a round trip (Miami, Puerto Plata, Bimini, Miami) the pass reads Miami to Bimini, not Miami to Miami.
+- **VIA** lists the different stops in between (up to three), for example VIA POP.
+- "At Sea" rows and rows with no port are ignored.
+- **A Code typed on any row for a port is used for every row with the same port name.** Itineraries list a port twice (Arrival and Departure) and return to the start port at the end, so you only need to type each port's Code once; the final Miami is never mistaken for a different place. Rows with different port names are different places, even if they sound alike, unless you give them the same Code.
+- If a stop has no Code, its port name is shown in the big letters instead. Add a Code for the neat look.
+- Example, a round trip Miami, Puerto Plata, Bimini, Miami: FROM Miami (MIA), VIA Puerto Plata (POP), TO Bimini (BIM). The return to Miami is not shown.
+- Fewer than two different stops means no route is shown on the pass.
+
+### Rules worth knowing
+- **The video only plays on larger screens.** Phones, visitors who have asked their device to reduce motion, and data-saver users never download it; they see the poster picture. A small **Pause background video** button appears once the video is playing.
+- Parts that have nothing to show disappear instead of leaving a blank: no trip code means no chip; no vessel means no Vessel box; no dates means no date boxes.
+- **The new hero replaces the old hero** (cover photo, title, "Reserve Your Spot" badge, and the Departs from / Dates strip) in the new design. The rest of today's page stays underneath until its own step.
+- **Show Itinerary off** hides FROM / VIA / TO as well as the itinerary section. Dates and vessel stay.
+- **A frame must never hide Virgin's logo/branding or change what the photo shows.** The focus point is how you keep the right part of the picture in view. After setting it, preview on a phone and a computer and make sure the logo, if the picture has one, is not cut off.
+- Changes to the hero fields do not affect today's public page.
+- **The chip on the pass is the trip code, exactly as saved** in **Trip Code & Visibility**. Check it reads right (right year, right letters) before you share anything. **Changing a trip code changes its registration link** (`/join/?trip=CODE`) and the QR code: links and QR images already shared or printed with the old code stop working ("not valid"). The trip's own web address does not change. Change the code BEFORE sharing links, flyers or QR codes. Once people have registered through the old code, changing it would also lose their "interested in this trip" highlight on their dashboard. Personal invite links are not affected.
+
+### Common mistakes
+- Choosing a video file but no poster picture. Phones then show the cover photo (or a plain dark background), which may not match.
+- Putting a very tall or very wide picture in without checking the focus point.
+- Leaving the **Code** column empty and wondering why the pass shows port names instead of MIA and BIM.
+- Ticking **Show Itinerary** off to tidy the page and being surprised the route disappears from the pass.
+- Using a video from Virgin's public website, or one that has been edited, cropped or had a logo added (section 4).
+- Choosing the wrong kind of file: the video fields only accept video files and the poster only accepts an image; anything else is ignored when you click Update.
 
 ---
 
 ## Coming in later steps (this file will be extended after each)
-- Hero and boarding pass; status board and intro
+- Status board and intro
 - Route (itinerary extras); featured moment and gallery
 - Price board: pricing data, all-in price breakdown, how a price column is tagged
 - Registration opt-outs (gratuities and Voyage Protection) and the decline acknowledgment
