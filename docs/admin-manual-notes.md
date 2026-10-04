@@ -2,7 +2,7 @@
 
 Working notes for the CBGV admin manual. A new section is added after each build step, written for an admin who is not technical. At the end of the build this file becomes the admin user manual.
 
-**Last updated:** 2026-10-03 (covers Steps 1, 2, 3 and 3b).
+**Last updated:** 2026-10-04 (covers Steps 1, 2, 3 and 3b, plus the media rule).
 
 ## How to read this file
 - **Screens** (always listed by their full address; these are the list and add-new screens, so they work for any trip or provider):
@@ -259,6 +259,24 @@ Then add rows with **+ Add / override a date**. Each row:
 
 ### When this starts showing on the page
 The tokens work in provider text as soon as the section that holds that text is drawn. The countdown timeline itself is drawn in a later step.
+
+---
+
+## 4. Media: Virgin images and video
+
+### The rule
+**Only use Virgin Voyages images and video from the official First Mates marketing toolkit on FirstMates.com. Never copy them from Virgin's public website.** The toolkit is where Virgin gives travel partners the right to use its media; its public website is not.
+
+### How to use an asset
+- Use it **unaltered**. Web compression (making the file smaller so the page loads fast) is fine. **Do not crop it, edit it, or add logos or text onto the image or video file itself.**
+- Upload it in the Media Library: https://bagsandvibes.com/wp-admin/upload.php (add new files: https://bagsandvibes.com/wp-admin/media-new.php).
+- Give it a clear file name and descriptive alt text (what the picture shows).
+- Add a line to the media sources list, `docs/media-sources.md`: file name, what it shows, "First Mates marketing toolkit". Keep the original download from the toolkit so any file can be traced back.
+
+### Common mistakes
+- Saving a picture from Virgin's website because it was handy. Use the toolkit version instead.
+- Cropping or putting a logo on the file before uploading. (The page may display a picture in a frame that shows only part of it; that is fine because the file itself is untouched.)
+- Uploading a file and forgetting to list it in the media sources list.
 
 ---
 
