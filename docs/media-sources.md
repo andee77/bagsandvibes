@@ -2,7 +2,7 @@
 
 One line per Virgin Voyages image or video used (or planned) on the site. **Every Virgin asset comes from the official First Mates marketing toolkit on FirstMates.com.** Use each asset unaltered: web compression only, no cropping, editing or logos added to the asset itself. Never take Virgin images or video from Virgin's public website.
 
-Last updated: 2026-10-04.
+Last updated: 2026-10-05.
 
 Status key: **prepared** = the file exists but is not on the live site yet; **in design reference** = used in `docs/design/event-page-design-reference.html` and to be uploaded when its step is built. The reference only holds media-library placeholders, so real file names for these are filled in when each file is uploaded.
 
@@ -21,6 +21,38 @@ The three files above are currently held in `docs/design/files.zip`, which is no
 
 ## How the hero uses them (Step 4)
 The hero shows the video (larger screens) or the poster picture (phones and fallback) in a frame that fills the width; the edges may be cropped by the frame, never by editing the file. Each trip's **Picture focus point** keeps the subject in view, and the frame must never hide Virgin's logo/branding or change what the picture shows.
+
+## Featured moment and gallery, trip 181 (Step 7) — uploaded 2026-10-05
+All from the First Mates marketing toolkit. Web copies: 2400px on the longest side, JPEG quality 82, **no cropping or other change**; embedded photographer/copyright metadata kept (EXIF, XMP, IPTC), GPS location data removed. The original downloads are kept in `media-incoming/` (not committed). **No offer stamps on any of them** (checked 2026-10-05). Alt text is set in each Media Library entry.
+
+| Media ID | Web file (Media Library) | Original toolkit file | What it shows | Used as | Focus | Caption | Credit in file | Status |
+|---|---|---|---|---|---|---|---|---|
+| 407 | `img-scl-2022-karma-chameleon-scarlet-night-4822-uncropped-web.jpg` | `IMG-SCL-2022-karma-chameleon-scarlet-night-4822-UNCROPPED.JPG` | Woman in a gold-sequinned dress laughing at a red-lit Scarlet Night deck party (Scarlet Lady) | Featured photo 1 | Centre | — | Alberto Oviedo; "All images copywrighted" | uploaded |
+| 408 | `img-scl-2022-karma-chameleon-razzle-dazzle-3295-v2-uncropped-web.jpg` | `IMG-SCL-2022-karma-chameleon-razzle-dazzle-3295-V2-UNCROPPED.JPG` | Four women in red feathers, sequins and a mask toasting in a red-lit lounge (Scarlet Lady) | Featured photo 2 | Centre | — | Alberto Oviedo; "All images copywrighted" | uploaded |
+| 409 | `img-ship-scarlet-lady-balcony-sunset-web.jpg` | `IMG-SHIP-Scarlet-Lady-Balcony-Sunset.jpg` | Balcony view at sunset with a red hammock (Scarlet Lady; no ship name visible) | Gallery 1 | Centre | Balcony hours, hammock optional | — | uploaded |
+| 410 | `img-val-2023-cab-sea-terrace-eggchair-lifestyle-shipeats-uncropped-36516-3-uncropped-web.jpg` | `IMG-VAL-2023-CAB-sea-terrace-eggchair-lifestyle-shipeats-UNCROPPED-36516-3-UNCROPPED.jpg` | Man in a red egg chair on a Sea Terrace with coffee and pastries (Valiant Lady; "VOYAGE" on the cup, near the centre) | Gallery 2 | Centre | Egg-chair breakfast with a view | alberto oviedo | uploaded |
+| 411 | `img-val-2023-shorex-pop-puerto-plata-buggie-waterfall-adventure-21977-uncropped-web.jpg` | `IMG-VAL-2023-shoreX-POP-puerto-plata-buggie-waterfall-adventure-21977-UNCROPPED.JPG` | Couple on the pier at sunset beside Valiant Lady's hull (part of the Virgin logo mid-right) | Gallery 3 | Centre | Puerto Plata, golden hour | — | uploaded |
+| 412 | `img-dest-bimini-beachclub-pool-beach-web.jpg` | `IMG-DEST-Bimini-BeachClub-Pool-Beach.jpg` | The pool at The Beach Club at Bimini, by day | Gallery 4 | Centre | Bimini, poolside | — | uploaded |
+| 413 | `img-dest-bimini-beachclub-entrance-night-web.jpg` | `IMG-DEST-Bimini-BeachClub-Entrance-Night.jpg` | The Beach Club at Bimini's open-air lounge at dusk | Gallery 5 | Centre | Bimini after sundown | — | uploaded |
+| 414 | `img-val-2023-fnb-gunbae-celebrations-dinner-soju-polaroid-friends-7530-1-uncropped-web.jpg` | `IMG-VAL-2023-FNB-Gunbae-celebrations-dinner-Soju-polaroid-friends-7530-1-UNCROPPED.jpg` | Friends laughing over dinner at Gunbae Korean BBQ (Valiant Lady) | Gallery 6 | Centre | Gunbae with the crew | alberto oviedo | uploaded |
+| 415 | `img-scl-2022-nwv-pizza-place-scarlet-night-cam-b-0297-uncropped-web.jpg` | `IMG-SCL-2022-NWV-pizza-place-scarlet-night-cam-b-0297-UNCROPPED.JPG` | Woman catching melted cheese from a pizza slice on Scarlet Night (Scarlet Lady) | Gallery 7 | Centre | Scarlet Night, extra cheese | Alberto Oviedo; "All images copywrighted" | uploaded |
+| 416 | `virginvoyages_ship-shots-2-42-web.jpg` | `VirginVoyages_Ship Shots 2-42.jpg` | Aerial view of a Virgin Voyages ship and its wake (no ship name visible) | Gallery 8 | Centre | Wake views | — | uploaded |
+
+Photos from Scarlet Lady (a sister ship) are described without naming a ship, so nothing claims to show Valiant Lady when it does not.
+
+**On hold:** `IMG-SPC-Air-Hockey-ginajoyphoto.jpg` (people playing air hockey on board). The file name names a photographer ("ginajoyphoto"); waiting for the owner to confirm the credit. If cleared it becomes gallery 9 with the caption "Game night, loser buys the round" and a credit line.
+
+**Reviewed and not used (2026-10-05):**
+| Original toolkit file | Why not |
+|---|---|
+| `IMG-RES-2023-SHOREX-greece-greek-glow-mykonos-kalua-beach-club-cabanas-restaurant-22568-UNCROPPED.jpg` | Mykonos, Greece: not on a Caribbean itinerary |
+| `VirginVoyages_Ship Shots 2-43.jpg` | Shows the name "Scarlet Lady" on the hull; trip 181 sails Valiant Lady |
+| `VirginVoyages_Caribbean-28.jpg` | Looks like Old San Juan (not on this itinerary); Virgin wordmark on a bag at the bottom edge |
+| `IMG-VAL-2023-shoreX-SJU-puerto-rico-old-san-juan-mofongo-nightlife-cocktails-27501-UNCROPPED.jpg` | Old San Juan, Puerto Rico: not on this itinerary |
+| `IMG-VAL-2023-rock-star-richards-rooftop-lifestyle-jacuzzi-37690-2-UNCROPPED.JPG`, `IMG-VAL-2023-rock-star-richards-rooftop-lifestyle-jacuzzi-couple-moet-48176-1-UNCROPPED.jpg` | Richard's Rooftop is a RockStar-suite perk; this trip offers no suites |
+| `IMG-VAL-2023-BIM-Bimini-Beach-Club-Richards-Retreat-56390-UNCROPPED.jpg` | Richard's Retreat is the premium/RockStar area at the Beach Club |
+| `Virgin Voyages - Caribbean - Women on Beach.jpg`, `VirginVoyages_Ship Shots 2-33.jpg` | Dropped from the final gallery by the owner (beach location not shown; the funnel shot duplicates the ship aerial) |
+| `VirginVoyages_Caribbean-33.jpg`, `IMG-SCL-2022-NWV-gym-tonic-bar-1246-UNCROPPED.JPG`, `IMG-SCL-2022-NWV-scarlet-night-party-0183-background-UNCROPPED.jpg` (heavily compressed file), `IMG-SCL-2022-karma-chameleon-pink-agave-12397-UNCROPPED.JPG`, `IMG-VAL-2023-BIM-Bimini-Beach-Club-Float-On-pool-party-52560-UNCROPPED (1).jpg` | Reserves (fine to use later) |
 
 ## Images in the design reference (file names to be recorded on upload)
 Reference ID is the `MEDIA-LIBRARY-URL` placeholder in the design reference.
