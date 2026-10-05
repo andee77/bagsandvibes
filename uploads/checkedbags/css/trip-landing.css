@@ -521,3 +521,262 @@ body.cbv-lp .cbv-lp-pass-cta {
 		max-width: 220px;
 	}
 }
+
+/* ==========================================================================
+   Step 5: status board and intro (plus shared pieces later sections reuse:
+   .cbv-lp-sr, .cbv-lp-gate, .cbv-lp-h2, .cbv-lp-chips, .cbv-lp-polaroid).
+   ========================================================================== */
+
+/* ---- Shared ---- */
+body.cbv-lp .cbv-lp-sr {
+	position: absolute !important;
+	width: 1px;
+	height: 1px;
+	margin: -1px !important;
+	padding: 0 !important;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+body.cbv-lp .cbv-lp-gate {
+	margin: 0 !important;
+	font-family: 'Space Mono', monospace !important;
+	font-size: 12px;
+	letter-spacing: 0.2em;
+	text-transform: uppercase;
+	color: var(--cbv-gold) !important;
+}
+
+body.cbv-lp .cbv-lp-h2 {
+	margin: 0 !important;
+	font-family: 'Fraunces', serif !important;
+	font-style: italic;
+	font-weight: 500 !important;
+	font-size: 52px;
+	line-height: 1.05;
+	letter-spacing: normal;
+	text-transform: none;
+	color: var(--cbv-cream) !important;
+}
+
+body.cbv-lp .cbv-lp-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin: 0 !important;
+	padding: 0 !important;
+	list-style: none !important;
+	font-family: 'Space Mono', monospace;
+	font-size: 12px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+body.cbv-lp .cbv-lp-chips li {
+	margin: 0 !important;
+	border: 1px solid rgba(232, 169, 78, 0.6);
+	color: var(--cbv-gold);
+	padding: 8px 12px;
+	border-radius: 2px;
+}
+
+/* A tilted print frame. The photo inside is cropped to 4:3 only; the focus
+   point (inline object-position) keeps the subject and any logo in view. */
+body.cbv-lp .cbv-lp-polaroid {
+	margin: 0 !important;
+	background: var(--cbv-cream);
+	padding: 12px 12px 40px;
+	transform: rotate(2deg);
+	box-shadow: 0 20px 44px rgba(0, 0, 0, 0.45);
+}
+
+body.cbv-lp .cbv-lp-polaroid img {
+	display: block;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 4 / 3;
+	object-fit: cover;
+}
+
+body.cbv-lp .cbv-lp-polaroid figcaption {
+	padding-top: 12px;
+	font-family: 'Space Mono', monospace;
+	font-size: 12px;
+	text-align: center;
+	color: var(--cbv-ink);
+}
+
+/* ---- Status board ---- */
+body.cbv-lp .cbv-lp-status {
+	background: var(--cbv-deep);
+	border-top: 1px solid rgba(232, 169, 78, 0.3);
+	border-bottom: 1px solid rgba(232, 169, 78, 0.3);
+}
+
+body.cbv-lp .cbv-lp-status-inner {
+	padding-top: 36px;
+	padding-bottom: 36px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 24px 32px;
+	flex-wrap: wrap;
+}
+
+body.cbv-lp .cbv-lp-status-copy {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+body.cbv-lp .cbv-lp-status-kicker {
+	font-family: 'Space Mono', monospace;
+	font-size: 12px;
+	letter-spacing: 0.2em;
+	text-transform: uppercase;
+	color: var(--cbv-gold);
+}
+
+body.cbv-lp .cbv-lp-status-line {
+	font-family: 'Fraunces', serif;
+	font-size: 26px;
+	line-height: 1.2;
+}
+
+body.cbv-lp .cbv-lp-status-tiles {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-family: 'Space Mono', monospace;
+	font-weight: 700;
+	font-size: 40px;
+}
+
+body.cbv-lp .cbv-lp-tile {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 52px;
+	height: 68px;
+	background: var(--cbv-horizon);
+	border-radius: 4px;
+	border-bottom: 3px solid var(--cbv-deep);
+	color: var(--cbv-cream);
+}
+
+body.cbv-lp .cbv-lp-status-of {
+	padding: 0 12px;
+	font-size: 18px;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--cbv-gold);
+}
+
+body.cbv-lp .cbv-lp-status-chip {
+	font-family: 'Space Mono', monospace;
+	font-size: 13px;
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	padding: 10px 14px;
+	border-radius: 2px;
+	border: 1px solid var(--cbv-gold);
+	color: var(--cbv-gold);
+}
+
+body.cbv-lp .cbv-lp-status-chip--after {
+	background: var(--cbv-gold);
+	color: var(--cbv-ink);
+}
+
+body.cbv-lp .cbv-lp-status-chip--full {
+	background: var(--cbv-coral);
+	border-color: var(--cbv-coral);
+	color: var(--cbv-ink);
+}
+
+/* ---- Intro ---- */
+body.cbv-lp .cbv-lp-intro-inner {
+	padding-top: 100px;
+	padding-bottom: 100px;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+	gap: 64px;
+	align-items: center;
+}
+
+body.cbv-lp .cbv-lp-intro-inner--solo {
+	grid-template-columns: minmax(0, 820px);
+}
+
+body.cbv-lp .cbv-lp-intro-copy {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	min-width: 0;
+}
+
+body.cbv-lp .cbv-lp-intro-body p,
+body.cbv-lp .cbv-lp-intro-body li {
+	margin: 0 0 14px !important;
+	font-size: 17px;
+	line-height: 1.7;
+	color: rgba(251, 243, 231, 0.86) !important;
+}
+
+body.cbv-lp .cbv-lp-intro-body > :last-child {
+	margin-bottom: 0 !important;
+}
+
+body.cbv-lp .cbv-lp-intro-body a {
+	color: var(--cbv-gold) !important;
+	text-decoration: underline !important;
+}
+
+@media (max-width: 600px) {
+	body.cbv-lp .cbv-lp-inner {
+		padding-left: 16px;
+		padding-right: 16px;
+	}
+
+	body.cbv-lp .cbv-lp-h2 {
+		font-size: 36px;
+	}
+
+	body.cbv-lp .cbv-lp-status-inner {
+		padding-top: 28px;
+		padding-bottom: 28px;
+	}
+
+	body.cbv-lp .cbv-lp-status-line {
+		font-size: 22px;
+	}
+
+	body.cbv-lp .cbv-lp-status-tiles {
+		font-size: 30px;
+		gap: 4px;
+	}
+
+	body.cbv-lp .cbv-lp-tile {
+		width: 40px;
+		height: 54px;
+	}
+
+	body.cbv-lp .cbv-lp-status-of {
+		padding: 0 8px;
+		font-size: 15px;
+	}
+
+	body.cbv-lp .cbv-lp-intro-inner {
+		padding-top: 64px;
+		padding-bottom: 64px;
+		gap: 40px;
+	}
+
+	body.cbv-lp .cbv-lp-polaroid {
+		padding: 10px 10px 32px;
+		transform: rotate(1deg);
+	}
+}

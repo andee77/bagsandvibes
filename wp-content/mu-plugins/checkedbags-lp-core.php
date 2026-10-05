@@ -140,6 +140,12 @@ function cbv_lp_render_trip( $trip_id, $view = 'new' ) {
 		echo cbv_lp_render_hero( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
 		$legacy = cbv_lp_strip_legacy_hero( $legacy );
 	}
+	if ( function_exists( 'cbv_lp_render_status' ) ) {
+		// Step 5: status board, then the intro (the first GATE-numbered section).
+		cbv_lp_next_gate( true );
+		echo cbv_lp_render_status( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
+		echo cbv_lp_render_intro( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
+	}
 	echo '<div class="cbv-lp-legacy-wrap">' . $legacy . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput -- the renderer escapes its own output
 	return ob_get_clean();
 }

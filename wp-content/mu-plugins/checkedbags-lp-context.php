@@ -5,7 +5,7 @@
  *              public trip landing page. ONE template serves every event
  *              type; the type only decides three things: which sections are
  *              on by default, what the page calls things (cabin / room /
- *              villa, Sailors / Guests ...), and a little starter text.
+ *              villa, Travelers / Guests ...), and a little starter text.
  *              Also holds the two small helpers every section renderer
  *              shares: {tokens} that pull values from the trip, and a
  *              "light markup" formatter (**bold**, bullet lines, links)
@@ -156,8 +156,8 @@ function cbv_lp_base_labels() {
 	return array(
 		'accommodation'        => 'cabin',
 		'accommodation_plural' => 'cabins',
-		'party'                => 'Sailors',
-		'party_one'            => 'Sailor',
+		'party'                => 'Travelers', // not "Sailors": the cruise wording must suit every cruise line
+		'party_one'            => 'Traveler',
 		'price_heading'        => 'Pick your cabin',
 		'eyebrow'              => 'Now boarding',
 		'pass_start'           => 'Departs',

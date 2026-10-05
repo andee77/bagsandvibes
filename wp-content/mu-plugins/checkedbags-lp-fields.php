@@ -92,7 +92,7 @@ function cbv_lp_render_settings_box( $post ) {
 			<?php endforeach; ?>
 		</select>
 	</p>
-	<p class="description">Sets which sections are on by default and what the page calls things (cabin / room / villa, Sailors / Guests ...). Same template for every type.</p>
+	<p class="description">Sets which sections are on by default and what the page calls things (cabin / room / villa, Travelers / Guests ...). Same template for every type.</p>
 
 	<p>
 		<label for="cbv_lp_provider_id"><strong>Provider</strong> <span class="description">(cruise line, resort brand ...)</span></label><br>

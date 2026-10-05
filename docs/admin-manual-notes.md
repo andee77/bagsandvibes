@@ -16,7 +16,7 @@ Working notes for the CBGV admin manual. A new section is added after each build
 - Nothing here changes what the public sees until a trip is switched live (see section 1). You can fill everything in safely ahead of time.
 
 ## What you can see today, and what comes later
-The new design is being built one step at a time. **Right now the new page is a frame with the new hero and boarding pass at the top** (Step 4): new header and footer, the hero and boarding pass, then today's trip content underneath. The remaining new sections (status board, price board, included cards, timeline, travel documents and so on) are built in later steps. Everything you enter in the boxes below is saved and waiting; **most of it will not show on the page until the step that draws that section is finished.** This file tells you when each section starts showing.
+The new design is being built one step at a time. **Right now the new page has the new hero and boarding pass, the status board and the intro at the top** (Steps 4 and 5): new header and footer, those sections, then today's trip content underneath. The remaining new sections (route, price board, included cards, timeline, travel documents and so on) are built in later steps. Everything you enter in the boxes below is saved and waiting; **most of it will not show on the page until the step that draws that section is finished.** This file tells you when each section starts showing.
 
 ---
 
@@ -69,7 +69,7 @@ Sets three things for the page: which sections are on by default, what the page 
 
 | Event type | Calls the rooms | Calls the people | Typical use |
 |---|---|---|---|
-| Cruise | cabins | Sailors | Cruises |
+| Cruise | cabins | Travelers | Cruises |
 | Resort | rooms | Guests | Resort stays |
 | Cabin / Villa Rental | villas | Guests | Rentals |
 | Destination / Land Trip | rooms | Travelers | Land trips and packages |
@@ -168,7 +168,7 @@ Wherever text is entered (bullets, steps, documents, footnote, key-date descript
 | `{deposit}` | the trip's deposit amount, like "$250" |
 | `{vessel}` | the trip's vessel or venue name (the **Vessel / venue name** field in section 5) |
 | `{accommodation}` / `{accommodation_plural}` | cabin / cabins (or the trip's word) |
-| `{party}` | Sailors / Guests / and so on |
+| `{party}` | Travelers / Guests / and so on (cruises say "Travelers", not "Sailors", so the wording suits every cruise line) |
 | `{date:key}` | a key date, like "June 27, 2027" (see 3a) |
 | `{days:key}` | the number of days from that key date to the trip's start, like "120" |
 
@@ -360,11 +360,88 @@ The top of the new page: a full-width hero (looping video or a picture, the trip
 - Ticking **Show Itinerary** off to tidy the page and being surprised the route disappears from the pass.
 - Using a video from Virgin's public website, or one that has been edited, cropped or had a logo added (section 4).
 - Choosing the wrong kind of file: the video fields only accept video files and the poster only accepts an image; anything else is ignored when you click Update.
+- Grey placeholder text in a field (e.g. Vessel) is not a saved value; type it in.
+
+---
+
+## 6. Status board and intro (Step 5)
+
+Two sections directly under the hero:
+- The **status board**: a dark strip that shows where the group stands, in three stages (below), with flip-board number tiles and a status chip.
+- The **intro** (labelled GATE 14 · THE TRIP): a big heading, a few paragraphs, a row of fact chips (5 NIGHTS · VALIANT LADY · ADULTS ONLY · 18+) and a tilted photo with a caption.
+
+### Where it is
+- Trips list: https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_trip, then click the trip's name.
+- **Status board & intro (new design)** box (main column): the booked number and all the intro fields.
+- **Trip Details** box (same screen): **Minimum group size** and **Capacity (spots)**, which the status board also uses.
+- **Landing Page Settings (new design)** box: the **Sections** table, where "Status board (minimum travelers)" and "Intro" can be switched On or Off for this trip.
+
+### Where each part comes from
+| On the page | Comes from |
+|---|---|
+| The status board (line, tiles, chip) | **Travelers booked (paid deposits)** (Status board & intro box) compared with **Minimum group size** and **Capacity (spots)** (Trip Details). See "The three stages" below. |
+| GATE 14 · THE TRIP | Automatic. Sections number themselves from GATE 14 in the order they appear, so a hidden section never leaves a gap. |
+| Heading, text | **Heading** and **Text** in the Status board & intro box. |
+| Fact chips | First the number of nights (worked out from the trip's start and end dates), then the **Vessel / venue name** (Hero & boarding pass box), then the **Fact chips** you type. |
+| Photo and caption | **Intro photo**, **Photo focus point** and **Photo caption** in the Status board & intro box. |
+
+### The three stages of the status board
+The board changes by itself as you update **Travelers booked (paid deposits)**. Example: minimum 25, capacity 50.
+
+| Stage | Tiles | Line | Chip |
+|---|---|---|---|
+| **1. Below the minimum** (or the number is blank) | "03 OF 25" (booked of the minimum) | "25 travelers needed to depart" | BOARDING |
+| **2. Minimum reached** | "30 OF 50" (booked of the capacity) | "Departure confirmed · 20 spots left" | ON TIME |
+| **3. Full** (booked reaches the capacity) | "50 OF 50" | "Departure confirmed" | FULLY BOOKED · ASK ABOUT THE WAITLIST |
+
+- Blank number: no tiles at all; the line and chip are stage 1's.
+- No capacity set: stage 2 keeps "30 OF 25" and the line is just "Departure confirmed"; stage 3 never happens.
+- Other event types use their own words: a resort reads "25 guests needed to confirm", OPEN, then "Group confirmed · 20 spots left", CONFIRMED; a corporate event says "attendees".
+- "1 spot left" is singular; the board never shows a negative number of spots.
+
+### The fields in the Status board & intro box
+| Field | What it does |
+|---|---|
+| **Travelers booked (paid deposits)** | How many travelers have paid their deposit. Whole numbers only. Leave it blank if you do not want a number shown; the board then shows only the "needed" line and the chip. 0 is a real value and shows "00 OF 25". |
+| **Heading** | The big italic line, up to 120 characters. Tokens such as `{vessel}` work. |
+| **Text** | A few paragraphs. A blank line starts a new paragraph; `**bold**`, `*italic*` and `[link text](https://...)` work, and so do tokens (section 3, "Writing text"). |
+| **Fact chips** | One per line, up to 4, each up to 40 characters. Type only the extras (for example "Adults only · 18+" or "Low 80s °F"); the nights and the vessel are added for you. |
+| **Intro photo** | Chosen from the Media Library. Shown beside the text on a computer, under it on a phone. |
+| **Photo focus point** | Same nine choices as the hero. The photo is shown in a 4:3 frame; choose where the subject is so it stays in view. |
+| **Photo caption** | The small line under the photo, for example "Our ride: {vessel}". Only shown when there is a photo. |
+
+### Order to do things in
+1. In **Trip Details**, check **Minimum group size** and **Capacity (spots)** are right (Capacity drives "spots left" and the Full stage).
+2. In **Status board & intro**, type **Travelers booked (paid deposits)** if you want the tiles (or leave it blank).
+3. Type the **Heading** and **Text**, then any extra **Fact chips**.
+4. If you use a photo: upload it (Virgin pictures from the First Mates toolkit only, unaltered, logged in `docs/media-sources.md`; see section 4), give it **Alt Text** in the Media Library, choose it here, set the focus point and caption.
+5. Click **Update** (in the new editor the button may be labelled **Save**).
+6. Open **Preview new design** (section 1) and look at both sections on a computer and on a phone.
+
+### Keeping the booked number up to date
+- **Update the number each time a deposit is paid** (or a booking cancels), then click Update / Save. The public page shows the new number on the next visit: SiteGround clears its saved copy of the trip page when the trip is saved, and Cloudflare does not keep a copy of trip pages.
+- The number is **typed by you on purpose**. It is not the trip roster count, because the roster counts website accounts (including the admin account), misses companions and includes people who registered but have not paid.
+
+### Rules worth knowing
+- **The status board hides itself** when the trip has no minimum group size, when the trip's **Status** is Completed or Declined, or when the section is switched Off.
+- **The intro hides itself** when both the Heading and the Text are empty, even if chips or a photo are filled in. With text but no heading, the section name ("The trip") is used as the heading.
+- No photo = the text runs full width.
+- Defaults by event type: both sections are On for Cruise, Resort, Cabin/Villa Rental, Destination and Corporate; a Party / Add-on has the intro but no status board; a Wedding has neither. Any trip can switch either one On or Off in the Sections table.
+- Changes here do not affect today's public page.
+- **A frame must never hide Virgin's logo/branding or change what the photo shows.** Use the focus point, then preview on a phone and a computer.
+
+### Common mistakes
+- Typing the number of registrations or accounts instead of travelers with paid deposits.
+- Leaving **Capacity (spots)** at 0 or wrong: stage 2 then cannot say how many spots are left, and the Full stage never shows.
+- Forgetting to update the number after new deposits, so the board looks quieter than the trip really is.
+- Typing "5 nights" or the ship's name as a fact chip: they are already added automatically and would show twice.
+- Filling in only chips and a photo and wondering why the intro is missing (it needs a Heading or Text).
+- Leaving the photo's **Alt Text** empty in the Media Library (screen readers then get no description).
+- Grey placeholder text in a field is not a saved value; type it in.
 
 ---
 
 ## Coming in later steps (this file will be extended after each)
-- Status board and intro
 - Route (itinerary extras); featured moment and gallery
 - Price board: pricing data, all-in price breakdown, how a price column is tagged
 - Registration opt-outs (gratuities and Voyage Protection) and the decline acknowledgment
