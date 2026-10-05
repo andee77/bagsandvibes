@@ -34,7 +34,7 @@ Virgin Voyages is seeded from the reference (separate approval; text reviewed in
 | 5 | Status board, intro | Built 2026-10-05, revised after review (stages, "Travelers"), approved 2026-10-05 (138 checks incl. link safety + 23 mutation tests; Step 3 suite 186/186, Step 4 suite 123/123 with its pass-title expectation updated to "Traveler"; both suites now kept in `tests/landing/`). New `checkedbags-lp-intro.php` (status board, intro, "Status board & intro" box, GATE counter); edits to `checkedbags-lp-core.php` (render order, GATE reset), `checkedbags-lp-context.php` (cruise people-word), `checkedbags-lp-fields.php` (help text) and `trip-landing.css`. Visual check: `docs/audits/step5-status-intro-preview-2026-10-05.html` |
 | 6 | Route (itinerary extras) | Built 2026-10-05, awaiting approval (102 checks + 19 mutation tests; Step 4 123/123 and Step 5 138/138 re-run). New `checkedbags-lp-route.php` (route, time line, code chain, "Route days" box, legacy itinerary table removal); edit to `checkedbags-lp-core.php` (render order) and `trip-landing.css`. Visual check: `docs/audits/step6-route-preview-2026-10-05.html` |
 | 7 | Featured moment, gallery | Built 2026-10-05, awaiting approval (64 checks + 17 mutation tests; Steps 4-6 suites re-run). New `checkedbags-lp-featured.php` (featured moment, gallery, both trip boxes); edit to `checkedbags-lp-core.php` (render order) and `trip-landing.css`. Visual check: `docs/audits/step7-featured-gallery-preview-2026-10-05.html` |
-| 8 | **Price board data** (see below) | |
+| 8 | **Price board data** (see below) | Built 2026-10-05, awaiting approval (59 checks + 20 mutation tests; Steps 4-7 suites re-run). New `checkedbags-lp-prices.php` (price columns, all-in breakdown, board data); `checkedbags-trips.php` (Pricing Tiers: tier Group / Badge / Note / Highlight / One price only, point Price column; tier sanitizing moved into `cb_sanitize_pricing_tiers()`, junk rows now skipped); `checkedbags-proposal-pdf.php` ("Fare" column). Nothing drawn on any page yet |
 | 9 | Price board render | |
 | 9b | **Registration: opt-outs and decline acknowledgment** (new, see below; number to be assigned) | |
 | 10 | Included cards, upgrades | |
@@ -57,7 +57,19 @@ Draft wording, price breakdown (under each cabin price):
 
 Mapping to the existing fields: cruise fare = `voyage_fare` (less `discount`), taxes & fees = `taxes_fees`, prepaid gratuities = `gratuities`, Voyage Protection = `insurance`. No new price fields are needed; the board must show the four components for the headline price and keep the per-person vs per-cabin rule already agreed.
 
-Open: confirm each trip's tier data actually holds gratuities and insurance as separate components (Family & Friends and Helmets need checking before Step 8 is built).
+Checked 2026-10-05 (read-only): both Family & Friends (181) and Helmets (320) store gratuities and insurance as separate components. (Helmets' per-person / per-cabin basis is being checked; see Step 8 build decisions.)
+
+## Step 8: build decisions (recorded 2026-10-05)
+- **Where:** the new fields go **inside the existing Pricing Tiers box** (`checkedbags-trips.php`), the one place prices are entered. No separate price-board box.
+- **Per tier (cabin category):** **Group** (e.g. "Insider · Interior"; tiers with the same Group form one section, in listed order), **Badge** (optional, e.g. "Partial view", "★ Group favorite"), **Highlight this row**, **One price only (suites)**, and an optional **Note** (one line under the row, e.g. "Booked alongside the group; group perks apply to Sea Terrace"), ready for when Ruel confirms the Groups Offer rules.
+- **Per occupancy point:** **Price column** dropdown = the provider's (or trip's) column names, stored by position 1-4 so renaming a column never breaks the link, plus **"Not on the price board"**. Existing data with no tag = column 1, each tier its own group, so nothing changes until tags are set.
+- **Lock-It-In:** trip 181's three "Locked In" tiers stay in the admin data and the proposal PDF and are tagged **"Not on the price board"** (they cannot be held in the group).
+- **Base:** also **"Not on the price board"** until Ruel confirms (Base cannot be held in a group either; the design reference's BASE column is not used meanwhile).
+- **Lead price:** the **all-in price per cabin for 2 travelers**, with the per-person price as a small line underneath.
+- **Discount** stays folded into the cruise fare (cruise fare = `voyage_fare` − `discount`); no separate "group savings" line.
+- **Proposal PDF:** a "Fare" column showing each point's price-column name.
+- **Virgin Groups Offer (note, to confirm with Ruel):** per Virgin's Groups Offer, **only Sea Terrace and Central Sea Terrace cabins (Essential or Premium) can be held in the group block**; other cabins join as **"FIT to include"** (booked alongside the group) **without the group bar tab or group discount**. Once confirmed, the board will likely need the per-tier Note on those rows (e.g. "Booked alongside the group; group perks apply to Sea Terrace") and the perks/included wording (Steps 10-11) must not promise the bar tab or discount to non-block cabins.
+- **Helmets (trip 320) data check, owner checking the quote (2026-10-05):** its occupancy points are marked per person but the numbers look like whole-cabin totals (taxes $404 for 2, $606 for 3), which would make today's per-person prices 2-3x too high on Gate 07 and the current landing page. No change until confirmed; any fix is a trip-record write through the real box with the owner's go-ahead, separate from Step 8.
 
 ## Step 9b: Registration opt-outs and decline acknowledgment (decision recorded 2026-10-03)
 The tagged registration (`/join/?trip=CODE`, the traveler intake) gets two opt-out boxes, both unticked by default (sailors always actively opt out):
@@ -163,6 +175,14 @@ Placement: items 1-3 in **Step 12** (they are trip-side editors over provider co
 - **Brand features belong to their provider only.** A trip shows only features of its own current provider; ticks are stored with the provider they belong to, ignored if the trip's provider changes, and dropped on the next save. Never shown on another provider's trips.
 - **Media and brand rules apply** (go-live checklist): photos from the provider's official toolkit (Virgin: First Mates), unaltered, logged in `docs/media-sources.md`, focus point so a frame never hides a logo. Feature names are written as plain text in CBGV's design; never Virgin's campaign fonts, lockups or stamps.
 - Open when built: whether the Step 7 "featured moment" may pick a brand feature as its source instead of its own fields.
+
+## CBGV logo coin (recorded 2026-10-05; not built)
+Source file: `media-incoming/CB_GV Logo Coin.png` (1041×1042 PNG, transparent background; gold, coral and navy coin with the plane/arrow mark). CBGV's own brand asset, so the Virgin media rules do not apply; it stays out of any Virgin logo's space.
+1. **Site icon / favicon: already set**, as `cropped-CB_GV-Favicon-White-BG.png` (Media ID 20, 512×512 on a white background). Optional swap to the transparent coin (a cropped 512×512 copy) at **Step 16 (final QA)**, after checking it reads at 16-32px in browser tabs and on light and dark backgrounds. A site setting (Appearance > Customize > Site Identity), not code.
+2. **Small mark beside the wordmark in the new-design header**: **Step 12** (with the footer work), as part of the new template's header/footer. Small (about 28-32px), decorative (empty alt, the wordmark carries the name), linked with the wordmark to the home page.
+3. **Faint stamp on the boarding pass**: a **Step 4 follow-up, done in Step 9** (Step 9 already revisits the pass, whose "Claim your seat" may then point at the price board). Low-opacity, behind the pass text, never reducing text contrast below WCAG AA; hidden from screen readers.
+4. **In the footer**: **Step 12** (footer), beside the brand name; decorative.
+Upload the coin to the Media Library (alt text "Checked Bags & Good Vibes logo" where it is not decorative) when the first of these is built, and keep the original.
 
 ## Go-live checklist (Step 17; list started 2026-10-04)
 - **Media: source is the First Mates marketing toolkit (FirstMates.com); use unaltered** (web compression only, no cropping, editing or logos on the asset). Every Virgin image and video, including the Terminal V hero video, comes from there. Each asset is listed in `docs/media-sources.md`. (This replaces the earlier "usage rights unconfirmed" wording.)

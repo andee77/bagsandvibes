@@ -171,6 +171,8 @@ function cb_proposal_build_pdf_data( $proposal_id, $include_internal_notes = fal
 			'itinerary'     => cb_trip_get_itinerary( $trip_id ),
 			'pricing_tiers' => cb_trip_get_pricing_tiers( $trip_id ),
 			'single_price'  => (float) get_post_meta( $trip_id, 'cb_price', true ),
+			// Price-board column names (new landing design, Step 8) for the "Fare" column.
+			'price_columns' => function_exists( 'cbv_lp_price_columns' ) ? cbv_lp_price_columns( $trip_id ) : array(),
 		);
 
 		if ( $include_internal_notes ) {
@@ -363,7 +365,9 @@ function cb_proposal_render_pricing_html( $trip ) {
 					// The Basis column exists specifically so that isn't
 					// ambiguous, and the two Total columns give the correct
 					// figure either way regardless of entry basis.
+					$fare_label = function_exists( 'cbv_lp_point_fare_label' ) ? cbv_lp_point_fare_label( $point, $trip['price_columns'] ?? array() ) : '';
 					$rows .= '<tr>'
+						. '<td>' . esc_html( $fare_label ) . '</td>'
 						. '<td>' . (int) $point['occupancy_count'] . '</td>'
 						. '<td>' . cb_proposal_format_money( $point['voyage_fare'] ) . '</td>'
 						. '<td>' . cb_proposal_format_money( $point['taxes_fees'] ) . '</td>'
@@ -376,7 +380,7 @@ function cb_proposal_render_pricing_html( $trip ) {
 						. '</tr>';
 				}
 				$html .= '<table class="cb-table"><thead><tr>'
-					. '<th># Sailors</th><th>Voyage Fare</th><th>Taxes &amp; Fees</th><th>Gratuities</th><th>Insurance</th><th>Discount</th><th>Basis</th><th>Total / Person</th><th>Total / Cabin</th>'
+					. '<th>Fare</th><th># Sailors</th><th>Voyage Fare</th><th>Taxes &amp; Fees</th><th>Gratuities</th><th>Insurance</th><th>Discount</th><th>Basis</th><th>Total / Person</th><th>Total / Cabin</th>'
 					. '</tr></thead><tbody>' . $rows . '</tbody></table>';
 			}
 

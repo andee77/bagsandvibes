@@ -567,8 +567,55 @@ Two sections after the route:
 
 ---
 
+## 9. Price board data (Step 8)
+
+Step 8 adds a few fields to the **Pricing Tiers** box so the new design's price board (drawn in Step 9) knows how to arrange your prices. **Nothing changes on any page yet**, and no price is changed: the new fields only say where each price goes.
+
+### Where it is
+- Trips list: https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_trip, then click the trip's name.
+- **Pricing Tiers** box: each tier (cabin category) now has a dashed **Price board (new design)** area, and each occupancy price point has a **Price board column (new design)** dropdown.
+- The column names come from the trip's provider: Provider Library, https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_provider, the provider's **Price column names** box (e.g. Base, Essential, Premium).
+
+### How the price board will read your prices
+- **Prices are all-in:** cruise fare (Voyage Fare less Discount) + Taxes & Fees + Gratuities (prepaid gratuities) + Insurance (Voyage Protection). The board shows the **all-in price per cabin for 2 travelers**, with the per-person price underneath, and an itemized line: "All-in for 2 travelers: cruise fare $X · taxes & fees $X · prepaid gratuities $X · Voyage Protection $X".
+- The **Discount is folded into the cruise fare**; there is no separate "savings" line.
+- The per-person / per-cabin rule is the one you already use: tick "priced per cabin" on a price point when the amounts you typed are whole-cabin totals.
+- For each column the board uses the price point for **2 travelers**; if a column has none for 2, it uses the smallest headcount in that column.
+
+### The new fields
+| Field | Where | What it does |
+|---|---|---|
+| **Group** | each tier | A heading that gathers tiers on the board, e.g. "Sea Terrace · Balcony + Hammock". Tiers with the same Group (capitals don't matter) form one section, in the order they are listed. Blank = the tier is its own section, named after the tier. |
+| **Badge** | each tier | A small label on the row, e.g. "Partial view" or "★ Group favorite" (up to 40 characters). |
+| **Note** | each tier | Optional, one line under the row (up to 160 characters), e.g. "Booked alongside the group; group perks apply to Sea Terrace". |
+| **Highlight this row** | each tier | Marks the row (e.g. the group favorite). |
+| **One price only (suites)** | each tier | Shows a single price for the row (the first column that has one) instead of one per column; a suite does not add columns to the board. |
+| **Price board column** | each price point | Which column the price is shown in: Column 1 (the default), the provider's other named columns, or **Not on the price board**. Columns are stored by position, so renaming a column in the Provider Library keeps every price in place. |
+
+### Order to do things in
+1. Check the provider's **Price column names** (Provider Library).
+2. On the trip, in **Pricing Tiers**: give each tier its **Group**, any **Badge** / **Note**, tick **Highlight** on the favorite and **One price only** on suites.
+3. Set each price point's **Price board column**. Use **Not on the price board** for fares that cannot be held in the group (see below).
+4. Click **Update** / **Save**. The proposal PDF now shows a **Fare** column with each price's column name.
+
+### Rules worth knowing
+- **Lock-It-In and Base fares cannot be held in our group:** keep them in the Pricing Tiers (they still appear in the admin and the proposal PDF) but set their price points to **Not on the price board**. (Base stays off until Virgin Groups confirms.)
+- **Virgin's Groups Offer** (to be confirmed with Virgin Groups): only Sea Terrace and Central Sea Terrace cabins (Essential or Premium) are held in the group block; other cabins join "alongside the group" without the group bar tab or discount. Use the tier **Note** to say so on those rows once confirmed.
+- A tier whose price points are all "Not on the price board" does not appear on the board; a Group with no rows left does not appear.
+- **Prices entered before Step 8 keep working:** with no tags, every price is in column 1 and every tier is its own section.
+- Saving a trip now also stores the (empty) new fields with each tier; prices are untouched.
+- Today's public page and Gate 07's price range are unchanged (they still use every tier, including Lock-It-In).
+
+### Common mistakes
+- Typing a Group slightly differently on two tiers ("Sea Terrace" vs "Sea Terraces"): they become two sections. Capitals don't matter; spelling does.
+- Leaving Lock-It-In price points on Column 1: they would appear on the board as a normal group price.
+- Ticking "priced per cabin" on a point whose amounts are per person (or the reverse): every price for that point is then 2-3 times off. Check the "= $... per person · $... per cabin" line under each point after saving.
+- Expecting the board on the page now: it is drawn in Step 9.
+
+---
+
 ## Coming in later steps (this file will be extended after each)
-- Price board: pricing data, all-in price breakdown, how a price column is tagged
+- Price board on the page (Step 9)
 - Registration opt-outs (gratuities and Voyage Protection) and the decline acknowledgment
 - Included cards and upgrades; pack list, group perks and timeline
 - How to book, member hint, travel documents editor on the trip

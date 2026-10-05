@@ -788,6 +788,20 @@ function cb_render_occupancy_point_row_fields( $tier_index, $point_index, $point
 			<input type="number" step="0.01" name="<?php echo esc_attr( $prefix ); ?>[discount]" placeholder="Discount" value="<?php echo esc_attr( $discount ); ?>">
 			<button type="button" class="button-link cb-repeater-remove" style="color:#b32d2e;">Remove</button>
 		</div>
+		<?php
+		// New landing design (Step 8): which price-board column this price is
+		// shown in. The default ('') is column 1, so an untouched new row
+		// still counts as blank and older data shows as column 1.
+		$column_choices = function_exists( 'cbv_lp_price_column_choices' ) ? cbv_lp_price_column_choices( $GLOBALS['cbv_lp_price_column_names'] ?? array() ) : array( '' => 'Column 1', 'off' => 'Not on the price board' );
+		$price_column   = (string) ( $point['price_column'] ?? '' );
+		?>
+		<label class="cb-occupancy-point-column">Price board column (new design)
+			<select name="<?php echo esc_attr( $prefix ); ?>[price_column]">
+				<?php foreach ( $column_choices as $value => $label ) : ?>
+					<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $price_column, (string) $value ); ?>><?php echo esc_html( $label ); ?></option>
+				<?php endforeach; ?>
+			</select>
+		</label>
 		<?php if ( ! empty( $point ) ) : ?>
 			<p class="cb-occupancy-point-computed description">
 				= $<?php echo esc_html( number_format( cb_pricing_occupancy_point_total( $point ), 2 ) ); ?> per person &middot; $<?php echo esc_html( number_format( cb_pricing_occupancy_point_cabin_total( $point ), 2 ) ); ?> per cabin
@@ -835,6 +849,17 @@ function cb_render_pricing_tier_row_fields( $tier_index, $tier ) {
 			</label>
 		</p>
 
+		<div class="cb-tier-board">
+			<strong>Price board (new design)</strong> <span class="description">(only the new landing design reads these)</span>
+			<div class="cb-tier-board-fields">
+				<label>Group <input type="text" name="cb_pricing_tiers[<?php echo esc_attr( $tier_index ); ?>][group]" maxlength="60" placeholder="e.g. Sea Terrace · Balcony + Hammock" value="<?php echo esc_attr( $tier['group'] ?? '' ); ?>"></label>
+				<label>Badge <input type="text" name="cb_pricing_tiers[<?php echo esc_attr( $tier_index ); ?>][badge]" maxlength="40" placeholder="e.g. Partial view" value="<?php echo esc_attr( $tier['badge'] ?? '' ); ?>"></label>
+				<label>Note <input type="text" name="cb_pricing_tiers[<?php echo esc_attr( $tier_index ); ?>][note]" maxlength="160" placeholder="optional, one line under the row" value="<?php echo esc_attr( $tier['note'] ?? '' ); ?>"></label>
+			</div>
+			<label class="cb-tier-board-check"><input type="checkbox" name="cb_pricing_tiers[<?php echo esc_attr( $tier_index ); ?>][highlight]" value="1" <?php checked( ! empty( $tier['highlight'] ) ); ?>> Highlight this row</label>
+			<label class="cb-tier-board-check"><input type="checkbox" name="cb_pricing_tiers[<?php echo esc_attr( $tier_index ); ?>][single_price]" value="1" <?php checked( ! empty( $tier['single_price'] ) ); ?>> One price only (suites)</label>
+		</div>
+
 		<div class="cb-tier-section">
 			<h4>Occupancy Price Points <span class="description">(one row per headcount sharing this cabin -- e.g. 2 sailors vs. 4 sailors -- with its own explicit price, not a computed split; check "Per Cabin" below a row if that cruise line quotes a whole-cabin total instead of a per-person one)</span></h4>
 			<div class="cb-repeater" data-repeater="occupancy_points" data-index-token="__POINT_INDEX__">
@@ -874,6 +899,8 @@ function cb_render_pricing_tier_row_fields( $tier_index, $tier ) {
 function cb_render_trip_pricing_tiers_meta_box( $post ) {
 	$tiers = get_post_meta( $post->ID, 'cb_pricing_tiers', true );
 	$tiers = is_array( $tiers ) ? $tiers : array();
+	// The price column names (from the trip's provider) for each point's dropdown.
+	$GLOBALS['cbv_lp_price_column_names'] = function_exists( 'cbv_lp_price_columns' ) ? cbv_lp_price_columns( $post->ID ) : array();
 	?>
 	<div class="cb-repeater" data-repeater="cb_pricing_tiers" data-index-token="__TIER_INDEX__">
 		<div class="cb-repeater-rows">
@@ -983,6 +1010,76 @@ add_action( 'save_post_cb_trip', function ( $post_id ) {
 // Insurance line, once Pricing Tiers/Occupancy Points reuse this) must NOT
 // be treated the same as never having filled the row in, unlike PHP's own
 // array_filter() which drops "0" as falsy.
+/**
+ * Posted Pricing Tiers rows -> what gets stored. Blank rows (an added row
+ * nobody filled in) are dropped at every level; cb_repeater_row_is_blank()
+ * recurses into nested arrays, so a tier with a name but no pricing yet
+ * still survives, and a $0 Discount/Insurance value counts as filled in.
+ * Step 8 adds the price-board fields (tier: group, badge, note, highlight,
+ * single_price; point: price_column); none of them changes any price.
+ */
+function cb_sanitize_pricing_tiers( $raw_tiers ) {
+	$tiers = array();
+	foreach ( (array) $raw_tiers as $tier_row ) {
+		if ( ! is_array( $tier_row ) || cb_repeater_row_is_blank( $tier_row ) ) {
+			continue;
+		}
+
+		$occupancy_points = array();
+		foreach ( (array) ( $tier_row['occupancy_points'] ?? array() ) as $point_row ) {
+			if ( ! is_array( $point_row ) || cb_repeater_row_is_blank( $point_row ) ) {
+				continue;
+			}
+			$price_column       = (string) ( $point_row['price_column'] ?? '' );
+			$occupancy_points[] = array(
+				'occupancy_count' => absint( $point_row['occupancy_count'] ?? 0 ),
+				'voyage_fare'     => floatval( $point_row['voyage_fare'] ?? 0 ),
+				'taxes_fees'      => floatval( $point_row['taxes_fees'] ?? 0 ),
+				'gratuities'      => floatval( $point_row['gratuities'] ?? 0 ),
+				'insurance'       => floatval( $point_row['insurance'] ?? 0 ),
+				'discount'        => floatval( $point_row['discount'] ?? 0 ),
+				// Checkbox, not a select/radio -- unchecked means the key is
+				// simply absent from $_POST, so a genuinely blank template
+				// row stays correctly detected as blank by
+				// cb_repeater_row_is_blank() above (a select/radio would
+				// always submit some value, even for an untouched row).
+				// The Step 8 Price column select below is safe because its
+				// default option's value is '' (column 1).
+				'pricing_basis'   => ! empty( $point_row['pricing_basis_per_cabin'] ) ? 'per_cabin' : 'per_person',
+				// New landing design (Step 8): price-board column. '' = column 1, '2'-'4', or 'off' (not on the board).
+				'price_column'    => in_array( $price_column, array( '', '2', '3', '4', 'off' ), true ) ? $price_column : '',
+			);
+		}
+
+		$addons = array();
+		foreach ( (array) ( $tier_row['addons'] ?? array() ) as $addon_row ) {
+			if ( ! is_array( $addon_row ) || cb_repeater_row_is_blank( $addon_row ) ) {
+				continue;
+			}
+			$addons[] = array(
+				'name' => sanitize_text_field( wp_unslash( $addon_row['name'] ?? '' ) ),
+				'qty'  => absint( $addon_row['qty'] ?? 0 ),
+			);
+		}
+
+		$tiers[] = array(
+			'name'             => sanitize_text_field( wp_unslash( $tier_row['name'] ?? '' ) ),
+			'capacity_low'     => absint( $tier_row['capacity_low'] ?? 0 ),
+			'capacity_high'    => absint( $tier_row['capacity_high'] ?? 0 ),
+			'description'      => sanitize_textarea_field( wp_unslash( $tier_row['description'] ?? '' ) ),
+			'occupancy_points' => $occupancy_points,
+			'addons'           => $addons,
+			// New landing design (Step 8): price-board group, badge, note and switches.
+			'group'            => mb_substr( sanitize_text_field( wp_unslash( $tier_row['group'] ?? '' ) ), 0, 60 ),
+			'badge'            => mb_substr( sanitize_text_field( wp_unslash( $tier_row['badge'] ?? '' ) ), 0, 40 ),
+			'note'             => mb_substr( sanitize_text_field( wp_unslash( $tier_row['note'] ?? '' ) ), 0, 160 ),
+			'highlight'        => ! empty( $tier_row['highlight'] ) ? 1 : 0,
+			'single_price'     => ! empty( $tier_row['single_price'] ) ? 1 : 0,
+		);
+	}
+	return $tiers;
+}
+
 function cb_repeater_row_is_blank( $row ) {
 	foreach ( (array) $row as $value ) {
 		if ( is_array( $value ) ) {
@@ -1043,6 +1140,13 @@ add_action( 'admin_footer', function () {
 		.cb-occupancy-point-basis input { width: auto; margin-right: 4px; }
 		.cb-occupancy-point-fields { display: grid; grid-template-columns: 90px 1fr 1fr 1fr 1fr 1fr auto; gap: 8px; align-items: center; }
 		.cb-occupancy-point-computed { margin: 6px 0 0; }
+		.cb-occupancy-point-column { display: block; font-size: 12px; color: #444; margin-top: 6px; }
+		.cb-tier-board { margin: 8px 0 12px; padding: 8px 10px; border: 1px dashed #c3c4c7; border-radius: 4px; }
+		.cb-tier-board-fields { display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 8px; margin: 6px 0; }
+		.cb-tier-board-fields input { width: 100%; }
+		.cb-tier-board-check { display: inline-block; margin-right: 16px; font-size: 12px; }
+		.cb-tier-board-check input { width: auto; margin-right: 4px; }
+		.cb-occupancy-point-column select { width: auto; min-width: 220px; margin-left: 6px; }
 		[data-repeater="addons"] .cb-repeater-row { display: grid; grid-template-columns: 1fr 80px auto; gap: 8px; align-items: center; }
 	</style>
 	<script>
@@ -1178,54 +1282,7 @@ add_action( 'save_post_cb_trip', function ( $post_id ) {
 	// already recurses into nested arrays, so a tier with a name filled in
 	// but no pricing yet still survives, and a $0 Discount/Insurance value
 	// still counts as "filled in" rather than blank.
-	$tiers = array();
-	foreach ( (array) ( $_POST['cb_pricing_tiers'] ?? array() ) as $tier_row ) {
-		if ( cb_repeater_row_is_blank( $tier_row ) ) {
-			continue;
-		}
-
-		$occupancy_points = array();
-		foreach ( (array) ( $tier_row['occupancy_points'] ?? array() ) as $point_row ) {
-			if ( cb_repeater_row_is_blank( $point_row ) ) {
-				continue;
-			}
-			$occupancy_points[] = array(
-				'occupancy_count' => absint( $point_row['occupancy_count'] ?? 0 ),
-				'voyage_fare'     => floatval( $point_row['voyage_fare'] ?? 0 ),
-				'taxes_fees'      => floatval( $point_row['taxes_fees'] ?? 0 ),
-				'gratuities'      => floatval( $point_row['gratuities'] ?? 0 ),
-				'insurance'       => floatval( $point_row['insurance'] ?? 0 ),
-				'discount'        => floatval( $point_row['discount'] ?? 0 ),
-				// Checkbox, not a select/radio -- unchecked means the key is
-				// simply absent from $_POST, so a genuinely blank template
-				// row stays correctly detected as blank by
-				// cb_repeater_row_is_blank() above (a select/radio would
-				// always submit some value, even for an untouched row).
-				'pricing_basis'   => ! empty( $point_row['pricing_basis_per_cabin'] ) ? 'per_cabin' : 'per_person',
-			);
-		}
-
-		$addons = array();
-		foreach ( (array) ( $tier_row['addons'] ?? array() ) as $addon_row ) {
-			if ( cb_repeater_row_is_blank( $addon_row ) ) {
-				continue;
-			}
-			$addons[] = array(
-				'name' => sanitize_text_field( wp_unslash( $addon_row['name'] ?? '' ) ),
-				'qty'  => absint( $addon_row['qty'] ?? 0 ),
-			);
-		}
-
-		$tiers[] = array(
-			'name'             => sanitize_text_field( wp_unslash( $tier_row['name'] ?? '' ) ),
-			'capacity_low'     => absint( $tier_row['capacity_low'] ?? 0 ),
-			'capacity_high'    => absint( $tier_row['capacity_high'] ?? 0 ),
-			'description'      => sanitize_textarea_field( wp_unslash( $tier_row['description'] ?? '' ) ),
-			'occupancy_points' => $occupancy_points,
-			'addons'           => $addons,
-		);
-	}
-	update_post_meta( $post_id, 'cb_pricing_tiers', $tiers );
+	update_post_meta( $post_id, 'cb_pricing_tiers', cb_sanitize_pricing_tiers( $_POST['cb_pricing_tiers'] ?? array() ) );
 
 	// Admin-only per-traveler-per-trip status (Paid in Full, Insurance
 	// Waiver Received, CC Auth Received) -- rendered as plain named inputs
