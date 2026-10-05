@@ -146,6 +146,11 @@ function cbv_lp_render_trip( $trip_id, $view = 'new' ) {
 		echo cbv_lp_render_status( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
 		echo cbv_lp_render_intro( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
 	}
+	if ( function_exists( 'cbv_lp_render_route' ) ) {
+		// Step 6: the route (one card per day) replaces today's itinerary table.
+		echo cbv_lp_render_route( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
+		$legacy = cbv_lp_strip_legacy_itinerary( $legacy );
+	}
 	echo '<div class="cbv-lp-legacy-wrap">' . $legacy . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput -- the renderer escapes its own output
 	return ob_get_clean();
 }

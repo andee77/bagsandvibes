@@ -780,3 +780,170 @@ body.cbv-lp .cbv-lp-intro-body a {
 		transform: rotate(1deg);
 	}
 }
+
+/* ==========================================================================
+   Step 6: route (one card per day).
+   ========================================================================== */
+body.cbv-lp .cbv-lp-route {
+	background: var(--cbv-horizon);
+}
+
+body.cbv-lp .cbv-lp-route-inner {
+	padding-top: 96px;
+	padding-bottom: 96px;
+	display: flex;
+	flex-direction: column;
+	gap: 48px;
+}
+
+body.cbv-lp .cbv-lp-route-head {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-end;
+	gap: 24px;
+	flex-wrap: wrap;
+}
+
+body.cbv-lp .cbv-lp-route-copy {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	min-width: 0;
+}
+
+body.cbv-lp .cbv-lp-route-chain {
+	margin: 0 !important;
+	font-family: 'Space Mono', monospace;
+	font-size: 13px;
+	letter-spacing: 0.1em;
+	color: rgba(251, 243, 231, 0.85);
+	overflow-wrap: anywhere;
+}
+
+body.cbv-lp .cbv-lp-days {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+	gap: 28px;
+	margin: 0 !important;
+	padding: 0 !important;
+	list-style: none !important;
+}
+
+body.cbv-lp .cbv-lp-day {
+	margin: 0 !important;
+	background: var(--cbv-ink);
+	border-radius: 4px;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+}
+
+/* A dashed gold strip stands in for a photo. */
+body.cbv-lp .cbv-lp-day-strip {
+	display: block;
+	height: 8px;
+	background: repeating-linear-gradient(90deg, var(--cbv-gold) 0 10px, transparent 10px 18px);
+}
+
+/* The photo sits in a 3:2 frame (the usual shape of a photo, so most toolkit
+   pictures show whole or nearly whole); the focus point (inline
+   object-position) keeps the subject and any logo in view if it is cropped. */
+body.cbv-lp .cbv-lp-day-img {
+	display: block;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 3 / 2;
+	object-fit: cover;
+}
+
+body.cbv-lp .cbv-lp-day-body {
+	padding: 26px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+body.cbv-lp .cbv-lp-day-eyebrow {
+	margin: 0 !important;
+	font-family: 'Space Mono', monospace;
+	font-size: 12px;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--cbv-gold) !important;
+}
+
+body.cbv-lp .cbv-lp-day-title {
+	margin: 0 !important;
+	font-family: 'Fraunces', serif !important;
+	font-style: normal;
+	font-weight: 400 !important;
+	font-size: 26px;
+	line-height: 1.2;
+	letter-spacing: normal;
+	text-transform: none;
+	color: var(--cbv-cream) !important;
+}
+
+body.cbv-lp .cbv-lp-day-time {
+	margin: 0 !important;
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 1.5;
+	color: var(--cbv-cream) !important;
+}
+
+body.cbv-lp .cbv-lp-day-text p,
+body.cbv-lp .cbv-lp-day-text li {
+	margin: 0 0 10px !important;
+	font-size: 15px;
+	line-height: 1.6;
+	color: rgba(251, 243, 231, 0.82) !important;
+}
+
+body.cbv-lp .cbv-lp-day-text > :last-child {
+	margin-bottom: 0 !important;
+}
+
+body.cbv-lp .cbv-lp-day-text a {
+	color: var(--cbv-gold) !important;
+	text-decoration: underline !important;
+}
+
+body.cbv-lp .cbv-lp-sticker {
+	align-self: flex-start;
+	margin: 4px 0 0 !important;
+	font-family: 'Space Mono', monospace;
+	font-size: 11px;
+	font-weight: 700;
+	line-height: 1.4;
+	padding: 8px 10px;
+	border-radius: 3px;
+	background: var(--cbv-cream);
+	color: var(--cbv-ink) !important;
+	transform: rotate(-2deg);
+}
+
+body.cbv-lp .cbv-lp-sticker::before {
+	content: "\25CF\00a0";
+}
+
+body.cbv-lp .cbv-lp-sticker--highlight {
+	background: var(--cbv-coral);
+	transform: rotate(2deg);
+}
+
+@media (max-width: 600px) {
+	body.cbv-lp .cbv-lp-route-inner {
+		padding-top: 64px;
+		padding-bottom: 64px;
+		gap: 32px;
+	}
+
+	body.cbv-lp .cbv-lp-day-body {
+		padding: 22px 20px;
+	}
+
+	body.cbv-lp .cbv-lp-day-title {
+		font-size: 23px;
+	}
+}

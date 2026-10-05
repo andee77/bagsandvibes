@@ -16,7 +16,7 @@ Working notes for the CBGV admin manual. A new section is added after each build
 - Nothing here changes what the public sees until a trip is switched live (see section 1). You can fill everything in safely ahead of time.
 
 ## What you can see today, and what comes later
-The new design is being built one step at a time. **Right now the new page has the new hero and boarding pass, the status board and the intro at the top** (Steps 4 and 5): new header and footer, those sections, then today's trip content underneath. The remaining new sections (route, price board, included cards, timeline, travel documents and so on) are built in later steps. Everything you enter in the boxes below is saved and waiting; **most of it will not show on the page until the step that draws that section is finished.** This file tells you when each section starts showing.
+The new design is being built one step at a time. **Right now the new page has the new hero and boarding pass, the status board, the intro and the route at the top** (Steps 4 to 6): new header and footer, those sections, then today's trip content underneath. The remaining new sections (route, price board, included cards, timeline, travel documents and so on) are built in later steps. Everything you enter in the boxes below is saved and waiting; **most of it will not show on the page until the step that draws that section is finished.** This file tells you when each section starts showing.
 
 ---
 
@@ -441,8 +441,81 @@ The board changes by itself as you update **Travelers booked (paid deposits)**. 
 
 ---
 
+## 7. Route (Step 6)
+
+One card per day of the trip, under the heading "The Route" (labelled GATE 15 · FLIGHT PATH on a cruise), with a chain of port codes beside it ("MIA → SEA → POP → SEA → BIM → MIA"). Each card shows the day ("DAY 03 · WED OCT 27 · PUERTO PLATA"), a title, the times in port, optional text, an optional sticker and an optional photo.
+
+### Where it is
+- Trips list: https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_trip, then click the trip's name.
+- **Day-by-Day Itinerary** box: the days, ports, codes, types (Embarkation / Arrival / Departure / At Sea / Disembarkation), times and Dock/Tender. The route is built from these rows.
+- **Route days (new design)** box: the route heading and, for each day, a title, text, sticker, photo and focus point.
+- **Public Landing Page Content** box: **Show Itinerary on Public Landing Page** must be ticked.
+
+### How the days are worked out
+- Itinerary rows with the same **date** make one day (a port's Arrival and Departure rows become one card).
+- **DAY 01 is the trip's start date.** The number typed in each row's Day box does not matter (trip 181 numbers its rows from 0 and still shows DAY 01 to DAY 06).
+- The card's place is the day's port, or "At sea".
+- Rows without a date are grouped by their Day number instead. Give every row a date for the neatest result.
+- **The Route days box shows the days as last saved.** After adding or changing itinerary rows, click **Update** / **Save**; the new days then appear in the Route days box.
+
+### The automatic time line
+Written for you from each day's rows (a part with no time is left out):
+
+| Day | Cruise | Other event types |
+|---|---|---|
+| Embarkation | Sail-away 5:00 pm | Departs 5:00 pm |
+| Arrival + Departure, Dock | Docked 10:00 am – 6:00 pm | 10:00 am – 6:00 pm |
+| Arrival + Departure, Tender | Tender port · 10:00 am – 6:00 pm | 10:00 am – 6:00 pm |
+| Arrival + Departure, Dock/Tender blank | In port 10:00 am – 6:00 pm | 10:00 am – 6:00 pm |
+| Arrival only | Arrives 10:00 am (· overnight when the next day departs from the same port) | same |
+| Departure only | Departs 6:00 pm | same |
+| Disembarkation | Back in Miami at 6:30 am | same |
+| At sea | (no time line) | (no time line) |
+
+- **On the Embarkation row, the Time is the sail-away (departure) time**, not the boarding time.
+- Each day can hide its time line with **Hide the automatic time line**.
+- The box shows each day's automatic time line so you can check it before saving.
+
+### The fields in the Route days box
+| Field | What it does |
+|---|---|
+| **Route heading** | The big heading. Leave blank for the event type's default: The Route (cruise, destination), The Plan (resort), The Agenda (corporate). Grey placeholder text is not a saved value. |
+| **Title** (per day) | The card's title, e.g. "Sail-away toast". Blank = the place name. Tokens work. |
+| **Text** (per day) | A few lines under the time line. Blank line = new paragraph; `**bold**`, `*italic*`, `[link](https://...)` and tokens work. |
+| **Sticker** + style (per day) | A small tilted label, e.g. "Tonight: Scarlet Night". **Standard (cream)** or **Highlight (coral)**. Typed text for now; linking stickers to the cruise line's brand features comes later (Step 12). |
+| **Photo** + **Photo focus point** (per day) | Shown across the top of the card instead of the dashed gold strip, in a 3:2 frame (the usual shape of a photo). A picture of a different shape is trimmed a little at the edges; if its subject or a logo sits near an edge, set the focus point and check on a computer and a phone. |
+| **Hide the automatic time line** (per day) | Hides that day's time line. |
+
+### The code chain
+- Built from each port's **Code** (Day-by-Day Itinerary) plus "SEA" for each day at sea. A Code typed on one row of a port covers all its rows.
+- **Shown only when every port day has a Code.** If one port has none, the chain is left out (the cards still show).
+
+### Order to do things in
+1. In **Day-by-Day Itinerary**, check every row has a **date**, the right **type**, the **time** (Embarkation = sail-away time) and **Dock/Tender**, and a **Code** on each port. Tick **Show Itinerary on Public Landing Page**. Click **Update** / **Save**.
+2. In **Route days**, read each day's automatic time line; fix the itinerary rows if one is wrong.
+3. Fill in titles, text, stickers and photos where wanted (Virgin pictures from the First Mates toolkit only, unaltered, with Alt Text in the Media Library; see section 4). Click **Update** / **Save**.
+4. Open **Preview new design** (section 1) and check the route on a computer and a phone.
+
+### Rules worth knowing
+- **Each day's content is stored by its day number from the start date**, so moving the whole trip to new dates keeps every card's content with the right day.
+- **Taking a day out of the itinerary keeps its content** (hidden); putting the day back shows it again. Clearing all of a day's fields in the box removes it.
+- The route hides itself when **Show Itinerary** is off, when "Route / itinerary" is switched Off in the Sections table, or when the itinerary is empty.
+- **Today's itinerary table is removed from the new design** (the route replaces it). Today's public page is unchanged.
+- **A frame must never hide Virgin's logo/branding or change what the photo shows.**
+
+### Common mistakes
+- Typing the boarding time on the Embarkation row: the card then says "Sail-away" at the wrong time.
+- Leaving a row without a date, so the day shows in the wrong place or with no date.
+- Adding itinerary days and looking for them in the Route days box before clicking Update / Save.
+- Typing a Code on some ports but not all, then wondering why the code chain is missing.
+- Typing the time again in a day's Text: it is already in the automatic time line (or hide the time line first).
+- A photo that is not 3:2 (for example very wide or tall) with a logo near the edge and the focus point left at Centre: the edge can be trimmed. Set the focus point towards the logo.
+- Grey placeholder text in a field is not a saved value; type it in.
+
+---
+
 ## Coming in later steps (this file will be extended after each)
-- Route (itinerary extras); featured moment and gallery
+- Featured moment and gallery
 - Price board: pricing data, all-in price breakdown, how a price column is tagged
 - Registration opt-outs (gratuities and Voyage Protection) and the decline acknowledgment
 - Included cards and upgrades; pack list, group perks and timeline

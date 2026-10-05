@@ -21,19 +21,28 @@ test files into `/tmp/cbv_t/`.
 ```bash
 wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_step4.php
 wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_step5.php
+wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_step6.php
 bash /tmp/cbv_t/mutate_step5.sh
+bash /tmp/cbv_t/mutate_step6.sh
 ```
 
 Set `CBV_VERBOSE=1` to list every passing check. Each suite ends with
 `N checks, N failures`. The mutation script breaks one behaviour at a time in a
 throwaway copy (`/tmp/cbv_mut`) and every mutant must cause at least one failure.
-It expects the Step 5 suite at `/tmp/cbv_t/test_step5.php`.
+Each mutation script expects its suite in `/tmp/cbv_t/`.
 
 | File | Covers | Expected |
 |---|---|---|
 | `test_step4.php` | Hero, boarding pass, itinerary stop codes | 123 checks, 0 failures |
 | `test_step5.php` | Status board (three stages), intro, GATE counter, link safety in the text formatter | 138 checks, 0 failures |
 | `mutate_step5.sh` | Mutation tests for Step 5 | 23 mutants, all caught |
+| `test_step6.php` | Route: days from the itinerary, time line, code chain, Route days box, legacy table removal | 102 checks, 0 failures |
+| `mutate_step6.sh` | Mutation tests for Step 6 | 19 mutants, all caught |
 
 Some checks read trip 181 (Annual Family and Friends) as it is on the live
-site, so they can need updating if that trip's data changes.
+site (its intro text, itinerary and stored times), so they can need updating if
+that trip's data changes (for example when its Embarkation / Disembarkation
+times are corrected).
+
+Note: `wp eval-file` runs each file inside a function, so a variable a helper
+function needs must be shared through `$GLOBALS` (a plain `global` does not see it).
