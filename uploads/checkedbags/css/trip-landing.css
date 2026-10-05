@@ -947,3 +947,259 @@ body.cbv-lp .cbv-lp-sticker--highlight {
 		font-size: 23px;
 	}
 }
+
+/* ==========================================================================
+   Step 7: featured moment and gallery.
+   ========================================================================== */
+
+/* ---- Featured moment ----
+   Background colours (all pass WCAG AA with the cream text and gold label,
+   checked 2026-10-05). The teal is a deeper shade of the brand Palm teal,
+   used for this band only: the brand teal itself is too light behind cream
+   text. */
+body.cbv-lp .cbv-lp-featured {
+	background: var(--cbv-horizon);
+}
+
+/* Ink is also the page's own background, so the band is marked with the
+   footer's thin muted-gold edge at the top and bottom. */
+body.cbv-lp .cbv-lp-featured--ink {
+	background: var(--cbv-ink);
+	border-top: 1px solid rgba(232, 169, 78, 0.35);
+	border-bottom: 1px solid rgba(232, 169, 78, 0.35);
+}
+
+body.cbv-lp .cbv-lp-featured--teal {
+	background: #174A41;
+}
+
+body.cbv-lp .cbv-lp-featured--red {
+	background: #5E0B12;
+}
+
+body.cbv-lp .cbv-lp-featured-inner {
+	padding-top: 100px;
+	padding-bottom: 100px;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+	gap: 56px;
+	align-items: center;
+}
+
+body.cbv-lp .cbv-lp-featured-inner--solo {
+	grid-template-columns: minmax(0, 820px);
+}
+
+body.cbv-lp .cbv-lp-featured-photos {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 18px;
+}
+
+body.cbv-lp .cbv-lp-featured-photos--one {
+	grid-template-columns: minmax(0, 360px);
+}
+
+/* Tall 2:3 frames; the focus point (inline object-position) keeps the
+   subject and any logo in view. The second photo sits a little lower. */
+body.cbv-lp .cbv-lp-featured-img {
+	display: block;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 2 / 3;
+	object-fit: cover;
+	border-radius: 4px;
+}
+
+body.cbv-lp .cbv-lp-featured-photos > .cbv-lp-featured-img:nth-child(2) {
+	margin-top: 48px;
+}
+
+body.cbv-lp .cbv-lp-featured-copy {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	min-width: 0;
+}
+
+body.cbv-lp .cbv-lp-featured-title {
+	font-size: 64px;
+	line-height: 1;
+}
+
+body.cbv-lp .cbv-lp-featured-text p,
+body.cbv-lp .cbv-lp-featured-text li {
+	margin: 0 0 14px !important;
+	font-size: 17px;
+	line-height: 1.7;
+	color: rgba(251, 243, 231, 0.92) !important;
+}
+
+body.cbv-lp .cbv-lp-featured-text > :last-child {
+	margin-bottom: 0 !important;
+}
+
+body.cbv-lp .cbv-lp-featured-text a,
+body.cbv-lp .cbv-lp-gallery-intro a {
+	color: var(--cbv-gold) !important;
+	text-decoration: underline !important;
+}
+
+/* The note card: dark text on cream (14.6:1), tilted like a pinned note. */
+body.cbv-lp .cbv-lp-note {
+	align-self: flex-start;
+	max-width: 420px;
+	background: var(--cbv-cream);
+	color: var(--cbv-ink);
+	border-radius: 4px;
+	padding: 22px 24px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	transform: rotate(-1.5deg);
+}
+
+body.cbv-lp .cbv-lp-note-label {
+	margin: 0 !important;
+	font-family: 'Space Mono', monospace;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: #8A1A12 !important;
+}
+
+body.cbv-lp .cbv-lp-note-text {
+	margin: 0 !important;
+	font-size: 15px;
+	line-height: 1.6;
+	color: var(--cbv-ink) !important;
+}
+
+body.cbv-lp .cbv-lp-note-text a {
+	color: var(--cbv-ink) !important;
+	text-decoration: underline !important;
+}
+
+/* ---- Gallery ---- */
+body.cbv-lp .cbv-lp-gallery-inner {
+	padding-top: 100px;
+	padding-bottom: 100px;
+	display: flex;
+	flex-direction: column;
+	gap: 48px;
+}
+
+body.cbv-lp .cbv-lp-gallery-head {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	max-width: 640px;
+}
+
+body.cbv-lp .cbv-lp-gallery-intro {
+	margin: 0 !important;
+	font-size: 17px;
+	line-height: 1.65;
+	color: rgba(251, 243, 231, 0.85) !important;
+}
+
+/* Five prints per row (three on a tablet, two on a phone). A flex row that
+   centres its items, so an incomplete last row (the 10th print on a tablet)
+   sits centred instead of hanging off to the left. */
+body.cbv-lp .cbv-lp-prints {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 24px 20px;
+	margin: 0 !important;
+	padding: 0 !important;
+	list-style: none !important;
+}
+
+body.cbv-lp .cbv-lp-print-item {
+	flex: 0 0 calc((100% - 4 * 20px) / 5);
+	margin: 0 !important;
+	min-width: 0;
+}
+
+body.cbv-lp .cbv-lp-print-item:nth-child(even) {
+	margin-top: 24px !important;
+}
+
+body.cbv-lp .cbv-lp-print {
+	margin: 0 !important;
+	background: var(--cbv-cream);
+	padding: 9px 9px 30px;
+	box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+	transform: rotate(-3deg);
+}
+
+body.cbv-lp .cbv-lp-print-item:nth-child(5n+2) .cbv-lp-print {
+	transform: rotate(2.5deg);
+}
+
+body.cbv-lp .cbv-lp-print-item:nth-child(5n+3) .cbv-lp-print {
+	transform: rotate(-1.5deg);
+}
+
+body.cbv-lp .cbv-lp-print-item:nth-child(5n+4) .cbv-lp-print {
+	transform: rotate(3deg);
+}
+
+body.cbv-lp .cbv-lp-print-item:nth-child(5n) .cbv-lp-print {
+	transform: rotate(-2deg);
+}
+
+/* 4:5 frames; the focus point keeps the subject and any logo in view. */
+body.cbv-lp .cbv-lp-print-img {
+	display: block;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 4 / 5;
+	object-fit: cover;
+}
+
+body.cbv-lp .cbv-lp-print figcaption {
+	padding-top: 9px;
+	font-family: 'Space Mono', monospace;
+	font-size: 11px;
+	line-height: 1.4;
+	text-align: center;
+	color: var(--cbv-ink);
+}
+
+@media (max-width: 900px) {
+	body.cbv-lp .cbv-lp-print-item {
+		flex-basis: calc((100% - 2 * 20px) / 3);
+	}
+}
+
+@media (max-width: 600px) {
+	body.cbv-lp .cbv-lp-featured-inner,
+	body.cbv-lp .cbv-lp-gallery-inner {
+		padding-top: 64px;
+		padding-bottom: 64px;
+		gap: 36px;
+	}
+
+	body.cbv-lp .cbv-lp-featured-title {
+		font-size: 42px;
+	}
+
+	body.cbv-lp .cbv-lp-featured-photos > .cbv-lp-featured-img:nth-child(2) {
+		margin-top: 32px;
+	}
+
+	body.cbv-lp .cbv-lp-prints {
+		gap: 18px 14px;
+	}
+
+	body.cbv-lp .cbv-lp-print-item {
+		flex-basis: calc((100% - 14px) / 2);
+	}
+
+	body.cbv-lp .cbv-lp-print-item:nth-child(even) {
+		margin-top: 18px !important;
+	}
+}

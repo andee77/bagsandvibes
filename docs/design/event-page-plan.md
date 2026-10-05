@@ -33,7 +33,7 @@ Virgin Voyages is seeded from the reference (separate approval; text reviewed in
 | 4 | CSS foundation, hero, boarding pass (+ itinerary stop codes) | Live 2026-10-04 (da5962f; 123 checks + 13 mutation tests). Public pages unchanged: the new design is still preview-only. New `checkedbags-lp-hero.php`, `trip-landing.js`; edits to `checkedbags-lp-core.php`, `checkedbags-trips.php` (Code column), `trip-landing.css`. Visual check: `docs/audits/step4-hero-preview-2026-10-04.html` |
 | 5 | Status board, intro | Built 2026-10-05, revised after review (stages, "Travelers"), approved 2026-10-05 (138 checks incl. link safety + 23 mutation tests; Step 3 suite 186/186, Step 4 suite 123/123 with its pass-title expectation updated to "Traveler"; both suites now kept in `tests/landing/`). New `checkedbags-lp-intro.php` (status board, intro, "Status board & intro" box, GATE counter); edits to `checkedbags-lp-core.php` (render order, GATE reset), `checkedbags-lp-context.php` (cruise people-word), `checkedbags-lp-fields.php` (help text) and `trip-landing.css`. Visual check: `docs/audits/step5-status-intro-preview-2026-10-05.html` |
 | 6 | Route (itinerary extras) | Built 2026-10-05, awaiting approval (102 checks + 19 mutation tests; Step 4 123/123 and Step 5 138/138 re-run). New `checkedbags-lp-route.php` (route, time line, code chain, "Route days" box, legacy itinerary table removal); edit to `checkedbags-lp-core.php` (render order) and `trip-landing.css`. Visual check: `docs/audits/step6-route-preview-2026-10-05.html` |
-| 7 | Featured moment, gallery | |
+| 7 | Featured moment, gallery | Built 2026-10-05, awaiting approval (64 checks + 17 mutation tests; Steps 4-6 suites re-run). New `checkedbags-lp-featured.php` (featured moment, gallery, both trip boxes); edit to `checkedbags-lp-core.php` (render order) and `trip-landing.css`. Visual check: `docs/audits/step7-featured-gallery-preview-2026-10-05.html` |
 | 8 | **Price board data** (see below) | |
 | 9 | Price board render | |
 | 9b | **Registration: opt-outs and decline acknowledgment** (new, see below; number to be assigned) | |
@@ -131,6 +131,18 @@ Open items before building 9b:
 - **Brand features attach to days in Step 12**; Step 6 stickers are typed text.
 - **Trip 181 times to confirm (owner checking against Virgin's itinerary, 2026-10-05):** Embarkation is stored as 12:01 (likely 17:00 sail-away) and Disembarkation as 18:30 (likely 06:30). Not to be changed until confirmed; the automatic time line shows whatever is stored.
 
+## Step 7: decisions recorded 2026-10-05
+- **One featured moment per trip**, in a new "Featured moment (new design)" box: title (no title = no section), optional **Day** (a dropdown of the trip's route days, **stored by day number from the start date** like the route days, so it survives a date move; adds "DAY 02" to the label "GATE 16 · DAY 02 · AFTER DARK"), text (light markup + tokens), optional note card (label + one line, e.g. "Dress code · All red"), up to **2 photos** in a 2:3 portrait frame with focus points (no photos = text full width), and a **background colour**.
+- **Background colours:** Horizon blue `#1B3A4B` (default), Ink `#16232B`, Palm teal and a **Deep red** accent `#5E0B12` for red-themed events. No free colour field.
+  - **Contrast checked (WCAG AA needs 4.5:1 for body text):** cream title / body text / gold label: Horizon 10.9 / 9.5 / 5.8; Ink 14.6 / 12.5 / 7.8; Deep red 12.5 / 10.6 / 6.7 — all pass. **Brand Palm teal `#2E7D6E` fails** (4.5 / 4.1 / 2.4), so the band uses a **deeper shade of the brand teal, `#174A41`** (9.1 / 8.0 / 4.9, all pass). **Approved 2026-10-05: `#174A41` for the featured band only; the brand Palm teal `#2E7D6E` stays unchanged everywhere else.** The note card (ink on cream, 14.6) passes on every option. **Ink band edge (2026-10-05, after review):** Ink is also the page background, so an Ink band gets a 1px muted-gold line top and bottom, the same as the footer's top edge (`rgba(232,169,78,0.35)`); the other colours have no line.
+- **Gallery** in a new "Gallery (new design)" box: heading, intro line, up to **10 photos** (caption + focus point each, 4:5 frame, tilted prints), ordered with **Up / Down / Remove** buttons; "Add photos" opens the Media Library for several at once. No photos = no section. Only admin-chosen Media Library photos are used, never the members' Gate 08 uploads.
+- **Rows:** 5 per row on a computer, 3 on a tablet, 2 on a phone. **An incomplete last row is centred** (on a tablet the 10th photo sits centred under the row above), so it looks intentional.
+- **No lightbox** in Step 7.
+- **Alt text:** every featured/gallery photo needs Alt Text in its Media Library entry (admin manual section 4); the page reads it from there.
+- GATE numbers continue automatically (featured 16, gallery 17 after the route); hidden sections do not use a number.
+- Today's legacy "Highlights" boxes stay until Steps 10-11 (their content belongs to "What's included" / "Group perks").
+- Brand features feeding the featured moment stays open for Step 12.
+
 ## Step 12: trip-side document editor (rules recorded 2026-10-03)
 - **A trip document with the same title as a provider document REPLACES it; otherwise trip documents are appended.** (Today, in Step 3b, the provider's documents are shown first and the trip's own are only appended; the same-title replace rule arrives with this editor.)
 - Follow-ups for this step, from the Step 3b review and admin check (all concern the trip key-date box):
@@ -161,6 +173,7 @@ Placement: items 1-3 in **Step 12** (they are trip-side editors over provider co
 - Further items are added here as steps ship.
 
 ## Open decisions and unverified claims (running list)
+- **Tidy-up (later, not scheduled):** gallery box, when the gallery already holds 10 photos, "Add photos" should say "The gallery is full (10 photos)" instead of "Only the first 0 were added" (today the button is disabled at 10, but the wording should still be clear if it is reached). Recorded 2026-10-05.
 - **Before quoting a Royal Caribbean or Carnival trip:** change the admin and proposal wording from "Sailors" to "travelers" (the "# Sailors" column labels in the Pricing Tiers / Occupancy Points editor in `checkedbags-trips.php` and the proposal PDF table in `checkedbags-proposal-pdf.php`), matching the Step 5 decision that cruise wording says "Travelers". Left as is for now (decided 2026-10-05).
 - **Text formatter, links containing ")":** a link address stops at its first ")", so `[x](https://en.wikipedia.org/wiki/Bimini_(island))` loses the last ")" and leaves it in the text. Safe (only http, https, mailto and tel links are ever made; `javascript:`, `data:` and others are dropped, tested in `tests/landing/test_step5.php`), but worth fixing in the formatter (`cbv_lp_inline`, Step 2) at a later step. Found 2026-10-05.
 - Registration and price-breakdown items listed under Steps 8 and 9b.

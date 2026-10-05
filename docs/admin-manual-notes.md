@@ -16,7 +16,7 @@ Working notes for the CBGV admin manual. A new section is added after each build
 - Nothing here changes what the public sees until a trip is switched live (see section 1). You can fill everything in safely ahead of time.
 
 ## What you can see today, and what comes later
-The new design is being built one step at a time. **Right now the new page has the new hero and boarding pass, the status board, the intro and the route at the top** (Steps 4 to 6): new header and footer, those sections, then today's trip content underneath. The remaining new sections (route, price board, included cards, timeline, travel documents and so on) are built in later steps. Everything you enter in the boxes below is saved and waiting; **most of it will not show on the page until the step that draws that section is finished.** This file tells you when each section starts showing.
+The new design is being built one step at a time. **Right now the new page has the new hero and boarding pass, the status board, the intro, the route, the featured moment and the gallery at the top** (Steps 4 to 7): new header and footer, those sections, then today's trip content underneath. The remaining new sections (route, price board, included cards, timeline, travel documents and so on) are built in later steps. Everything you enter in the boxes below is saved and waiting; **most of it will not show on the page until the step that draws that section is finished.** This file tells you when each section starts showing.
 
 ---
 
@@ -271,6 +271,7 @@ The tokens work in provider text as soon as the section that holds that text is 
 - Use it **unaltered**. Web compression (making the file smaller so the page loads fast) is fine. **Do not crop it, edit it, or add logos or text onto the image or video file itself.**
 - Upload it in the Media Library: https://bagsandvibes.com/wp-admin/upload.php (add new files: https://bagsandvibes.com/wp-admin/media-new.php).
 - Give it a clear file name and descriptive alt text (what the picture shows).
+- **Every photo used on the new page (intro, route days, featured moment, gallery) needs Alt Text in its Media Library entry**: open the picture in https://bagsandvibes.com/wp-admin/upload.php, fill in **Alt Text** with a short description of what the picture shows (e.g. "Sailors in red dancing at the Scarlet Night deck party"), and it saves by itself. The page reads the alt text from there, so screen readers describe the picture and search engines understand it. A caption on the page does not replace it.
 - Add a line to the media sources list, `docs/media-sources.md`: file name, what it shows, "First Mates marketing toolkit". Keep the original download from the toolkit so any file can be traced back.
 
 ### Virgin's brand rules ("With Love From" brand guidelines, Nov 2024)
@@ -514,8 +515,59 @@ Written for you from each day's rows (a part with no time is left out):
 
 ---
 
+## 8. Featured moment and gallery (Step 7)
+
+Two sections after the route:
+- The **featured moment**: one signature event per trip (for example Scarlet Night) on a coloured band, with a small label ("GATE 16 · DAY 02 · AFTER DARK"), a big title, a paragraph, an optional pinned note card ("Dress code · All red") and up to two tall photos.
+- The **gallery** (GATE 17 · LIFE ON BOARD on a cruise): a heading, one intro line and up to 10 photos shown as tilted prints with short captions.
+
+### Where it is
+- Trips list: https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_trip, then click the trip's name.
+- **Featured moment (new design)** box and **Gallery (new design)** box (main column).
+- **Landing Page Settings (new design)** box: the **Sections** table, where "Featured moment" and "Photo gallery" can be switched On or Off for this trip.
+
+### The fields in the Featured moment box
+| Field | What it does |
+|---|---|
+| **Title** | The big heading. **No title = no featured section.** Tokens work. |
+| **Day** | Optional. Pick one of the trip's days (the list comes from the Day-by-Day Itinerary, as in the Route days box). Adds "DAY 02" to the small label. Stored by day number, so moving the trip's dates keeps it on the right day. A day that is no longer in the itinerary stays selected but is not shown on the page. |
+| **Text** | A paragraph or two. Blank line = new paragraph; `**bold**`, `*italic*`, `[link](https://...)` and tokens work. |
+| **Note card** | Optional: a small label (up to 40 characters) and one line (up to 200), shown on a cream card. Leave both blank for no card. |
+| **Photo 1**, **Photo 2** + focus points | Optional, shown in a tall 2:3 frame; photo 2 sits a little lower. One photo works too. No photos = the text runs full width. |
+| **Background colour** | Horizon blue (default), Ink, Deep palm teal, or Deep red (for red-themed events). All four keep the text easy to read. The teal is a deeper shade of the brand teal, used only here. Ink is the page's own background, so an Ink band gets a thin gold line at its top and bottom. |
+
+### The fields in the Gallery box
+| Field | What it does |
+|---|---|
+| **Heading** | The big heading. Blank = the section name ("Life on board" on a cruise, "The place" for a resort ...). |
+| **Intro line** | One short line under the heading. `**bold**` and links work. |
+| **Photos** | Up to **10**. **Add photos** opens the Media Library; choose several at once (only the first ones that fit are added once the gallery holds 10). Each photo has a **Caption** (up to 60 characters, optional) and a **Focus** point. **Up** / **Down** change the order; **Remove** takes a photo out of the gallery (the picture stays in the Media Library). Changes are saved when you click Update / Save. **No photos = no gallery section.** |
+
+### Order to do things in
+1. Upload the pictures (Virgin pictures from the First Mates toolkit only, unaltered, logged in `docs/media-sources.md`; see section 4).
+2. **Give every picture Alt Text in its Media Library entry** (section 4). The page reads it from there; a caption does not replace it.
+3. Fill in the Featured moment box (title, day, text, note, photos, colour) and the Gallery box (heading, intro, photos in the order you want, captions).
+4. Click **Update** / **Save**, then open **Preview new design** (section 1) on a computer and a phone.
+
+### Rules worth knowing
+- **Only pictures you choose from the Media Library are used.** Photos members upload to a trip's own gallery (Gate 08) never appear on the public page.
+- Photos are shown in fixed frames (2:3 for the featured moment, 4:5 for gallery prints). A picture of another shape is trimmed at the edges; use the focus point so the subject and any logo stay in view. **A frame must never hide Virgin's logo/branding or change what the photo shows.**
+- On a tablet the gallery shows three prints per row; a last row with fewer prints is centred.
+- GATE numbers follow on automatically; a hidden section does not use a number.
+- Defaults by event type: the featured moment is On for Cruise, Destination and Party / Add-on; the gallery is On for every type except Party / Add-on and Corporate. Any trip can switch either in the Sections table.
+- Today's "Highlights" boxes on the current page stay for now; they move into "What's included" / "Group perks" in later steps.
+
+### Common mistakes
+- Filling in the featured photos and text but no **Title**, then wondering why the section is missing.
+- Uploading gallery pictures without **Alt Text**.
+- Expecting **Remove** to delete the picture: it only takes it out of this trip's gallery.
+- Adding photos and leaving the page without clicking **Update** / **Save** (the order and removals are not kept).
+- Choosing the Deep red band for a night that is not red-themed; Horizon blue is the safe default.
+- Grey placeholder text in a field is not a saved value; type it in.
+
+---
+
 ## Coming in later steps (this file will be extended after each)
-- Featured moment and gallery
 - Price board: pricing data, all-in price breakdown, how a price column is tagged
 - Registration opt-outs (gratuities and Voyage Protection) and the decline acknowledgment
 - Included cards and upgrades; pack list, group perks and timeline

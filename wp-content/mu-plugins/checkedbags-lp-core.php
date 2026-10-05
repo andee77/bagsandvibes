@@ -151,6 +151,11 @@ function cbv_lp_render_trip( $trip_id, $view = 'new' ) {
 		echo cbv_lp_render_route( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
 		$legacy = cbv_lp_strip_legacy_itinerary( $legacy );
 	}
+	if ( function_exists( 'cbv_lp_render_featured' ) ) {
+		// Step 7: the featured moment, then the gallery.
+		echo cbv_lp_render_featured( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
+		echo cbv_lp_render_gallery( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
+	}
 	echo '<div class="cbv-lp-legacy-wrap">' . $legacy . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput -- the renderer escapes its own output
 	return ob_get_clean();
 }

@@ -22,8 +22,10 @@ test files into `/tmp/cbv_t/`.
 wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_step4.php
 wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_step5.php
 wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_step6.php
+wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_step7.php
 bash /tmp/cbv_t/mutate_step5.sh
 bash /tmp/cbv_t/mutate_step6.sh
+bash /tmp/cbv_t/mutate_step7.sh
 ```
 
 Set `CBV_VERBOSE=1` to list every passing check. Each suite ends with
@@ -38,6 +40,8 @@ Each mutation script expects its suite in `/tmp/cbv_t/`.
 | `mutate_step5.sh` | Mutation tests for Step 5 | 23 mutants, all caught |
 | `test_step6.php` | Route: days from the itinerary, time line, code chain, Route days box, legacy table removal | 102 checks, 0 failures |
 | `mutate_step6.sh` | Mutation tests for Step 6 | 19 mutants, all caught |
+| `test_step7.php` | Featured moment, gallery, their boxes and save | 64 checks, 0 failures |
+| `mutate_step7.sh` | Mutation tests for Step 7 | 17 mutants, all caught |
 
 Some checks read trip 181 (Annual Family and Friends) as it is on the live
 site (its intro text, itinerary and stored times), so they can need updating if
