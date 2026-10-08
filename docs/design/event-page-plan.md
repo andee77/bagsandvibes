@@ -35,7 +35,8 @@ Virgin Voyages is seeded from the reference (separate approval; text reviewed in
 | 6 | Route (itinerary extras) | Built 2026-10-05, awaiting approval (102 checks + 19 mutation tests; Step 4 123/123 and Step 5 138/138 re-run). New `checkedbags-lp-route.php` (route, time line, code chain, "Route days" box, legacy itinerary table removal); edit to `checkedbags-lp-core.php` (render order) and `trip-landing.css`. Visual check: `docs/audits/step6-route-preview-2026-10-05.html` |
 | 7 | Featured moment, gallery | Built 2026-10-05, awaiting approval (64 checks + 17 mutation tests; Steps 4-6 suites re-run). New `checkedbags-lp-featured.php` (featured moment, gallery, both trip boxes); edit to `checkedbags-lp-core.php` (render order) and `trip-landing.css`. Visual check: `docs/audits/step7-featured-gallery-preview-2026-10-05.html` |
 | 8 | **Price board data** (see below) | Built 2026-10-05, awaiting approval (59 checks + 20 mutation tests; Steps 4-7 suites re-run). New `checkedbags-lp-prices.php` (price columns, all-in breakdown, board data); `checkedbags-trips.php` (Pricing Tiers: tier Group / Badge / Note / Highlight / One price only, point Price column; tier sanitizing moved into `cb_sanitize_pricing_tiers()`, junk rows now skipped); `checkedbags-proposal-pdf.php` ("Fare" column). Nothing drawn on any page yet |
-| 9 | Price board render | |
+| 8b | **CBGV group planning fee** (new 2026-10-08; see below) | Requirement recorded; build proposed, awaiting approval. Step 9 waits for this |
+| 9 | Price board render | Plan presented 2026-10-08; waits for Step 8b |
 | 9b | **Registration: opt-outs and decline acknowledgment** (new, see below; number to be assigned) | |
 | 10 | Included cards, upgrades | |
 | 11 | Pack list, perks, timeline (provider merge) | |
@@ -70,6 +71,29 @@ Checked 2026-10-05 (read-only): both Family & Friends (181) and Helmets (320) st
 - **Proposal PDF:** a "Fare" column showing each point's price-column name.
 - **Virgin Groups Offer (note, to confirm with Ruel):** per Virgin's Groups Offer, **only Sea Terrace and Central Sea Terrace cabins (Essential or Premium) can be held in the group block**; other cabins join as **"FIT to include"** (booked alongside the group) **without the group bar tab or group discount**. Once confirmed, the board will likely need the per-tier Note on those rows (e.g. "Booked alongside the group; group perks apply to Sea Terrace") and the perks/included wording (Steps 10-11) must not promise the bar tab or discount to non-block cabins.
 - **Helmets (trip 320) data check, owner checking the quote (2026-10-05):** its occupancy points are marked per person but the numbers look like whole-cabin totals (taxes $404 for 2, $606 for 3), which would make today's per-person prices 2-3x too high on Gate 07 and the current landing page. No change until confirmed; any fix is a trip-record write through the real box with the owner's go-ahead, separate from Step 8.
+
+## Step 8b: CBGV group planning fee (requirement recorded 2026-10-08; not built)
+**Who charges it:** the fee is **Checked Bags & Good Vibes' own group planning fee** (CBGV, run by LaDon Headen, does the group planning). It is **not a travel agent fee**: Andee is the travel agent who books through InteleTravel, and cruise payments go directly to the cruise line.
+
+**Requirement (owner, 2026-10-08):**
+- A **standard fee per event type** (cruise, resort, destination ...), set once, with a **per-trip override**.
+- **Basis** selectable: **per traveler**, **per cabin**, or **flat per booking**.
+- Shown as its **own fifth line** in the all-in breakdown, labelled **"CBGV group planning fee"**, **included in the all-in total**, **never folded into the cruise fare**, and **not opt-out** (the Step 9b opt-outs stay gratuities and Voyage Protection only).
+- A **note under the price board**: the planning fee is paid to Checked Bags & Good Vibes for group coordination; cruise payments go directly to the cruise line.
+- **Proposal PDF:** the fee as its own column.
+- **Refund rule depends on timing:** a key date (e.g. `planning_fee_refund_cutoff`) so the page can say "refundable until {date}". The exact rule goes in CBGV's Terms page later.
+
+**Refund policy (decided; approved by LaDon Headen, recorded 2026-10-08).** Full text: `docs/policies/cbgv-planning-fee-refunds.md` (source for the footer Terms page later).
+- **Full refund within 7 days of paying**, if the trip is **120+ days away** (on the day of payment).
+- **50% refund** after that, **until the trip's final payment date**.
+- **Non-refundable from the final payment date.**
+- **Transfers** to a replacement traveler at **no charge**.
+- **Full refund if CBGV or the supplier cancels**; if **rescheduled**, the fee **carries over** (full refund if the traveler can't make the new date).
+- Refunds to the **original payment method within 14 days**.
+- **Same structure for every trip type.** The cutoff is the **trip's own final payment date**: use **`{date:final_payment}`** (provider key date with any trip override), so no separate `planning_fee_refund_cutoff` key date or per-type refund setting is needed (this replaces that part of the requirement above).
+- **Price board line (exact wording):** "The CBGV planning fee is fully refundable within 7 days of paying, 50% refundable until {date:final_payment}, and non-refundable after that. Full refund if the trip is cancelled."
+
+**Status:** build proposal presented 2026-10-08 (decisions pending). Step 9 (price board render) waits for Step 8b so the board is drawn with the fee line from the start.
 
 ## Step 9b: Registration opt-outs and decline acknowledgment (decision recorded 2026-10-03)
 The tagged registration (`/join/?trip=CODE`, the traveler intake) gets two opt-out boxes, both unticked by default (sailors always actively opt out):
