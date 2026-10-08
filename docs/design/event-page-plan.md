@@ -35,7 +35,7 @@ Virgin Voyages is seeded from the reference (separate approval; text reviewed in
 | 6 | Route (itinerary extras) | Built 2026-10-05, awaiting approval (102 checks + 19 mutation tests; Step 4 123/123 and Step 5 138/138 re-run). New `checkedbags-lp-route.php` (route, time line, code chain, "Route days" box, legacy itinerary table removal); edit to `checkedbags-lp-core.php` (render order) and `trip-landing.css`. Visual check: `docs/audits/step6-route-preview-2026-10-05.html` |
 | 7 | Featured moment, gallery | Built 2026-10-05, awaiting approval (64 checks + 17 mutation tests; Steps 4-6 suites re-run). New `checkedbags-lp-featured.php` (featured moment, gallery, both trip boxes); edit to `checkedbags-lp-core.php` (render order) and `trip-landing.css`. Visual check: `docs/audits/step7-featured-gallery-preview-2026-10-05.html` |
 | 8 | **Price board data** (see below) | Built 2026-10-05, awaiting approval (59 checks + 20 mutation tests; Steps 4-7 suites re-run). New `checkedbags-lp-prices.php` (price columns, all-in breakdown, board data); `checkedbags-trips.php` (Pricing Tiers: tier Group / Badge / Note / Highlight / One price only, point Price column; tier sanitizing moved into `cb_sanitize_pricing_tiers()`, junk rows now skipped); `checkedbags-proposal-pdf.php` ("Fare" column). Nothing drawn on any page yet |
-| 8b | **CBGV group planning fee** (new 2026-10-08; see below) | Requirement recorded; build proposed, awaiting approval. Step 9 waits for this |
+| 8b | **CBGV Group Experience Fee** (new 2026-10-08; see below) | Built 2026-10-08 (64 checks, 29 mutants caught); awaiting diff review and deploy approval. Step 9 waits for this |
 | 9 | Price board render | Plan presented 2026-10-08; waits for Step 8b |
 | 9b | **Registration: opt-outs and decline acknowledgment** (new, see below; number to be assigned) | |
 | 10 | Included cards, upgrades | |
@@ -72,18 +72,20 @@ Checked 2026-10-05 (read-only): both Family & Friends (181) and Helmets (320) st
 - **Virgin Groups Offer (note, to confirm with Ruel):** per Virgin's Groups Offer, **only Sea Terrace and Central Sea Terrace cabins (Essential or Premium) can be held in the group block**; other cabins join as **"FIT to include"** (booked alongside the group) **without the group bar tab or group discount**. Once confirmed, the board will likely need the per-tier Note on those rows (e.g. "Booked alongside the group; group perks apply to Sea Terrace") and the perks/included wording (Steps 10-11) must not promise the bar tab or discount to non-block cabins.
 - **Helmets (trip 320) data check, owner checking the quote (2026-10-05):** its occupancy points are marked per person but the numbers look like whole-cabin totals (taxes $404 for 2, $606 for 3), which would make today's per-person prices 2-3x too high on Gate 07 and the current landing page. No change until confirmed; any fix is a trip-record write through the real box with the owner's go-ahead, separate from Step 8.
 
-## Step 8b: CBGV group planning fee (requirement recorded 2026-10-08; not built)
-**Who charges it:** the fee is **Checked Bags & Good Vibes' own group planning fee** (CBGV, run by LaDon Headen, does the group planning). It is **not a travel agent fee**: Andee is the travel agent who books through InteleTravel, and cruise payments go directly to the cruise line.
+## Step 8b: CBGV Group Experience Fee (requirement recorded 2026-10-08; built, awaiting deploy approval)
+**Renamed 2026-10-08 (compliance update, wording only):** formerly the "CBGV group planning fee". Every label travelers or admins see now says **"CBGV Group Experience Fee"** (settings page, trip box, breakdown line, PDF column, board note, admin manual, refund policy, now `docs/policies/cbgv-group-experience-fee-refunds.md`); the settings page address is `options-general.php?page=cbv-experience-fees`. Internal code names (`cbv_lp_planning_fee`, `cbv_lp_planning_fees`, `cbv_lp_planning_fee_live`) are unchanged; no one sees them. The fee stays behind the off switch.
+
+**Who charges it:** the fee is **Checked Bags & Good Vibes' own Group Experience Fee** (CBGV, run by LaDon Headen, does the group planning). It is **not a travel agent fee**: Andee is the travel agent who books through InteleTravel, and cruise payments go directly to the cruise line.
 
 **Requirement (owner, 2026-10-08):**
 - A **standard fee per event type** (cruise, resort, destination ...), set once, with a **per-trip override**.
 - **Basis** selectable: **per traveler**, **per cabin**, or **flat per booking**.
-- Shown as its **own fifth line** in the all-in breakdown, labelled **"CBGV group planning fee"**, **included in the all-in total**, **never folded into the cruise fare**, and **not opt-out** (the Step 9b opt-outs stay gratuities and Voyage Protection only).
-- A **note under the price board**: the planning fee is paid to Checked Bags & Good Vibes for group coordination; cruise payments go directly to the cruise line.
+- Shown as its **own fifth line** in the all-in breakdown, labelled **"CBGV Group Experience Fee"**, **included in the all-in total**, **never folded into the cruise fare**, and **not opt-out** (the Step 9b opt-outs stay gratuities and Voyage Protection only).
+- A **note under the price board**: the fee is paid to Checked Bags & Good Vibes for the group program; travel payments go directly to the cruise line or supplier (exact wording under the build decisions).
 - **Proposal PDF:** the fee as its own column.
 - **Refund rule depends on timing:** a key date (e.g. `planning_fee_refund_cutoff`) so the page can say "refundable until {date}". The exact rule goes in CBGV's Terms page later.
 
-**Refund policy (decided; approved by LaDon Headen, recorded 2026-10-08).** Full text: `docs/policies/cbgv-planning-fee-refunds.md` (source for the footer Terms page later).
+**Refund policy (decided; approved by LaDon Headen, recorded 2026-10-08).** Full text: `docs/policies/cbgv-group-experience-fee-refunds.md` (source for the footer Terms page later).
 - **Full refund within 7 days of paying**, if the trip is **120+ days away** (on the day of payment).
 - **50% refund** after that, **until the trip's final payment date**.
 - **Non-refundable from the final payment date.**
@@ -91,9 +93,28 @@ Checked 2026-10-05 (read-only): both Family & Friends (181) and Helmets (320) st
 - **Full refund if CBGV or the supplier cancels**; if **rescheduled**, the fee **carries over** (full refund if the traveler can't make the new date).
 - Refunds to the **original payment method within 14 days**.
 - **Same structure for every trip type.** The cutoff is the **trip's own final payment date**: use **`{date:final_payment}`** (provider key date with any trip override), so no separate `planning_fee_refund_cutoff` key date or per-type refund setting is needed (this replaces that part of the requirement above).
-- **Price board line (exact wording):** "The CBGV planning fee is fully refundable within 7 days of paying, 50% refundable until {date:final_payment}, and non-refundable after that. Full refund if the trip is cancelled."
+- **Price board refund wording:** now part of the single board note under the build decisions (compliance update 2026-10-08). The earlier separate refund line is superseded.
 
-**Status:** build proposal presented 2026-10-08 (decisions pending). Step 9 (price board render) waits for Step 8b so the board is drawn with the fee line from the start.
+**Build decisions (recorded 2026-10-08):**
+- **Where it is set:** a "Group Experience Fees" admin page (Settings menu, administrators only) with one row per event type: Amount (blank / $0 = no fee) and Basis (per traveler, per cabin = per room / villa for other types, flat per booking). **Built with blanks; LaDon provides the standard amounts, entered after deploy with the owner's go-ahead.**
+- **Per trip:** a "Group Experience Fee" box with **Use the standard fee** (default), **Use a different fee for this trip** (amount + basis) and **No Group Experience Fee on this trip** (waiver).
+- **Flat per booking:** counted **once in each cabin's all-in price**, with the note **"one fee per booking, however many cabins you book together"**.
+- **Breakdown:** fifth line "CBGV Group Experience Fee $X"; included in the all-in total and per-person price; never folded into the cruise fare; not opt-out. No fee = every price exactly as before.
+- **Price board note** (drawn in Step 9, only when the trip has a fee; **compliance update 2026-10-08**, one note, the same for every trip type): "The CBGV Group Experience Fee is paid to Checked Bags & Good Vibes (a d/b/a of JourneyWell Global LLC) for the group program; travel payments go directly to the cruise line or supplier. It's fully refundable within 7 days of paying, 50% refundable until {date:final_payment}, and non-refundable after that. Full refund if the trip is cancelled." Flat-per-booking trips add "One fee per booking, however many cabins you book together." **When the trip has no final payment date:** "...50% refundable until the trip's final payment date, and non-refundable after that..."
+- **Proposal PDF:** a "CBGV Group Experience Fee / Cabin" column **and totals that include the fee**, only for trips with a fee; trips without a fee print exactly as before.
+- **Gate 07 and today's public landing page stay unchanged until go-live** (they will show the price without the fee until the new design replaces them).
+- **Before a fee is turned on for trip 181 or Helmets (320):** the owner confirms their current prices do not already contain a CBGV fee (no double counting).
+- **The 7-day / 120-day refund rule depends on the payment date:** the page states the rule; applying it is manual for now. Payment-date tracking goes to Step 9b.
+
+- **Standard fee from LaDon (2026-10-08): $250.00 per traveler, the same for every event type** (Cruise, Resort, Cabin/Villa, Destination, Wedding, Party, Corporate). Entered on the settings page **after Step 8b is deployed and approved, with the owner's go-ahead**.
+- **Not public until the go-live business checks are done:** the settings page has a **"Group Experience Fee is live"** switch, **off by default**. While it is off the fee shows only in admin previews (`?preview=new`) and in the admin boxes, never in proposal PDFs or any public view; it is turned on only after the checks in the go-live checklist, with the owner's go-ahead.
+
+**Status:** built 2026-10-08 (new file `checkedbags-lp-fees.php`; edits to `checkedbags-lp-prices.php` and `checkedbags-proposal-pdf.php`; tests `tests/landing/test_step8b.php`, `mutate_step8b.sh`; admin manual section 10). Awaiting diff review and deploy approval; the $250 standard is entered after deploy with the owner's go-ahead, and **Group Experience Fee is live** stays off until the go-live business checks are done. Step 9 (price board render) waits for Step 8b so the board is drawn with the fee line from the start.
+
+## How to book and "Who does what" disclosure (recorded 2026-10-08; text to come; for the Step 12 How-to-book seed and the Terms page)
+- **Four new How-to-book steps** and a **"Who does what" disclosure**: the owner is sending the exact text as a file; it is recorded here word for word when it arrives. Used as the **How-to-book seed** (Step 12) and on the **Terms page** (footer, Step 12).
+- **Rule: "CBGV books your cabin" must never appear**, in any wording, anywhere on the site, in proposals or in emails. **The travel advisor books the cabin** (through InteleTravel); CBGV runs the group program and charges the CBGV Group Experience Fee. Checked in every step that writes booking wording, and again at go-live.
+- The disclosure must be **live on every trip page** before go-live (see the go-live checklist).
 
 ## Step 9b: Registration opt-outs and decline acknowledgment (decision recorded 2026-10-03)
 The tagged registration (`/join/?trip=CODE`, the traveler intake) gets two opt-out boxes, both unticked by default (sailors always actively opt out):
@@ -111,6 +132,9 @@ Rules:
 - **InteleTravel requires its own decline form whenever a client declines insurance.** When a sailor declines protection, the site tells them to complete the InteleTravel form and marks their registration **"protection declined, form pending"**. An admin can mark the form as received. Form details to come (the blank form will be shared).
 - Reuse note: the roster admin box already has per-traveler-per-trip flags (Paid in Full, **Insurance Waiver Received**, CC Auth Received; user meta `_insurance_waiver_received_{trip_id}`). Decide when building whether "form received" reuses that flag or is a new field.
 - The itemized all-in price (Step 8/9) must update to reflect an opted-out gratuity or protection so what the sailor sees matches what they chose.
+
+- **Optional group extras (added 2026-10-08, from the Group extras item under Steps 10-11):** optional extras need **sign-up at registration** (which travelers want which extra) and **payment tracking**; build those here.
+- **CBGV Group Experience Fee payment dates (added 2026-10-08, from Step 8b):** record when each traveler pays the CBGV Group Experience Fee, so the refund rule (full refund within 7 days of paying if the trip is 120+ days away; 50% until the final payment date; none after) can be applied from the record instead of manually.
 
 Open items before building 9b:
 1. The blank InteleTravel decline form and its exact process.
@@ -179,6 +203,13 @@ Open items before building 9b:
 - Today's legacy "Highlights" boxes stay until Steps 10-11 (their content belongs to "What's included" / "Group perks").
 - Brand features feeding the featured moment stays open for Step 12.
 
+## Group extras (recorded 2026-10-08; not built; with Steps 10-11)
+A **trip-level list of add-ons or events the group requests, priced per request**. Each extra has: **name**, **price**, **basis** (per traveler / per cabin / flat), and **Required** or **Optional**:
+- **Required:** included in every traveler's all-in price as **its own breakdown line** (like the CBGV Group Experience Fee), so the all-in total stays honest.
+- **Optional:** listed **under the price board as an add-on**, not in the all-in price; travelers choose it at registration (Step 9b: sign-up and payment tracking).
+
+**The existing Pricing Tiers "Add-ons" field** (per tier: name + quantity, no price; shown in the proposal PDF as "Add-ons: name × qty"): **proposal: replace it** with the trip-level Group extras. It cannot hold a price, a basis or required/optional, and it is per cabin type rather than per trip. Neither trip has any add-ons today (181: 0, 320: 0), so nothing needs migrating. When Group extras is built: hide the old Add-ons editor in the Pricing Tiers box, keep reading any old data so nothing is lost, and have the proposal PDF list Group extras instead. To be confirmed when the step is planned.
+
 ## Step 12: trip-side document editor (rules recorded 2026-10-03)
 - **A trip document with the same title as a provider document REPLACES it; otherwise trip documents are appended.** (Today, in Step 3b, the provider's documents are shown first and the trip's own are only appended; the same-title replace rule arrives with this editor.)
 - Follow-ups for this step, from the Step 3b review and admin check (all concern the trip key-date box):
@@ -214,6 +245,8 @@ Upload the coin to the Media Library (alt text "Checked Bags & Good Vibes logo" 
 - **Virgin brand rules** (Virgin "With Love From" brand guidelines, Nov 2024): the Virgin Voyages logo appears only in Virgin red from the official toolkit file and is never recoloured; no recreated Virgin campaign elements (the "with Love from" script lockup, promo stamps, Virgin campaign fonts); "With love from..." is never used as CBGV copy; our own headings and design stay in CBGV's brand. Checked at each step that touches media and again at final QA.
 - **Offer stamps:** a toolkit image carrying an offer stamp is used only while that offer is valid; each such image is listed in `docs/media-sources.md` with its offer end date and removed when the offer ends. Check the list at go-live.
 - **Caching:** Cloudflare must not cache trip page HTML (no APO / cache-everything rule) unless a token-free purge path is designed first; the status board's "paid deposits" number relies on SiteGround's purge-on-save (Step 5).
+- **CBGV Group Experience Fee, business checks before the fee shows publicly (added 2026-10-08, not legal advice):** (1) InteleTravel's agent terms allow a separate third-party (CBGV) Group Experience Fee to be shown alongside bookings made through InteleTravel; (2) whether CBGV needs Seller-of-Travel registration in the states it sells to (e.g. Florida, California); (3) how and where CBGV collects the fee (the site takes no payments today).
+- **Compliance items before go-live (added 2026-10-08):** (1) **InteleTravel compliance confirmation** (in writing) for how the CBGV Group Experience Fee and CBGV's role are presented; (2) **Seller of Travel numbers and wording from InteleTravel**, shown where InteleTravel says they must appear; (3) the **signed CBGV-advisor agreement** (CBGV and the travel advisor); (4) the **"Who does what" disclosure live on every trip page**. Also: no page, proposal or email says "CBGV books your cabin".
 - Further items are added here as steps ship.
 
 ## Open decisions and unverified claims (running list)

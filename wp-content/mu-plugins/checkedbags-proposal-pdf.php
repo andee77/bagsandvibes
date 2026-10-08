@@ -173,6 +173,8 @@ function cb_proposal_build_pdf_data( $proposal_id, $include_internal_notes = fal
 			'single_price'  => (float) get_post_meta( $trip_id, 'cb_price', true ),
 			// Price-board column names (new landing design, Step 8) for the "Fare" column.
 			'price_columns' => function_exists( 'cbv_lp_price_columns' ) ? cbv_lp_price_columns( $trip_id ) : array(),
+			// CBGV Group Experience Fee (Step 8b): only once the fee is live and the trip has one.
+			'planning_fee'  => function_exists( 'cbv_lp_planning_fee_shown' ) ? cbv_lp_planning_fee_shown( $trip_id, 'pdf' ) : null,
 		);
 
 		if ( $include_internal_notes ) {
@@ -353,6 +355,11 @@ function cb_proposal_render_pricing_html( $trip ) {
 		// least one price on the trip has been tagged; untagged trips print
 		// exactly as they did before Step 8.
 		$show_fare = function_exists( 'cbv_lp_trip_has_price_tags' ) && cbv_lp_trip_has_price_tags( $trip['pricing_tiers'] );
+		// The CBGV Group Experience Fee (Step 8b) gets its own column and is
+		// included in both totals, only when the trip has a fee to show;
+		// trips without one print exactly as before.
+		$fee      = $trip['planning_fee'] ?? null;
+		$show_fee = is_array( $fee ) && ! empty( $fee['amount'] ) && function_exists( 'cbv_lp_fee_for_cabin' );
 		foreach ( $trip['pricing_tiers'] as $tier ) {
 			$html .= '<div class="cb-tier-name">' . esc_html( $tier['name'] ) . ' <span style="font-weight:normal;">(sleeps ' . (int) $tier['capacity_low'] . '&#8211;' . (int) $tier['capacity_high'] . ')</span></div>';
 
@@ -362,6 +369,13 @@ function cb_proposal_render_pricing_html( $trip ) {
 					$per_cabin_basis = 'per_cabin' === ( $point['pricing_basis'] ?? 'per_person' );
 					$per_person_total = cb_pricing_occupancy_point_total( $point );
 					$cabin_total      = cb_pricing_occupancy_point_cabin_total( $point );
+					$fee_cabin        = 0.0;
+					if ( $show_fee ) {
+						$headcount         = max( 1, (int) ( $point['occupancy_count'] ?? 0 ) );
+						$fee_cabin         = cbv_lp_fee_for_cabin( $fee, $headcount );
+						$cabin_total      += $fee_cabin;
+						$per_person_total += $fee_cabin / $headcount;
+					}
 					// Itemized fields (Voyage Fare, Taxes & Fees, etc.) are
 					// whatever the admin actually typed -- a per-cabin/whole-
 					// booking amount for a Per Cabin row, same as they'd be
@@ -377,13 +391,14 @@ function cb_proposal_render_pricing_html( $trip ) {
 						. '<td>' . cb_proposal_format_money( $point['gratuities'] ) . '</td>'
 						. '<td>' . cb_proposal_format_money( $point['insurance'] ) . '</td>'
 						. '<td>' . cb_proposal_format_money( $point['discount'] ) . '</td>'
+						. ( $show_fee ? '<td>' . cb_proposal_format_money( $fee_cabin ) . '</td>' : '' )
 						. '<td>' . ( $per_cabin_basis ? 'Per Cabin' : 'Per Person' ) . '</td>'
 						. '<td><strong>' . cb_proposal_format_money( $per_person_total ) . '</strong></td>'
 						. '<td>' . cb_proposal_format_money( $cabin_total ) . '</td>'
 						. '</tr>';
 				}
 				$html .= '<table class="cb-table"><thead><tr>'
-					. ( $show_fare ? '<th>Fare</th>' : '' ) . '<th># Sailors</th><th>Voyage Fare</th><th>Taxes &amp; Fees</th><th>Gratuities</th><th>Insurance</th><th>Discount</th><th>Basis</th><th>Total / Person</th><th>Total / Cabin</th>'
+					. ( $show_fare ? '<th>Fare</th>' : '' ) . '<th># Sailors</th><th>Voyage Fare</th><th>Taxes &amp; Fees</th><th>Gratuities</th><th>Insurance</th><th>Discount</th>' . ( $show_fee ? '<th>CBGV Group Experience Fee / Cabin</th>' : '' ) . '<th>Basis</th><th>Total / Person</th><th>Total / Cabin</th>'
 					. '</tr></thead><tbody>' . $rows . '</tbody></table>';
 			}
 

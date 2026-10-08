@@ -115,8 +115,14 @@ function cbv_lp_point_fare_label( $point, $names ) {
  * person, with the four parts. Amounts entered per person are multiplied up
  * to the cabin; amounts entered per cabin are used as typed. The total is
  * the existing cabin total (never below zero).
+ *
+ * Step 8b: when a CBGV Group Experience Fee is passed in (see
+ * checkedbags-lp-fees.php), it becomes a fifth part, 'planning_fee', for
+ * this cabin's headcount, and is added to the total and the per-person
+ * price. It is never folded into the cruise fare. With no fee the result is
+ * exactly as before (four parts).
  */
-function cbv_lp_point_breakdown( $point ) {
+function cbv_lp_point_breakdown( $point, $fee = null ) {
 	$point     = is_array( $point ) ? $point : array();
 	$n         = max( 1, (int) ( $point['occupancy_count'] ?? 0 ) );
 	$per_cabin = 'per_cabin' === ( $point['pricing_basis'] ?? 'per_person' );
@@ -132,6 +138,11 @@ function cbv_lp_point_breakdown( $point ) {
 		'protection'  => round( $money( 'insurance' ) * $times, 2 ),
 	);
 	$total = function_exists( 'cb_pricing_occupancy_point_cabin_total' ) ? (float) cb_pricing_occupancy_point_cabin_total( $point ) : max( 0.0, array_sum( $parts ) );
+	$plan  = function_exists( 'cbv_lp_fee_for_cabin' ) ? cbv_lp_fee_for_cabin( $fee, $n ) : 0.0;
+	if ( $plan > 0 ) {
+		$parts['planning_fee'] = $plan;
+		$total                += $plan;
+	}
 
 	return array(
 		'headcount'  => $n,
@@ -168,6 +179,8 @@ function cbv_lp_point_breakdown( $point ) {
 function cbv_lp_price_board_data( $trip_id ) {
 	$tiers = function_exists( 'cb_trip_get_pricing_tiers' ) ? cb_trip_get_pricing_tiers( (int) $trip_id ) : array();
 	$names = cbv_lp_price_columns( $trip_id );
+	// Step 8b: the CBGV Group Experience Fee, only where it may be shown (see checkedbags-lp-fees.php).
+	$fee   = function_exists( 'cbv_lp_planning_fee_shown' ) ? cbv_lp_planning_fee_shown( $trip_id, 'page' ) : null;
 
 	$groups = array();
 	$used   = array();
@@ -205,7 +218,7 @@ function cbv_lp_price_board_data( $trip_id ) {
 				} );
 				$pick = $points[0];
 			}
-			$cells[ $col ] = cbv_lp_point_breakdown( $pick );
+			$cells[ $col ] = cbv_lp_point_breakdown( $pick, $fee );
 			if ( $single ) {
 				break; // one price only: the first column that has a price
 			}
@@ -246,6 +259,8 @@ function cbv_lp_price_board_data( $trip_id ) {
 		'columns'   => $columns,
 		'headcount' => CBV_LP_PRICE_HEADCOUNT,
 		'groups'    => array_values( $groups ),
+		'fee'       => $fee, // null = no Group Experience Fee shown
+		'fee_note'  => $fee && function_exists( 'cbv_lp_planning_fee_note' ) ? cbv_lp_planning_fee_note( $trip_id ) : array(),
 	);
 }
 
@@ -254,8 +269,8 @@ function cbv_lp_price_breakdown_line( $cell, $people_word = 'travelers' ) {
 	$money = function ( $v ) {
 		return '$' . number_format_i18n( (float) $v, floor( (float) $v ) == (float) $v ? 0 : 2 ); // phpcs:ignore Universal.Operators.StrictComparisons -- comparing a float to its own floor
 	};
-	$p = $cell['parts'];
-	return sprintf(
+	$p    = $cell['parts'];
+	$line = sprintf(
 		'All-in for %1$d %2$s: cruise fare %3$s · taxes & fees %4$s · prepaid gratuities %5$s · Voyage Protection %6$s',
 		(int) $cell['headcount'],
 		strtolower( (string) $people_word ),
@@ -264,4 +279,8 @@ function cbv_lp_price_breakdown_line( $cell, $people_word = 'travelers' ) {
 		$money( $p['gratuities'] ),
 		$money( $p['protection'] )
 	);
+	if ( isset( $p['planning_fee'] ) && $p['planning_fee'] > 0 ) {
+		$line .= ' · CBGV Group Experience Fee ' . $money( $p['planning_fee'] );
+	}
+	return $line;
 }

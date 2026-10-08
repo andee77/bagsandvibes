@@ -24,10 +24,12 @@ wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_step5.php
 wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_step6.php
 wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_step7.php
 wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_step8.php
+wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_step8b.php
 bash /tmp/cbv_t/mutate_step5.sh
 bash /tmp/cbv_t/mutate_step6.sh
 bash /tmp/cbv_t/mutate_step7.sh
 bash /tmp/cbv_t/mutate_step8.sh
+bash /tmp/cbv_t/mutate_step8b.sh
 ```
 
 Set `CBV_VERBOSE=1` to list every passing check. Each suite ends with
@@ -44,8 +46,10 @@ Each mutation script expects its suite in `/tmp/cbv_t/`.
 | `mutate_step6.sh` | Mutation tests for Step 6 | 19 mutants, all caught |
 | `test_step7.php` | Featured moment, gallery, their boxes and save | 64 checks, 0 failures |
 | `mutate_step7.sh` | Mutation tests for Step 7 | 17 mutants, all caught |
-| `test_step8.php` | Price board data, Pricing Tiers save and editor, proposal PDF Fare column | 59 checks, 0 failures |
-| `mutate_step8.sh` | Mutation tests for Step 8 (handles the CRLF file) | 20 mutants, all caught |
+| `test_step8.php` | Price board data, Pricing Tiers save and editor, proposal PDF Fare column | 66 checks, 0 failures |
+| `mutate_step8.sh` | Mutation tests for Step 8 (handles the CRLF file) | 23 mutants, all caught |
+| `test_step8b.php` | CBGV Group Experience Fee: settings, trip box and save, live switch, breakdown, board note, proposal PDF column | 64 checks, 0 failures |
+| `mutate_step8b.sh` | Mutation tests for Step 8b | 29 mutants, all caught |
 
 Some checks read trip 181 (Annual Family and Friends) as it is on the live
 site (its intro text, itinerary and stored times), so they can need updating if

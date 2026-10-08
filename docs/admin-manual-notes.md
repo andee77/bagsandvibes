@@ -615,6 +615,56 @@ Step 8 adds a few fields to the **Pricing Tiers** box so the new design's price 
 
 ---
 
+## 10. CBGV Group Experience Fee (Step 8b)
+
+The **CBGV Group Experience Fee** is Checked Bags & Good Vibes' own fee for the group program (organising and coordinating the group). Checked Bags & Good Vibes is a d/b/a of JourneyWell Global LLC. It is **not** a travel agent fee and **not** part of the cruise fare: cruise (and other supplier) payments go directly to the cruise line or supplier. On the new design it is the fifth line of the all-in price, **"CBGV Group Experience Fee"**, and it is included in the all-in total. Travelers cannot opt out of it.
+
+**Nothing changes on any page or proposal yet.** The fee stays hidden from clients until **Group Experience Fee is live** is ticked (see below), and that waits for the go-live business checks.
+
+### Where it is
+- Standard fees: Settings > **Group Experience Fees**, https://bagsandvibes.com/wp-admin/options-general.php?page=cbv-experience-fees (administrators only).
+- Each trip: Trips list, https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_trip, click the trip's name, then the **Group Experience Fee (new design)** box (administrators only; other users don't see the box and can't change the fee).
+- Refund policy (approved by LaDon): `docs/policies/cbgv-group-experience-fee-refunds.md`.
+
+### The settings page
+| Field | What it does |
+|---|---|
+| **Amount ($)** for each event type | The standard fee for every trip of that type. Type just the number, e.g. 250 or 250.00 ($ and commas are fine). Blank or 0 = no fee for that type. |
+| **Basis** | **Per traveler** (the amount times the number of travelers in the cabin), **Per cabin / room** (once per cabin), or **Flat per booking** (once in each cabin's price, with the note "One fee per booking, however many cabins you book together"). |
+| **Group Experience Fee is live** | Off (the default): the fee only shows in admin previews of the new design (`?preview=new`) and on these admin screens. **Proposal PDFs and public pages leave it out.** On: it is added to the price board and to proposal PDFs. |
+
+### The trip's Group Experience Fee box
+- **Use the standard fee**: the default. The box shows what that is, e.g. "Cruise: $250 per traveler".
+- **Use a different fee for this trip**: type an amount and choose a basis.
+- **No Group Experience Fee on this trip**: waives it (for example a trip planned for free).
+
+### What travelers will see (once live)
+- On the price board, each price includes the fee for that cabin: for $250 per traveler, a cabin for 2 includes $500. The itemized line ends "· CBGV Group Experience Fee $500".
+- A note under the board, the same for every trip type: "The CBGV Group Experience Fee is paid to Checked Bags & Good Vibes (a d/b/a of JourneyWell Global LLC) for the group program; travel payments go directly to the cruise line or supplier. It's fully refundable within 7 days of paying, 50% refundable until [the trip's final payment date], and non-refundable after that. Full refund if the trip is cancelled." The date comes from the trip's key dates; if the trip has no final payment date it says "the trip's final payment date". Flat-per-booking trips add "One fee per booking, however many cabins you book together."
+- In the proposal PDF: a **CBGV Group Experience Fee / Cabin** column after Discount, and both totals (per person and per cabin) include the fee.
+
+### Order to do things in
+1. Enter the standard fees on the settings page and click **Save Group Experience Fees**. Leave **Group Experience Fee is live** unticked.
+2. On any trip that needs a different fee, or none, set its **Group Experience Fee** box and click **Update**.
+3. Check the trip with `?preview=new` (signed in as an administrator): the board prices should include the fee.
+4. Before ticking **Group Experience Fee is live**: the go-live business checks are done (InteleTravel terms, Seller-of-Travel registration, how CBGV collects the fee), and each trip's Pricing Tiers have been checked to make sure no CBGV fee is already typed into a price.
+
+### Rules worth knowing
+- The fee is never folded into the Voyage Fare or the Discount. Don't type it into the Pricing Tiers.
+- Changing a standard fee changes it for every trip of that type that uses the standard.
+- Today's public page, Gate 07's price range and the legacy "From $..." prices never include the fee.
+- Never write that CBGV books the cabin: **the travel advisor books it**. CBGV runs the group program.
+- Refunds: full within 7 days of paying (if the trip is 120+ days away), 50% until the trip's final payment date, non-refundable after. Full refund if CBGV or the supplier cancels. Free transfer to a replacement traveler. The fee carries over if the trip is rescheduled (full refund if the traveler can't make the new date). Refunds go back to the original payment method within 14 days.
+- Recording who has paid the fee, and when, comes with registration and payments (Step 9b).
+
+### Common mistakes
+- Ticking **Group Experience Fee is live** before the business checks are done: every proposal PDF generated after that includes the fee.
+- Typing the fee into a trip's Voyage Fare or Taxes as well: it would be counted twice.
+- Choosing **Per cabin** when the fee is meant per person: a cabin for 2 would show $250 instead of $500.
+- Picking "Use a different fee" and leaving the amount blank: that means no fee on the trip.
+
+---
+
 ## Coming in later steps (this file will be extended after each)
 - Price board on the page (Step 9)
 - Registration opt-outs (gratuities and Voyage Protection) and the decline acknowledgment
