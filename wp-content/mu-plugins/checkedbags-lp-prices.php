@@ -74,6 +74,27 @@ function cbv_lp_price_column_choices( $names ) {
 	return $choices;
 }
 
+/**
+ * Has any price on the trip been tagged with a Price board column? Only a
+ * value other than the untouched default ('' = column 1) counts: '2', '3',
+ * '4' or 'off'. Used to show the proposal PDF's "Fare" column only for
+ * tagged trips.
+ */
+function cbv_lp_trip_has_price_tags( $tiers ) {
+	foreach ( (array) $tiers as $tier ) {
+		if ( ! is_array( $tier ) ) {
+			continue;
+		}
+		foreach ( (array) ( $tier['occupancy_points'] ?? array() ) as $point ) {
+			$v = is_array( $point ) && isset( $point['price_column'] ) && is_scalar( $point['price_column'] ) ? (string) $point['price_column'] : '';
+			if ( in_array( $v, array( '2', '3', '4', 'off' ), true ) ) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 /** The label for a point's column in the proposal PDF's "Fare" column. */
 function cbv_lp_point_fare_label( $point, $names ) {
 	$col = cbv_lp_point_column( $point );

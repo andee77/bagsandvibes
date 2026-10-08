@@ -191,9 +191,22 @@ check( "the box hands the trip's column names to the rows", array( 'Base', 'Esse
 /* ---- F. proposal PDF ---- */
 section( 'F. proposal PDF' );
 $html = cb_proposal_render_pricing_html( array( 'pricing_tiers' => array( array( 'name' => 'Insider', 'capacity_low' => 2, 'capacity_high' => 4, 'occupancy_points' => array( pt( 2, 2522, 402, 200, 152, 724, 'per_cabin', '2' ), pt( 2, 1520, 402, 200, 106, 532, 'per_cabin', 'off' ) ), 'addons' => array() ) ), 'single_price' => 0, 'price_columns' => array( 'Base', 'Essential', 'Premium', '' ) ) );
-check( 'PDF pricing table starts with a Fare column', false !== strpos( $html, '<th>Fare</th><th># Sailors</th>' ) );
+check( 'tagged trip: PDF pricing table starts with a Fare column', false !== strpos( $html, '<th>Fare</th><th># Sailors</th>' ) );
 check( 'PDF rows show the column name, and "Not on price board" for off', false !== strpos( $html, '<td>Essential</td><td>2</td>' ) && false !== strpos( $html, '<td>Not on price board</td><td>2</td>' ) );
 check( 'PDF totals unchanged ($2,552.00 per cabin)', false !== strpos( $html, '2,552.00' ) );
+// The Fare column only appears once something on the trip is tagged (fix 2026-10-08).
+check( 'tag helper: untouched / blank / missing / junk tags do not count', false === cbv_lp_trip_has_price_tags( array() ) && false === cbv_lp_trip_has_price_tags( array( array( 'occupancy_points' => array( pt( 2, 1, 0, 0, 0, 0, 'per_cabin', '' ), array( 'occupancy_count' => 2 ) ) ) ) ) && false === cbv_lp_trip_has_price_tags( array( array( 'occupancy_points' => array( array( 'price_column' => '9' ), array( 'price_column' => array( 'off' ) ) ) ) ) ) && false === cbv_lp_trip_has_price_tags( 'junk' ) && false === cbv_lp_trip_has_price_tags( array( 'junk', array( 'occupancy_points' => 'junk' ) ) ) );
+check( "tag helper: any one '2', '3', '4' or 'off' anywhere on the trip counts", true === cbv_lp_trip_has_price_tags( array( array( 'occupancy_points' => array( pt( 2, 1, 0, 0, 0, 0 ) ) ), array( 'occupancy_points' => array( pt( 2, 1, 0, 0, 0, 0 ), pt( 2, 1, 0, 0, 0, 0, 'per_cabin', 'off' ) ) ) ) ) && true === cbv_lp_trip_has_price_tags( array( array( 'occupancy_points' => array( array( 'price_column' => '3' ) ) ) ) ) && true === cbv_lp_trip_has_price_tags( array( array( 'occupancy_points' => array( array( 'price_column' => '4' ) ) ) ) ) );
+$untagged = array( 'pricing_tiers' => array( array( 'name' => 'Insider', 'capacity_low' => 2, 'capacity_high' => 4, 'occupancy_points' => array( pt( 2, 2522, 402, 200, 152, 724, 'per_cabin', '' ), array( 'occupancy_count' => 3, 'voyage_fare' => 3000, 'taxes_fees' => 600, 'gratuities' => 300, 'insurance' => 200, 'discount' => 0, 'pricing_basis' => 'per_person' ) ), 'addons' => array() ) ), 'single_price' => 0, 'price_columns' => array( 'Base', 'Essential', 'Premium', '' ) );
+$h_untagged = cb_proposal_render_pricing_html( $untagged );
+check( 'untagged trip: no Fare header and no Fare cells (the table starts with # Sailors, each row with the headcount)', false === strpos( $h_untagged, 'Fare</th><th># Sailors' ) && false !== strpos( $h_untagged, '<thead><tr><th># Sailors</th><th>Voyage Fare</th>' ) && false !== strpos( $h_untagged, '<tr><td>2</td><td>$2,522.00</td>' ) && false !== strpos( $h_untagged, '<tr><td>3</td><td>$3,000.00</td>' ) && false === strpos( $h_untagged, 'Base' ) );
+check( 'untagged trip: 9 header cells and 9 cells per row, as before Step 8', 9 === substr_count( $h_untagged, '<th>' ) && 18 === substr_count( $h_untagged, '<td>' ) ); // 2 rows x 9 cells ('<td><strong>' also counts as a '<td>')
+$one_tag = $untagged; $one_tag['pricing_tiers'][0]['occupancy_points'][1]['price_column'] = 'off';
+$h_one = cb_proposal_render_pricing_html( $one_tag );
+check( 'one tag anywhere: the Fare column appears for every row (untagged rows show the column 1 name)', false !== strpos( $h_one, '<th>Fare</th><th># Sailors</th>' ) && false !== strpos( $h_one, '<td>Base</td><td>2</td>' ) && false !== strpos( $h_one, '<td>Not on price board</td><td>3</td>' ) );
+check( 'totals are the same with and without the Fare column', preg_match_all( '/\$[\d,]+\.\d\d/', $h_untagged, $m1 ) && preg_match_all( '/\$[\d,]+\.\d\d/', $h_one, $m2 ) && $m1[0] === $m2[0] );
+$h181 = cb_proposal_render_pricing_html( array( 'pricing_tiers' => cb_trip_get_pricing_tiers( 181 ), 'single_price' => 0, 'price_columns' => cbv_lp_price_columns( 181 ) ) );
+check( 'REAL trip 181 (untagged today): no Fare column in its proposal', false === strpos( $h181, '<th>Fare</th>' ) && false !== strpos( $h181, '<th># Sailors</th>' ) );
 
 /* ---- G. what Step 8 must NOT do ---- */
 section( 'G. no side effects' );

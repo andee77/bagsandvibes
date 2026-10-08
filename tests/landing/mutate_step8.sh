@@ -56,6 +56,13 @@ run "save accepts any price column" $T "in_array( \$price_column, array( '', '2'
 run "save drops the tier group" $T "			'group'            => mb_substr( sanitize_text_field( wp_unslash( \$tier_row['group'] ?? '' ) ), 0, 60 )," "			'group'            => '',"
 run "badge not capped" $T "mb_substr( sanitize_text_field( wp_unslash( \$tier_row['badge'] ?? '' ) ), 0, 40 )" "sanitize_text_field( wp_unslash( \$tier_row['badge'] ?? '' ) )"
 run "editor select default not blank (new rows never blank)" $P "	\$choices = array( '' => 'Column 1: '" "	\$choices = array( '1' => 'Column 1: '"
-run "PDF Fare column missing" checkedbags-proposal-pdf.php "'<th>Fare</th><th># Sailors</th>" "'<th># Sailors</th>"
+run "PDF Fare column missing when tagged" checkedbags-proposal-pdf.php "( \$show_fare ? '<th>Fare</th>' : '' )" "''"
+run "PDF Fare column shown even when untagged" checkedbags-proposal-pdf.php "		\$show_fare = function_exists( 'cbv_lp_trip_has_price_tags' ) && cbv_lp_trip_has_price_tags( \$trip['pricing_tiers'] );" "		\$show_fare = true;"
+run "tag helper counts the untouched default as a tag" $P "			if ( in_array( \$v, array( '2', '3', '4', 'off' ), true ) ) {
+				return true;" "			if ( in_array( \$v, array( '', '2', '3', '4', 'off' ), true ) ) {
+				return true;"
+run "tag helper ignores off" $P "			if ( in_array( \$v, array( '2', '3', '4', 'off' ), true ) ) {
+				return true;" "			if ( in_array( \$v, array( '2', '3', '4' ), true ) ) {
+				return true;"
 run "save no longer uses the new function" $T "update_post_meta( \$post_id, 'cb_pricing_tiers', cb_sanitize_pricing_tiers( \$_POST['cb_pricing_tiers'] ?? array() ) );" "update_post_meta( \$post_id, 'cb_pricing_tiers', \$_POST['cb_pricing_tiers'] ?? array() );"
 rm -rf /tmp/cbv_mut /tmp/cbv_t/define_mut.php /tmp/cbv_t/test_mut.php

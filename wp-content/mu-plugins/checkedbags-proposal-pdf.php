@@ -349,6 +349,10 @@ function cb_proposal_render_itinerary_html( $trip ) {
 function cb_proposal_render_pricing_html( $trip ) {
 	if ( ! empty( $trip['pricing_tiers'] ) ) {
 		$html = '';
+		// The "Fare" column (new landing design, Step 8) only appears once at
+		// least one price on the trip has been tagged; untagged trips print
+		// exactly as they did before Step 8.
+		$show_fare = function_exists( 'cbv_lp_trip_has_price_tags' ) && cbv_lp_trip_has_price_tags( $trip['pricing_tiers'] );
 		foreach ( $trip['pricing_tiers'] as $tier ) {
 			$html .= '<div class="cb-tier-name">' . esc_html( $tier['name'] ) . ' <span style="font-weight:normal;">(sleeps ' . (int) $tier['capacity_low'] . '&#8211;' . (int) $tier['capacity_high'] . ')</span></div>';
 
@@ -365,9 +369,8 @@ function cb_proposal_render_pricing_html( $trip ) {
 					// The Basis column exists specifically so that isn't
 					// ambiguous, and the two Total columns give the correct
 					// figure either way regardless of entry basis.
-					$fare_label = function_exists( 'cbv_lp_point_fare_label' ) ? cbv_lp_point_fare_label( $point, $trip['price_columns'] ?? array() ) : '';
 					$rows .= '<tr>'
-						. '<td>' . esc_html( $fare_label ) . '</td>'
+						. ( $show_fare ? '<td>' . esc_html( cbv_lp_point_fare_label( $point, $trip['price_columns'] ?? array() ) ) . '</td>' : '' )
 						. '<td>' . (int) $point['occupancy_count'] . '</td>'
 						. '<td>' . cb_proposal_format_money( $point['voyage_fare'] ) . '</td>'
 						. '<td>' . cb_proposal_format_money( $point['taxes_fees'] ) . '</td>'
@@ -380,7 +383,7 @@ function cb_proposal_render_pricing_html( $trip ) {
 						. '</tr>';
 				}
 				$html .= '<table class="cb-table"><thead><tr>'
-					. '<th>Fare</th><th># Sailors</th><th>Voyage Fare</th><th>Taxes &amp; Fees</th><th>Gratuities</th><th>Insurance</th><th>Discount</th><th>Basis</th><th>Total / Person</th><th>Total / Cabin</th>'
+					. ( $show_fare ? '<th>Fare</th>' : '' ) . '<th># Sailors</th><th>Voyage Fare</th><th>Taxes &amp; Fees</th><th>Gratuities</th><th>Insurance</th><th>Discount</th><th>Basis</th><th>Total / Person</th><th>Total / Cabin</th>'
 					. '</tr></thead><tbody>' . $rows . '</tbody></table>';
 			}
 

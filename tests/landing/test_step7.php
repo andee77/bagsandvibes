@@ -162,12 +162,12 @@ check( 'hidden by default for corporate', null === cbv_lp_gallery_data( TRIP ) )
 /* ---- E. page assembly (REAL trip 181) ---- */
 section( 'E. page assembly' );
 $page = cbv_lp_render_trip( 181, 'new_preview' );
-check( 'REAL trip 181 today: no featured or gallery yet; intro 14, route 15', false === strpos( $page, 'class="cbv-lp-featured' ) && false === strpos( $page, 'class="cbv-lp-gallery"' ) && false !== strpos( $page, 'Gate 14 · The trip' ) && false !== strpos( $page, 'Gate 15 · Flight path' ) );
+check( 'REAL trip 181 (content set 2026-10-05/08): intro 14, route 15, Scarlet Night featured 16, gallery 17 with 9 prints', false !== strpos( $page, 'Gate 14 · The trip' ) && false !== strpos( $page, 'Gate 15 · Flight path' ) && false !== strpos( $page, 'Gate 16 · After dark' ) && false !== strpos( $page, 'id="cbv-lp-featured-title">Scarlet Night</h2>' ) && false !== strpos( $page, 'Gate 17 · Life on board' ) && 9 === substr_count( $page, '<li class="cbv-lp-print-item">' ) );
 $fake[ 181 ] = array( 'cbv_lp_featured' => array( 'title' => 'Scarlet Night', 'day' => 2, 'colour' => 'red' ), 'cbv_lp_gallery' => gallery_of( 4 ) );
 $page = cbv_lp_render_trip( 181, 'new' );
 check( 'order: route, featured, gallery, legacy content', strpos( $page, 'class="cbv-lp-route"' ) < strpos( $page, 'class="cbv-lp-featured' ) && strpos( $page, 'class="cbv-lp-featured' ) < strpos( $page, 'class="cbv-lp-gallery"' ) && strpos( $page, 'class="cbv-lp-gallery"' ) < strpos( $page, 'cbv-lp-legacy-wrap' ) );
 check( 'GATE 16 · Day 02 · After dark, then GATE 17 · Life on board', false !== strpos( $page, 'Gate 16 · Day 02 · After dark' ) && false !== strpos( $page, 'Gate 17 · Life on board' ) );
-$fake[ 181 ] = array( 'cbv_lp_gallery' => gallery_of( 2 ) );
+$fake[ 181 ] = array( 'cbv_lp_featured' => array(), 'cbv_lp_gallery' => gallery_of( 2 ) ); // hide the real featured moment for this check
 check( 'with no featured moment, the gallery becomes GATE 16', false !== strpos( cbv_lp_render_trip( 181, 'new' ), 'Gate 16 · Life on board' ) );
 unset( $fake[ 181 ] );
 check( 'still exactly one <h1>', 1 === substr_count( cbv_lp_render_trip( 181, 'new' ), '<h1' ) );
