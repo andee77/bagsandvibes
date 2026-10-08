@@ -2,7 +2,7 @@
 
 One line per Virgin Voyages image or video used (or planned) on the site. **Every Virgin asset comes from the official First Mates marketing toolkit on FirstMates.com.** Use each asset unaltered: web compression only, no cropping, editing or logos added to the asset itself. Never take Virgin images or video from Virgin's public website.
 
-Last updated: 2026-10-05.
+Last updated: 2026-10-08.
 
 Status key: **prepared** = the file exists but is not on the live site yet; **in design reference** = used in `docs/design/event-page-design-reference.html` and to be uploaded when its step is built. The reference only holds media-library placeholders, so real file names for these are filled in when each file is uploaded.
 
@@ -37,10 +37,11 @@ All from the First Mates marketing toolkit. Web copies: 2400px on the longest si
 | 414 | `img-val-2023-fnb-gunbae-celebrations-dinner-soju-polaroid-friends-7530-1-uncropped-web.jpg` | `IMG-VAL-2023-FNB-Gunbae-celebrations-dinner-Soju-polaroid-friends-7530-1-UNCROPPED.jpg` | Friends laughing over dinner at Gunbae Korean BBQ (Valiant Lady) | Gallery 6 | Centre | Gunbae with the crew | alberto oviedo | uploaded |
 | 415 | `img-scl-2022-nwv-pizza-place-scarlet-night-cam-b-0297-uncropped-web.jpg` | `IMG-SCL-2022-NWV-pizza-place-scarlet-night-cam-b-0297-UNCROPPED.JPG` | Woman catching melted cheese from a pizza slice on Scarlet Night (Scarlet Lady) | Gallery 7 | Centre | Scarlet Night, extra cheese | Alberto Oviedo; "All images copywrighted" | uploaded |
 | 416 | `virginvoyages_ship-shots-2-42-web.jpg` | `VirginVoyages_Ship Shots 2-42.jpg` | Aerial view of a Virgin Voyages ship and its wake (no ship name visible) | Gallery 8 | Centre | Wake views | — | uploaded |
+| 417 | `img-spc-air-hockey-ginajoyphoto-web.jpg` | `IMG-SPC-Air-Hockey-ginajoyphoto.jpg` | People playing air hockey in the Social Club games room (toolkit caption: "People playing air hockey at the Social Club") | Gallery 9 | Centre | Game night, loser buys the round | — (the file name mentions "ginajoyphoto"; no credit fields in the file) | uploaded 2026-10-08 |
 
 Photos from Scarlet Lady (a sister ship) are described without naming a ship, so nothing claims to show Valiant Lady when it does not.
 
-**On hold:** `IMG-SPC-Air-Hockey-ginajoyphoto.jpg` (people playing air hockey on board). The file name names a photographer ("ginajoyphoto"); waiting for the owner to confirm the credit. If cleared it becomes gallery 9 with the caption "Game night, loser buys the round" and a credit line.
+**Photo credits are optional for First Mates toolkit images** (confirmed by the owner 2026-10-08: Virgin does not require photo credits). We do not show credits on the page; any credit/copyright data embedded in a file is kept in the web copy. So `IMG-SPC-Air-Hockey-ginajoyphoto.jpg`, held earlier because its file name names a photographer ("ginajoyphoto"), was cleared and uploaded as Media ID 417 (gallery 9), with no credit line.
 
 **Reviewed and not used (2026-10-05):**
 | Original toolkit file | Why not |

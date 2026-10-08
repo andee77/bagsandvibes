@@ -271,6 +271,7 @@ The tokens work in provider text as soon as the section that holds that text is 
 - Use it **unaltered**. Web compression (making the file smaller so the page loads fast) is fine. **Do not crop it, edit it, or add logos or text onto the image or video file itself.**
 - Upload it in the Media Library: https://bagsandvibes.com/wp-admin/upload.php (add new files: https://bagsandvibes.com/wp-admin/media-new.php).
 - Give it a clear file name and descriptive alt text (what the picture shows).
+- **Photo credits are optional for First Mates toolkit images** (Virgin does not require them), so **we don't show photo credits on the page**. A photographer's name in a file name or in the file's details is not a reason to hold a toolkit image back. Credit or copyright details already inside a file are kept when it is compressed for the web.
 - **Every photo used on the new page (intro, route days, featured moment, gallery) needs Alt Text in its Media Library entry**: open the picture in https://bagsandvibes.com/wp-admin/upload.php, fill in **Alt Text** with a short description of what the picture shows (e.g. "Sailors in red dancing at the Scarlet Night deck party"), and it saves by itself. The page reads the alt text from there, so screen readers describe the picture and search engines understand it. A caption on the page does not replace it.
 - Add a line to the media sources list, `docs/media-sources.md`: file name, what it shows, "First Mates marketing toolkit". Keep the original download from the toolkit so any file can be traced back.
 
