@@ -410,6 +410,9 @@ function cb_proposal_render_pricing_html( $trip ) {
 				$html .= '<div class="cb-addon-list">Add-ons: ' . implode( ', ', $addon_labels ) . '</div>';
 			}
 		}
+		if ( $show_fee && 'per_traveler' === ( $fee['basis'] ?? '' ) ) {
+			$html .= '<p class="cb-fee-note">Children pay half the CBGV Group Experience Fee.</p>';
+		}
 		return $html;
 	}
 
@@ -601,7 +604,7 @@ function cb_proposal_render_roster_summary_html( $rows ) {
 	}
 	return '<h2 class="cb-section-title">Already-Signed-Up Clients</h2>'
 		. '<table class="cb-table"><thead><tr>'
-		. '<th>Name</th><th>Cabin/Room</th><th>Balance Due</th><th>Paid in Full</th><th>Insurance Waiver</th><th>CC Auth</th>'
+		. '<th>Name</th><th>Cabin/Room</th><th>CBGV Fee Balance Due</th><th>Paid in Full</th><th>Insurance Waiver</th><th>CC Auth</th>'
 		. '</tr></thead><tbody>' . $body . '</tbody></table>';
 }
 

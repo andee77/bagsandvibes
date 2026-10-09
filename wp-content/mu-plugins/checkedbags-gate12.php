@@ -496,6 +496,10 @@ function cb_accept_trip_quote( $request ) {
 		return new WP_Error( 'cb_not_quoted', 'This request has not been quoted yet.', array( 'status' => 400 ) );
 	}
 
+	// The quoted price is the TRAVEL price: it becomes the trip's reference
+	// "Travel price" (cb_price), which is never billed by CBGV (the Payment page
+	// bills only the CBGV fee + approved extras; see cb_trip_cbgv_fee_total()
+	// and cb_trip_charge_ceiling() in checkedbags-gate09.php).
 	$quoted_price = (float) get_post_meta( $trip_id, 'cb_quoted_price', true );
 	if ( $quoted_price > 0 ) {
 		update_post_meta( $trip_id, 'cb_price', $quoted_price );
@@ -549,12 +553,12 @@ add_shortcode( 'cb_gate_requests', function () {
 			<span class="request-status-badge status-<?php echo esc_attr( $status ); ?>"><?php echo esc_html( ucfirst( $status ) ); ?></span>
 			<?php if ( $status === 'quoted' ) : ?>
 				<div class="request-quote-box">
-					<p class="request-quote-price">$<?php echo esc_html( number_format( $quoted_price, 2 ) ); ?> / person</p>
+					<p class="request-quote-price">$<?php echo esc_html( number_format( $quoted_price, 2 ) ); ?> / person <span class="request-quote-price-note">(travel price, paid directly to the cruise line or supplier)</span></p>
 					<?php if ( $quote_notes ) : ?><p class="request-quote-notes"><?php echo nl2br( esc_html( $quote_notes ) ); ?></p><?php endif; ?>
 					<button class="btn btn-ticket cb-accept-quote-btn" data-trip-id="<?php echo esc_attr( $req->ID ); ?>">Accept this quote</button>
 				</div>
 			<?php elseif ( $status === 'accepted' ) : ?>
-				<p class="request-accepted-note">Accepted! Head to <a href="/gate-09-payments/">Gate 09 — Payments</a> to pay your deposit.</p>
+				<p class="request-accepted-note">Accepted! Your independent travel advisor will be in touch to book it; the travel price is paid directly to the cruise line or supplier, never to CBGV. Any CBGV Group Experience Fee is on <a href="/gate-09-payments/">Gate 09 — Payments</a>.</p>
 			<?php endif; ?>
 		</div>
 	<?php endforeach; ?>

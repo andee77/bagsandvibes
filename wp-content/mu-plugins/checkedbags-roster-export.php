@@ -251,11 +251,12 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 
 		$intake = function_exists( 'cbv_get_traveler_intake' ) ? cbv_get_traveler_intake( $user_id, $trip_id ) : array();
 
-		$price = (float) get_post_meta( $trip_id, 'cb_price', true );
+		// The CBGV fee only (never the travel price, see cb_trip_cbgv_fee_total()).
+		$fee_total = function_exists( 'cb_trip_cbgv_fee_total' ) ? cb_trip_cbgv_fee_total( $trip_id, $user_id ) : 0;
 		if ( function_exists( 'cb_trip_amount_paid' ) ) {
 			$amount_paid  = cb_trip_amount_paid( $trip_id, $user_id );
 			$balance_due  = cb_trip_balance_due( $trip_id, $user_id );
-			$payment_status = ( $price > 0 && $balance_due <= 0 ) ? 'Paid in Full' : ( $amount_paid > 0 ? 'Partial' : 'Unpaid' );
+			$payment_status = ( $fee_total > 0 && $balance_due <= 0 ) ? 'Paid in Full' : ( $amount_paid > 0 ? 'Partial' : 'Unpaid' );
 		} else {
 			$amount_paid    = 0;
 			$payment_status = '';

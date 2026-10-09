@@ -332,7 +332,7 @@ function cbv_lp_starter( $trip_id ) {
 			),
 			array(
 				'title' => 'Pay your deposit',
-				'body'  => 'We book your ' . $l['accommodation'] . ' inside our group through InteleTravel, our official booking partner, then you get a secure payment link for your deposit. Pay in full or spread it out with a plan.',
+				'body'  => 'Your independent travel advisor, Andrea M. Peaten, books your ' . $l['accommodation'] . ' inside our group, then you get a secure payment link for your deposit. Pay in full or spread it out with a plan.',
 			),
 			array(
 				'title' => $l['cleared'],

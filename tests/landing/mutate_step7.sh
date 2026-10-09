@@ -13,7 +13,7 @@ assert s.count(old) == 1, ("anchor not found or ambiguous", old, s.count(old))
 open(p, "wb").write(s.replace(old, new).encode("utf-8"))
 PY
   [ $? -ne 0 ] && { echo "MUTANT $name: COULD NOT APPLY"; return; }
-  printf '<?php\ndefine( "WPMU_PLUGIN_DIR", "/tmp/cbv_mut" );\ndefine( "WP_DISABLE_FATAL_ERROR_HANDLER", true );\n' > /tmp/cbv_t/define_mut.php
+  printf '<?php\ndefine( "WPMU_PLUGIN_DIR", "/tmp/cbv_mut" );\ndefine( "WP_DISABLE_FATAL_ERROR_HANDLER", true );\nini_set( "error_log", "/tmp/cbv_t/test_errors.log" );\n' > /tmp/cbv_t/define_mut.php
   sed "s#'/tmp/cbv_mu' === WPMU_PLUGIN_DIR#'/tmp/cbv_mut' === WPMU_PLUGIN_DIR#" /tmp/cbv_t/test_step7.php > /tmp/cbv_t/test_mut.php
   res=$(wp --require=/tmp/cbv_t/define_mut.php eval-file /tmp/cbv_t/test_mut.php 2>&1 | tr -d '\r')
   echo "MUTANT: $name"

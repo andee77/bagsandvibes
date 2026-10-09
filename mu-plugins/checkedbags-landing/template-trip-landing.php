@@ -58,7 +58,7 @@ if ( is_user_logged_in() ) {
 	<div class="cbv-lp-footer-inner">
 		<div class="cbv-lp-footer-brand">
 			<span class="cbv-lp-footer-name">Checked Bags &amp; Good Vibes</span>
-			<span class="cbv-lp-footer-sub">A JourneyWell Global LLC brand &middot; Bookings via InteleTravel</span>
+			<span class="cbv-lp-footer-sub">A JourneyWell Global LLC brand &middot; Bookings by an independent travel advisor</span>
 		</div>
 		<nav class="cbv-lp-footer-links" aria-label="Footer">
 			<a href="<?php echo esc_url( home_url( '/privacy-policy/' ) ); ?>">Privacy</a>

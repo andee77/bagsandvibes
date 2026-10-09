@@ -152,7 +152,7 @@ function cbv_render_exchange_rates_section() {
 	<div class="cbv-exchange-rates-section">
 		<h3>Exchange Rates</h3>
 		<p class="cb-page-hint">
-			Your CBGV Commitment Fee and your InteleTravel Travel Payment are both charged in US dollars.
+			Your CBGV Group Experience Fee and your Travel Payment are both charged in US dollars.
 			If your card or bank account is in a different currency, your card issuer or bank converts the charge
 			to your home currency automatically, using their own exchange rate at the moment of the transaction —
 			which may differ slightly from the reference rate shown below. Nothing extra is required from you;

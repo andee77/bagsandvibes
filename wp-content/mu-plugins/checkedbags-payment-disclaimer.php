@@ -58,22 +58,22 @@ add_action( 'init', function () {
 	$seed_content = <<<'TEXT'
 How Your Booking & Payment Work
 
-To bring you an unforgettable group travel experience, Checked Bags & Good Vibes partners with InteleTravel to handle your official travel bookings, while we curate, host, and manage all your exclusive group events, private gatherings, and on-the-ground coordination.
+To bring you an unforgettable group travel experience, Checked Bags & Good Vibes works with an independent travel advisor, Andrea M. Peaten, who handles your official travel bookings, while we curate, host, and manage all your exclusive group events, private gatherings, and on-the-ground coordination.
 
 To ensure complete transparency, here is exactly how your payments and bookings are structured:
 
-1. The CBGV Commitment Fee (Event Coordination & Group Perks)
-What it is: A commitment fee paid directly to Checked Bags & Good Vibes.
+1. The CBGV Group Experience Fee (Event Coordination & Group Perks)
+What it is: A fee paid directly to Checked Bags & Good Vibes.
 What it covers: This fee secures your registration for our exclusive, sponsored group events—such as private meet-and-greets, custom watch parties, welcome mixers, and dedicated on-site coordination.
 How it's paid: Paid directly to CBGV upon initial sign-up to lock in your space within our private group block.
 
-2. Remaining Travel Payments (InteleTravel)
+2. Remaining Travel Payments (your travel advisor)
 What it is: The balance for your actual travel package (such as your cruise fare, cabin accommodations, taxes, port fees, and optional add-ons).
-How it's paid: Processed securely through our official travel partner, InteleTravel, ensuring your travel booking is officially registered, fully protected, and tied directly into your itinerary.
-Payment Flexibility: You can pay your InteleTravel balance via standard scheduled installments or utilize available "Book Now, Pay Later" financing options.
+How it's paid: Booked by your independent travel advisor, Andrea M. Peaten, and paid directly to the cruise line, ensuring your travel booking is officially registered, fully protected, and tied directly into your itinerary.
+Payment Flexibility: You can pay your travel balance via standard scheduled installments or utilize available "Book Now, Pay Later" financing options.
 
 Why This Structure Benefits You
-By dividing the process this way, you receive the best of both worlds: specialized, high-touch group events, custom itineraries, and personal coordination tailored by Checked Bags & Good Vibes, combined with the robust, secure booking and licensing infrastructure of a major travel provider through InteleTravel.
+By dividing the process this way, you receive the best of both worlds: specialized, high-touch group events, custom itineraries, and personal coordination tailored by Checked Bags & Good Vibes, combined with the secure booking of an independent travel advisor. Host agency details are available on request.
 TEXT;
 
 	$disclaimer = cbv_get_payment_disclaimer();
@@ -210,7 +210,7 @@ function cbv_render_payment_disclaimer_banner( $user_id ) {
 		<label>
 			<input type="checkbox" id="cbv-payment-disclaimer-checkbox">
 			<span class="cbv-required" aria-hidden="true">*</span>
-			I have read and understand how CBGV Commitment Fee and Travel Payment are handled.
+			I have read and understand how the CBGV Group Experience Fee and Travel Payment are handled.
 		</label>
 		<p><button type="button" class="btn btn-ticket" id="cbv-payment-disclaimer-accept" disabled>Continue to Payments</button></p>
 		<div id="cbv-payment-disclaimer-result"></div>

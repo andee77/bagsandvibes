@@ -179,7 +179,7 @@
   document.addEventListener('click', function (e) {
     var acceptBtn = e.target.closest('.cb-accept-quote-btn');
     if (acceptBtn) {
-      if (!confirm('Accept this quote? You will be able to pay your deposit on the Payments page next.')) return;
+      if (!confirm('Accept this quote? Your independent travel advisor will then book it with you; the travel price is paid directly to the cruise line or supplier.')) return;
       var tripId = acceptBtn.getAttribute('data-trip-id');
       acceptBtn.disabled = true;
       fetch(cbGate12.restUrl + 'trips/' + tripId + '/accept-quote', {

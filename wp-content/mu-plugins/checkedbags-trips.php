@@ -478,7 +478,7 @@ function cb_render_trip_meta_box( $post ) {
 
 	<div class="cb-row">
 		<div class="cb-field">
-			<label for="cb_price">Price per person ($)</label>
+			<label for="cb_price">Travel price (reference only, never charged here) ($)</label>
 			<input type="number" step="0.01" name="cb_price" id="cb_price" value="<?php echo esc_attr( $price ); ?>">
 			<?php if ( $price_field_overridden ) : ?>
 				<p class="cb-field-notice">
@@ -500,7 +500,7 @@ function cb_render_trip_meta_box( $post ) {
 		<div class="cb-field">
 			<label for="cb_price_range_high">Price range summary -- high ($)</label>
 			<input type="number" step="0.01" name="cb_price_range_high" id="cb_price_range_high" value="<?php echo esc_attr( $range_high ); ?>">
-			<p class="description">Optional. Used for the quick "$low&#8211;$high" summary shown on trip cards. Leave both blank to show the single Price per person above instead. Once this trip has Pricing Tiers, the range is computed from the tiers automatically and these two fields are ignored.</p>
+			<p class="description">Optional. Used for the quick "$low&#8211;$high" summary shown on trip cards. Leave both blank to show the single Travel price above instead. Once this trip has Pricing Tiers, the range is computed from the tiers automatically and these two fields are ignored.</p>
 		</div>
 	</div>
 
@@ -539,7 +539,7 @@ function cb_render_trip_meta_box( $post ) {
 	<h4>Gate 12 quote (only relevant for member-built requests)</h4>
 	<div class="cb-row">
 		<div class="cb-field">
-			<label for="cb_quoted_price">Quoted price per person ($)</label>
+			<label for="cb_quoted_price">Quoted travel price per person (reference only, never charged here) ($)</label>
 			<input type="number" step="0.01" name="cb_quoted_price" id="cb_quoted_price" value="<?php echo esc_attr( $quoted ); ?>">
 		</div>
 	</div>

@@ -4,7 +4,7 @@
  * Description: "Schedule Appointment" request mechanism for the Payment
  *              page (Section 6 of the trip-invite build's post-launch
  *              list) -- Travel Payment itself is never processed on this
- *              site (InteleTravel handles it off-site), so this just lets
+ *              site (the travel advisor's host agency handles it off-site), so this just lets
  *              a member ask the advisor for a time to arrange it. Built as
  *              a custom post type specifically to AVOID repeating the
  *              earlier "Request Full Membership" mistake, where a request

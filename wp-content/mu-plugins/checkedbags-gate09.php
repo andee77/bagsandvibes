@@ -41,10 +41,11 @@ add_action( 'init', function () {
 		'auth_callback'     => function () { return current_user_can( 'edit_posts' ); },
 	) );
 
-	// CBGV Commitment Fee = cb_price + cb_extras_cost (see cb_trip_balance_due()
-	// below) -- a standalone flat add-on cost, distinct from Pricing Tiers'
-	// own per-occupancy-point totals (checkedbags-trips.php), which stay a
-	// display-only concept and are never billed through here.
+	// cb_extras_cost = APPROVED EXTRAS per member, billed on the Payment page on
+	// top of the CBGV Group Experience Fee (see cb_trip_cbgv_fee_total() below).
+	// cb_price ("Travel price") is never billed here: CBGV never collects
+	// travel funds. Pricing Tiers totals (checkedbags-trips.php) are
+	// display-only.
 	register_post_meta( 'cb_trip', 'cb_extras_cost', array(
 		'type'              => 'number',
 		'single'            => true,
@@ -102,14 +103,14 @@ function cb_render_payment_meta_box( $post ) {
 		<input type="number" name="cb_num_installments" min="1" value="<?php echo esc_attr( $installs ); ?>" style="width:100%;">
 	</p>
 	<p>
-		<label><strong>Extras Cost ($)</strong></label><br>
+		<label><strong>Approved extras ($ per member)</strong></label><br>
 		<input type="number" step="0.01" name="cb_extras_cost" value="<?php echo esc_attr( $extras_cost ); ?>" style="width:100%;">
-		<br><em>Added to Price per person to form the CBGV Commitment Fee billed on the Payment page. Does not affect the public price range on Gate 07.</em>
+		<br><em>Optional CBGV extras approved for this trip, billed to each member on the Payment page on top of the CBGV Group Experience Fee (set in the trip's Group Experience Fee box). Never travel costs: the travel price is never charged on this site. Leave blank or 0 for none. Does not affect the public price range on Gate 07.</em>
 	</p>
 	<p>
 		<label><strong>Next Travel Payment due date</strong></label><br>
 		<input type="date" name="cb_next_payment_due_date" value="<?php echo esc_attr( $next_due ); ?>" style="width:100%;">
-		<br><em>Shown on the member's payment card. Informational only -- InteleTravel processes the actual Travel Payment off-site.</em>
+		<br><em>Shown on the member's payment card. Informational only -- the travel advisor's host agency processes the actual Travel Payment off-site.</em>
 	</p>
 	<p><em>Deposit amount and full price are set in the Trip Details box above.</em></p>
 	<?php
@@ -156,21 +157,105 @@ function cb_trip_amount_paid( $trip_id, $user_id ) {
 }
 
 /**
- * The CBGV Commitment Fee total -- what's actually billed via Stripe on
- * this site, as opposed to cb_trip_get_price_range() (checkedbags-trips.php),
- * which is a Pricing-Tiers-driven display figure for the public marketing
- * range and never feeds payment math. cb_extras_cost is a standalone flat
- * add-on (Section 6 spec), unrelated to Pricing Tiers' own per-occupancy-
- * point totals.
+ * PAYMENT SAFEGUARD (owner's rules, 2026-10-08): CBGV never collects travel
+ * funds. The only amount billed through Stripe on this site is the CBGV Group
+ * Experience Fee for the member's travelers plus the trip's approved extras.
+ * None of these functions ever read cb_price ("Travel price") or
+ * cb_quoted_price (Gate 12's quoted travel price), whatever their values.
+ * Pricing Tiers totals and cb_trip_get_price_range() are display-only.
  */
-function cb_trip_cbgv_fee_total( $trip_id ) {
-	$price  = (float) get_post_meta( $trip_id, 'cb_price', true );
-	$extras = (float) get_post_meta( $trip_id, 'cb_extras_cost', true );
-	return $price + $extras;
+
+/**
+ * Who a member pays the fee for on a trip, from their traveler intake:
+ * adults = the member + additional adults, children = additional children
+ * (the member alone when the intake is not filled in; at most 20 of each
+ * extra). Children pay half a per-traveler fee.
+ */
+function cb_trip_member_party( $trip_id, $user_id ) {
+	$intake = ( $user_id && function_exists( 'cbv_get_traveler_intake' ) ) ? cbv_get_traveler_intake( (int) $user_id, (int) $trip_id ) : array();
+	return array(
+		'adults'   => 1 + min( 20, max( 0, (int) ( $intake['additional_adults'] ?? 0 ) ) ),
+		'children' => min( 20, max( 0, (int) ( $intake['additional_children'] ?? 0 ) ) ),
+	);
+}
+
+function cb_trip_member_travelers( $trip_id, $user_id ) {
+	$party = cb_trip_member_party( $trip_id, $user_id );
+	return $party['adults'] + $party['children'];
+}
+
+/**
+ * The CBGV Group Experience Fee that may be BILLED for a trip (from
+ * checkedbags-lp-fees.php): the trip's own fee always; the standard fee for
+ * its event type only once "Group Experience Fee is live" is on. Returns
+ * array( 'amount', 'basis', 'source' ) or null for none.
+ */
+function cb_trip_billable_fee( $trip_id ) {
+	if ( ! function_exists( 'cbv_lp_planning_fee' ) ) {
+		return null;
+	}
+	$fee = cbv_lp_planning_fee( $trip_id );
+	if ( $fee['amount'] <= 0 ) {
+		return null;
+	}
+	if ( 'trip' === $fee['source'] || ( function_exists( 'cbv_lp_planning_fee_is_live' ) && cbv_lp_planning_fee_is_live() ) ) {
+		return $fee;
+	}
+	return null;
+}
+
+/** Approved extras per member (the trip's cb_extras_cost), never negative. */
+function cb_trip_approved_extras( $trip_id ) {
+	return max( 0.0, round( (float) get_post_meta( $trip_id, 'cb_extras_cost', true ), 2 ) );
+}
+
+/**
+ * What a member owes CBGV for a trip, in total (formerly the "CBGV
+ * Commitment Fee"): the Group Experience Fee for their party (per traveler:
+ * full fee per adult, half per child; per cabin / flat per booking once)
+ * + approved extras.
+ */
+function cb_trip_cbgv_fee_total( $trip_id, $user_id = 0 ) {
+	$fee   = cb_trip_billable_fee( $trip_id );
+	$party = cb_trip_member_party( $trip_id, $user_id );
+	$part  = ( $fee && function_exists( 'cbv_lp_fee_for_party' ) ) ? cbv_lp_fee_for_party( $fee, $party['adults'], $party['children'] ) : 0.0;
+	return round( $part + cb_trip_approved_extras( $trip_id ), 2 );
+}
+
+/**
+ * HARD CEILING on everything CBGV may ever charge a member for a trip: the
+ * fee for their party (per traveler: full per adult, half per child; other
+ * bases once) + approved extras, recomputed here from the raw settings
+ * (independently of cb_trip_cbgv_fee_total()). The checkout refuses, and
+ * logs, any charge that would take the member above it.
+ */
+function cb_trip_charge_ceiling( $trip_id, $user_id ) {
+	$fee    = cb_trip_billable_fee( $trip_id );
+	$amount = $fee ? max( 0.0, (float) $fee['amount'] ) : 0.0;
+	$party  = cb_trip_member_party( $trip_id, $user_id );
+	$fee_part = ( $fee && 'per_traveler' === $fee['basis'] ) ? $amount * $party['adults'] + round( $amount / 2, 2 ) * $party['children'] : $amount;
+	return round( $fee_part + cb_trip_approved_extras( $trip_id ), 2 );
+}
+
+/** Logs a refused (checkout) or over-limit (webhook) charge: PHP error log + the last 100 in an option shown on Settings > Group Experience Fees. */
+function cb_log_payment_guard( $where, $trip_id, $user_id, $amount, $limit ) {
+	$entry = array(
+		'time'    => current_time( 'mysql' ),
+		'where'   => (string) $where,
+		'trip_id' => (int) $trip_id,
+		'user_id' => (int) $user_id,
+		'amount'  => round( (float) $amount, 2 ),
+		'limit'   => round( (float) $limit, 2 ),
+	);
+	$log = get_option( 'cb_payment_guard_log', array() );
+	$log = is_array( $log ) ? $log : array();
+	array_unshift( $log, $entry );
+	update_option( 'cb_payment_guard_log', array_slice( $log, 0, 100 ), false );
+	error_log( 'CBGV payment safeguard: ' . wp_json_encode( $entry ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 }
 
 function cb_trip_balance_due( $trip_id, $user_id ) {
-	$fee = cb_trip_cbgv_fee_total( $trip_id );
+	$fee = cb_trip_cbgv_fee_total( $trip_id, $user_id );
 	return max( 0, $fee - cb_trip_amount_paid( $trip_id, $user_id ) );
 }
 
@@ -247,6 +332,14 @@ function cb_create_checkout_session( $request ) {
 	if ( $amount <= 0 ) {
 		return new WP_Error( 'cb_nothing_due', 'No balance due.', array( 'status' => 400 ) );
 	}
+	// Safeguard: the hard ceiling (fee x travelers + approved extras, less what
+	// is already paid), recomputed independently. Refuse and log anything above it.
+	$room = cb_trip_charge_ceiling( $trip_id, $user_id ) - cb_trip_amount_paid( $trip_id, $user_id );
+	if ( $amount > $room + 0.005 ) {
+		cb_log_payment_guard( 'checkout refused', $trip_id, $user_id, $amount, max( 0, $room ) );
+		return new WP_Error( 'cb_amount_guard', 'This payment is larger than the CBGV fee still due, so it was not started. Please contact us.', array( 'status' => 400 ) );
+	}
+	$label = 'CBGV Group Experience Fee: ' . html_entity_decode( get_the_title( $trip_id ), ENT_QUOTES, 'UTF-8' );
 
 	$permalink = get_permalink( $trip_id );
 
@@ -268,10 +361,13 @@ function cb_create_checkout_session( $request ) {
 						'currency'     => 'usd',
 						'unit_amount'  => (int) round( $amount * 100 ),
 						'product_data' => array(
-							'name' => get_the_title( $trip_id ),
+							'name' => $label,
 						),
 					),
 				),
+			),
+			'payment_intent_data'                 => array(
+				'description' => $label,
 			),
 			'metadata'                            => array(
 				'trip_id' => $trip_id,
@@ -315,6 +411,10 @@ function cb_handle_stripe_webhook( $request ) {
 		$amount   = isset( $session['amount_total'] ) ? $session['amount_total'] / 100 : 0;
 
 		if ( $trip_id && $user_id && $amount > 0 ) {
+			$ceiling = cb_trip_charge_ceiling( $trip_id, $user_id );
+			if ( cb_trip_amount_paid( $trip_id, $user_id ) + $amount > $ceiling + 0.005 ) {
+				cb_log_payment_guard( 'webhook over limit', $trip_id, $user_id, $amount, $ceiling );
+			}
 			$payments   = get_post_meta( $trip_id, 'cb_payments', true );
 			$payments   = is_array( $payments ) ? $payments : array();
 			$payments[] = array(
@@ -389,7 +489,7 @@ add_shortcode( 'cb_gate_payments', function () {
 	echo cbv_render_payment_disclaimer_banner( $user_id );
 	?>
 	<div class="cbv-payments-page-header">
-		<p class="cb-page-hint">Track your CBGV Commitment Fee and Travel Payment status for each trip you&#8217;re part of.</p>
+		<p class="cb-page-hint">Track your CBGV Group Experience Fee and Travel Payment status for each trip you&#8217;re part of.</p>
 		<button type="button" class="btn btn-ghost cbv-schedule-appt-btn" data-trip-id="0" data-trip-title="">
 			Schedule Appointment <i class="ti ti-calendar" aria-hidden="true"></i>
 		</button>
@@ -402,14 +502,15 @@ add_shortcode( 'cb_gate_payments', function () {
 		?>
 		<div class="cbv-payment-cards-grid">
 		<?php foreach ( $my_trips as $trip ) :
-			$fee_total = cb_trip_cbgv_fee_total( $trip->ID );
+			$fee_total = cb_trip_cbgv_fee_total( $trip->ID, $user_id );
+			$bill_fee  = cb_trip_billable_fee( $trip->ID );
+			$party     = cb_trip_member_party( $trip->ID, $user_id );
+			$extras    = cb_trip_approved_extras( $trip->ID );
 			$balance   = cb_trip_balance_due( $trip->ID, $user_id );
 			$paid      = cb_trip_amount_paid( $trip->ID, $user_id );
 			$next_amt  = cb_trip_next_payment_amount( $trip->ID, $user_id );
 			$history   = cb_trip_payments_for_user( $trip->ID, $user_id );
 			$due_date  = get_post_meta( $trip->ID, 'cb_next_payment_due_date', true );
-			$extras    = (float) get_post_meta( $trip->ID, 'cb_extras_cost', true );
-			$price     = (float) get_post_meta( $trip->ID, 'cb_price', true );
 			$appt      = function_exists( 'cbv_get_latest_appointment_request' ) ? cbv_get_latest_appointment_request( $user_id, $trip->ID ) : null;
 			$detail_id = 'cbv-payment-detail-' . $trip->ID;
 			?>
@@ -417,7 +518,7 @@ add_shortcode( 'cb_gate_payments', function () {
 				<h3 class="cbv-payment-card-title"><?php echo esc_html( get_the_title( $trip ) ); ?></h3>
 
 				<div class="cbv-payment-card-row">
-					<span class="cbv-payment-card-label">CBGV Commitment Fee</span>
+					<span class="cbv-payment-card-label">CBGV Group Experience Fee</span>
 					<span class="cbv-payment-card-value">
 						<?php if ( $balance > 0 ) : ?>
 							$<?php echo esc_html( number_format( $paid, 2 ) ); ?> of $<?php echo esc_html( number_format( $fee_total, 2 ) ); ?>
@@ -455,11 +556,21 @@ add_shortcode( 'cb_gate_payments', function () {
 				</button>
 
 				<div class="cbv-payment-card-detail" id="<?php echo esc_attr( $detail_id ); ?>" hidden>
-					<p class="cbv-payment-detail-line">Price per person: $<?php echo esc_html( number_format( $price, 2 ) ); ?></p>
-					<?php if ( $extras > 0 ) : ?>
-						<p class="cbv-payment-detail-line">Extras: $<?php echo esc_html( number_format( $extras, 2 ) ); ?></p>
+					<?php if ( $bill_fee ) : ?>
+						<p class="cbv-payment-detail-line">CBGV Group Experience Fee: $<?php echo esc_html( number_format( cbv_lp_fee_for_party( $bill_fee, $party['adults'], $party['children'] ), 2 ) ); ?><?php
+						if ( 'per_traveler' === $bill_fee['basis'] ) {
+							$fee_parts = array( sprintf( '%d %s x $%s', $party['adults'], 1 === $party['adults'] ? 'adult' : 'adults', number_format( (float) $bill_fee['amount'], 2 ) ) );
+							if ( $party['children'] > 0 ) {
+								$fee_parts[] = sprintf( '%d %s x $%s', $party['children'], 1 === $party['children'] ? 'child' : 'children', number_format( cbv_lp_fee_child_amount( $bill_fee ), 2 ) );
+							}
+							echo esc_html( ' (' . implode( ' + ', $fee_parts ) . ')' );
+						}
+						?></p>
 					<?php endif; ?>
-					<p class="cbv-payment-detail-line"><strong>CBGV Commitment Fee total: $<?php echo esc_html( number_format( $fee_total, 2 ) ); ?></strong></p>
+					<?php if ( $extras > 0 ) : ?>
+						<p class="cbv-payment-detail-line">Approved extras: $<?php echo esc_html( number_format( $extras, 2 ) ); ?></p>
+					<?php endif; ?>
+					<p class="cbv-payment-detail-line"><strong>Total owed to CBGV: $<?php echo esc_html( number_format( $fee_total, 2 ) ); ?></strong></p>
 
 					<?php if ( ! empty( $history ) ) : ?>
 						<h4>Payment history</h4>
@@ -469,7 +580,7 @@ add_shortcode( 'cb_gate_payments', function () {
 							<?php endforeach; ?>
 						</ul>
 					<?php else : ?>
-						<p class="cb-empty">No CBGV Commitment Fee payments recorded yet.</p>
+						<p class="cb-empty">No CBGV Group Experience Fee payments recorded yet.</p>
 					<?php endif; ?>
 
 					<?php if ( $appt ) : ?>
@@ -489,7 +600,7 @@ add_shortcode( 'cb_gate_payments', function () {
 		<div class="cbv-schedule-appt-modal-inner">
 			<button type="button" class="cbv-schedule-appt-close" aria-label="Close">&times;</button>
 			<h4 id="cbv-schedule-appt-modal-title">Schedule an Appointment</h4>
-			<p class="cb-page-hint">Tell us when works best and we&#8217;ll reach out to arrange your InteleTravel Travel Payment.</p>
+			<p class="cb-page-hint">Tell us when works best and we&#8217;ll reach out to arrange your Travel Payment with your travel advisor.</p>
 			<label>Preferred time
 				<input type="text" id="cbv-schedule-appt-time" placeholder="e.g. Weekday afternoons">
 			</label>

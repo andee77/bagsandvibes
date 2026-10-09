@@ -19,7 +19,7 @@ if crlf:
 open(p, "wb").write(s.encode("utf-8"))
 PY
   [ $? -ne 0 ] && { echo "MUTANT $name: COULD NOT APPLY"; return; }
-  printf '<?php\ndefine( "WPMU_PLUGIN_DIR", "/tmp/cbv_mut" );\ndefine( "WP_DISABLE_FATAL_ERROR_HANDLER", true );\n' > /tmp/cbv_t/define_mut.php
+  printf '<?php\ndefine( "WPMU_PLUGIN_DIR", "/tmp/cbv_mut" );\ndefine( "WP_DISABLE_FATAL_ERROR_HANDLER", true );\nini_set( "error_log", "/tmp/cbv_t/test_errors.log" );\n' > /tmp/cbv_t/define_mut.php
   sed "s#'/tmp/cbv_mu' === WPMU_PLUGIN_DIR#'/tmp/cbv_mut' === WPMU_PLUGIN_DIR#" /tmp/cbv_t/test_step8b.php > /tmp/cbv_t/test_mut.php
   res=$(wp --require=/tmp/cbv_t/define_mut.php eval-file /tmp/cbv_t/test_mut.php 2>&1 | tr -d '\r')
   echo "MUTANT: $name"
@@ -30,7 +30,12 @@ F=checkedbags-lp-fees.php
 P=checkedbags-lp-prices.php
 D=checkedbags-proposal-pdf.php
 run "per traveler fee not multiplied by headcount" $F "return round( \$amount * max( 1, (int) \$headcount ), 2 );" "return round( \$amount, 2 );"
-run "every basis treated as per traveler" $F "if ( 'per_traveler' === ( \$fee['basis'] ?? 'per_traveler' ) ) {" "if ( true ) {"
+run "every basis treated as per traveler" $F "	\$amount = (float) \$fee['amount'];
+	if ( 'per_traveler' === ( \$fee['basis'] ?? 'per_traveler' ) ) {" "	\$amount = (float) \$fee['amount'];
+	if ( true ) {"
+run "party: every basis treated as per traveler" $F "	\$children = max( 0, (int) \$children );
+	if ( 'per_traveler' === ( \$fee['basis'] ?? 'per_traveler' ) ) {" "	\$children = max( 0, (int) \$children );
+	if ( true ) {"
 run "negative amounts allowed" $F "round( min( 100000, max( 0, (float) \$value ) ), 2 )" "round( min( 100000, (float) \$value ), 2 )"
 run "no cap on amounts" $F "round( min( 100000, max( 0, (float) \$value ) ), 2 )" "round( max( 0, (float) \$value ), 2 )"
 run "unknown basis kept" $F "isset( cbv_lp_fee_bases()[ (string) \$value ] ) ? (string) \$value : 'per_traveler'" "(string) \$value"
@@ -76,4 +81,11 @@ run "PDF: fee not in the cabin total" $D "						\$cabin_total      += \$fee_cabi
 run "PDF: fee not in the per-person total" $D "						\$per_person_total += \$fee_cabin / \$headcount;" "						\$per_person_total += 0;"
 run "PDF: fee column always shown" $D "\$show_fee = is_array( \$fee ) && ! empty( \$fee['amount'] ) && function_exists( 'cbv_lp_fee_for_cabin' );" "\$show_fee = function_exists( 'cbv_lp_fee_for_cabin' );"
 run "PDF: uses the page (preview) check" $D "cbv_lp_planning_fee_shown( \$trip_id, 'pdf' )" "cbv_lp_planning_fee_shown( \$trip_id, 'page' )"
+run "board note: children line missing" $F "		\$lines[] = 'Children pay half the CBGV Group Experience Fee.';" "		// missing"
+run "board note: children line on every basis" $F "	if ( 'per_traveler' === \$fee['basis'] ) {
+		\$lines[] = 'Children" "	if ( true ) {
+		\$lines[] = 'Children"
+run "PDF: children note missing" $D "			\$html .= '<p class=\"cb-fee-note\">Children pay half the CBGV Group Experience Fee.</p>';" "			// missing"
+run "intake: age not shown" checkedbags-trip-invites.php "esc_html( ' (under ' . cbv_lp_child_age_under() . ')' )" "''"
+run "child age not limited to 1-21" $F "	return \$age >= 1 && \$age <= 21 ? \$age : 0;" "	return \$age;"
 rm -rf /tmp/cbv_mut /tmp/cbv_t/define_mut.php /tmp/cbv_t/test_mut.php

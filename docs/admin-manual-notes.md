@@ -631,6 +631,7 @@ The **CBGV Group Experience Fee** is Checked Bags & Good Vibes' own fee for the 
 |---|---|
 | **Amount ($)** for each event type | The standard fee for every trip of that type. Type just the number, e.g. 250 or 250.00 ($ and commas are fine). Blank or 0 = no fee for that type. |
 | **Basis** | **Per traveler** (the amount times the number of travelers in the cabin), **Per cabin / room** (once per cabin), or **Flat per booking** (once in each cabin's price, with the note "One fee per booking, however many cabins you book together"). |
+| **Children are under __ years old** | The age that makes a traveler a child. **Children always pay half** the fee when it is charged per traveler (per cabin and flat per booking are not affected). Set to **18**: children are 17 and under, 18 and over is an adult (LaDon, 2026-10-08). The traveler intake shows it next to the boxes: "Additional adults traveling with you (age 18 and over)" and "Additional children traveling with you (under 18)". Change it only on LaDon's say-so. |
 | **Group Experience Fee is live** | Off (the default): the fee only shows in admin previews of the new design (`?preview=new`) and on these admin screens. **Proposal PDFs and public pages leave it out.** On: it is added to the price board and to proposal PDFs. |
 
 ### The trip's Group Experience Fee box
@@ -641,6 +642,7 @@ The **CBGV Group Experience Fee** is Checked Bags & Good Vibes' own fee for the 
 ### What travelers will see (once live)
 - On the price board, each price includes the fee for that cabin: for $250 per traveler, a cabin for 2 includes $500. The itemized line ends "· CBGV Group Experience Fee $500".
 - A note under the board, the same for every trip type: "The CBGV Group Experience Fee is paid to Checked Bags & Good Vibes (a d/b/a of JourneyWell Global LLC) for the group program; travel payments go directly to the cruise line or supplier. It's fully refundable within 7 days of paying, 50% refundable until [the trip's final payment date], and non-refundable after that. Full refund if the trip is cancelled." The date comes from the trip's key dates; if the trip has no final payment date it says "the trip's final payment date". Flat-per-booking trips add "One fee per booking, however many cabins you book together."
+- When the fee is per traveler, the board note and the proposal PDF also say: "Children pay half the CBGV Group Experience Fee." (Board and PDF prices are for 2 adults.)
 - In the proposal PDF: a **CBGV Group Experience Fee / Cabin** column after Discount, and both totals (per person and per cabin) include the fee.
 
 ### Order to do things in
@@ -654,6 +656,9 @@ The **CBGV Group Experience Fee** is Checked Bags & Good Vibes' own fee for the 
 - Changing a standard fee changes it for every trip of that type that uses the standard.
 - Today's public page, Gate 07's price range and the legacy "From $..." prices never include the fee.
 - Never write that CBGV books the cabin: **the travel advisor books it**. CBGV runs the group program.
+- Public wording never names InteleTravel: say "independent travel advisor" (Andrea M. Peaten). The host agency is given on request, or where the law requires it.
+- The member **Payment page** bills this same fee (it used to be called the "CBGV Commitment Fee"): the trip's own fee x the member's travelers, plus any approved extras. See section 11, "Payments and Stripe".
+- Editing the Payment Disclaimer on its Settings page always raises its version, so every member must accept it again. A wording-only fix is done by the developer without a version bump.
 - Refunds: full within 7 days of paying (if the trip is 120+ days away), 50% until the trip's final payment date, non-refundable after. Full refund if CBGV or the supplier cancels. Free transfer to a replacement traveler. The fee carries over if the trip is rescheduled (full refund if the traveler can't make the new date). Refunds go back to the original payment method within 14 days.
 - Recording who has paid the fee, and when, comes with registration and payments (Step 9b).
 
@@ -662,6 +667,47 @@ The **CBGV Group Experience Fee** is Checked Bags & Good Vibes' own fee for the 
 - Typing the fee into a trip's Voyage Fare or Taxes as well: it would be counted twice.
 - Choosing **Per cabin** when the fee is meant per person: a cabin for 2 would show $250 instead of $500.
 - Picking "Use a different fee" and leaving the amount blank: that means no fee on the trip.
+
+---
+
+## 11. Payments and Stripe (CBGV fee only)
+
+**CBGV never collects travel funds.** The only thing members pay on this site, by card through Stripe, is the **CBGV Group Experience Fee** (plus any approved extras). Cruise fares, deposits and every other travel payment are booked by the independent travel advisor and paid directly to the cruise line or supplier.
+
+### Where it is
+- Members pay on **Gate 09 — Payments**: https://bagsandvibes.com/gate-09-payments/
+- Each trip's fee: Trips list, https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_trip, click the trip's name, **Group Experience Fee (new design)** box.
+- Approved extras, payment mode, deposit and installments: the same trip screen, **Gate 09 — Payment Settings** box.
+- Standard fees and the **Payment safeguard log**: Settings > Group Experience Fees, https://bagsandvibes.com/wp-admin/options-general.php?page=cbv-experience-fees
+- Stripe: https://dashboard.stripe.com/payments
+
+### How a member's amount is worked out
+- **Fee for the member's party + approved extras.** The fee is the trip's own fee (its Group Experience Fee box). The standard fee is only billed once **Group Experience Fee is live** is on.
+- **Who is in the party:** the member plus the additional adults (18 and over, full fee each) and additional children (17 and under, **half the fee each**) on their traveler intake. If the intake is not filled in, it is the member alone. Example on trip 181 ($225 per traveler): 2 adults + 1 child = $225 + $225 + $112.50 = **$562.50**. Per cabin and flat per booking fees are charged once, whoever is in the party.
+- The Payment page shows the working, e.g. "CBGV Group Experience Fee: $562.50 (2 adults x $225.00 + 1 child x $112.50)".
+- **Approved extras ($ per member)** is for CBGV extras the trip has approved. It is never for travel costs.
+- **Travel price (reference only, never charged here)** (it used to say "Price per person") and the Gate 12 **Quoted travel price** are for reference only. Whatever they say, the site never charges them, including after a member accepts a Gate 12 quote.
+- With **Deposit + installments**, the first payment is the deposit setting or the fee, whichever is smaller, and the rest is split over the installments. The total is never more than the amount owed.
+
+### Stripe rules
+- Every charge is named **"CBGV Group Experience Fee: {trip name}"** in Stripe. A charge with any other name did not come from this site.
+- **Hard limit:** the site refuses any charge that would take a member above the fee for their party (full per adult, half per child) + approved extras, and logs it. If Stripe ever reports a payment above that limit, it is logged too. The log is at the bottom of Settings > Group Experience Fees.
+- Never create a manual charge, invoice or payment link in Stripe for travel costs.
+- Refunds of the fee follow the refund policy (`docs/policies/cbgv-group-experience-fee-refunds.md`) and are made in Stripe, back to the original card.
+
+### Monthly reconciliation (first week of each month, for the month before)
+1. In Stripe (https://dashboard.stripe.com/payments), filter last month's **successful** payments and export them.
+2. Check every charge is named "CBGV Group Experience Fee: ..." and is no more than that member's fee for their party (full per adult, half per child) + approved extras.
+3. For each trip, download its roster (trip screen, **Export Roster** box) and compare each member's amount paid with Stripe. Every Stripe payment should appear once, and nothing should appear that is not in Stripe.
+4. Open the **Payment safeguard log** (Settings > Group Experience Fees). Look into every entry from last month: a "checkout refused" entry means a member could not pay (check the trip's fee, approved extras and the member's travelers); a "webhook over limit" entry means money was taken above the limit and must be refunded or explained.
+5. Check that refunds made in Stripe match the refund policy.
+6. Write down the date, who did it and anything that was fixed.
+
+### Common mistakes
+- Typing the fee into **Approved extras** as well as the trip's Group Experience Fee box: the member is billed twice. (Trips 181 and 320 held their fee in Extras Cost before this change; their extras are set to $0 when their own fee is set.)
+- Expecting a Travel price or quoted price to be paid on Gate 09: it never is.
+- A member putting a child under "Additional adults" (or the reverse): the fee is then wrong for that member. Check the intake when a member asks about their amount.
+- Entering the standard fee and expecting it to be billed straight away: it is billed only once **Group Experience Fee is live** is on, or when a trip has its own fee.
 
 ---
 

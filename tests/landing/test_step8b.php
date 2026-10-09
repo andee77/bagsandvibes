@@ -71,6 +71,23 @@ check( 'per traveler: x headcount (2 = $500, 3 = $750; 0 counts as 1)', 500.0 ==
 check( 'per cabin and flat per booking: once per cabin', 150.0 === cbv_lp_fee_for_cabin( array( 'amount' => 150, 'basis' => 'per_cabin' ), 4 ) && 99.5 === cbv_lp_fee_for_cabin( array( 'amount' => 99.5, 'basis' => 'per_booking' ), 3 ) );
 check( 'no fee, $0, junk: 0', 0.0 === cbv_lp_fee_for_cabin( null, 2 ) && 0.0 === cbv_lp_fee_for_cabin( array( 'amount' => 0 ), 2 ) && 0.0 === cbv_lp_fee_for_cabin( 'junk', 2 ) );
 
+section( 'B2. children pay half (per-traveler fees only)' );
+check( 'child share: half the fee ($225 -> $112.50; $250 -> $125; $225.01 -> $112.51)', 112.5 === cbv_lp_fee_child_amount( array( 'amount' => 225, 'basis' => 'per_traveler' ) ) && 125.0 === cbv_lp_fee_child_amount( $pt250 ) && 112.51 === cbv_lp_fee_child_amount( array( 'amount' => 225.01, 'basis' => 'per_traveler' ) ) );
+check( 'party: 2 adults + 1 child at $225 per traveler = $562.50', 562.5 === cbv_lp_fee_for_party( array( 'amount' => 225, 'basis' => 'per_traveler' ), 2, 1 ) );
+check( 'party: 1 adult at $250 = $250; 2 adults + 2 children = $750', 250.0 === cbv_lp_fee_for_party( $pt250, 1, 0 ) && 750.0 === cbv_lp_fee_for_party( $pt250, 2, 2 ) );
+check( 'party: per cabin and flat per booking are not affected by children (charged once)', 150.0 === cbv_lp_fee_for_party( array( 'amount' => 150, 'basis' => 'per_cabin' ), 2, 3 ) && 99.0 === cbv_lp_fee_for_party( array( 'amount' => 99, 'basis' => 'per_booking' ), 1, 2 ) );
+check( 'party: no fee, junk, or nobody: $0', 0.0 === cbv_lp_fee_for_party( null, 2, 1 ) && 0.0 === cbv_lp_fee_for_party( array( 'amount' => 0 ), 2, 1 ) && 0.0 === cbv_lp_fee_for_party( array( 'amount' => 99, 'basis' => 'per_cabin' ), 0, 0 ) );
+add_filter( 'pre_option_cbv_lp_child_age_under', $age_f = function () { return $GLOBALS['opt_age']; } );
+$GLOBALS['opt_age'] = false;
+check( 'child age not set yet: 0 (the intake form says nothing about age)', 0 === cbv_lp_child_age_under() );
+$GLOBALS['opt_age'] = '12';
+check( 'child age set to 12: 12', 12 === cbv_lp_child_age_under() );
+$GLOBALS['opt_age'] = '40';
+check( 'child age outside 1-21 is ignored', 0 === cbv_lp_child_age_under() );
+$intake_src = file_get_contents( WPMU_PLUGIN_DIR . '/checkedbags-trip-invites.php' );
+check( 'traveler intake states the age next to adults and children once it is set', false !== strpos( $intake_src, "' (age ' . cbv_lp_child_age_under() . ' and over)'" ) && false !== strpos( $intake_src, "' (under ' . cbv_lp_child_age_under() . ')'" ) );
+$GLOBALS['opt_age'] = false;
+
 /* ---- C. the trip's fee ---- */
 section( 'C. the trip\'s fee' );
 $fake[ TRIP ] = trip_meta();
@@ -134,18 +151,18 @@ check( 'every cell includes the fee for its headcount; "from" includes it', 3052
 check( 'the board says which fee it used', is_array( $d['fee'] ) && 250.0 === $d['fee']['amount'] );
 add_filter( 'cbv_lp_key_dates', $kd = function ( $dates, $trip_id ) { if ( TRIP === (int) $trip_id ) { $dates['final_payment'] = 'June 27, 2027'; } return $dates; }, 99, 2 );
 $note = cbv_lp_planning_fee_note( TRIP ); $GLOBALS['note_all'] = array_merge( $GLOBALS['note_all'], $note );
-check( 'note: the approved compliance wording, with the trip\'s final payment date, as one paragraph', array( 'The CBGV Group Experience Fee is paid to Checked Bags & Good Vibes (a d/b/a of JourneyWell Global LLC) for the group program; travel payments go directly to the cruise line or supplier. It\'s fully refundable within 7 days of paying, 50% refundable until June 27, 2027, and non-refundable after that. Full refund if the trip is cancelled.' ) === $note, json_encode( $note ) );
+check( 'note: the approved compliance wording, with the trip\'s final payment date, then the children line (per-traveler fee)', array( 'The CBGV Group Experience Fee is paid to Checked Bags & Good Vibes (a d/b/a of JourneyWell Global LLC) for the group program; travel payments go directly to the cruise line or supplier. It\'s fully refundable within 7 days of paying, 50% refundable until June 27, 2027, and non-refundable after that. Full refund if the trip is cancelled.', 'Children pay half the CBGV Group Experience Fee.' ) === $note, json_encode( $note ) );
 check( 'note: names JourneyWell Global LLC and never says CBGV books anything', false !== strpos( $note[0], '(a d/b/a of JourneyWell Global LLC)' ) && false === stripos( implode( ' ', $note ), 'CBGV books' ) );
 check( 'note is on the board data', $note === cbv_lp_price_board_data( TRIP )['fee_note'] );
 remove_filter( 'cbv_lp_key_dates', $kd, 99 );
 $note = cbv_lp_planning_fee_note( TRIP ); $GLOBALS['note_all'] = array_merge( $GLOBALS['note_all'], $note );
-check( "no final payment date: \"...until the trip's final payment date...\"", false !== strpos( end( $note ), "50% refundable until the trip's final payment date, and non-refundable after that." ) );
+check( "no final payment date: \"...until the trip's final payment date...\"", false !== strpos( $note[0], "50% refundable until the trip's final payment date, and non-refundable after that." ) );
 $fake[ TRIP ] = trip_meta( array( 'cbv_lp_event_type' => 'resort' ) );
 $note = cbv_lp_planning_fee_note( TRIP ); $GLOBALS['note_all'] = array_merge( $GLOBALS['note_all'], $note );
-check( 'note: the same wording for a resort trip', array( 'The CBGV Group Experience Fee is paid to Checked Bags & Good Vibes (a d/b/a of JourneyWell Global LLC) for the group program; travel payments go directly to the cruise line or supplier. It\'s fully refundable within 7 days of paying, 50% refundable until the trip\'s final payment date, and non-refundable after that. Full refund if the trip is cancelled.' ) === $note );
+check( 'note: the same wording for a resort trip', array( 'The CBGV Group Experience Fee is paid to Checked Bags & Good Vibes (a d/b/a of JourneyWell Global LLC) for the group program; travel payments go directly to the cruise line or supplier. It\'s fully refundable within 7 days of paying, 50% refundable until the trip\'s final payment date, and non-refundable after that. Full refund if the trip is cancelled.', 'Children pay half the CBGV Group Experience Fee.' ) === $note );
 $fake[ TRIP ] = trip_meta( array( 'cbv_lp_planning_fee' => array( 'mode' => 'custom', 'amount' => 100, 'basis' => 'per_booking' ) ) );
 $note = cbv_lp_planning_fee_note( TRIP ); $GLOBALS['note_all'] = array_merge( $GLOBALS['note_all'], $note );
-check( 'flat per booking: the "one fee per booking" line after the note', 2 === count( $note ) && 0 === strpos( $note[0], 'The CBGV Group Experience Fee is paid' ) && 'One fee per booking, however many cabins you book together.' === $note[1] );
+check( 'flat per booking: the "one fee per booking" line after the note, and no children line', false === in_array( 'Children pay half the CBGV Group Experience Fee.', $note, true ) && 2 === count( $note ) && 0 === strpos( $note[0], 'The CBGV Group Experience Fee is paid' ) && 'One fee per booking, however many cabins you book together.' === $note[1] );
 $fake[ TRIP ] = trip_meta( array( 'cbv_lp_planning_fee' => array( 'mode' => 'none' ) ) );
 check( 'waived: no note and no fee on the board', array() === cbv_lp_planning_fee_note( TRIP ) && null === cbv_lp_price_board_data( TRIP )['fee'] && 2552.0 === cbv_lp_price_board_data( TRIP )['groups'][0]['rows'][0]['cells'][1]['total'] );
 $GLOBALS['opt_live'] = false;
@@ -161,6 +178,7 @@ check( 'no fee: no fee column, totals as before ($2,552.00 per cabin)', false ==
 $h1 = cb_proposal_render_pricing_html( $trip_pdf + array( 'planning_fee' => $pt250 ) );
 check( 'with a fee: a "CBGV Group Experience Fee / Cabin" column after Discount', false !== strpos( $h1, '<th>Discount</th><th>CBGV Group Experience Fee / Cabin</th><th>Basis</th>' ) );
 check( 'with a fee: the fee cell and both totals include it ($500; $3,052.00 per cabin; $1,526.00 per person)', false !== strpos( $h1, '<td>$500.00</td><td>Per Cabin</td><td><strong>$1,526.00</strong></td><td>$3,052.00</td>' ), $h1 );
+check( 'PDF: "Children pay half the CBGV Group Experience Fee." under the tables for a per-traveler fee, not otherwise', false !== strpos( $h1, '<p class="cb-fee-note">Children pay half the CBGV Group Experience Fee.</p>' ) && false === strpos( $h0, 'Children pay half' ) && false === strpos( cb_proposal_render_pricing_html( $trip_pdf + array( 'planning_fee' => array( 'amount' => 150, 'basis' => 'per_cabin' ) ) ), 'Children pay half' ) );
 check( 'with a fee, for 3 travelers: $750 fee, $4,853.00 per cabin', false !== strpos( $h1, '<td>$750.00</td>' ) && false !== strpos( $h1, '$4,853.00' ) );
 check( 'with a fee and a tagged price: Fare and fee columns together', false !== strpos( $h1, '<th>Fare</th><th># Sailors</th>' ) && 11 === substr_count( explode( '</thead>', $h1 )[0], '<th>' ) );
 $GLOBALS['opt_fees'] = $all250; $GLOBALS['opt_live'] = false;
@@ -175,6 +193,7 @@ $GLOBALS['opt_fees'] = $all250; $GLOBALS['opt_live'] = false;
 wp_set_current_user( 1 );
 ob_start(); cbv_lp_render_fees_page(); $page = ob_get_clean(); $page_admin = $page;
 check( 'settings page: a row per event type with amount and basis, saved values shown', count( cbv_lp_event_types() ) === substr_count( $page, '[amount]"' ) && false !== strpos( $page, 'name="cbv_lp_planning_fees[cruise][amount]" value="250.00"' ) && false !== strpos( $page, 'name="cbv_lp_planning_fees[corporate][basis]"' ) );
+check( 'settings page: the children rule and the "Children are under __ years old" field (blank until set)', false !== strpos( $page, 'children always pay <strong>half</strong>' ) && 1 === preg_match( '/name="cbv_lp_child_age_under" value=""/', $page ) );
 check( 'settings page: the live switch, unticked, with the go-live warning', 1 === preg_match( '/name="cbv_lp_planning_fee_live" value="1"\s*>/', $page ) && false !== strpos( $page, 'Seller-of-Travel' ) && false !== strpos( $page, 'option_page' ) );
 wp_set_current_user( 0 );
 ob_start(); cbv_lp_render_fees_page(); $page = ob_get_clean();

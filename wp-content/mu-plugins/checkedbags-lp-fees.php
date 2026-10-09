@@ -31,6 +31,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define( 'CBV_LP_FEES_OPTION', 'cbv_lp_planning_fees' );
 define( 'CBV_LP_FEE_LIVE_OPTION', 'cbv_lp_planning_fee_live' );
+define( 'CBV_LP_CHILD_AGE_OPTION', 'cbv_lp_child_age_under' );
 
 /* ==========================================================================
    1. Small pure helpers (tested directly).
@@ -97,6 +98,34 @@ function cbv_lp_fee_for_cabin( $fee, $headcount ) {
 		return round( $amount * max( 1, (int) $headcount ), 2 );
 	}
 	return round( $amount, 2 ); // per cabin, or flat per booking counted once in each cabin's price
+}
+
+/** A child's share of a per-traveler fee: always half (LaDon's rule, 2026-10-08). */
+function cbv_lp_fee_child_amount( $fee ) {
+	return is_array( $fee ) && ! empty( $fee['amount'] ) ? round( max( 0, (float) $fee['amount'] ) / 2, 2 ) : 0.0;
+}
+
+/**
+ * The fee for a party of $adults adults and $children children. Per traveler:
+ * the full fee per adult and half per child. Per cabin and flat per booking
+ * are not affected (charged once).
+ */
+function cbv_lp_fee_for_party( $fee, $adults, $children = 0 ) {
+	if ( ! is_array( $fee ) || empty( $fee['amount'] ) || (float) $fee['amount'] <= 0 ) {
+		return 0.0;
+	}
+	$adults   = max( 0, (int) $adults );
+	$children = max( 0, (int) $children );
+	if ( 'per_traveler' === ( $fee['basis'] ?? 'per_traveler' ) ) {
+		return round( (float) $fee['amount'] * $adults + cbv_lp_fee_child_amount( $fee ) * $children, 2 );
+	}
+	return $adults + $children > 0 ? round( (float) $fee['amount'], 2 ) : 0.0;
+}
+
+/** "Children are under N" (years) as set on the settings page; 0 until LaDon confirms the age. */
+function cbv_lp_child_age_under() {
+	$age = (int) get_option( CBV_LP_CHILD_AGE_OPTION, 0 );
+	return $age >= 1 && $age <= 21 ? $age : 0;
 }
 
 /* ==========================================================================
@@ -180,6 +209,9 @@ function cbv_lp_planning_fee_note( $trip_id ) {
 
 	$lines   = array();
 	$lines[] = 'The CBGV Group Experience Fee is paid to Checked Bags & Good Vibes (a d/b/a of JourneyWell Global LLC) for the group program; travel payments go directly to the cruise line or supplier. It\'s fully refundable within 7 days of paying, 50% refundable until ' . $until . ', and non-refundable after that. Full refund if the trip is cancelled.';
+	if ( 'per_traveler' === $fee['basis'] ) {
+		$lines[] = 'Children pay half the CBGV Group Experience Fee.';
+	}
 	if ( 'per_booking' === $fee['basis'] ) {
 		$lines[] = 'One fee per booking, however many ' . strtolower( (string) ( $labels['accommodation_plural'] ?? 'cabins' ) ) . ' you book together.';
 	}
@@ -194,6 +226,14 @@ add_action( 'admin_init', function () {
 		'type'              => 'array',
 		'sanitize_callback' => 'cbv_lp_sanitize_planning_fees',
 		'default'           => array(),
+	) );
+	register_setting( 'cbv_lp_planning_fees_group', CBV_LP_CHILD_AGE_OPTION, array(
+		'type'              => 'integer',
+		'sanitize_callback' => function ( $v ) {
+			$v = absint( $v );
+			return $v >= 1 && $v <= 21 ? $v : 0;
+		},
+		'default'           => 0,
 	) );
 	register_setting( 'cbv_lp_planning_fees_group', CBV_LP_FEE_LIVE_OPTION, array(
 		'type'              => 'boolean',
@@ -242,12 +282,41 @@ function cbv_lp_render_fees_page() {
 				</tbody>
 			</table>
 			<p class="description">Flat per booking is counted once in each cabin's all-in price, with the note "one fee per booking, however many cabins you book together".</p>
+			<h2>Children</h2>
+			<p>When the fee is charged <strong>per traveler</strong>, children always pay <strong>half</strong> (for example $250 per adult, $125 per child). Per cabin and flat per booking fees are not affected.</p>
+			<p><label for="cbv_child_age">Children are under</label> <input type="number" min="1" max="21" step="1" id="cbv_child_age" name="<?php echo esc_attr( CBV_LP_CHILD_AGE_OPTION ); ?>" value="<?php echo cbv_lp_child_age_under() ? (int) cbv_lp_child_age_under() : ''; ?>" class="small-text"> years old</p>
+			<p class="description">Shown on the traveler intake form next to "Additional adults" and "Additional children", so members choose the right box. Leave blank until the age is confirmed.</p>
 			<h2>Show the fee to clients</h2>
 			<p><label><input type="checkbox" name="<?php echo esc_attr( CBV_LP_FEE_LIVE_OPTION ); ?>" value="1" <?php checked( $live ); ?>> <strong>Group Experience Fee is live</strong></label></p>
 			<p class="description">Off: the fee only shows in admin previews of the new design (<code>?preview=new</code>) and on these admin screens; proposals and public pages do not include it. Turn it on only after the go-live business checks are done (InteleTravel terms, Seller-of-Travel registration, how CBGV collects the fee).</p>
 			<p class="description">Refund policy (applies to every trip type): <code>docs/policies/cbgv-group-experience-fee-refunds.md</code>. The refund cutoff is each trip's own final payment date.</p>
 			<?php submit_button( 'Save Group Experience Fees' ); ?>
 		</form>
+		<?php
+		$guard_log = get_option( 'cb_payment_guard_log', array() );
+		$guard_log = is_array( $guard_log ) ? $guard_log : array();
+		?>
+		<h2>Payment safeguard log</h2>
+		<p class="description">Charges the Payment page refused because they were above the limit (fee x travelers + approved extras, less what was already paid), and payments Stripe reported above that limit. Check this during the monthly reconciliation. Last 100 entries.</p>
+		<?php if ( empty( $guard_log ) ) : ?>
+			<p>Nothing logged.</p>
+		<?php else : ?>
+			<table class="widefat striped" style="max-width:760px;">
+				<thead><tr><th>When</th><th>What</th><th>Trip</th><th>Member</th><th>Amount</th><th>Limit</th></tr></thead>
+				<tbody>
+				<?php foreach ( $guard_log as $row ) : ?>
+					<tr>
+						<td><?php echo esc_html( $row['time'] ?? '' ); ?></td>
+						<td><?php echo esc_html( $row['where'] ?? '' ); ?></td>
+						<td><?php echo esc_html( get_the_title( (int) ( $row['trip_id'] ?? 0 ) ) . ' (' . (int) ( $row['trip_id'] ?? 0 ) . ')' ); ?></td>
+						<td><?php $u = get_userdata( (int) ( $row['user_id'] ?? 0 ) ); echo esc_html( $u ? $u->display_name : '#' . (int) ( $row['user_id'] ?? 0 ) ); ?></td>
+						<td>$<?php echo esc_html( number_format( (float) ( $row['amount'] ?? 0 ), 2 ) ); ?></td>
+						<td>$<?php echo esc_html( number_format( (float) ( $row['limit'] ?? 0 ), 2 ) ); ?></td>
+					</tr>
+				<?php endforeach; ?>
+				</tbody>
+			</table>
+		<?php endif; ?>
 	</div>
 	<?php
 }
