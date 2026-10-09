@@ -711,6 +711,28 @@ The **CBGV Group Experience Fee** is Checked Bags & Good Vibes' own fee for the 
 
 ---
 
+## 12. Server: the PHP error log
+
+PHP's error log is kept **outside the website folder**, so it can never be downloaded from the web. (Changed 2026-10-08.)
+
+### Where it is
+- **The log:** `/home/u2922-bn1ak4vn2swx/logs/php_errorlog` on the SiteGround server (the `logs` folder in the account's home folder, readable only by the account). Open it with SiteGround's **File Manager** (Site Tools > Site > File Manager, then go up to the home folder) or over SSH.
+- **The setting:** one line in `public_html/.user.ini`:
+  `error_log = /home/u2922-bn1ak4vn2swx/logs/php_errorlog`
+  It covers the whole site, front end and wp-admin. After any change to the file, PHP takes up to **5 minutes** to pick it up.
+- **Older logs** from before the change are still at `public_html/php_errorlog` and `public_html/wp-admin/php_errorlog`. The server blocks both from the web (403). Moving them is a separate, later step.
+- **Not covered:** commands run on the server with WP-CLI still write any warnings to `php_errorlog` in the folder they run from (usually `public_html`).
+
+### Undo
+Delete `public_html/.user.ini`. Within about 5 minutes PHP goes back to SiteGround's default: a file called `php_errorlog` inside `public_html` (and `wp-admin`), still blocked from the web.
+
+### Rules worth knowing
+- **SiteGround's PHP Manager (Site Tools > Devs > PHP Manager) may rewrite PHP settings.** After **any** change there (PHP version, PHP variables), open `public_html/.user.ini` and check the `error_log` line is still exactly as above. If it is missing or changed, put it back.
+- Never put the log back inside `public_html`, and never make `~/logs` readable by others.
+- The log can contain file paths and error details. Don't paste it into emails or chats outside the team.
+
+---
+
 ## Coming in later steps (this file will be extended after each)
 - Price board on the page (Step 9)
 - Registration opt-outs (gratuities and Voyage Protection) and the decline acknowledgment
