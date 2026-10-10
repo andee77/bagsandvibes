@@ -720,8 +720,8 @@ PHP's error log is kept **outside the website folder**, so it can never be downl
 - **The setting:** **Site Tools > Devs > PHP Manager > PHP Variables**, variable `error_log`, value `/home/u2922-bn1ak4vn2swx/logs/php_errorlog`. SiteGround saves it as one line in `public_html/php.ini`:
   `error_log = /home/u2922-bn1ak4vn2swx/logs/php_errorlog`
   It covers the whole site, front end and wp-admin. Change it only in the PHP Manager, not by editing `php.ini` by hand.
-- **Older logs** from before the change are still at `public_html/php_errorlog` and `public_html/wp-admin/php_errorlog`. The server blocks both from the web (403). Moving them is a separate, later step.
-- **Not covered:** commands run on the server with WP-CLI still write any warnings to `php_errorlog` in the folder they run from (usually `public_html`).
+- **Older logs** from before the change were moved on 2026-10-10, contents unchanged, to `~/logs/old/public_html-php_errorlog` (was `public_html/php_errorlog`) and `~/logs/old/wp-admin-php_errorlog` (was `public_html/wp-admin/php_errorlog`). The `old` folder and both files are readable only by the account. Nothing is left in `public_html` or `wp-admin`.
+- **Not covered:** commands run on the server with WP-CLI still write any warnings to `php_errorlog` in the folder they run from (usually `public_html`). If a new `php_errorlog` appears there, it came from a WP-CLI command; the server still blocks that file name from the web (403).
 
 ### How it was confirmed
 A one-time test page printed the error-log setting the website uses and wrote one test line. On 2026-10-10 it printed the `~/logs` path and the line `bagsandvibes log location test` landed in `~/logs/php_errorlog`. The test page was deleted straight away.
