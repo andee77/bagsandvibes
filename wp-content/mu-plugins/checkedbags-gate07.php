@@ -225,6 +225,7 @@ add_shortcode( 'cb_gate_vacations', function () {
 						$<?php echo esc_html( number_format_i18n( $price ) ); ?> / person
 					<?php endif; ?>
 				</p>
+				<?php echo function_exists( 'cbv_render_card_note' ) ? cbv_render_card_note( $trip->ID ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in checkedbags-price-notes.php ?>
 				<p class="trip-card-spots">
 					<?php echo $spots === null ? 'Open' : esc_html( $spots ) . ' spot' . ( $spots === 1 ? '' : 's' ) . ' left'; ?>
 				</p>

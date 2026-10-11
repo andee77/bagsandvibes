@@ -160,6 +160,11 @@ function cbv_lp_render_trip( $trip_id, $view = 'new' ) {
 		// Step 9: the price board replaces today's "Choose Your Option" cards.
 		echo cbv_lp_render_priceboard( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
 		$legacy = cbv_lp_strip_legacy_pricing( $legacy );
+		// The old "Reserve Your Spot" button goes too (the itinerary PDF
+		// button stays), but only while the board is there to book from.
+		if ( function_exists( 'cbv_lp_strip_legacy_cta' ) && function_exists( 'cbv_lp_priceboard_data' ) && null !== cbv_lp_priceboard_data( $trip_id ) ) {
+			$legacy = cbv_lp_strip_legacy_cta( $legacy );
+		}
 	}
 	echo '<div class="cbv-lp-legacy-wrap">' . $legacy . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput -- the renderer escapes its own output
 	return ob_get_clean();

@@ -895,6 +895,13 @@ body.checkedbags-dashboard {
   color: rgba(251,243,231,0.75);
   margin: 0;
 }
+/* Optional one-line note under the price (trip's "Gate 07 card note"). */
+.trip-card-note {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--gold);
+  margin: 0;
+}
 .trip-card-actions {
   display: flex;
   gap: 0.6rem;
@@ -3247,6 +3254,15 @@ body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
   color: rgba(22,35,43,0.65);
   max-width: 480px;
   margin: 0;
+}
+
+/* Optional note under the "Choose Your Option" cards (trip's "Pricing note"). */
+.cbv-landing-pricing-note {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: rgba(22,35,43,0.75);
+  max-width: 720px;
+  margin: 1.25rem 0 0;
 }
 
 .cbv-landing-disclaimer {

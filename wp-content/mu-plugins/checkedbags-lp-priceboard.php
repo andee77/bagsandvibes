@@ -23,8 +23,12 @@
  *
  *              Wording rules: travel is booked by the travel advisor and
  *              paid directly to the cruise line (or supplier); no deposit
- *              amount and no "payment plans" in the header note; the host
- *              agency is never named here.
+ *              amount (unless it comes from the trip's own data) and no
+ *              general "payment plans" in the header note; the host agency
+ *              is never named here. Refined 2026-10-11: for Virgin Voyages
+ *              trips, Uplift (Virgin's financing partner) may be named,
+ *              always with "subject to approval"; never monthly amounts,
+ *              rates or promised approval.
  * Author:      Built with Claude for JourneyWell Global LLC
  *
  * WHERE THIS FILE GOES:
@@ -121,7 +125,9 @@ function cbv_lp_board_part_use( $groups, $part ) {
  *   prepaid gratuities and Voyage Protection, plus the CBGV Group Experience
  *   Fee. Travel is booked by your travel advisor and paid directly to the
  *   cruise line."
- * No deposit amount and no payment plans (compliance update 2026-10-09).
+ * No deposit amount and no payment plans (compliance update 2026-10-09); a
+ * trip's own header note may name Uplift on Virgin trips, always "subject to
+ * approval" (refined 2026-10-11, see the file header).
  */
 function cbv_lp_board_auto_note( $groups, $labels, $has_fee, $is_cruise ) {
 	$parts = array( 'cruise fare' );
@@ -438,6 +444,58 @@ function cbv_lp_strip_legacy_pricing( $html ) {
 	return $out;
 }
 
+/**
+ * The legacy "Reserve Your Spot" block (owner, 2026-10-11): on the new design
+ * the price board and "Claim your seat" are the one way to book, so the old
+ * Reserve button and its "submits a request to join" note go. The "Download
+ * Full Itinerary PDF" button stays (to move into the route section later);
+ * the block itself goes only when nothing is left in it. Same DOMDocument
+ * approach as cbv_lp_strip_legacy_pricing(); unchanged HTML when there is
+ * nothing to remove.
+ */
+function cbv_lp_strip_legacy_cta( $html ) {
+	if ( '' === trim( (string) $html ) || ! class_exists( 'DOMDocument' ) ) {
+		return $html;
+	}
+	$prev = libxml_use_internal_errors( true );
+	$dom  = new DOMDocument();
+	$ok   = $dom->loadHTML( '<?xml encoding="utf-8" ?><div id="cbv-lp-root">' . $html . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
+	libxml_clear_errors();
+	libxml_use_internal_errors( $prev );
+	if ( ! $ok ) {
+		return $html;
+	}
+
+	$xp      = new DOMXPath( $dom );
+	$cta     = '//div[contains(concat(" ", normalize-space(@class), " "), " cbv-landing-cta ")]';
+	$nodes   = $xp->query( $cta . '/a[contains(concat(" ", normalize-space(@class), " "), " btn-ticket ")] | ' . $cta . '/p[contains(concat(" ", normalize-space(@class), " "), " cbv-landing-cta-note ")]' );
+	$removed = 0;
+	foreach ( iterator_to_array( $nodes ) as $node ) {
+		if ( $node->parentNode ) {
+			$node->parentNode->removeChild( $node );
+			$removed++;
+		}
+	}
+	if ( ! $removed ) {
+		return $html;
+	}
+	foreach ( iterator_to_array( $xp->query( $cta ) ) as $block ) {
+		if ( ! $xp->query( './*', $block )->length && $block->parentNode ) {
+			$block->parentNode->removeChild( $block );
+		}
+	}
+	$found = $xp->query( '//div[@id="cbv-lp-root"]' );
+	$root  = $found->length ? $found->item( 0 ) : null;
+	if ( ! $root ) {
+		return $html;
+	}
+	$out = '';
+	foreach ( $root->childNodes as $child ) {
+		$out .= $dom->saveHTML( $child );
+	}
+	return $out;
+}
+
 /* ==========================================================================
    5. Trip edit screen: the "Price board" box. The prices themselves stay in
       the Pricing Tiers box; the media chooser comes from
@@ -456,7 +514,7 @@ function cbv_lp_render_priceboard_box( $post ) {
 	<p>
 		<label for="cbv_lp_priceboard_note"><strong>Header note</strong> <span class="description">(optional)</span></label><br>
 		<textarea name="cbv_lp_priceboard[note]" id="cbv_lp_priceboard_note" rows="3" maxlength="600" class="large-text"><?php echo esc_textarea( $b['note'] ); ?></textarea>
-		<span class="description">Blank = the automatic note, e.g. "<strong>All-in prices per cabin for 2 travelers:</strong> cruise fare, taxes &amp; fees, prepaid gratuities and Voyage Protection, plus the CBGV Group Experience Fee. Travel is booked by your travel advisor and paid directly to the cruise line." Tokens such as {date:final_payment} work. Never name the host agency, and never say CBGV books the cabin.</span>
+		<span class="description">Blank = the automatic note, e.g. "<strong>All-in prices per cabin for 2 travelers:</strong> cruise fare, taxes &amp; fees, prepaid gratuities and Voyage Protection, plus the CBGV Group Experience Fee. Travel is booked by your travel advisor and paid directly to the cruise line." Tokens such as {date:final_payment} work. Never name the host agency, and never say CBGV books the cabin. For Virgin trips, Uplift may be named, always with "subject to approval", never with monthly amounts or rates.</span>
 	</p>
 	<?php
 	if ( function_exists( 'cbv_lp_media_field' ) && function_exists( 'cbv_lp_featured_focus_select' ) ) {

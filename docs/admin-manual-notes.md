@@ -2,7 +2,7 @@
 
 Working notes for the CBGV admin manual. A new section is added after each build step, written for an admin who is not technical. At the end of the build this file becomes the admin user manual.
 
-**Last updated:** 2026-10-09 (covers Steps 1 to 9, the media rule, payments and the server error log).
+**Last updated:** 2026-10-11 (covers Steps 1 to 9a, the media rule, payments and the server error log).
 
 ## How to read this file
 - **Screens** (always listed by their full address; these are the list and add-new screens, so they work for any trip or provider):
@@ -797,6 +797,33 @@ The price board is the "Pick your cabin" section of the new page: one bar per ca
 - Ticking **Highlight this row** on rows in two different groups: only the first of those groups starts open.
 - Typing a header note with a fixed fee amount or date: it won't update when the trip changes. Use the automatic note or a token instead.
 - Expecting the fee on the board for a trip that uses the **standard** fee while the fee is not live: it only shows in your own `?preview=new`.
+
+---
+
+## 14. Price notes, the old Reserve button, and members-only forums (Step 9a)
+
+### Price notes
+Two short, optional notes about prices and payment, in the **Price notes (current page and Gate 07)** box on the trip's edit screen (Trips list: https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_trip, open the trip).
+- **Pricing note**: shown under the "Choose Your Option" prices on **today's** public trip page. Up to 600 characters; **bold** and [words](https://link) work. It is **not** shown on the new design: there, use the **Header note** in the Price board box (section 13).
+- **Gate 07 card note**: one short line (up to 80 characters) under the price on the trip's card in Gate 07 (members only), e.g. "Pay in full or monthly with Uplift".
+- Leave either blank and nothing shows.
+
+### Wording rules for payment text (header note, pricing note, card note)
+- Travel is booked by the travel advisor and paid directly to the cruise line or supplier. Never name the host agency, and never say CBGV books the cabin.
+- **Virgin trips: Uplift may be named**, always with **"subject to approval"**. Never give monthly amounts or rates, and never promise approval.
+- No deposit amounts unless they come from the trip's own data.
+- Give the fee per traveler ("$150 per traveler", not just "$150"), matching the trip's fee.
+
+### The old "Reserve Your Spot" button
+On the **new design**, the old "Reserve Your Spot" button and its "This submits a request to join" line are gone: the price board and "Claim your seat" are the one way to book. The **Download Full Itinerary PDF** button stays where it was. If the Price board is switched **Off** for a trip, the old Reserve button comes back, so there is always a way to book. Today's public design is unchanged.
+
+### Forums are members only
+Anyone who isn't signed in and opens a forum page (the forum list, the Lounge, a trip board, a topic) is sent to the sign-in page and brought back after signing in. Members see the forums as before. Forums are also hidden from search engines (Yoast, set 2026-10-11).
+
+### Common mistakes
+- Putting the same payment text in the **Pricing note** and the **Disclaimer**: on today's page it then shows twice. Use the Pricing note for payment wording; keep the Disclaimer for fine print.
+- Expecting the Pricing note on the new design: it isn't there. Use the Price board's Header note.
+- A card note that is too long: it stops at 80 characters.
 
 ---
 

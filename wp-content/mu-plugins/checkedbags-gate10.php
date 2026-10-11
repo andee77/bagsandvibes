@@ -297,3 +297,38 @@ add_filter( 'bbp_get_excluded_forum_ids', function ( $forum_ids ) {
 
 	return array_values( $forum_ids );
 } );
+
+/* ==========================================================================
+   8. Members only (owner, 2026-10-11): every forum page -- the forum list,
+      the Lounge, boards, topics, replies, forum search and forum feeds --
+      sends a visitor who isn't signed in to the sign-in page, then back to
+      the page they asked for. Signed-in members are not affected (the
+      per-forum rules above still decide what they can read). Search engines
+      already skip these pages (Yoast: forums, topics and replies noindex,
+      2026-10-11), so this only closes the door for people.
+   ========================================================================== */
+function cb_gate10_is_forum_request() {
+	if ( function_exists( 'is_bbpress' ) && is_bbpress() ) {
+		return true;
+	}
+	if ( is_feed() && function_exists( 'bbp_get_forum_post_type' ) ) {
+		$types = (array) get_query_var( 'post_type' );
+		return (bool) array_intersect( $types, array( bbp_get_forum_post_type(), bbp_get_topic_post_type(), bbp_get_reply_post_type() ) );
+	}
+	return false;
+}
+
+/** True when this request should go to the sign-in page instead. */
+function cb_gate10_guest_must_sign_in( $is_forum_request, $logged_in ) {
+	return $is_forum_request && ! $logged_in;
+}
+
+add_action( 'template_redirect', function () {
+	if ( ! cb_gate10_guest_must_sign_in( cb_gate10_is_forum_request(), is_user_logged_in() ) ) {
+		return;
+	}
+	$here = home_url( add_query_arg( array() ) );
+	nocache_headers();
+	wp_safe_redirect( wp_login_url( $here ) );
+	exit;
+}, 5 );

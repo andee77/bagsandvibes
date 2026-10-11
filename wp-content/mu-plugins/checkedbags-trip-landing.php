@@ -226,6 +226,7 @@ function cbv_render_public_trip_landing( $trip_id ) {
 					</div>
 				<?php endforeach; ?>
 			</div>
+			<?php echo function_exists( 'cbv_render_pricing_note' ) ? cbv_render_pricing_note( $trip_id ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in checkedbags-price-notes.php ?>
 		</div>
 		<?php endif; ?>
 

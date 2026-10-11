@@ -28,12 +28,14 @@ wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_step7.php
 wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_step8.php
 wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_step8b.php
 wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_step9.php
+wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_step9a.php
 bash /tmp/cbv_t/mutate_step5.sh
 bash /tmp/cbv_t/mutate_step6.sh
 bash /tmp/cbv_t/mutate_step7.sh
 bash /tmp/cbv_t/mutate_step8.sh
 bash /tmp/cbv_t/mutate_step8b.sh
 bash /tmp/cbv_t/mutate_step9.sh
+bash /tmp/cbv_t/mutate_step9a.sh
 ```
 
 Set `CBV_VERBOSE=1` to list every passing check. Each suite ends with
@@ -56,6 +58,8 @@ Each mutation script expects its suite in `/tmp/cbv_t/`.
 | `mutate_step8b.sh` | Mutation tests for Step 8b | 36 mutants, all caught |
 | `test_step9.php` | Price board drawn (groups, table, breakdown toggle, header note, footer bar, fee note), its box and save, "Claim your seat", coin stamp, legacy pricing removal, the trip's-own-fee rule | 88 checks, 0 failures |
 | `mutate_step9.sh` | Mutation tests for Step 9 | 36 mutants, all caught |
+| `test_step9a.php` | Price notes (pricing note on the current page, Gate 07 card note) and their box and save, legacy Reserve block removed on the new design (PDF button kept), members-only forum rule. Reads trip 320 (Helmets) and Gate 07 with notes faked | 36 checks, 0 failures |
+| `mutate_step9a.sh` | Mutation tests for Step 9a | 19 mutants, all caught |
 
 Some checks read trip 181 (Annual Family and Friends) as it is on the live
 site (its intro text, itinerary and stored times), so they can need updating if
