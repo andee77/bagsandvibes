@@ -2,7 +2,7 @@
 
 Working notes for the CBGV admin manual. A new section is added after each build step, written for an admin who is not technical. At the end of the build this file becomes the admin user manual.
 
-**Last updated:** 2026-10-04 (covers Steps 1, 2, 3, 3b and 4, plus the media rule).
+**Last updated:** 2026-10-09 (covers Steps 1 to 9, the media rule, payments and the server error log).
 
 ## How to read this file
 - **Screens** (always listed by their full address; these are the list and add-new screens, so they work for any trip or provider):
@@ -16,7 +16,7 @@ Working notes for the CBGV admin manual. A new section is added after each build
 - Nothing here changes what the public sees until a trip is switched live (see section 1). You can fill everything in safely ahead of time.
 
 ## What you can see today, and what comes later
-The new design is being built one step at a time. **Right now the new page has the new hero and boarding pass, the status board, the intro, the route, the featured moment and the gallery at the top** (Steps 4 to 7): new header and footer, those sections, then today's trip content underneath. The remaining new sections (route, price board, included cards, timeline, travel documents and so on) are built in later steps. Everything you enter in the boxes below is saved and waiting; **most of it will not show on the page until the step that draws that section is finished.** This file tells you when each section starts showing.
+The new design is being built one step at a time. **Right now the new page has the new hero and boarding pass, the status board, the intro, the route, the featured moment, the gallery and the price board at the top** (Steps 4 to 9): new header and footer, those sections, then today's trip content underneath. The remaining new sections (included cards, timeline, travel documents and so on) are built in later steps. Everything you enter in the boxes below is saved and waiting; **most of it will not show on the page until the step that draws that section is finished.** This file tells you when each section starts showing.
 
 ---
 
@@ -314,7 +314,7 @@ The top of the new page: a full-width hero (looping video or a picture, the trip
 | FROM / VIA / TO | The **Day-by-Day Itinerary** rows and their **Code** column. Only shown when **Show Itinerary on Public Landing Page** is ticked (Public Landing Page Content box). |
 | Departs / Returns (Check-in / Check-out ...) | The trip's start and end dates. The labels follow the event type. |
 | Vessel (Property, Venue ...) | **Vessel / venue name** in the Hero & boarding pass box. |
-| "Claim your seat" button | Goes to the registration page for this trip (uses the trip code). |
+| "Claim your seat" button | Jumps down to the price board (since Step 9; see section 13). When the board is hidden, it goes to the registration page for this trip (uses the trip code). |
 | Background | The hero video (larger screens) and the poster picture (see below). |
 
 ### The fields in the Hero & boarding pass box
@@ -611,7 +611,7 @@ Step 8 adds a few fields to the **Pricing Tiers** box so the new design's price 
 - Typing a Group slightly differently on two tiers ("Sea Terrace" vs "Sea Terraces"): they become two sections. Capitals don't matter; spelling does.
 - Leaving Lock-It-In price points on Column 1: they would appear on the board as a normal group price.
 - Ticking "priced per cabin" on a point whose amounts are per person (or the reverse): every price for that point is then 2-3 times off. Check the "= $... per person · $... per cabin" line under each point after saving.
-- Expecting the board on the page now: it is drawn in Step 9.
+- The board itself (how it looks, the photos and the header note): section 13.
 
 ---
 
@@ -632,7 +632,7 @@ The **CBGV Group Experience Fee** is Checked Bags & Good Vibes' own fee for the 
 | **Amount ($)** for each event type | The standard fee for every trip of that type. Type just the number, e.g. 250 or 250.00 ($ and commas are fine). Blank or 0 = no fee for that type. |
 | **Basis** | **Per traveler** (the amount times the number of travelers in the cabin), **Per cabin / room** (once per cabin), or **Flat per booking** (once in each cabin's price, with the note "One fee per booking, however many cabins you book together"). |
 | **Children are under __ years old** | The age that makes a traveler a child. **Children always pay half** the fee when it is charged per traveler (per cabin and flat per booking are not affected). Set to **18**: children are 17 and under, 18 and over is an adult (LaDon, 2026-10-08). The traveler intake shows it next to the boxes: "Additional adults traveling with you (age 18 and over)" and "Additional children traveling with you (under 18)". Change it only on LaDon's say-so. |
-| **Group Experience Fee is live** | Off (the default): the fee only shows in admin previews of the new design (`?preview=new`) and on these admin screens. **Proposal PDFs and public pages leave it out.** On: it is added to the price board and to proposal PDFs. |
+| **Group Experience Fee is live** | Off (the default): the **standard** fee only shows in admin previews of the new design (`?preview=new`) and on these admin screens, and **proposal PDFs leave every fee out**. A trip's **own** fee ("Use a different fee for this trip") shows on the new design's price board even while this is off, because the Payment page already bills it (since Step 9; see section 13). On: every fee is added to the price board and to proposal PDFs. |
 
 ### The trip's Group Experience Fee box
 - **Use the standard fee**: the default. The box shows what that is, e.g. "Cruise: $250 per traveler".
@@ -738,8 +738,69 @@ In **PHP Manager > PHP Variables**, remove the `error_log` value (or reset it). 
 
 ---
 
+## 13. Price board (Step 9)
+
+The price board is the "Pick your cabin" section of the new page: one bar per cabin group, the all-in price per cabin for 2 travelers with the per-person price under it, and a "What's in this price?" link under each cabin. It is drawn from the **Pricing Tiers** box (section 9) and the trip's **Group Experience Fee** (section 10). Today's "Choose Your Option" price cards are left out of the new design. **The public page is unchanged** until the trip is switched live on the new design (section 1); check it with `?preview=new`.
+
+### Where it is
+- Trips list: https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_trip, then click the trip's name.
+- The prices: **Pricing Tiers** box (Group, Badge, Note, Highlight this row, One price only, and each price point's **Price board column**). See section 9.
+- **Price board (new design)** box (main column): an optional header note and two optional photos.
+- On or off for a trip: the **Price board** row in the trip's Sections table (section 2).
+
+### What the board shows, and where each part comes from
+| On the page | Comes from |
+|---|---|
+| "Gate 18 · Fare classes" and "Pick your cabin" | The event type's words ("Pick your room" for a resort, and so on). The Gate number follows the sections above it. |
+| Note beside the heading | Automatic, unless you type your own (see the box below). Automatic wording: "**All-in prices per cabin for 2 travelers:** cruise fare, taxes & fees, prepaid gratuities and Voyage Protection, plus the CBGV Group Experience Fee. Travel is booked by your travel advisor and paid directly to the cruise line." A part no price contains (for example no Voyage Protection anywhere) is left out; "plus the CBGV Group Experience Fee" only appears when the trip shows a fee. Other event types say "paid directly to the supplier". It never mentions a deposit amount or payment plans. |
+| Coloured bar with the column names | The price columns the board actually uses (from the provider's **Price column names**). Columns no price uses are left out. |
+| One bar per group, with "From $..." | Each tier's **Group**; "From" is the lowest all-in price in that group. Tap a bar to open it; opening one closes the others. **The group with the highlighted row starts open**; with no highlighted row, the first group does. |
+| Cabin row: name, badge, note | The tier's name, **Badge** and **Note**. A highlighted row is tinted gold. |
+| Price | The all-in price for the cabin for 2 travelers, with "$... per person" under it. When a column only has a price for another headcount, the line says so ("for 3 travelers"). A dash means that cabin has no price in that column. |
+| Suites | **One price only** rows show a single price across the columns, marked "Suite fare" ("One price" for other event types). |
+| "What's in this price?" | Opens the itemized all-in line for each of the cabin's prices: cruise fare, taxes & fees, prepaid gratuities, Voyage Protection and, when the trip shows a fee, **CBGV Group Experience Fee** as the fifth item. |
+| Dark bar under the board | "Final payment due · [date]" from the trip's final payment key date (left out if the trip has none), and "Tips & protection included" on cruises, only when **every** price on the board includes both. |
+| "Reserve a cabin" button | The trip's registration page (uses the trip code). |
+| Note under the board | Only when the trip shows a CBGV Group Experience Fee: the approved fee and refund note, plus "Children pay half the CBGV Group Experience Fee." for per-traveler fees, or "One fee per booking, however many cabins you book together." for flat-per-booking fees (section 10). |
+
+### When the fee shows on the board
+- **The trip's own fee** (its Group Experience Fee box set to **Use a different fee for this trip**) **always shows on the board**, even while **Group Experience Fee is live** is off, because the member Payment page already bills that fee. Trip 181 ($225 per traveler) and Helmets ($150 per traveler) are set this way, so their boards show the fee.
+- **The standard fee** (Settings > Group Experience Fees) shows only once **Group Experience Fee is live** is ticked, except in your own `?preview=new`.
+- **Proposal PDFs** still include a fee only once **Group Experience Fee is live** is ticked, whichever kind it is.
+- **No Group Experience Fee on this trip**: no fee and no note anywhere.
+
+### The Price board (new design) box
+| Field | What it does |
+|---|---|
+| **Header note** | Optional. Replaces the automatic note beside the heading. Up to 600 characters; **bold**, *italic*, links and tokens such as {date:final_payment} work. Leave blank to use the automatic note (recommended: it updates itself when the fee or the prices change). |
+| **Photo 1** / **Photo 2** | Optional, e.g. a cabin and a deck. Shown beside the board on a computer and in a row above it on tablets and phones. No photos = the board runs full width. Choose them from the Media Library; each needs Alt Text there. Virgin pictures from the First Mates toolkit only, unaltered (section 4). |
+| **Photo focus point** | Keeps the subject (and any logo) in view when the frame crops the picture, as in the other sections. |
+
+### The boarding pass now
+- **"Claim your seat"** (on the boarding pass at the top) jumps down to the price board, so people pick a cabin first; the board's **Reserve a cabin** button then goes to registration. When the board is hidden (Price board section Off, or no price left on it), "Claim your seat" goes straight to registration, as before.
+- A faint CBGV logo coin now sits behind the pass text. It is decorative only (screen readers skip it) and nothing needs setting.
+
+### Order to do things in
+1. In **Pricing Tiers**, set each tier's Group, Badge, Note, Highlight and One price only, and each price point's **Price board column** (section 9). Put fares that can't be held in the group on **Not on the price board**.
+2. Check the trip's **Group Experience Fee** box (section 10).
+3. Optional: add the photos (and a header note) in the **Price board (new design)** box.
+4. Click **Update**, then open the trip with `?preview=new` and open each group to check the prices and the "What's in this price?" lines.
+
+### Rules worth knowing
+- The board hides itself when its section is **Off** or when no price is left on it (every price "Not on the price board").
+- Never type a deposit amount or "payment plans" into the header note; never name the host agency; never say CBGV books the cabin: **the travel advisor books it** and travel is paid directly to the cruise line or supplier.
+- Prices on the board are for 2 adults. Children's half fee is explained in the note under the board.
+- Today's public page and Gate 07 keep their old prices (no fee) until the trip is switched live on the new design.
+
+### Common mistakes
+- **Leaving every price untagged**: everything then sits in column 1 (on a Virgin trip, "Base"), and Lock-It-In tiers show as normal group prices. Trip 181 is like this today, waiting for its fare classes to be confirmed.
+- Ticking **Highlight this row** on rows in two different groups: only the first of those groups starts open.
+- Typing a header note with a fixed fee amount or date: it won't update when the trip changes. Use the automatic note or a token instead.
+- Expecting the fee on the board for a trip that uses the **standard** fee while the fee is not live: it only shows in your own `?preview=new`.
+
+---
+
 ## Coming in later steps (this file will be extended after each)
-- Price board on the page (Step 9)
 - Registration opt-outs (gratuities and Voyage Protection) and the decline acknowledgment
 - Included cards and upgrades; pack list, group perks and timeline
 - How to book, member hint, travel documents editor on the trip

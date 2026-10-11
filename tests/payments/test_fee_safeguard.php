@@ -257,7 +257,7 @@ check( 'roster export: "Paid in Full" is judged on what the member owes CBGV, no
 section( 'G. isolation held' );
 check( 'no email was sent', 0 === $GLOBALS['mail'] );
 remove_all_filters( 'get_post_metadata' ); remove_all_filters( 'pre_option_cb_payment_guard_log' );
-check( 'real trip 181 untouched: no payments stored, Travel price still $0, its Extras Cost still $225', array() === array_filter( (array) get_post_meta( TRIP, 'cb_payments', true ) ) && 0.0 === (float) get_post_meta( TRIP, 'cb_price', true ) && 225.0 === (float) get_post_meta( TRIP, 'cb_extras_cost', true ) );
+check( 'real trip 181 untouched: no payments stored, Travel price still $0, its Approved extras still $0 (moved to its own $225 fee on 2026-10-09)', array() === array_filter( (array) get_post_meta( TRIP, 'cb_payments', true ) ) && 0.0 === (float) get_post_meta( TRIP, 'cb_price', true ) && 0.0 === (float) get_post_meta( TRIP, 'cb_extras_cost', true ) );
 check( 'nothing was written to the real safeguard log', false === get_option( 'cb_payment_guard_log', false ) );
 
 echo "\n{$GLOBALS['n']} checks, {$GLOBALS['fail']} failures\n";

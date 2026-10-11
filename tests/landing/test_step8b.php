@@ -78,7 +78,7 @@ check( 'party: 1 adult at $250 = $250; 2 adults + 2 children = $750', 250.0 === 
 check( 'party: per cabin and flat per booking are not affected by children (charged once)', 150.0 === cbv_lp_fee_for_party( array( 'amount' => 150, 'basis' => 'per_cabin' ), 2, 3 ) && 99.0 === cbv_lp_fee_for_party( array( 'amount' => 99, 'basis' => 'per_booking' ), 1, 2 ) );
 check( 'party: no fee, junk, or nobody: $0', 0.0 === cbv_lp_fee_for_party( null, 2, 1 ) && 0.0 === cbv_lp_fee_for_party( array( 'amount' => 0 ), 2, 1 ) && 0.0 === cbv_lp_fee_for_party( array( 'amount' => 99, 'basis' => 'per_cabin' ), 0, 0 ) );
 add_filter( 'pre_option_cbv_lp_child_age_under', $age_f = function () { return $GLOBALS['opt_age']; } );
-$GLOBALS['opt_age'] = false;
+$GLOBALS['opt_age'] = '0'; // '0', not false: false would fall through to the real option (set to 18 on 2026-10-09)
 check( 'child age not set yet: 0 (the intake form says nothing about age)', 0 === cbv_lp_child_age_under() );
 $GLOBALS['opt_age'] = '12';
 check( 'child age set to 12: 12', 12 === cbv_lp_child_age_under() );
@@ -86,7 +86,7 @@ $GLOBALS['opt_age'] = '40';
 check( 'child age outside 1-21 is ignored', 0 === cbv_lp_child_age_under() );
 $intake_src = file_get_contents( WPMU_PLUGIN_DIR . '/checkedbags-trip-invites.php' );
 check( 'traveler intake states the age next to adults and children once it is set', false !== strpos( $intake_src, "' (age ' . cbv_lp_child_age_under() . ' and over)'" ) && false !== strpos( $intake_src, "' (under ' . cbv_lp_child_age_under() . ')'" ) );
-$GLOBALS['opt_age'] = false;
+$GLOBALS['opt_age'] = '0';
 
 /* ---- C. the trip's fee ---- */
 section( 'C. the trip\'s fee' );
@@ -251,7 +251,7 @@ $t181 = cb_trip_get_pricing_tiers( 181 );
 check( 'even with a live $250 fee: Gate 07 / legacy price range for trip 181 unchanged', cb_trip_get_price_range( 181 )['low'] === min( array_map( 'cb_pricing_occupancy_point_total', array_merge( ...array_map( function ( $t ) { return $t['occupancy_points']; }, $t181 ) ) ) ) );
 check( "even with a live fee: today's landing page shows the old prices (From \$1,276 / person for The Insider)", false !== strpos( cbv_render_public_trip_landing( 181 ), '1,276' ) );
 $GLOBALS['opt_fees'] = false; $GLOBALS['opt_live'] = false;
-check( 'REAL site today (no fee set): trip 181 has no fee and its board prices are as in Step 8', null === cbv_lp_price_board_data( 181 )['fee'] && 2552.0 === cbv_lp_price_board_data( 181 )['groups'][0]['rows'][0]['cells'][1]['total'] );
+check( 'REAL site today (no standard fee, not live): trip 181 shows only its OWN fee ($225 per traveler, set 2026-10-09; shown on the board since Step 9): $2,552 + $450', 'trip' === cbv_lp_price_board_data( 181 )['fee']['source'] && 225.0 === cbv_lp_price_board_data( 181 )['fee']['amount'] && 3002.0 === cbv_lp_price_board_data( 181 )['groups'][0]['rows'][0]['cells'][1]['total'] && null === cbv_lp_planning_fee_shown( 181, 'pdf' ) );
 remove_all_filters( 'pre_option_cbv_lp_planning_fees' ); remove_all_filters( 'pre_option_cbv_lp_planning_fee_live' );
 check( 'the real options are not set (nothing written by this build)', false === get_option( 'cbv_lp_planning_fees', false ) && ! get_option( 'cbv_lp_planning_fee_live' ) );
 check( 'master switch still off', ! get_option( 'cbv_lp_redesign_live' ) );

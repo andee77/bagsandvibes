@@ -1203,3 +1203,483 @@ body.cbv-lp .cbv-lp-print figcaption {
 		margin-top: 18px !important;
 	}
 }
+
+/* ==========================================================================
+   Step 9: price board (and the coin stamp on the boarding pass).
+   A cream section: ink text, a darker rust for the small labels (gold on
+   cream is too light to read). Contrast on cream: ink 14.6, rust #8A3A1F
+   7.6, muted #4A5A63 6.5, all AA.
+   ========================================================================== */
+
+/* ---- Boarding pass: faint CBGV coin behind the text. At 8% the weakest
+   text on the pass (#4A5A63) still has 5.5:1 over the darkest part of the
+   coin. Decorative only (aria-hidden in the markup). ---- */
+body.cbv-lp .cbv-lp-pass-main {
+	position: relative;
+	z-index: 0;
+}
+
+body.cbv-lp .cbv-lp-pass-stamp {
+	position: absolute;
+	right: 18px;
+	bottom: 14px;
+	width: 150px;
+	height: 150px;
+	z-index: -1;
+	background: url(../img/cbgv-coin-stamp.png) center / contain no-repeat;
+	opacity: 0.08;
+	transform: rotate(-12deg);
+	pointer-events: none;
+}
+
+/* ---- Section ---- */
+body.cbv-lp .cbv-lp-prices {
+	background: var(--cbv-cream);
+	color: var(--cbv-ink);
+}
+
+body.cbv-lp .cbv-lp-prices-inner {
+	padding-top: 96px;
+	padding-bottom: 96px;
+	display: flex;
+	flex-direction: column;
+	gap: 36px;
+}
+
+body.cbv-lp .cbv-lp-prices-head {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-end;
+	gap: 24px;
+	flex-wrap: wrap;
+}
+
+body.cbv-lp .cbv-lp-prices-titles {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+body.cbv-lp .cbv-lp-prices .cbv-lp-gate {
+	color: #8A3A1F !important;
+}
+
+body.cbv-lp .cbv-lp-prices .cbv-lp-h2 {
+	color: var(--cbv-ink) !important;
+}
+
+body.cbv-lp .cbv-lp-prices-lede {
+	margin: 0 !important;
+	max-width: 440px;
+	font-size: 15px;
+	line-height: 1.6;
+	color: var(--cbv-ink) !important;
+}
+
+body.cbv-lp .cbv-lp-prices-lede a {
+	color: var(--cbv-ink) !important;
+	text-decoration: underline !important;
+}
+
+/* Photos beside the board (one third), board two thirds; no photos = full width. */
+body.cbv-lp .cbv-lp-prices-body {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+	gap: 28px;
+	align-items: start;
+}
+
+body.cbv-lp .cbv-lp-prices-body--solo {
+	grid-template-columns: minmax(0, 1fr);
+}
+
+body.cbv-lp .cbv-lp-prices-photos {
+	position: sticky;
+	top: 100px;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+/* The focus point (inline object-position) keeps the subject and any logo in view. */
+body.cbv-lp .cbv-lp-prices-img {
+	display: block;
+	width: 100%;
+	height: 320px;
+	object-fit: cover;
+	border-radius: 4px;
+}
+
+body.cbv-lp .cbv-lp-prices-img + .cbv-lp-prices-img {
+	height: 220px;
+}
+
+/* ---- The board ---- */
+body.cbv-lp .cbv-lp-board {
+	--cbv-lp-board-cols: 3;
+	border: 2px solid var(--cbv-ink);
+	border-radius: 4px;
+	overflow: hidden;
+	background: var(--cbv-cream);
+	min-width: 0;
+}
+
+/* Column header bar (visual; each table has its own header for screen readers). */
+body.cbv-lp .cbv-lp-board-cols {
+	display: grid;
+	grid-template-columns: 2fr repeat(var(--cbv-lp-board-cols), minmax(0, 1fr));
+	padding: 12px 22px;
+	background: var(--cbv-coral);
+	color: var(--cbv-ink);
+	font-family: 'Space Mono', monospace;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+}
+
+body.cbv-lp .cbv-lp-board-cols span {
+	padding-right: 12px;
+}
+
+body.cbv-lp .cbv-lp-board-group {
+	margin: 0;
+}
+
+body.cbv-lp .cbv-lp-board-group > summary {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 12px;
+	min-height: 44px;
+	box-sizing: border-box;
+	padding: 12px 22px;
+	background: var(--cbv-ink);
+	color: var(--cbv-gold);
+	border-bottom: 1px solid rgba(232, 169, 78, 0.25);
+	font-family: 'Space Mono', monospace;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	cursor: pointer;
+	list-style: none;
+	transition: background 0.2s;
+}
+
+body.cbv-lp .cbv-lp-board-group > summary::-webkit-details-marker {
+	display: none;
+}
+
+body.cbv-lp .cbv-lp-board-group > summary:hover {
+	background: var(--cbv-horizon);
+}
+
+body.cbv-lp .cbv-lp-board-group-end {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+
+body.cbv-lp .cbv-lp-board-from {
+	color: rgba(251, 243, 231, 0.8);
+	font-weight: 400;
+}
+
+body.cbv-lp .cbv-lp-board-chev {
+	font-size: 20px;
+	line-height: 1;
+	color: var(--cbv-gold);
+	transition: transform 0.2s;
+}
+
+body.cbv-lp .cbv-lp-board-group[open] .cbv-lp-board-chev {
+	transform: rotate(45deg);
+}
+
+/* ---- Prices inside a group: a real table ---- */
+body.cbv-lp .cbv-lp-board-table {
+	width: 100%;
+	margin: 0 !important;
+	border: 0 !important;
+	border-collapse: collapse;
+	border-spacing: 0;
+	table-layout: fixed;
+	background: transparent !important;
+	color: var(--cbv-ink);
+}
+
+body.cbv-lp .cbv-lp-board-table th,
+body.cbv-lp .cbv-lp-board-table td {
+	border: 0 !important;
+	background: transparent !important;
+	padding: 14px 12px 4px 0;
+	text-align: left;
+	vertical-align: top;
+	color: var(--cbv-ink) !important;
+}
+
+/* Column widths match the bar above: cabin 2 parts, each price column 1. */
+body.cbv-lp .cbv-lp-board-col-cabin {
+	width: calc(200% / (var(--cbv-lp-board-cols) + 2));
+}
+
+/* Header row and caption: in the table for screen readers, no height on screen. */
+body.cbv-lp .cbv-lp-board-caption,
+body.cbv-lp .cbv-lp-board-head th {
+	padding: 0 !important;
+	height: 0;
+	line-height: 0;
+}
+
+body.cbv-lp .cbv-lp-board-row th[scope="row"] {
+	padding-left: 22px;
+	font-weight: 400;
+}
+
+body.cbv-lp .cbv-lp-board-row--highlight th,
+body.cbv-lp .cbv-lp-board-row--highlight td,
+body.cbv-lp .cbv-lp-board-row--highlight + .cbv-lp-board-more-row td {
+	background: rgba(232, 169, 78, 0.2) !important;
+}
+
+body.cbv-lp .cbv-lp-board-cabin {
+	display: block;
+	font-family: 'Fraunces', serif;
+	font-size: 19px;
+	font-weight: 600;
+	line-height: 1.25;
+}
+
+body.cbv-lp .cbv-lp-board-badge,
+body.cbv-lp .cbv-lp-board-note,
+body.cbv-lp .cbv-lp-board-tag {
+	display: block;
+	margin-top: 3px;
+	font-family: 'Space Mono', monospace;
+	font-size: 10px;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: #4A5A63;
+}
+
+body.cbv-lp .cbv-lp-board-badge {
+	color: #8A3A1F;
+}
+
+body.cbv-lp .cbv-lp-board-note {
+	text-transform: none;
+	letter-spacing: 0.02em;
+	font-size: 11px;
+}
+
+body.cbv-lp .cbv-lp-board-price {
+	display: block;
+	font-family: 'Space Mono', monospace;
+	font-weight: 700;
+	font-size: 16px;
+}
+
+body.cbv-lp .cbv-lp-board-pp {
+	display: block;
+	margin-top: 2px;
+	font-size: 12px;
+	color: #4A5A63;
+}
+
+body.cbv-lp .cbv-lp-board-none {
+	font-family: 'Space Mono', monospace;
+	color: #4A5A63;
+}
+
+/* "What's in this price?" under each cabin. */
+body.cbv-lp .cbv-lp-board-more-row td {
+	padding: 0 22px 12px !important;
+	border-bottom: 1px dashed rgba(22, 35, 43, 0.3) !important;
+}
+
+body.cbv-lp .cbv-lp-board-more > summary {
+	display: inline-block;
+	padding: 6px 0;
+	font-family: 'Space Mono', monospace;
+	font-size: 11px;
+	letter-spacing: 0.06em;
+	color: #8A3A1F;
+	text-decoration: underline;
+	cursor: pointer;
+	list-style: none;
+}
+
+body.cbv-lp .cbv-lp-board-more > summary::-webkit-details-marker {
+	display: none;
+}
+
+body.cbv-lp .cbv-lp-board-more ul {
+	margin: 4px 0 !important;
+	padding: 0 0 0 18px !important;
+	font-size: 13px;
+	line-height: 1.55;
+	color: var(--cbv-ink);
+}
+
+body.cbv-lp .cbv-lp-board-more li {
+	margin: 0 0 4px !important;
+}
+
+/* ---- Footer bar ---- */
+body.cbv-lp .cbv-lp-board-foot {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 16px;
+	padding: 16px 22px;
+	background: var(--cbv-ink);
+	color: var(--cbv-cream);
+}
+
+body.cbv-lp .cbv-lp-board-foot-text {
+	margin: 0 !important;
+	font-family: 'Space Mono', monospace;
+	font-size: 12px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--cbv-cream) !important;
+}
+
+body.cbv-lp .cbv-lp-board-cta {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	min-height: 44px;
+	box-sizing: border-box;
+	margin-left: auto;
+	padding: 14px 20px;
+	border-radius: 2px;
+	background: var(--cbv-coral);
+	color: var(--cbv-ink) !important;
+	font-family: 'Space Mono', monospace;
+	font-weight: 700;
+	font-size: 13px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	text-decoration: none !important;
+}
+
+/* ---- The fee note under the board ---- */
+body.cbv-lp .cbv-lp-prices-notes {
+	max-width: 820px;
+	font-size: 14px;
+	line-height: 1.6;
+	color: var(--cbv-ink);
+}
+
+body.cbv-lp .cbv-lp-prices-notes p {
+	margin: 0 0 8px !important;
+	color: var(--cbv-ink) !important;
+}
+
+/* Tablet: photos become a row above the board. */
+@media (max-width: 900px) {
+	body.cbv-lp .cbv-lp-prices-body {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	body.cbv-lp .cbv-lp-prices-photos {
+		position: static;
+		flex-direction: row;
+	}
+
+	body.cbv-lp .cbv-lp-prices-img,
+	body.cbv-lp .cbv-lp-prices-img + .cbv-lp-prices-img {
+		flex: 1 1 0;
+		min-width: 0;
+		height: 220px;
+	}
+}
+
+/* Phone: no column bar; each cabin becomes a small card listing its prices. */
+@media (max-width: 600px) {
+	body.cbv-lp .cbv-lp-prices-inner {
+		padding-top: 64px;
+		padding-bottom: 64px;
+		gap: 28px;
+	}
+
+	body.cbv-lp .cbv-lp-prices-img,
+	body.cbv-lp .cbv-lp-prices-img + .cbv-lp-prices-img {
+		height: 160px;
+	}
+
+	body.cbv-lp .cbv-lp-board-cols {
+		display: none;
+	}
+
+	body.cbv-lp .cbv-lp-board-group > summary {
+		padding: 12px 16px;
+	}
+
+	body.cbv-lp .cbv-lp-board-table,
+	body.cbv-lp .cbv-lp-board-table tbody,
+	body.cbv-lp .cbv-lp-board-table tr,
+	body.cbv-lp .cbv-lp-board-table th,
+	body.cbv-lp .cbv-lp-board-table td {
+		display: block;
+		width: auto !important;
+	}
+
+	body.cbv-lp .cbv-lp-board-row th[scope="row"] {
+		padding: 14px 16px 6px;
+	}
+
+	body.cbv-lp .cbv-lp-board-cell {
+		display: flex !important;
+		justify-content: space-between;
+		align-items: baseline;
+		flex-wrap: wrap;
+		gap: 2px 12px;
+		padding: 6px 16px !important;
+	}
+
+	body.cbv-lp .cbv-lp-board-cell::before {
+		content: attr(data-col);
+		flex: 1 1 auto;
+		font-family: 'Space Mono', monospace;
+		font-size: 11px;
+		font-weight: 700;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+	}
+
+	body.cbv-lp .cbv-lp-board-cell .cbv-lp-board-pp {
+		flex-basis: 100%;
+		margin-top: 0;
+		text-align: right;
+	}
+
+	body.cbv-lp .cbv-lp-board-cell--single .cbv-lp-board-tag {
+		display: none;
+	}
+
+	body.cbv-lp .cbv-lp-board-more-row td {
+		padding: 0 16px 12px !important;
+	}
+
+	body.cbv-lp .cbv-lp-board-foot {
+		padding: 14px 16px;
+	}
+
+	body.cbv-lp .cbv-lp-board-cta {
+		width: 100%;
+		justify-content: center;
+		margin-left: 0;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	body.cbv-lp .cbv-lp-board-chev,
+	body.cbv-lp .cbv-lp-board-group > summary {
+		transition: none;
+	}
+}

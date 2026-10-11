@@ -279,7 +279,9 @@ function cbv_lp_hero_data( $trip_id ) {
 		'label_end'   => $labels['pass_end'] ?? 'Returns',
 		'label_place' => $labels['pass_place'] ?? 'Vessel',
 		'cta_label'   => 'Claim your seat',
-		'cta_url'     => '' !== $code ? home_url( '/join/?trip=' . rawurlencode( $code ) ) : home_url( '/join/' ),
+		// Step 9: jumps to the price board (pick a cabin first); straight to
+		// registration when the board is hidden.
+		'cta_url'     => function_exists( 'cbv_lp_price_board_visible' ) && cbv_lp_price_board_visible( $trip_id ) ? '#fares' : ( '' !== $code ? home_url( '/join/?trip=' . rawurlencode( $code ) ) : home_url( '/join/' ) ),
 	);
 }
 
@@ -344,6 +346,7 @@ function cbv_lp_render_hero( $trip_id ) {
 
 			<div class="cbv-lp-pass">
 				<div class="cbv-lp-pass-main">
+					<span class="cbv-lp-pass-stamp" aria-hidden="true"></span>
 					<div class="cbv-lp-pass-top">
 						<span><?php echo esc_html( $d['pass_title'] ); ?></span>
 						<?php if ( '' !== $d['code'] ) : ?>

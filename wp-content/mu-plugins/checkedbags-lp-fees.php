@@ -16,9 +16,12 @@
  *              each cabin's price).
  *
  *              NOT PUBLIC UNTIL SWITCHED ON: while "Group Experience Fee is live" is
- *              off (the default) the fee shows only in admin previews
- *              (?preview=new) and the admin boxes, never in proposal PDFs or
- *              any public view. Refund policy: docs/policies/
+ *              off (the default) the STANDARD fee shows only in admin
+ *              previews (?preview=new) and the admin boxes, never in proposal
+ *              PDFs or any public view. A trip's OWN fee (its Group
+ *              Experience Fee box) is already billed by the Payment page, so
+ *              the new-design price board shows it too (Step 9); proposal
+ *              PDFs still wait for the switch. Refund policy: docs/policies/
  *              cbgv-group-experience-fee-refunds.md.
  * Author:      Built with Claude for JourneyWell Global LLC
  *
@@ -160,7 +163,10 @@ function cbv_lp_planning_fee( $trip_id ) {
 
 /**
  * The fee to SHOW in a given place, or null for none.
- *   'page': the new-design page. Before the fee is live, only in an admin's ?preview=new.
+ *   'page': the new-design page. Once the fee is live; or when it is the
+ *           trip's own fee (the Payment page already bills that one, so the
+ *           price board shows it too, Step 9); otherwise only in an admin's
+ *           ?preview=new.
  *   'pdf' : the proposal PDF. Only once the fee is live.
  */
 function cbv_lp_planning_fee_shown( $trip_id, $where = 'page' ) {
@@ -169,6 +175,9 @@ function cbv_lp_planning_fee_shown( $trip_id, $where = 'page' ) {
 		return null;
 	}
 	if ( cbv_lp_planning_fee_is_live() ) {
+		return $fee;
+	}
+	if ( 'page' === $where && 'trip' === $fee['source'] ) {
 		return $fee;
 	}
 	if ( 'page' === $where && function_exists( 'cbv_lp_preview_requested' ) && cbv_lp_preview_requested() && current_user_can( 'manage_options' ) ) {

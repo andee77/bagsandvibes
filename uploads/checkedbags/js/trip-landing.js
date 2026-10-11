@@ -1,5 +1,6 @@
 /*
- * Public Trip Landing (redesign): hero background video control.
+ * Public Trip Landing (redesign): hero background video control, and the
+ * price board's one-group-open behaviour.
  * Loaded only by the new landing template. The video has no source until
  * this script decides to load one, so phones, visitors who prefer reduced
  * motion and data-saver users never download it and see the poster picture.
@@ -43,4 +44,25 @@
 			}
 		});
 	}
+})();
+
+/*
+ * Price board (Step 9): opening one cabin group closes the others. Browsers
+ * that support <details name> already do this; this covers older ones and
+ * is harmless in the rest.
+ */
+(function () {
+	'use strict';
+
+	var groups = document.querySelectorAll('.cbv-lp-board-group');
+	if (!groups.length) { return; }
+
+	Array.prototype.forEach.call(groups, function (group) {
+		group.addEventListener('toggle', function () {
+			if (!group.open) { return; }
+			Array.prototype.forEach.call(groups, function (other) {
+				if (other !== group && other.open) { other.open = false; }
+			});
+		});
+	});
 })();

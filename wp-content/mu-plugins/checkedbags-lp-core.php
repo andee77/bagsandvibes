@@ -156,6 +156,11 @@ function cbv_lp_render_trip( $trip_id, $view = 'new' ) {
 		echo cbv_lp_render_featured( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
 		echo cbv_lp_render_gallery( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
 	}
+	if ( function_exists( 'cbv_lp_render_priceboard' ) ) {
+		// Step 9: the price board replaces today's "Choose Your Option" cards.
+		echo cbv_lp_render_priceboard( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
+		$legacy = cbv_lp_strip_legacy_pricing( $legacy );
+	}
 	echo '<div class="cbv-lp-legacy-wrap">' . $legacy . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput -- the renderer escapes its own output
 	return ob_get_clean();
 }

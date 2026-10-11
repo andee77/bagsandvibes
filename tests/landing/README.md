@@ -27,11 +27,13 @@ wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_step6.php
 wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_step7.php
 wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_step8.php
 wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_step8b.php
+wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_step9.php
 bash /tmp/cbv_t/mutate_step5.sh
 bash /tmp/cbv_t/mutate_step6.sh
 bash /tmp/cbv_t/mutate_step7.sh
 bash /tmp/cbv_t/mutate_step8.sh
 bash /tmp/cbv_t/mutate_step8b.sh
+bash /tmp/cbv_t/mutate_step9.sh
 ```
 
 Set `CBV_VERBOSE=1` to list every passing check. Each suite ends with
@@ -52,6 +54,8 @@ Each mutation script expects its suite in `/tmp/cbv_t/`.
 | `mutate_step8.sh` | Mutation tests for Step 8 (handles the CRLF file) | 23 mutants, all caught |
 | `test_step8b.php` | CBGV Group Experience Fee: settings, trip box and save, live switch, breakdown, board note, proposal PDF column, children pay half, child age setting | 76 checks, 0 failures |
 | `mutate_step8b.sh` | Mutation tests for Step 8b | 36 mutants, all caught |
+| `test_step9.php` | Price board drawn (groups, table, breakdown toggle, header note, footer bar, fee note), its box and save, "Claim your seat", coin stamp, legacy pricing removal, the trip's-own-fee rule | 88 checks, 0 failures |
+| `mutate_step9.sh` | Mutation tests for Step 9 | 36 mutants, all caught |
 
 Some checks read trip 181 (Annual Family and Friends) as it is on the live
 site (its intro text, itinerary and stored times), so they can need updating if

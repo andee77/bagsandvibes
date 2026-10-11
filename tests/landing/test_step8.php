@@ -124,10 +124,13 @@ check( 'data entered before Step 8 (no tags): every tier its own group, everythi
 /* REAL trips, read as stored (no tags yet) */
 $d181 = cbv_lp_price_board_data( 181 );
 $t181 = cb_trip_get_pricing_tiers( 181 );
-check( 'REAL trip 181: one group per tier (7), every price in column 1, totals equal the existing cabin totals', count( $t181 ) === count( $d181['groups'] ) && array( 1 ) === array_keys( $d181['columns'] ) && abs( $d181['groups'][0]['rows'][0]['cells'][1]['total'] - cb_pricing_occupancy_point_cabin_total( $t181[0]['occupancy_points'][0] ) ) < 0.005, json_encode( wp_list_pluck( $d181['groups'], 'name' ) ) );
-check( 'REAL trip 181: "The Insider" all-in for 2 = $2,552, per person $1,276', 2552.0 === $d181['groups'][0]['rows'][0]['cells'][1]['total'] && 1276.0 === $d181['groups'][0]['rows'][0]['cells'][1]['per_person'] );
+// Since Step 9 the board shows a trip's OWN Group Experience Fee (trip 181: $225 per traveler, set 2026-10-09), so totals = cabin total + that fee.
+$fee181 = cbv_lp_fee_for_cabin( cbv_lp_planning_fee( 181 ), $t181[0]['occupancy_points'][0]['occupancy_count'] ?? 2 );
+check( 'REAL trip 181: one group per tier (7), every price in column 1, totals equal the existing cabin totals plus its own fee', count( $t181 ) === count( $d181['groups'] ) && array( 1 ) === array_keys( $d181['columns'] ) && abs( $d181['groups'][0]['rows'][0]['cells'][1]['total'] - ( cb_pricing_occupancy_point_cabin_total( $t181[0]['occupancy_points'][0] ) + $fee181 ) ) < 0.005, json_encode( wp_list_pluck( $d181['groups'], 'name' ) ) );
+check( 'REAL trip 181: "The Insider" all-in for 2 = $2,552 + its own fee 2 x $225 = $3,002, per person $1,501', 3002.0 === $d181['groups'][0]['rows'][0]['cells'][1]['total'] && 1501.0 === $d181['groups'][0]['rows'][0]['cells'][1]['per_person'] && 450.0 === $d181['groups'][0]['rows'][0]['cells'][1]['parts']['planning_fee'] );
 $d320 = cbv_lp_price_board_data( 320 );
-check( 'REAL trip 320: read without errors; totals equal the existing cabin totals', ! empty( $d320['groups'] ) && abs( $d320['groups'][0]['rows'][0]['cells'][1]['total'] - cb_pricing_occupancy_point_cabin_total( cb_trip_get_pricing_tiers( 320 )[0]['occupancy_points'][0] ) ) < 0.005 );
+$p320 = cb_trip_get_pricing_tiers( 320 )[0]['occupancy_points'][0];
+check( 'REAL trip 320: read without errors; totals equal the existing cabin totals plus its own fee ($150 per traveler)', ! empty( $d320['groups'] ) && abs( $d320['groups'][0]['rows'][0]['cells'][1]['total'] - ( cb_pricing_occupancy_point_cabin_total( $p320 ) + cbv_lp_fee_for_cabin( cbv_lp_planning_fee( 320 ), $p320['occupancy_count'] ?? 1 ) ) ) < 0.005 );
 
 /* ---- D. saving the Pricing Tiers box ---- */
 section( 'D. saving the Pricing Tiers box' );
@@ -213,6 +216,6 @@ section( 'G. no side effects' );
 check( 'the public price range for trip 181 is computed exactly as before', cb_trip_get_price_range( 181 )['low'] === min( array_map( 'cb_pricing_occupancy_point_total', array_merge( ...array_map( function ( $t ) { return $t['occupancy_points']; }, $t181 ) ) ) ) );
 check( 'the current (legacy) landing page still lists every tier, Lock-It-In included', false !== strpos( cbv_render_public_trip_landing( 181 ), 'Insider Locked In' ) );
 check( 'master switch still off', ! get_option( 'cbv_lp_redesign_live' ) );
-check( 'no new section is drawn on the new-design page in Step 8', false === strpos( cbv_lp_render_trip( 181, 'new' ), 'cbv-lp-prices' ) );
+check( 'the new-design page draws the price board once (Step 9; Step 8 itself drew nothing)', 1 === substr_count( cbv_lp_render_trip( 181, 'new' ), '<section class="cbv-lp-prices"' ) );
 
 echo "\n{$GLOBALS['n']} checks, {$GLOBALS['fail']} failures\n";
