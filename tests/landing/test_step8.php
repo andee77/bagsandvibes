@@ -126,8 +126,9 @@ $d181 = cbv_lp_price_board_data( 181 );
 $t181 = cb_trip_get_pricing_tiers( 181 );
 // Since Step 9 the board shows a trip's OWN Group Experience Fee (trip 181: $225 per traveler, set 2026-10-09), so totals = cabin total + that fee.
 $fee181 = cbv_lp_fee_for_cabin( cbv_lp_planning_fee( 181 ), $t181[0]['occupancy_points'][0]['occupancy_count'] ?? 2 );
-check( 'REAL trip 181: one group per tier (7), every price in column 1, totals equal the existing cabin totals plus its own fee', count( $t181 ) === count( $d181['groups'] ) && array( 1 ) === array_keys( $d181['columns'] ) && abs( $d181['groups'][0]['rows'][0]['cells'][1]['total'] - ( cb_pricing_occupancy_point_cabin_total( $t181[0]['occupancy_points'][0] ) + $fee181 ) ) < 0.005, json_encode( wp_list_pluck( $d181['groups'], 'name' ) ) );
-check( 'REAL trip 181: "The Insider" all-in for 2 = $2,552 + its own fee 2 x $225 = $3,002, per person $1,501', 3002.0 === $d181['groups'][0]['rows'][0]['cells'][1]['total'] && 1501.0 === $d181['groups'][0]['rows'][0]['cells'][1]['per_person'] && 450.0 === $d181['groups'][0]['rows'][0]['cells'][1]['parts']['planning_fee'] );
+// Tagged 2026-10-11 (Virgin quote): the 4 cabins in Premium (column 3), the 3 "Locked In" tiers Not on the price board.
+check( 'REAL trip 181: 4 groups (Locked In tiers left out), one column, Premium (3); totals equal the existing cabin totals plus its own fee', array( 'The Insider', 'Sea View', 'Sea Terrace XL', 'Sea Terrace' ) === wp_list_pluck( $d181['groups'], 'name' ) && array( 3 => 'Premium' ) === $d181['columns'] && abs( $d181['groups'][0]['rows'][0]['cells'][3]['total'] - ( cb_pricing_occupancy_point_cabin_total( $t181[0]['occupancy_points'][0] ) + $fee181 ) ) < 0.005, json_encode( array( wp_list_pluck( $d181['groups'], 'name' ), $d181['columns'] ) ) );
+check( 'REAL trip 181: "The Insider" all-in for 2 = $2,552 + its own fee 2 x $225 = $3,002, per person $1,501', 3002.0 === $d181['groups'][0]['rows'][0]['cells'][3]['total'] && 1501.0 === $d181['groups'][0]['rows'][0]['cells'][3]['per_person'] && 450.0 === $d181['groups'][0]['rows'][0]['cells'][3]['parts']['planning_fee'] );
 $d320 = cbv_lp_price_board_data( 320 );
 $p320 = cb_trip_get_pricing_tiers( 320 )[0]['occupancy_points'][0];
 check( 'REAL trip 320: read without errors; totals equal the existing cabin totals plus its own fee ($150 per traveler)', ! empty( $d320['groups'] ) && abs( $d320['groups'][0]['rows'][0]['cells'][1]['total'] - ( cb_pricing_occupancy_point_cabin_total( $p320 ) + cbv_lp_fee_for_cabin( cbv_lp_planning_fee( 320 ), $p320['occupancy_count'] ?? 1 ) ) ) < 0.005 );
@@ -209,7 +210,7 @@ $h_one = cb_proposal_render_pricing_html( $one_tag );
 check( 'one tag anywhere: the Fare column appears for every row (untagged rows show the column 1 name)', false !== strpos( $h_one, '<th>Fare</th><th># Sailors</th>' ) && false !== strpos( $h_one, '<td>Base</td><td>2</td>' ) && false !== strpos( $h_one, '<td>Not on price board</td><td>3</td>' ) );
 check( 'totals are the same with and without the Fare column', preg_match_all( '/\$[\d,]+\.\d\d/', $h_untagged, $m1 ) && preg_match_all( '/\$[\d,]+\.\d\d/', $h_one, $m2 ) && $m1[0] === $m2[0] );
 $h181 = cb_proposal_render_pricing_html( array( 'pricing_tiers' => cb_trip_get_pricing_tiers( 181 ), 'single_price' => 0, 'price_columns' => cbv_lp_price_columns( 181 ) ) );
-check( 'REAL trip 181 (untagged today): no Fare column in its proposal', false === strpos( $h181, '<th>Fare</th>' ) && false !== strpos( $h181, '<th># Sailors</th>' ) );
+check( 'REAL trip 181 (tagged since 2026-10-11): its proposal has the Fare column, Premium for the cabins, "Not on price board" for the Locked In tiers', false !== strpos( $h181, '<th>Fare</th><th># Sailors</th>' ) && 4 === substr_count( $h181, '<td>Premium</td>' ) && 3 === substr_count( $h181, '<td>Not on price board</td>' ) );
 
 /* ---- G. what Step 8 must NOT do ---- */
 section( 'G. no side effects' );

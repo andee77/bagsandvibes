@@ -280,7 +280,7 @@ function cb_feed_recent_topics( $limit = 5 ) {
 add_shortcode( 'cb_feed', function () {
 
 	if ( ! is_user_logged_in() ) {
-		return '<p class="cb-empty">Please <a href="' . esc_url( wp_login_url( get_permalink() ) ) . '">sign in</a> to see your feed.</p>';
+		return '<p class="cb-empty">Please <a href="' . esc_url( cbv_login_url( get_permalink() ) ) . '">sign in</a> to see your feed.</p>';
 	}
 
 	$trips      = cb_feed_upcoming_trips();

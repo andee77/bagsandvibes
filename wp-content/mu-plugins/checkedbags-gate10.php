@@ -90,7 +90,7 @@ add_action( 'cb_trip_status_changed', function ( $trip_id, $old_status, $new_sta
 add_shortcode( 'cb_gate_boards', function () {
 
 	if ( ! is_user_logged_in() ) {
-		return '<p class="cb-empty">Please <a href="' . esc_url( wp_login_url( get_permalink() ) ) . '">sign in</a> to see discussion boards.</p>';
+		return '<p class="cb-empty">Please <a href="' . esc_url( cbv_login_url( get_permalink() ) ) . '">sign in</a> to see discussion boards.</p>';
 	}
 
 	if ( ! function_exists( 'bbp_get_forum_permalink' ) ) {
@@ -301,7 +301,8 @@ add_filter( 'bbp_get_excluded_forum_ids', function ( $forum_ids ) {
 /* ==========================================================================
    8. Members only (owner, 2026-10-11): every forum page -- the forum list,
       the Lounge, boards, topics, replies, forum search and forum feeds --
-      sends a visitor who isn't signed in to the sign-in page, then back to
+      sends a visitor who isn't signed in to the site's sign-in page
+      (/login/, see cbv_login_url() in checkedbags-nav.php), then back to
       the page they asked for. Signed-in members are not affected (the
       per-forum rules above still decide what they can read). Search engines
       already skip these pages (Yoast: forums, topics and replies noindex,
@@ -329,6 +330,29 @@ add_action( 'template_redirect', function () {
 	}
 	$here = home_url( add_query_arg( array() ) );
 	nocache_headers();
-	wp_safe_redirect( wp_login_url( $here ) );
+	wp_safe_redirect( cbv_login_url( $here ) );
 	exit;
+}, 5 );
+
+/**
+ * Forum feeds (2026-10-11). bbPress answers a forum, topic or reply feed
+ * inside its own 'bbp_request' filter and stops there (bbp_request_feed_trap,
+ * priority 10), before template_redirect ever runs, so the check above never
+ * sees them. This runs just before it (priority 5) and sends a signed-out
+ * visitor to the sign-in page the same way.
+ */
+function cb_gate10_is_forum_feed_query( $query_vars ) {
+	if ( ! is_array( $query_vars ) || ! isset( $query_vars['feed'] ) || ! isset( $query_vars['post_type'] ) || ! function_exists( 'bbp_get_forum_post_type' ) ) {
+		return false;
+	}
+	return (bool) array_intersect( (array) $query_vars['post_type'], array( bbp_get_forum_post_type(), bbp_get_topic_post_type(), bbp_get_reply_post_type() ) );
+}
+
+add_filter( 'bbp_request', function ( $query_vars ) {
+	if ( cb_gate10_guest_must_sign_in( cb_gate10_is_forum_feed_query( $query_vars ), is_user_logged_in() ) ) {
+		nocache_headers();
+		wp_safe_redirect( cbv_login_url( home_url( add_query_arg( array() ) ) ) );
+		exit;
+	}
+	return $query_vars;
 }, 5 );

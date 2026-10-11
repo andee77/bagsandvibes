@@ -195,7 +195,7 @@ add_action( 'rest_api_init', function () {
 add_shortcode( 'cb_following_list', function () {
 
 	if ( ! is_user_logged_in() ) {
-		return '<p class="cb-empty">Please <a href="' . esc_url( wp_login_url( get_permalink() ) ) . '">sign in</a> to see who you follow.</p>';
+		return '<p class="cb-empty">Please <a href="' . esc_url( cbv_login_url( get_permalink() ) ) . '">sign in</a> to see who you follow.</p>';
 	}
 
 	$following_ids = cb_user_get_following( get_current_user_id() );

@@ -147,7 +147,7 @@ add_action( 'wp_enqueue_scripts', function () {
 		'restUrl'  => esc_url_raw( rest_url( 'cb/v1/' ) ),
 		'nonce'    => wp_create_nonce( 'wp_rest' ),
 		'loggedIn' => is_user_logged_in(),
-		'loginUrl' => wp_login_url( get_permalink() ),
+		'loginUrl' => cbv_login_url( get_permalink() ),
 	) );
 } );
 
@@ -157,7 +157,7 @@ add_action( 'wp_enqueue_scripts', function () {
 add_shortcode( 'cb_gate_vacations', function () {
 
 	if ( ! is_user_logged_in() ) {
-		return '<p class="cb-empty">Please <a href="' . esc_url( wp_login_url( get_permalink() ) ) . '">sign in</a> to see planned vacations.</p>';
+		return '<p class="cb-empty">Please <a href="' . esc_url( cbv_login_url( get_permalink() ) ) . '">sign in</a> to see planned vacations.</p>';
 	}
 
 	$current_user_id = get_current_user_id();
@@ -293,7 +293,7 @@ add_filter( 'the_content', function ( $content ) {
 			return cbv_render_public_trip_landing( $post->ID );
 		}
 		if ( ! $viewer_id ) {
-			return $content . '<p class="cb-empty">Please <a href="' . esc_url( wp_login_url( get_permalink() ) ) . '">sign in</a> to see trip details.</p>';
+			return $content . '<p class="cb-empty">Please <a href="' . esc_url( cbv_login_url( get_permalink() ) ) . '">sign in</a> to see trip details.</p>';
 		}
 		return $content . '<p class="cb-empty">You don&#8217;t have access to this trip&#8217;s details yet — join it from <a href="' . esc_url( home_url( '/gate-07-pre-planned-vacations/' ) ) . '">All Planned Vacations</a> first.</p>';
 	}

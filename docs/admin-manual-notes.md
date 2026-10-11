@@ -818,7 +818,7 @@ Two short, optional notes about prices and payment, in the **Price notes (curren
 On the **new design**, the old "Reserve Your Spot" button and its "This submits a request to join" line are gone: the price board and "Claim your seat" are the one way to book. The **Download Full Itinerary PDF** button stays where it was. If the Price board is switched **Off** for a trip, the old Reserve button comes back, so there is always a way to book. Today's public design is unchanged.
 
 ### Forums are members only
-Anyone who isn't signed in and opens a forum page (the forum list, the Lounge, a trip board, a topic) is sent to the sign-in page and brought back after signing in. Members see the forums as before. Forums are also hidden from search engines (Yoast, set 2026-10-11).
+Anyone who isn't signed in and opens a forum page (the forum list, the Lounge, a trip board, a topic) or a forum feed is sent to the site's sign-in page (/login/) and brought back after signing in. Every gate's "Please sign in" link goes to the same /login/ page and back. Members see the forums as before. Forums are also hidden from search engines (Yoast, set 2026-10-11).
 
 ### Common mistakes
 - Putting the same payment text in the **Pricing note** and the **Disclaimer**: on today's page it then shows twice. Use the Pricing note for payment wording; keep the Disclaimer for fine print.

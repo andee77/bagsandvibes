@@ -37,7 +37,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 add_shortcode( 'cb_find_members', function () {
 
 	if ( ! is_user_logged_in() ) {
-		return '<p class="cb-empty">Please <a href="' . esc_url( wp_login_url( get_permalink() ) ) . '">sign in</a> to browse members.</p>';
+		return '<p class="cb-empty">Please <a href="' . esc_url( cbv_login_url( get_permalink() ) ) . '">sign in</a> to browse members.</p>';
 	}
 
 	$viewer_id = get_current_user_id();

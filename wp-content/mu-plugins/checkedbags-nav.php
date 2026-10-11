@@ -129,12 +129,27 @@ function cb_render_primary_nav() {
 }
 
 /**
+ * The site's own sign-in page (Ultimate Member's /login/, the page the menu
+ * and /dashboard/ use), with an optional page to return to after signing in.
+ * Every "Please sign in" link and the forum redirect use this, so nobody is
+ * sent to the plain wp-login.php screen (owner, 2026-10-11). Falls back to
+ * wp_login_url() if Ultimate Member is ever switched off.
+ */
+function cbv_login_url( $redirect = '' ) {
+	$base = function_exists( 'um_get_core_page' ) ? (string) um_get_core_page( 'login' ) : '';
+	if ( '' === $base ) {
+		return wp_login_url( $redirect );
+	}
+	return '' !== (string) $redirect ? add_query_arg( 'redirect_to', rawurlencode( (string) $redirect ), $base ) : $base;
+}
+
+/**
  * The menu for someone who isn't signed in: same toggle + <nav> markup and
  * classes as the member menu (so the same CSS and app.js drive it), but only
  * the three places that make sense without an account.
  */
 function cb_render_logged_out_nav() {
-	$login_url    = function_exists( 'um_get_core_page' ) ? um_get_core_page( 'login' ) : wp_login_url();
+	$login_url    = cbv_login_url();
 	$register_url = function_exists( 'um_get_core_page' ) ? um_get_core_page( 'register' ) : home_url( '/register/' );
 
 	ob_start();

@@ -917,7 +917,7 @@ add_action( 'template_redirect', function () {
  */
 add_shortcode( 'cbv_reaccept_terms', function () {
 	if ( ! is_user_logged_in() ) {
-		return '<p class="cb-empty">Please <a href="' . esc_url( wp_login_url( get_permalink() ) ) . '">sign in</a> to continue.</p>';
+		return '<p class="cb-empty">Please <a href="' . esc_url( cbv_login_url( get_permalink() ) ) . '">sign in</a> to continue.</p>';
 	}
 
 	$user_id = get_current_user_id();

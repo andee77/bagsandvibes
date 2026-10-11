@@ -516,7 +516,7 @@ function cb_accept_trip_quote( $request ) {
 add_shortcode( 'cb_gate_requests', function () {
 
 	if ( ! is_user_logged_in() ) {
-		return '<p class="cb-empty">Please <a href="' . esc_url( wp_login_url( get_permalink() ) ) . '">sign in</a> to suggest trips or build your own.</p>';
+		return '<p class="cb-empty">Please <a href="' . esc_url( cbv_login_url( get_permalink() ) ) . '">sign in</a> to suggest trips or build your own.</p>';
 	}
 
 	if ( ! cbv_user_is_full_member() ) {

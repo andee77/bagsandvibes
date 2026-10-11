@@ -460,7 +460,7 @@ function cb_verify_stripe_signature( $payload, $sig_header, $secret ) {
 add_shortcode( 'cb_gate_payments', function () {
 
 	if ( ! is_user_logged_in() ) {
-		return '<p class="cb-empty">Please <a href="' . esc_url( wp_login_url( get_permalink() ) ) . '">sign in</a> to view payments.</p>';
+		return '<p class="cb-empty">Please <a href="' . esc_url( cbv_login_url( get_permalink() ) ) . '">sign in</a> to view payments.</p>';
 	}
 
 	$user_id = get_current_user_id();

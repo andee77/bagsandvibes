@@ -46,13 +46,13 @@ add_filter( 'the_content', function ( $content ) {
 		return $content;
 	}
 
-	return '<p class="cb-empty">Please <a href="' . esc_url( wp_login_url( get_permalink( $post ) ) ) . '">sign in</a> to view travel rules.</p>';
+	return '<p class="cb-empty">Please <a href="' . esc_url( cbv_login_url( get_permalink( $post ) ) ) . '">sign in</a> to view travel rules.</p>';
 }, 5 );
 
 add_shortcode( 'cb_gate_rules', function () {
 
 	if ( ! is_user_logged_in() ) {
-		return '<p class="cb-empty">Please <a href="' . esc_url( wp_login_url( get_permalink() ) ) . '">sign in</a> to view travel rules.</p>';
+		return '<p class="cb-empty">Please <a href="' . esc_url( cbv_login_url( get_permalink() ) ) . '">sign in</a> to view travel rules.</p>';
 	}
 
 	$user_id       = get_current_user_id();

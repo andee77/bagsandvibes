@@ -64,7 +64,7 @@ $at     = strpos( $legacy, 'cbv-landing-pricing-note' );
 check( 'REAL trip 320, current page: the pricing note is drawn once', 1 === substr_count( $legacy, 'class="cbv-landing-pricing-note"' ) );
 check( 'REAL trip 320, current page: it sits under the "Choose Your Option" cards, before the Reserve block', false !== $at && strpos( $legacy, 'Choose Your Option' ) < $at && strrpos( substr( $legacy, 0, $at ), 'cbv-landing-pricing-card' ) !== false && $at < strpos( $legacy, 'cbv-landing-cta' ) );
 check( 'REAL trip 320, current page: Uplift wording shown with "subject to approval", Reserve block still there', false !== strpos( $legacy, 'Uplift, Virgin Voyages&#039; financing partner (subject to approval)' ) && false !== strpos( $legacy, 'Reserve Your Spot' ) );
-unset( $fake[320] );
+$fake[320] = array( 'cb_pricing_note' => '', 'cb_card_note' => '' ); // Helmets has real notes since 2026-10-11
 check( 'REAL trip 320, current page: no note saved, nothing drawn', false === strpos( cbv_render_public_trip_landing( 320 ), 'cbv-landing-pricing-note' ) );
 
 $fake[320] = array( 'cb_card_note' => 'Pay in full or monthly with Uplift' );
@@ -74,7 +74,7 @@ $h   = strpos( $g07, 'HELMETS' );
 $n   = strpos( $g07, '<p class="trip-card-note">Pay in full or monthly with Uplift</p>' );
 check( 'Gate 07: the Helmets card shows its note, under the price and above the spots', false !== $h && false !== $n && $n > strpos( $g07, 'trip-card-price', $h ) && $n < strpos( $g07, 'trip-card-spots', $h ), substr( $g07, (int) $h, 600 ) );
 check( 'Gate 07: only one card has a note (trip 181 has none)', 1 === substr_count( $g07, 'trip-card-note' ) );
-unset( $fake[320] );
+$fake[320] = array( 'cb_pricing_note' => '', 'cb_card_note' => '' );
 check( 'Gate 07: no note saved, none drawn', false === strpos( do_shortcode( '[cb_gate_vacations]' ), 'trip-card-note' ) );
 wp_set_current_user( 0 );
 
