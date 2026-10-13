@@ -2928,10 +2928,12 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 					<label>Additional adults traveling with you<?php echo function_exists( 'cbv_lp_child_age_under' ) && cbv_lp_child_age_under() ? esc_html( ' (age ' . cbv_lp_child_age_under() . ' and over)' ) : ''; ?> <input type="number" id="cbv-intake-additional-adults" min="0" value="<?php echo esc_attr( $intake['additional_adults'] ?? 0 ); ?>"></label>
 					<label>List their names <textarea id="cbv-intake-traveling-companions" rows="2"><?php echo esc_textarea( $intake['traveling_companions'] ?? '' ); ?></textarea></label>
 				</div>
+				<?php if ( ! ( function_exists( 'cbv_trip_is_adults_only' ) && cbv_trip_is_adults_only( $trip_id ) ) ) : // adults-only trips (e.g. Virgin, 18+) have no children fields; see checkedbags-adults-only.php ?>
 				<div>
 					<label>Additional children traveling with you<?php echo function_exists( 'cbv_lp_child_age_under' ) && cbv_lp_child_age_under() ? esc_html( ' (under ' . cbv_lp_child_age_under() . ')' ) : ''; ?> <input type="number" id="cbv-intake-additional-children" min="0" value="<?php echo esc_attr( $intake['additional_children'] ?? 0 ); ?>"></label>
 					<label>Children's ages, if any <input type="text" id="cbv-intake-children-ages" placeholder="e.g. 5, 8, 12" value="<?php echo esc_attr( $intake['children_ages'] ?? '' ); ?>"></label>
 				</div>
+				<?php endif; ?>
 			</div>
 		</div>
 

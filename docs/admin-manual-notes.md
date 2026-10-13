@@ -823,6 +823,18 @@ Anyone who isn't signed in and opens a forum page (the forum list, the Lounge, a
 ### Proposal PDFs and "Not on the price board"
 A price tagged **Not on the price board** (in the Pricing Tiers box) is left off the **Client Proposal PDF** completely. A cabin tier whose prices are all tagged that way disappears from the client PDF, add-ons included. The **Internal Data Sheet** still lists everything, marked "Not on price board". Trip 181's three Locked In tiers work this way.
 
+### Adults only (18+)
+Some cruise lines take adults only (Virgin Voyages is 18+). On the provider's edit screen (Provider Library: https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_provider, open the provider), the **Who can travel** box has an **Adults only (18+)** checkbox. Each trip's edit screen has an **Adults only (18+)** box: **Same as the provider** (the usual choice), **Yes, adults only**, or **No, children can travel**.
+
+On an adults-only trip:
+- the price board and proposal PDFs don't say "Children pay half the CBGV Group Experience Fee";
+- the traveler form has no "Additional children" or "Children's ages" fields.
+
+Prices and the fee per adult are unchanged.
+
+### Rejection email replies
+When you reject an applicant, Ultimate Member sends the rejection email (Ultimate Member > Settings > Email). Replies to it go to **LaDon@journeywellglobal.com**. Changing that address needs a code change; tell the developer.
+
 ### Common mistakes
 - Putting the same payment text in the **Pricing note** and the **Disclaimer**: on today's page it then shows twice. Use the Pricing note for payment wording; keep the Disclaimer for fine print.
 - Expecting the Pricing note on the new design: it isn't there. Use the Price board's Header note.

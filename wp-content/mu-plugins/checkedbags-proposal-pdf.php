@@ -447,7 +447,8 @@ function cb_proposal_render_pricing_html( $trip, $for_client = false ) {
 				$html .= '<div class="cb-addon-list">Add-ons: ' . implode( ', ', $addon_labels ) . '</div>';
 			}
 		}
-		if ( $show_fee && 'per_traveler' === ( $fee['basis'] ?? '' ) ) {
+		$adults_only = function_exists( 'cbv_trip_is_adults_only' ) && cbv_trip_is_adults_only( (int) ( $trip['id'] ?? 0 ) );
+		if ( $show_fee && 'per_traveler' === ( $fee['basis'] ?? '' ) && ! $adults_only ) {
 			$html .= '<p class="cb-fee-note">Children pay half the CBGV Group Experience Fee.</p>';
 		}
 		return $html;

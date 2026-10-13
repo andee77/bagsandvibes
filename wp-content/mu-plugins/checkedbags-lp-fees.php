@@ -218,7 +218,8 @@ function cbv_lp_planning_fee_note( $trip_id ) {
 
 	$lines   = array();
 	$lines[] = 'The CBGV Group Experience Fee is paid to Checked Bags & Good Vibes (a d/b/a of JourneyWell Global LLC) for the group program; travel payments go directly to the cruise line or supplier. It\'s fully refundable within 7 days of paying, 50% refundable until ' . $until . ', and non-refundable after that. Full refund if the trip is cancelled.';
-	if ( 'per_traveler' === $fee['basis'] ) {
+	// Not on adults-only trips (e.g. Virgin Voyages, 18+): see checkedbags-adults-only.php.
+	if ( 'per_traveler' === $fee['basis'] && ! ( function_exists( 'cbv_trip_is_adults_only' ) && cbv_trip_is_adults_only( $trip_id ) ) ) {
 		$lines[] = 'Children pay half the CBGV Group Experience Fee.';
 	}
 	if ( 'per_booking' === $fee['basis'] ) {
