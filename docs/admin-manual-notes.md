@@ -820,6 +820,9 @@ On the **new design**, the old "Reserve Your Spot" button and its "This submits 
 ### Forums are members only
 Anyone who isn't signed in and opens a forum page (the forum list, the Lounge, a trip board, a topic) or a forum feed is sent to the site's sign-in page (/login/) and brought back after signing in. Every gate's "Please sign in" link goes to the same /login/ page and back. Members see the forums as before. Forums are also hidden from search engines (Yoast, set 2026-10-11).
 
+### Proposal PDFs and "Not on the price board"
+A price tagged **Not on the price board** (in the Pricing Tiers box) is left off the **Client Proposal PDF** completely. A cabin tier whose prices are all tagged that way disappears from the client PDF, add-ons included. The **Internal Data Sheet** still lists everything, marked "Not on price board". Trip 181's three Locked In tiers work this way.
+
 ### Common mistakes
 - Putting the same payment text in the **Pricing note** and the **Disclaimer**: on today's page it then shows twice. Use the Pricing note for payment wording; keep the Disclaimer for fine print.
 - Expecting the Pricing note on the new design: it isn't there. Use the Price board's Header note.

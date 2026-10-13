@@ -348,7 +348,44 @@ function cb_proposal_render_itinerary_html( $trip ) {
 		. '</tr></thead><tbody>' . $rows . '</tbody></table>';
 }
 
-function cb_proposal_render_pricing_html( $trip ) {
+/**
+ * The Pricing Tiers as the CLIENT sees them (owner, 2026-10-11): every price
+ * tagged "Not on the price board" is left out, and a tier with nothing left
+ * goes too, add-ons and all. Prices with no tag (or any other tag) are kept
+ * exactly as entered, so the other cabins' totals don't change. The Internal
+ * Data Sheet keeps everything.
+ */
+function cb_proposal_client_tiers( $tiers ) {
+	if ( ! function_exists( 'cbv_lp_point_column' ) ) {
+		return (array) $tiers;
+	}
+	$out = array();
+	foreach ( (array) $tiers as $tier ) {
+		$points = (array) ( $tier['occupancy_points'] ?? array() );
+		if ( ! $points ) {
+			$out[] = $tier; // a tier with no prices at all prints as before
+			continue;
+		}
+		$kept = array_values( array_filter( $points, function ( $point ) {
+			return 0 !== cbv_lp_point_column( $point );
+		} ) );
+		if ( $kept ) {
+			$tier['occupancy_points'] = $kept;
+			$out[] = $tier;
+		}
+	}
+	return $out;
+}
+
+/**
+ * $for_client: true for the Client Proposal PDF (prices tagged "Not on the
+ * price board" left out, see cb_proposal_client_tiers()), false for the
+ * Internal Data Sheet (everything).
+ */
+function cb_proposal_render_pricing_html( $trip, $for_client = false ) {
+	if ( $for_client && ! empty( $trip['pricing_tiers'] ) ) {
+		$trip['pricing_tiers'] = cb_proposal_client_tiers( $trip['pricing_tiers'] );
+	}
 	if ( ! empty( $trip['pricing_tiers'] ) ) {
 		$html = '';
 		// The "Fare" column (new landing design, Step 8) only appears once at
@@ -470,7 +507,7 @@ function cb_proposal_build_client_html( $data ) {
 			. '<div class="cb-option-meta">' . esc_html( $trip['type_label'] ) . ' &middot; ' . esc_html( $dates ) . '</div>'
 			. '</div>'
 			. cb_proposal_render_itinerary_html( $trip )
-			. cb_proposal_render_pricing_html( $trip );
+			. cb_proposal_render_pricing_html( $trip, true );
 	}
 
 	$photos = $data['photos_by_section'];

@@ -147,6 +147,8 @@ Owner decisions after the launch audit, built as one small step (diff shown befo
 
 **Status:** live since abb3b70 (2026-10-11). Helmets' payment wording moved from its Disclaimer to its Pricing note and its card note set, 2026-10-11 (owner OK).
 
+**Client Proposal PDF (owner, 2026-10-13):** prices tagged "Not on the price board" (e.g. trip 181's Locked In tiers) are left off the client proposal entirely, and a tier with nothing left goes too (add-ons and all). They stay in admin and on the Internal Data Sheet; the other cabins' totals are unchanged (`cb_proposal_client_tiers()` in `checkedbags-proposal-pdf.php`; tests `test_proposal_client_prices.php`, 18 checks; `mutate_proposal_client_prices.sh`, 6 mutants).
+
 **Step 9a follow-up (owner, 2026-10-11; not the Step 9b registration step):** the forum redirect, every gate's "Please sign in" link and the signed-out menu use the site's own sign-in page (`/login/?redirect_to=<page>`, `cbv_login_url()` in `checkedbags-nav.php`) instead of `wp-login.php`; forum feeds are closed to signed-out visitors too (bbPress answers feeds in its own `bbp_request` filter, so Gate 10 checks there, before it). Tests `test_step9a_login.php` (24 checks), `mutate_step9a_login.sh` (10 mutants).
 
 ## How to book and "Who does what" disclosure (recorded 2026-10-08; text to come; for the Step 12 How-to-book seed and the Terms page)
