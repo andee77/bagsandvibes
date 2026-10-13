@@ -205,6 +205,7 @@ Open items before building 9b:
 - `funds_final` = 45 days before the start (the Ticket Contract wins: "45 days or less" is final); `date_change_deadline` = 46; `name_change_cutoff` = 2.
 - The Voyage Protection document is left out of the seed until Aon's plan document is available.
 - Wording that depends on the final-payment date uses `{days:final_payment}` rather than a typed number, so a trip with a different deadline stays correct.
+- **Adults only (18+) must be ticked on the real Virgin Voyages provider when it is created** (owner, 2026-10-13; the seed script sets it, and the go-live QA checks it). Until then trip 181 gets it from "Test Provider" (402, ticked 2026-10-13) and Helmets (320, no provider) from its own override set to Yes. When 181 or 320 moves to the Virgin provider, check the trip's Adults only box still reads "Same as the provider (adults only)" (or Yes).
 
 ## Step 4: decisions recorded 2026-10-04
 - **Fields:** hero video, optional smaller (720p) video, poster picture, a **focus point** (nine presets, stored as `object-position`) and the vessel / venue name (`cbv_lp_venue_name`, also the `{vessel}` token). Port codes are a new "Code" column on the existing itinerary rows (`stop_code`, letters/digits, upper case, 5 max).
@@ -295,6 +296,7 @@ Source file: `media-incoming/CB_GV Logo Coin.png` (1041×1042 PNG, transparent b
 Upload the coin to the Media Library (alt text "Checked Bags & Good Vibes logo" where it is not decorative) when the first of these is built, and keep the original.
 
 ## Go-live checklist (Step 17; list started 2026-10-04)
+- **Adults only (18+)**: the Virgin Voyages provider has Adults only ticked; no Virgin trip's price board, proposal or traveler form mentions children (added 2026-10-13).
 - **Media: source is the First Mates marketing toolkit (FirstMates.com); use unaltered** (web compression only, no cropping, editing or logos on the asset). Every Virgin image and video, including the Terminal V hero video, comes from there. Each asset is listed in `docs/media-sources.md`. (This replaces the earlier "usage rights unconfirmed" wording.)
 - **Photo frames never hide Virgin's logo or branding and never change what the photo shows.** Where the subject is not centred, set a per-image focus point (`object-position`) so the crop keeps it in view. Applied from Step 4 on.
 - **Virgin brand rules** (Virgin "With Love From" brand guidelines, Nov 2024): the Virgin Voyages logo appears only in Virgin red from the official toolkit file and is never recoloured; no recreated Virgin campaign elements (the "with Love from" script lockup, promo stamps, Virgin campaign fonts); "With love from..." is never used as CBGV copy; our own headings and design stay in CBGV's brand. Checked at each step that touches media and again at final QA.
