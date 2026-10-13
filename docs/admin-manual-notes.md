@@ -846,6 +846,23 @@ When you reject an applicant, Ultimate Member sends the rejection email (Ultimat
 
 ---
 
+## 15. Travel Details form (members' trip registration)
+
+Each trip member fills in **Travel Details** on the trip's page (the "Trip Registration" box). Besides the always-asked items (travel insurance decision and the Credit Card Authorization confirmation), it has four optional sections: **Air Travel, Cruise, Hotel and Car Rental**. A section appears when the trip's type includes it, or when the member ticks it under "Need something else for your own travel".
+
+Rules (2026-10-13):
+- Fields in a section that is **not shown are never required**. A member with every optional section turned off can save.
+- When a section **is** shown, its starred fields are required.
+- **Frequent flyer / loyalty number** is optional.
+- **I have TSA PreCheck** is an optional checkbox in Air Travel. The site does **not** store Known Traveler Numbers.
+
+Where you see the answers: the trip's **roster export** (Trips list: https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_trip, open the trip, Roster Export box). The export has a **TSA PreCheck** column (Yes / blank) right after Frequent Flyer Number.
+
+### Common mistakes
+- Expecting a Known Traveler Number in the export: it is never collected. Ask the traveler to give it to the travel advisor directly if a booking needs it.
+
+---
+
 ## Coming in later steps (this file will be extended after each)
 - Registration opt-outs (gratuities and Voyage Protection) and the decline acknowledgment
 - Included cards and upgrades; pack list, group perks and timeline

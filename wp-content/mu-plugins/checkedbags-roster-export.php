@@ -208,7 +208,7 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 		'Insurance Decision', 'Allianz Waiver Returned', 'Insurance Waiver Received',
 		'CC Auth Completed', 'CC Auth Received',
 		// Travel Logistics
-		'Departure Airport', 'Airline Preference', 'Preferred Airline', 'Frequent Flyer Number',
+		'Departure Airport', 'Airline Preference', 'Preferred Airline', 'Frequent Flyer Number', 'TSA PreCheck',
 		'Seat Preference', 'Flight Cabin Class',
 		'Destinations of Interest', 'Travel Dates', 'Date Flexibility',
 		'Additional Adults', 'Additional Children', "Children's Ages", 'Traveling Companions',
@@ -366,6 +366,7 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 			$req( 'airline_preference' ),
 			$intake['preferred_airline'] ?? '',
 			$intake['frequent_flyer_number'] ?? '',
+			! empty( $intake['tsa_precheck'] ) ? 'Yes' : '',
 			$seat_preference_marked,
 			$flight_cabin_class,
 			$req( 'destination_pref' ),

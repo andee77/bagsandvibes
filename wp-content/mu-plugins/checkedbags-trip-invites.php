@@ -2581,7 +2581,8 @@ add_action( 'rest_api_init', function () {
 				'departure_airport'       => $str( 'departure_airport' ),
 				'flight_cabin_class'      => in_array( $flight_cabin_class, CBV_FLIGHT_CABIN_CLASSES, true ) ? $flight_cabin_class : '',
 				'preferred_airline'       => $str( 'preferred_airline' ),
-				'frequent_flyer_number'   => $str( 'frequent_flyer_number' ),
+				'frequent_flyer_number'   => $str( 'frequent_flyer_number' ), // optional (owner, 2026-10-13)
+				'tsa_precheck'            => ! empty( $body['tsa_precheck'] ), // optional checkbox; no Known Traveler Number is stored (owner, 2026-10-13)
 
 				// Cruise Vacation. cruise_itinerary is legacy -- no longer a
 				// form input on this or Gate 12 (Duration/Region/Port
@@ -2784,7 +2785,10 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 
 		<div class="cbv-intake-field cbv-intake-field-row">
 			<?php cbv_render_airline_field( 'cbv-intake-preferred-airline', 'Preferred airline', $intake['preferred_airline'] ?? '', true ); ?>
-			<label><span class="cbv-required" aria-hidden="true">*</span> Frequent flyer / loyalty number <input type="text" id="cbv-intake-frequent-flyer-number" required value="<?php echo esc_attr( $intake['frequent_flyer_number'] ?? '' ); ?>"></label>
+			<label>Frequent flyer / loyalty number <span class="cbv-optional">(optional)</span> <input type="text" id="cbv-intake-frequent-flyer-number" value="<?php echo esc_attr( $intake['frequent_flyer_number'] ?? '' ); ?>"></label>
+		</div>
+		<div class="cbv-intake-field">
+			<label class="check-row"><input type="checkbox" id="cbv-intake-tsa-precheck" <?php checked( ! empty( $intake['tsa_precheck'] ) ); ?>> I have TSA PreCheck <span class="cbv-optional">(optional)</span></label>
 		</div>
 		</div>
 
@@ -3012,9 +3016,17 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 				el.classList.remove( 'cbv-field-invalid' );
 			} );
 
+			// A field only counts when it is actually on screen: not inside a
+			// section that is turned off (the [hidden] attribute on an optional
+			// section, e.g. Car Rental unticked) and not display:none (e.g. the
+			// airline "Other" box when a named airline is picked).
+			function isShown( el ) {
+				return !! el && ! el.closest( '[hidden]' ) && el.offsetParent !== null;
+			}
+
 			function checkRequired( id, label ) {
 				var el = document.getElementById( id );
-				if ( ! el || el.offsetParent === null ) { return; } // not rendered, or currently hidden (e.g. airline "Other" field when a named airline is picked)
+				if ( ! isShown( el ) ) { return; }
 				if ( ! el.value || ! el.value.trim() ) {
 					el.classList.add( 'cbv-field-invalid' );
 					missing.push( { el: el, label: label } );
@@ -3022,8 +3034,8 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 			}
 
 			function checkGroup( name, label ) {
-				var boxes = document.querySelectorAll( 'input[name="' + name + '"]' );
-				if ( ! boxes.length ) { return; }
+				var boxes = Array.prototype.filter.call( document.querySelectorAll( 'input[name="' + name + '"]' ), isShown );
+				if ( ! boxes.length ) { return; } // not rendered, or in a section that is turned off
 				var anyChecked = Array.prototype.some.call( boxes, function ( b ) { return b.checked; } );
 				if ( ! anyChecked ) {
 					var group = boxes[ 0 ].closest( '.cbv-intake-field' );
@@ -3038,7 +3050,6 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 			checkRequired( 'cbv-intake-flight-cabin-class', 'Flight cabin class' );
 			checkRequired( 'cbv-intake-preferred-airline', 'Preferred airline' );
 			checkRequired( 'cbv-intake-preferred-airline-other', 'Airline name' );
-			checkRequired( 'cbv-intake-frequent-flyer-number', 'Frequent flyer / loyalty number' );
 
 			// Cruise Vacation
 			checkRequired( 'cbv-intake-cruise-company', 'Cruise company' );
@@ -3103,6 +3114,7 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 					flight_cabin_class: fieldVal( 'cbv-intake-flight-cabin-class' ),
 					preferred_airline: airlineValue( 'cbv-intake-preferred-airline' ),
 					frequent_flyer_number: fieldVal( 'cbv-intake-frequent-flyer-number' ),
+					tsa_precheck: fieldChecked( 'cbv-intake-tsa-precheck' ),
 
 					cruise_company: fieldVal( 'cbv-intake-cruise-company' ),
 					cruise_program_number: fieldVal( 'cbv-intake-cruise-program-number' ),
