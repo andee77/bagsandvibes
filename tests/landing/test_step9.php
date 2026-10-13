@@ -264,7 +264,7 @@ remove_filter( 'cbv_lp_key_dates', $kd, 99 );
 $GLOBALS['opt_fees'] = array(); $GLOBALS['opt_live'] = '0';
 $d181 = cbv_lp_priceboard_data( 181 );
 check( 'REAL trip 181: board shown, 4 groups in one Premium column (Locked In tiers "Not on the price board" since 2026-10-11)', is_array( $d181 ) && 4 === count( $d181['groups'] ) && array( 3 => 'Premium' ) === $d181['columns'], json_encode( $d181 ? $d181['columns'] : null ) );
-check( "REAL trip 181: its own fee ($225 per traveler) is on the board, with the children line", 'trip' === cbv_lp_price_board_data( 181 )['fee']['source'] && in_array( 'Children pay half the CBGV Group Experience Fee.', $d181['fee_note'], true ) );
+check( "REAL trip 181: its own fee ($225 per traveler) is on the board; no children line (adults only via its provider since 2026-10-13)", 'trip' === cbv_lp_price_board_data( 181 )['fee']['source'] && ! in_array( 'Children pay half the CBGV Group Experience Fee.', $d181['fee_note'], true ) && ! empty( $d181['fee_note'] ) );
 check( 'REAL trip 181: "The Insider" $2,552 + $450 = $3,002 for 2 (Premium)', 3002.0 === $d181['groups'][0]['rows'][0]['cells'][3]['total'] );
 $h181 = board_html( 181 );
 check( 'REAL trip 181: nothing on the board names the host agency, a deposit, payment plans, or says CBGV books', false === stripos( $h181, 'InteleTravel' ) && false === stripos( $h181, 'payment plan' ) && false === stripos( $h181, 'holds your cabin' ) && false === stripos( $h181, 'CBGV books' ) );

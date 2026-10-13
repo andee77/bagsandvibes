@@ -464,3 +464,83 @@ function cb_wall_render_posts( $wall_forum_id ) {
 	<?php
 	return ob_get_clean();
 }
+
+/* ==========================================================================
+   8. Walls are never LISTED in the forums (owner, 2026-10-13). A personal
+      wall is reached only through its owner's profile page and the Feed,
+      under the access rules above (unchanged). So bbPress's own lists leave
+      every wall out: the forum index (/forums/), topic lists (/topics/ and
+      bbPress views), and forum search -- whoever is looking, admins
+      included. Before this, trip-mates saw every wall in /forums/, and a
+      follower saw a wall and its post titles listed without being able to
+      open them. The profile timeline (cb_wall_get_posts()) and the Feed use
+      their own get_posts() queries, which these bbPress list filters never
+      touch. A wall's own forum page sends readers to the owner's profile.
+   ========================================================================== */
+function cb_wall_forum_ids() {
+	static $ids = null;
+	if ( null === $ids ) {
+		global $wpdb;
+		$ids = array_map( 'intval', $wpdb->get_col( $wpdb->prepare(
+			"SELECT DISTINCT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value <> '' AND meta_value <> '0'",
+			'_cb_wall_owner_user_id'
+		) ) );
+	}
+	return $ids;
+}
+
+/** Merge $more into a query's existing exclusion list. */
+function cb_wall_merge_ids( $existing, $more ) {
+	$existing = is_array( $existing ) ? $existing : ( '' === (string) $existing ? array() : wp_parse_id_list( $existing ) );
+	return array_values( array_unique( array_map( 'intval', array_merge( $existing, $more ) ) ) );
+}
+
+// The forum index and any other bbPress forum list.
+add_filter( 'bbp_after_has_forums_parse_args', function ( $args ) {
+	$walls = cb_wall_forum_ids();
+	if ( $walls ) {
+		$args['post__not_in'] = cb_wall_merge_ids( $args['post__not_in'] ?? array(), $walls );
+	}
+	return $args;
+} );
+
+// /topics/, bbPress views, and every topic list except one asked for a
+// single wall on purpose (a wall's own forum page, which redirects anyway).
+add_filter( 'bbp_after_has_topics_parse_args', function ( $args ) {
+	$walls  = cb_wall_forum_ids();
+	$parent = isset( $args['post_parent'] ) && is_numeric( $args['post_parent'] ) ? (int) $args['post_parent'] : 0;
+	if ( $walls && ! in_array( $parent, $walls, true ) ) {
+		$args['post_parent__not_in'] = cb_wall_merge_ids( $args['post_parent__not_in'] ?? array(), $walls );
+	}
+	return $args;
+} );
+
+// Forum search: walls, their posts and their replies are never results.
+add_filter( 'bbp_after_has_search_results_parse_args', function ( $args ) {
+	$walls = cb_wall_forum_ids();
+	if ( ! $walls ) {
+		return $args;
+	}
+	global $wpdb;
+	$in      = implode( ',', $walls ); // integers only, see cb_wall_forum_ids()
+	$content = array_map( 'intval', $wpdb->get_col( "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_bbp_forum_id' AND meta_value IN ({$in})" ) ); // phpcs:ignore WordPress.DB.PreparedSQL -- $in is a list of integers
+	$args['post__not_in'] = cb_wall_merge_ids( $args['post__not_in'] ?? array(), array_merge( $walls, $content ) );
+	return $args;
+} );
+
+// A wall's own forum page goes to its owner's profile (where the wall lives).
+function cb_wall_forum_page_redirect_url( $forum_id ) {
+	$owner = cb_wall_forum_owner_id( $forum_id );
+	return $owner && function_exists( 'cb_member_profile_url' ) ? (string) cb_member_profile_url( $owner ) : '';
+}
+
+add_action( 'template_redirect', function () {
+	if ( ! function_exists( 'bbp_is_single_forum' ) || ! bbp_is_single_forum() ) {
+		return;
+	}
+	$url = cb_wall_forum_page_redirect_url( get_queried_object_id() );
+	if ( '' !== $url ) {
+		wp_safe_redirect( $url );
+		exit;
+	}
+}, 9 );

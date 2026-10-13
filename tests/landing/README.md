@@ -32,6 +32,7 @@ wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_step9a.php
 wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_step9a_login.php
 wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_proposal_client_prices.php
 wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_adults_only.php
+wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_wall_privacy.php
 bash /tmp/cbv_t/mutate_step5.sh
 bash /tmp/cbv_t/mutate_step6.sh
 bash /tmp/cbv_t/mutate_step7.sh
@@ -42,6 +43,7 @@ bash /tmp/cbv_t/mutate_step9a.sh
 bash /tmp/cbv_t/mutate_step9a_login.sh
 bash /tmp/cbv_t/mutate_proposal_client_prices.sh
 bash /tmp/cbv_t/mutate_adults_only.sh
+bash /tmp/cbv_t/mutate_wall_privacy.sh
 ```
 
 Set `CBV_VERBOSE=1` to list every passing check. Each suite ends with
@@ -72,6 +74,8 @@ Each mutation script expects its suite in `/tmp/cbv_t/`.
 | `mutate_proposal_client_prices.sh` | Mutation tests for the client proposal prices | 6 mutants, all caught |
 | `test_adults_only.php` | Adults only (18+): provider setting and trip override, no "Children pay half" on the board or proposal, no children fields on the intake form (real trip 320, setting faked), boxes and save; Reply-To on the rejection email only (emails captured, never sent) | 30 checks, 0 failures |
 | `mutate_adults_only.sh` | Mutation tests for adults only and the rejection Reply-To | 14 mutants, all caught |
+| `test_wall_privacy.php` | Personal walls never listed in /forums/, /topics/, views or forum search, for real members (no trip, both trips, Helmets only) and admin; who may open a wall unchanged; trip boards and Lounge unchanged; profile timeline and Feed still find wall posts; a wall's forum page goes to the profile | 33 checks, 0 failures |
+| `mutate_wall_privacy.sh` | Mutation tests for wall privacy | 8 mutants, all caught |
 
 Some checks read trip 181 (Annual Family and Friends) as it is on the live
 site (its intro text, itinerary and stored times), so they can need updating if
