@@ -572,7 +572,7 @@ function cbv_send_new_member_welcome_email( $user_id ) {
 			<p><strong>How Custom Group Travel Works:</strong></p>
 			<ol style="margin: 0 0 15px 0;padding-left: 22px;">
 				<li><strong>Submit Your Request:</strong> Log into your Full Member account and fill out our simple Group Travel Form with your preferred dates, group size (4+ travelers), and vision.</li>
-				<li><strong>We Build the Experience:</strong> Our team designs a tailored itinerary, handles accommodation bookings, coordinates activities, and manages individual payments for your group.</li>
+				<li><strong>We Build the Experience:</strong> Our team designs a tailored itinerary, plans your group program and coordinates activities. Your travel is booked by our independent travel advisor and paid directly to the cruise line or supplier.</li>
 				<li><strong>Invite Your Guests &amp; Go:</strong> Send unique Trip Guest access links to your group so they can view the itinerary and trip details directly&#8212;no extra stress for you.</li>
 			</ol>
 

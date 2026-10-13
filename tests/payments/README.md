@@ -14,6 +14,7 @@ its headers are never stored or printed). The safeguard's own PHP error-log line
 
 ```bash
 wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_fee_safeguard.php
+wp --require=/tmp/cbv_t/define.php eval-file /tmp/cbv_t/test_payment_wording.php
 bash /tmp/cbv_t/mutate_fee_safeguard.sh
 ```
 
@@ -21,6 +22,7 @@ bash /tmp/cbv_t/mutate_fee_safeguard.sh
 |---|---|---|
 | `test_fee_safeguard.php` | What may be billed (fee for the party: full per adult, half per child, + approved extras; never the travel price), installments, the Stripe amount and its label, the hard ceiling and its log, the webhook, Gate 12 quote acceptance, the Payment page card, admin labels, the roster export | 54 checks, 0 failures |
 | `mutate_fee_safeguard.sh` | Mutation tests (each breaks one protection) | 27 mutants, all caught |
+| `test_payment_wording.php` | Member welcome email and Gate 12 fine print: no "manages individual payments", no "planning deposit"; travel paid directly to the supplier; the fee shown with the quote. Captures the email with `pre_wp_mail` (nothing is sent). Fails 7 of 10 on the pre-2026-10-13 wording | 10 checks, 0 failures |
 
 The suite fakes every value it uses on real trip 181 (so the Payment page's own
 trip list finds it) and checks at the end that the real trip was not touched.

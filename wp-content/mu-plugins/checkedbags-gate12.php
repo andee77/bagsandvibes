@@ -783,7 +783,7 @@ add_shortcode( 'cb_gate_requests', function () {
 			<label>Anything else special? <textarea id="req-special-requests" rows="2"></textarea></label>
 		</fieldset>
 
-		<p class="requests-fine-print">A planning deposit may apply before we begin building your custom itinerary, and we recommend booking 6–12 months ahead for custom group trips. If your group falls below 4 travelers, per-person pricing may adjust.</p>
+		<p class="requests-fine-print">The CBGV Group Experience Fee for your trip will be shown with your quote before you accept it. We recommend booking 6–12 months ahead for custom group trips. If your group falls below 4 travelers, per-person pricing may adjust.</p>
 
 		<button type="submit" class="btn btn-ticket">Submit request</button>
 	</form>
