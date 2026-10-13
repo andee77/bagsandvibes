@@ -25,7 +25,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <?php wp_head(); ?>
 </head>
-<body <?php body_class( 'checkedbags-gate' ); ?>>
+<?php $cb_is_forum_page = function_exists( 'cbv_is_forum_page' ) && cbv_is_forum_page(); ?>
+<body <?php body_class( $cb_is_forum_page ? array( 'checkedbags-gate', 'cbv-forums' ) : 'checkedbags-gate' ); ?>>
 
 <header class="site-header is-solid" id="site-header">
   <div class="header-inner">
@@ -72,6 +73,10 @@ $cb_gate_page_config = array(
 	),
 );
 $cb_current_gate = isset( $cb_gate_page_config[ get_the_ID() ] ) ? $cb_gate_page_config[ get_the_ID() ] : null;
+// Forum pages belong to Gate 10 (Discussion Boards): same ribbon number, no
+// background media. The forum list itself is titled "Discussion Boards".
+$cb_ribbon_number = $cb_current_gate ? $cb_current_gate['number'] : ( $cb_is_forum_page ? 'GATE 10' : null );
+$cb_ribbon_title  = ( $cb_is_forum_page && function_exists( 'bbp_is_forum_archive' ) && bbp_is_forum_archive() ) ? 'Discussion Boards' : null;
 ?>
 
 <?php if ( $cb_current_gate && $cb_current_gate['bg_style'] === 'frame' ) : ?>
@@ -122,11 +127,11 @@ $cb_current_gate = isset( $cb_gate_page_config[ get_the_ID() ] ) ? $cb_gate_page
 			if ( ! is_page( 'user' ) ) :
 			?>
 			<div class="gate-ribbon">
-				<?php if ( $cb_current_gate && $cb_current_gate['number'] ) : ?>
-					<span class="gate-ribbon-number"><?php echo esc_html( $cb_current_gate['number'] ); ?></span>
+				<?php if ( $cb_ribbon_number ) : ?>
+					<span class="gate-ribbon-number"><?php echo esc_html( $cb_ribbon_number ); ?></span>
 					<span class="gate-ribbon-divider" aria-hidden="true"></span>
 				<?php endif; ?>
-				<span class="gate-ribbon-title"><?php the_title(); ?></span>
+				<span class="gate-ribbon-title"><?php echo null !== $cb_ribbon_title ? esc_html( $cb_ribbon_title ) : esc_html( get_the_title() ); ?></span>
 			</div>
 			<?php endif; ?>
 			<div class="gate-page-content"><?php the_content(); ?></div>

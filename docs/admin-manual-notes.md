@@ -820,6 +820,8 @@ On the **new design**, the old "Reserve Your Spot" button and its "This submits 
 ### Forums are members only
 Anyone who isn't signed in and opens a forum page (the forum list, the Lounge, a trip board, a topic) or a forum feed is sent to the site's sign-in page (/login/) and brought back after signing in. Every gate's "Please sign in" link goes to the same /login/ page and back. Members see the forums as before. Forums are also hidden from search engines (Yoast, set 2026-10-11).
 
+Every forum page (the forum list, each board, topics, replies and forum search) now uses the same CBGV header, menu, footer and fonts as the dashboard and gates, with a "GATE 10" ribbon; the forum list is titled "Discussion Boards".
+
 Personal **walls** never appear in the forum lists, topic lists or forum search, for anyone (admins included). A member's wall lives on their profile page and in the Feed; who can open it is unchanged (the owner, admins, and anyone on a trip with the owner). Opening a wall's old forum address takes you to the owner's profile.
 
 ### Proposal PDFs and "Not on the price board"

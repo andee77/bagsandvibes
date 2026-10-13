@@ -44,6 +44,7 @@ bash /tmp/cbv_t/mutate_step9a_login.sh
 bash /tmp/cbv_t/mutate_proposal_client_prices.sh
 bash /tmp/cbv_t/mutate_adults_only.sh
 bash /tmp/cbv_t/mutate_wall_privacy.sh
+bash /tmp/cbv_t/test_forum_design.sh   # also needs render_page.php and a copy of styles.css as /tmp/cbv_t/styles.css
 ```
 
 Set `CBV_VERBOSE=1` to list every passing check. Each suite ends with
@@ -76,6 +77,7 @@ Each mutation script expects its suite in `/tmp/cbv_t/`.
 | `mutate_adults_only.sh` | Mutation tests for adults only and the rejection Reply-To | 14 mutants, all caught |
 | `test_wall_privacy.php` | Personal walls never listed in /forums/, /topics/, views or forum search, for real members (no trip, both trips, Helmets only) and admin; who may open a wall unchanged; trip boards and Lounge unchanged; profile timeline and Feed still find wall posts; a wall's forum page goes to the profile | 33 checks, 0 failures |
 | `mutate_wall_privacy.sh` | Mutation tests for wall privacy | 8 mutants, all caught |
+| `test_forum_design.sh` + `render_page.php` | Every forum page (list, forum, board, topics, search, view) rendered as a real member: CBGV gate shell, brand fonts and stylesheet, no Kadence header or bbPress stylesheet, GATE 10 ribbon; Gate 09/10 pages, home and trip page unchanged; signed out still sent to /login/; empty-state wording and one notice on an empty forum; no "|" before Subscribe; no Tags field; the forum CSS is scoped to .cbv-forums. Fails 27 of the first 46 on the old code | 51 checks, 0 failures |
 
 Some checks read trip 181 (Annual Family and Friends) as it is on the live
 site (its intro text, itinerary and stored times), so they can need updating if

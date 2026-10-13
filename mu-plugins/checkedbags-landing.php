@@ -72,10 +72,56 @@ add_action( 'save_post_page', function ( $post_id, $post ) {
 	}
 }, 10, 2 );
 
+/**
+ * Every bbPress page: the forum list, each forum, topics and replies, the
+ * topic list, forum search, bbPress views, tag and user pages (owner,
+ * 2026-10-13: all forum pages use the CBGV member-area shell and skin).
+ */
+function cbv_is_forum_page() {
+	return function_exists( 'is_bbpress' ) && is_bbpress();
+}
+
+/**
+ * bbPress's empty-state messages in CBGV words (owner, 2026-10-13), through
+ * the translation filter rather than copied templates.
+ */
+function cbv_forum_empty_text( $text ) {
+	$map = array(
+		'Oh, bother! No topics were found here.'         => 'No conversations yet. Be the first to start one!',
+		'Oh, bother! No forums were found here.'         => 'No conversations yet. Be the first to start one!',
+		'Oh, bother! No replies were found here.'        => 'No conversations yet. Be the first to start one!',
+		'Oh, bother! No search results were found here.' => 'No matching conversations found.',
+	);
+	return $map[ $text ] ?? null;
+}
+
+add_filter( 'gettext_bbpress', function ( $translation, $text ) {
+	$ours = cbv_forum_empty_text( $text );
+	return null !== $ours ? $ours : $translation;
+}, 10, 2 );
+
+// An empty forum shows one notice (the wording above), not bbPress's extra
+// "This forum is empty." summary box as well.
+add_filter( 'bbp_get_single_forum_description', function ( $html, $r ) {
+	$forum_id = function_exists( 'bbp_get_forum_id' ) ? bbp_get_forum_id( $r['forum_id'] ?? 0 ) : 0;
+	return ( $forum_id && 0 === (int) bbp_get_forum_topic_count( $forum_id, true, true ) ) ? '' : $html;
+}, 10, 2 );
+
+// No stray "|" before Subscribe on topic pages.
+add_filter( 'bbp_after_get_topic_subscribe_link_parse_args', function ( $r ) {
+	$r['before'] = '';
+	return $r;
+} );
+
+// Topic tags are not used: no "Tags" field on new topics and replies (owner, 2026-10-13).
+add_filter( 'bbp_allow_topic_tags', function ( $allowed ) {
+	return is_admin() ? $allowed : false;
+} );
+
 add_filter(
 	'template_include',
 	function ( $template ) {
-		if ( is_singular( array( 'cb_trip', 'forum', 'topic', 'reply' ) ) ) {
+		if ( is_singular( array( 'cb_trip', 'forum', 'topic', 'reply' ) ) || cbv_is_forum_page() ) {
 			$custom = __DIR__ . '/checkedbags-landing/template-gate.php';
 			if ( file_exists( $custom ) ) {
 				return $custom;
@@ -125,7 +171,7 @@ add_filter(
 add_action(
 	'wp_enqueue_scripts',
 	function () {
-		$is_trip = is_singular( array( 'cb_trip', 'forum', 'topic', 'reply' ) );
+		$is_trip = is_singular( array( 'cb_trip', 'forum', 'topic', 'reply' ) ) || cbv_is_forum_page();
 		if ( ! $is_trip && ! is_page() ) {
 			return;
 		}
@@ -168,6 +214,22 @@ add_action(
 			);
 		}
 	}
+);
+
+/**
+ * 3b. Forum pages: Kadence's own bbPress stylesheet (its "kadence-bbpress",
+ *     added at wp_enqueue_scripts priority 60) is the old theme look and its
+ *     selectors outrank the CBGV forum skin in styles.css, so it is not loaded
+ *     on forum pages; the skin does the layout too.
+ */
+add_action(
+	'wp_enqueue_scripts',
+	function () {
+		if ( cbv_is_forum_page() ) {
+			wp_dequeue_style( 'kadence-bbpress' );
+		}
+	},
+	99
 );
 
 /**
