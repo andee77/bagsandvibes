@@ -929,6 +929,17 @@ Each trip has **one** rules text: its **Trip Agreement** (Trips: https://bagsand
 
 ---
 
+## 21. Countdown (key dates) and Travel documents
+- **Countdown:** the trip's key dates, oldest first, with a coloured dot, the date, a title and a short note. They come from the trip's **provider** (Providers > e.g. Virgin Voyages > Key dates, counted in days before the trip's start date), changed or added per trip in the trip's own key-date box. Dates already past are dimmed and tagged "Passed".
+- **Travel documents** ("The fine print, folded neatly"): the provider's documents (then any of the trip's own), as fold-open panels. Under the heading: "Key {provider} policies, in short. The cruise line's own terms always apply." The documents' "Last reviewed" dates stay admin-only.
+- **Where they show:** on the new design (after How to book) and on the **members' trip page** (after "Rules for this trip"; a traveler sees them once they have accepted the Trip Agreement).
+- **Switch off for a trip:** Trip edit screen, Sections table: "Timeline / key dates" and "Travel documents" (this hides them on both pages).
+
+### Common mistakes
+- Changing a date on the provider changes it for every trip on that provider: use the trip's own key-date box for a one-trip change.
+
+---
+
 ## Coming in later steps (this file will be extended after each)
 - Registration opt-outs (gratuities and Voyage Protection) and the decline acknowledgment
 - Included cards and upgrades; pack list, group perks and timeline

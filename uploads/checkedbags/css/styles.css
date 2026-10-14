@@ -4044,3 +4044,29 @@ body.admin-bar .site-header { top: 32px; }
 .cbv-who--page .cbv-who-updated,
 .cbv-who--terms .cbv-who-updated { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.04em; color: rgba(22,35,43,0.6); margin: 0; }
 .cbv-text-page .gate-page-content .cbv-who--terms .cbv-who-title { margin-top: 0; font-family: var(--font-mono); font-style: normal; font-size: 0.78rem; }
+
+/* ==========================================================================
+   Members' trip page (owner, 2026-10-14): key dates + travel documents, after
+   "Rules for this trip" (same markup as the new design, cream styling).
+   ========================================================================== */
+.cbv-kd-member .cbv-kd-list { list-style: none; margin: 0.75rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.9rem; }
+.cbv-kd-member .cbv-kd-row { position: relative; display: flex; flex-direction: column; gap: 0.2rem; padding-left: 1.4rem; }
+.cbv-kd-member .cbv-kd-dot { position: absolute; left: 0; top: 0.35rem; width: 10px; height: 10px; border-radius: 50%; background: var(--gold); }
+.cbv-kd-member .cbv-kd-dot--coral { background: var(--coral); }
+.cbv-kd-member .cbv-kd-dot--green { background: var(--teal); }
+.cbv-kd-member .cbv-kd-when { font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink); }
+.cbv-kd-member .cbv-kd-title { font-family: var(--font-body); font-weight: 600; color: var(--ink); }
+.cbv-kd-member .cbv-kd-desc { font-size: 0.9rem; color: rgba(22,35,43,0.75); }
+.cbv-kd-member .cbv-kd-row.is-passed { opacity: 0.5; }
+.cbv-kd-member .cbv-kd-passed { margin-left: 0.4rem; padding: 0 0.3rem; border: 1px solid currentColor; border-radius: 2px; font-size: 0.6rem; }
+.cbv-kd-member .cbv-kd-lede { margin: 0 0 0.75rem; color: rgba(22,35,43,0.75); font-size: 0.95rem; }
+.cbv-kd-member .cbv-kd-docs { border-top: 1px solid rgba(22,35,43,0.15); }
+.cbv-kd-member .cbv-kd-doc { border-bottom: 1px solid rgba(22,35,43,0.15); }
+.cbv-kd-member .cbv-kd-doc summary { display: flex; justify-content: space-between; align-items: center; gap: 1rem; min-height: 44px; padding: 0.6rem 0; cursor: pointer; list-style: none; font-family: var(--font-display); font-style: italic; font-size: 1.1rem; color: var(--ink); }
+.cbv-kd-member .cbv-kd-doc summary::-webkit-details-marker { display: none; }
+.cbv-kd-member .cbv-kd-chev::before { content: "+"; font-family: var(--font-mono); font-style: normal; color: var(--coral); font-size: 1.2rem; }
+.cbv-kd-member .cbv-kd-doc[open] .cbv-kd-chev::before { content: "\2212"; }
+.cbv-kd-member .cbv-kd-doc summary:focus-visible { outline: 2px solid var(--coral); outline-offset: 3px; }
+.cbv-kd-member .cbv-kd-doc-body { padding: 0 0 0.9rem; font-size: 0.95rem; line-height: 1.6; color: var(--ink); }
+.cbv-kd-member .cbv-kd-doc-body ul { margin: 0; padding-left: 1.2rem; }
+.cbv-kd-member .cbv-kd-doc-body li { margin: 0 0 0.4rem; }

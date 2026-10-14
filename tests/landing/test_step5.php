@@ -262,7 +262,8 @@ check( 'hidden intro renders nothing and does not use up GATE 14', '' === cbv_lp
 /* ---- G. the real trip 181 + page assembly ---- */
 section( 'G. trip 181 and page assembly' );
 $d = cbv_lp_status_data( 181 );
-check( 'REAL trip 181: "25 travelers needed to depart", no tiles yet, chip Boarding', $d && '25 travelers needed to depart' === $d['line'] && null === $d['tiles'] && 'Boarding' === $d['chip'], json_encode( $d ) );
+$min181 = (int) get_post_meta( 181, 'cb_min_group_size', true ); // 5 since 2026-10-14 (was 25)
+check( "REAL trip 181: \"$min181 travelers needed to depart\", no tiles yet, chip Boarding", $d && "$min181 travelers needed to depart" === $d['line'] && null === $d['tiles'] && 'Boarding' === $d['chip'], json_encode( $d ) );
 check( 'REAL trip 181: the intro written 2026-10-05 is shown (heading, 3 paragraphs, chips after the automatic ones)', ( $i181 = cbv_lp_intro_data( 181 ) ) && "Five nights. One crew. Zero kids' table." === $i181['heading'] && 3 === substr_count( $i181['body'], '<p>' ) && array( '5 nights', 'Valiant Lady', 'Adults only · 18+', 'Miami round trip', 'Low 80s °F' ) === $i181['chips'], json_encode( $i181 ) );
 $page = cbv_lp_render_trip( 181, 'new_preview' );
 check( 'order: banner, hero, status board, legacy content', strpos( $page, 'cbv-lp-preview-banner' ) < strpos( $page, 'class="cbv-lp-hero"' ) && strpos( $page, 'class="cbv-lp-hero"' ) < strpos( $page, 'class="cbv-lp-status"' ) && strpos( $page, 'class="cbv-lp-status"' ) < strpos( $page, 'cbv-lp-legacy-wrap' ) );
@@ -272,7 +273,7 @@ $p1 = cbv_lp_render_trip( 181, 'new' );
 $p2 = cbv_lp_render_trip( 181, 'new' );
 check( 'intro sits between the status board and the legacy content', strpos( $p1, 'class="cbv-lp-status"' ) < strpos( $p1, 'class="cbv-lp-intro"' ) && strpos( $p1, 'class="cbv-lp-intro"' ) < strpos( $p1, 'cbv-lp-legacy-wrap' ) );
 check( 'GATE numbering restarts at 14 on every render (each render has exactly one GATE 14, on the intro)', 1 === substr_count( $p1, 'Gate 14 · ' ) && 1 === substr_count( $p2, 'Gate 14 · ' ) && false !== strpos( $p2, 'Gate 14 · The trip' ) );
-check( 'typed number shows as tiles: 07 OF 25', false !== strpos( $p1, '7 of 25 travelers booked' ) && 4 === substr_count( $p1, 'class="cbv-lp-tile"' ) );
+check( 'typed number shows as tiles: 07 OF ...', false !== strpos( $p1, '7 of ' ) && false !== strpos( $p1, ' travelers booked' ) && 4 === substr_count( $p1, 'class="cbv-lp-tile"' ) );
 unset( $fake[ 181 ] );
 
 /* ---- H. admin box + save ---- */

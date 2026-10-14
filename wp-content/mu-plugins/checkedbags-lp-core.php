@@ -169,6 +169,11 @@ function cbv_lp_render_trip( $trip_id, $view = 'new' ) {
 	if ( function_exists( 'cbv_lp_render_how' ) ) {
 		// Step 12a: How to book (when on), then the "Who does what" disclosure (always).
 		echo cbv_lp_render_how( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
+		if ( function_exists( 'cbv_lp_render_countdown' ) ) {
+			// Go-live R4/R5: the Countdown (key dates) and Travel documents.
+			echo cbv_lp_render_countdown( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
+			echo cbv_lp_render_docs( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
+		}
 		echo cbv_lp_render_who( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
 	}
 	echo '<div class="cbv-lp-legacy-wrap">' . $legacy . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput -- the renderer escapes its own output

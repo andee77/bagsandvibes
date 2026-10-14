@@ -9,15 +9,15 @@ Status key: **prepared** = the file exists but is not on the live site yet; **in
 ## Hero (Step 4)
 | File name | What it shows | Source | Status |
 |---|---|---|---|
-| `terminal-v-hero-1080.mp4` | Terminal V hero video, 1080p | First Mates marketing toolkit | prepared (web-compressed version) |
-| `terminal-v-hero-720.mp4` | Terminal V hero video, 720p | First Mates marketing toolkit | prepared (web-compressed version) |
+| `terminal-v-hero-1080.mp4` | Terminal V hero video, 1080p | First Mates marketing toolkit | uploaded (media 404, web-compressed); trip 181 hero video |
+| `terminal-v-hero-720.mp4` | Terminal V hero video, 720p | First Mates marketing toolkit | uploaded (media 405, web-compressed); trip 181 smaller-screen hero video |
 | `terminal-v-hero-poster.jpg` | Poster frame for the Terminal V hero video | First Mates marketing toolkit | prepared |
 
 The three files above are currently held in `docs/design/files.zip`, which is not committed to the repo.
 
 | File name | What it shows | Source | Status |
 |---|---|---|---|
-| `terminal-v-hero-poster-ship.jpg` | A frame from 24 seconds into the same Terminal V hero video: the ship centred, with the terminal and skyline | First Mates marketing toolkit (frame taken from the toolkit video) | **chosen as the poster for trip 181** (Annual Family and Friends) instead of the first-frame `terminal-v-hero-poster.jpg`; incoming, to be uploaded and attached after Step 4 is deployed. Phones show only the poster, so this is the picture most phone visitors will see |
+| `terminal-v-hero-poster-ship.jpg` | A frame from 24 seconds into the same Terminal V hero video: the ship centred, with the terminal and skyline | First Mates marketing toolkit (frame taken from the toolkit video) | **chosen as the poster for trip 181** (Annual Family and Friends) instead of the first-frame `terminal-v-hero-poster.jpg`; uploaded (media 406) and attached as trip 181's hero poster. Phones show only the poster, so this is the picture most phone visitors will see |
 
 ## How the hero uses them (Step 4)
 The hero shows the video (larger screens) or the poster picture (phones and fallback) in a frame that fills the width; the edges may be cropped by the frame, never by editing the file. Each trip's **Picture focus point** keeps the subject in view, and the frame must never hide Virgin's logo/branding or change what the picture shows.
