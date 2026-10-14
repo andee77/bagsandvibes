@@ -940,6 +940,15 @@ Each trip has **one** rules text: its **Trip Agreement** (Trips: https://bagsand
 
 ---
 
+## 22. Status board (the band under the hero)
+It reads the trip's **Travelers booked (paid deposits)** number (Trip edit screen, "Status board & intro" box) and the trip's **Minimum group size** and **Capacity**:
+- **Blank, or fewer than the minimum:** only the chip ("Boarding" on cruises), on the right. No number is shown.
+- **The minimum or more:** "7 travelers booked" (other trip types: "guests", "attendees"...), the tiles "07 OF 50" (capacity; the minimum if no capacity is set) and the chip "On time".
+- **At capacity:** the same, with the chip "Fully booked · Ask about the waitlist".
+Update the number by hand as deposits come in; it never counts by itself.
+
+---
+
 ## Coming in later steps (this file will be extended after each)
 - Registration opt-outs (gratuities and Voyage Protection) and the decline acknowledgment
 - Included cards and upgrades; pack list, group perks and timeline

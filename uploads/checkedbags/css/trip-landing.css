@@ -1996,3 +1996,8 @@ body.cbv-lp .cbv-kd-doc-body strong { color: var(--cbv-cream); }
 
 	body.cbv-lp .cbv-kd-doc summary { font-size: 19px; }
 }
+
+/* Status board (owner, 2026-10-14): when only the chip shows (below the minimum or no number), it stays on the right. */
+body.cbv-lp .cbv-lp-status-chip:only-child {
+	margin-left: auto;
+}

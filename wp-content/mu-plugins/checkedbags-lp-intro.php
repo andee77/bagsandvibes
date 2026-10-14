@@ -210,7 +210,6 @@ function cbv_lp_status_data( $trip_id ) {
 	$booked   = cbv_lp_clean_booked( get_post_meta( $trip_id, 'cbv_lp_travelers_booked', true ) );
 	$capacity = (int) get_post_meta( $trip_id, 'cb_capacity', true );
 	$state    = cbv_lp_status_state( $booked, $min, $capacity );
-	$people   = strtolower( 1 === $min ? ( $labels['party_one'] ?? 'Guest' ) : ( $labels['party'] ?? 'Guests' ) );
 
 	$chips = array(
 		'before' => $labels['status_before'] ?? 'Open',
@@ -219,42 +218,41 @@ function cbv_lp_status_data( $trip_id ) {
 	);
 
 	// The cruise wording ("to depart") is about a departure; other event types get neutral words.
-	$suffix    = $labels['status_suffix'] ?? 'to confirm';
-	$departs   = 'to depart' === $suffix;
-	$kicker    = $labels['status_kicker'] ?? ( $departs ? 'Departure status' : 'Group status' );
-	$confirmed = $labels['status_confirmed'] ?? ( $departs ? 'Departure confirmed' : 'Group confirmed' );
+	$suffix = $labels['status_suffix'] ?? 'to confirm';
+	$kicker = $labels['status_kicker'] ?? ( 'to depart' === $suffix ? 'Departure status' : 'Group status' );
 
-	// By stage:
-	//   below the minimum (or no number typed): "NN OF {min}", "{min} travelers needed to depart"
-	//   minimum reached: "NN OF {capacity}", "Departure confirmed · N spots left"
-	//                    (no capacity set: "NN OF {min}", "Departure confirmed")
-	//   full:            "NN OF {capacity}", "Departure confirmed"
+	// Owner, 2026-10-14 (all trips), N = the "Travelers booked (paid
+	// deposits)" box:
+	//   blank, or fewer than the minimum: ONLY the chip (Boarding) -- no
+	//     number line, no tiles;
+	//   the minimum or more: "{N} travelers booked" ("1 traveler booked";
+	//     each event type's own people-word), tiles "NN OF {capacity}"
+	//     ("OF {min}" with no capacity), chip On time;
+	//   at capacity: the same line and tiles, the full chip.
 	if ( 'before' === $state ) {
-		$line  = $min . ' ' . $people . ' needed ' . $suffix;
-		$total = $min;
-	} elseif ( 'after' === $state && $capacity > 0 ) {
-		$left  = $capacity - (int) $booked;
-		$line  = $confirmed . ' · ' . $left . ( 1 === $left ? ' spot left' : ' spots left' );
-		$total = $capacity;
-	} else {
-		$line  = $confirmed;
-		$total = 'full' === $state ? $capacity : $min;
-	}
-
-	$tiles = null;
-	if ( '' !== $booked ) {
-		$width = max( strlen( (string) $total ), strlen( $booked ) );
-		$tiles = array(
-			'booked' => str_split( str_pad( $booked, $width, '0', STR_PAD_LEFT ) ),
-			'total'  => str_split( str_pad( (string) $total, $width, '0', STR_PAD_LEFT ) ),
+		return array(
+			'kicker' => '',
+			'line'   => '',
+			'tiles'  => null,
+			'spoken' => '',
+			'state'  => $state,
+			'chip'   => $chips[ $state ],
 		);
 	}
 
+	$n      = (int) $booked;
+	$people = strtolower( 1 === $n ? ( $labels['party_one'] ?? 'Guest' ) : ( $labels['party'] ?? 'Guests' ) );
+	$total  = $capacity > 0 ? $capacity : $min;
+	$width  = max( strlen( (string) $total ), strlen( $booked ) );
+
 	return array(
 		'kicker' => $kicker,
-		'line'   => $line,
-		'tiles'  => $tiles,
-		'spoken' => '' !== $booked ? sprintf( '%1$s of %2$d %3$s booked', $booked, $total, strtolower( $labels['party'] ?? 'guests' ) ) : '',
+		'line'   => $n . ' ' . $people . ' booked',
+		'tiles'  => array(
+			'booked' => str_split( str_pad( $booked, $width, '0', STR_PAD_LEFT ) ),
+			'total'  => str_split( str_pad( (string) $total, $width, '0', STR_PAD_LEFT ) ),
+		),
+		'spoken' => sprintf( '%1$d of %2$d %3$s booked', $n, $total, strtolower( $labels['party'] ?? 'guests' ) ),
 		'state'  => $state,
 		'chip'   => $chips[ $state ],
 	);
@@ -269,10 +267,12 @@ function cbv_lp_render_status( $trip_id ) {
 	?>
 	<section class="cbv-lp-status" aria-label="Group status">
 		<div class="cbv-lp-inner cbv-lp-status-inner">
+			<?php if ( '' !== $d['line'] ) : ?>
 			<div class="cbv-lp-status-copy">
 				<span class="cbv-lp-status-kicker"><?php echo esc_html( $d['kicker'] ); ?></span>
 				<span class="cbv-lp-status-line"><?php echo esc_html( $d['line'] ); ?></span>
 			</div>
+			<?php endif; ?>
 			<?php if ( $d['tiles'] ) : ?>
 				<p class="cbv-lp-sr"><?php echo esc_html( $d['spoken'] ); ?></p>
 				<div class="cbv-lp-status-tiles" aria-hidden="true">

@@ -95,69 +95,65 @@ check( 'reset starts again at 14', 14 === cbv_lp_next_gate() );
 check( 'a blank section name gives just the gate', 'Gate 15' === cbv_lp_gate_label( '' ) );
 
 /* ---- C. status data ---- */
+// Owner, 2026-10-14 (all trips): below the minimum (or blank) ONLY the chip; from the minimum on
+// "{N} travelers booked" + tiles "NN OF {capacity}" + chip On time; at capacity the full chip.
 section( 'C. status board data, by stage' );
 $fake[ TRIP ] = trip_meta();
 $d = cbv_lp_status_data( TRIP );
-check( 'blank number: line "25 travelers needed to depart"', '25 travelers needed to depart' === $d['line'], $d['line'] );
-check( 'cruise kicker is Departure status', 'Departure status' === $d['kicker'] );
-check( 'blank number: no tiles, chip Boarding, no spoken sentence', null === $d['tiles'] && 'before' === $d['state'] && 'Boarding' === $d['chip'] && '' === $d['spoken'] );
+check( 'blank number: only the chip (Boarding): no line, no kicker, no tiles, no spoken sentence', '' === $d['line'] && '' === $d['kicker'] && null === $d['tiles'] && '' === $d['spoken'] && 'before' === $d['state'] && 'Boarding' === $d['chip'], json_encode( $d ) );
 
 // Stage 1: below the minimum
 $fake[ TRIP ] = trip_meta( array( 'cbv_lp_travelers_booked' => '3' ) );
 $d = cbv_lp_status_data( TRIP );
-check( 'STAGE 1 (3 of min 25, capacity 50): tiles 03 OF 25 (the minimum, not the capacity)', array( '0', '3' ) === $d['tiles']['booked'] && array( '2', '5' ) === $d['tiles']['total'], json_encode( $d['tiles'] ) );
-check( 'STAGE 1: line "25 travelers needed to depart", chip Boarding', '25 travelers needed to depart' === $d['line'] && 'Boarding' === $d['chip'] && 'before' === $d['state'] );
-check( 'STAGE 1: spoken "3 of 25 travelers booked"', '3 of 25 travelers booked' === $d['spoken'] );
+check( 'STAGE 1 (3 of min 25): only the chip Boarding: no number line, no tiles', '' === $d['line'] && null === $d['tiles'] && '' === $d['spoken'] && 'Boarding' === $d['chip'] && 'before' === $d['state'], json_encode( $d ) );
 $fake[ TRIP ] = trip_meta( array( 'cbv_lp_travelers_booked' => '24' ) );
-check( 'STAGE 1: one short of the minimum is still stage 1', 'before' === cbv_lp_status_data( TRIP )['state'] && '25 travelers needed to depart' === cbv_lp_status_data( TRIP )['line'] );
+check( 'STAGE 1: one short of the minimum still shows only the chip', 'before' === cbv_lp_status_data( TRIP )['state'] && '' === cbv_lp_status_data( TRIP )['line'] && null === cbv_lp_status_data( TRIP )['tiles'] );
 $fake[ TRIP ] = trip_meta( array( 'cbv_lp_travelers_booked' => '0' ) );
-check( 'STAGE 1: zero typed shows 00 OF 25', array( '0', '0' ) === cbv_lp_status_data( TRIP )['tiles']['booked'] && array( '2', '5' ) === cbv_lp_status_data( TRIP )['tiles']['total'] );
+check( 'STAGE 1: zero typed shows only the chip', '' === cbv_lp_status_data( TRIP )['line'] && null === cbv_lp_status_data( TRIP )['tiles'] );
+check( 'the old "needed to depart" wording is gone', false === strpos( json_encode( cbv_lp_status_data( TRIP ) ), 'needed' ) );
 
 // Stage 2: minimum reached
 $fake[ TRIP ] = trip_meta( array( 'cbv_lp_travelers_booked' => '25' ) );
 $d = cbv_lp_status_data( TRIP );
-check( 'STAGE 2 (exactly 25 of min 25, capacity 50): tiles switch to 25 OF 50', array( '2', '5' ) === $d['tiles']['booked'] && array( '5', '0' ) === $d['tiles']['total'], json_encode( $d['tiles'] ) );
-check( 'STAGE 2: line "Departure confirmed · 25 spots left", chip On time', 'Departure confirmed · 25 spots left' === $d['line'] && 'On time' === $d['chip'] && 'after' === $d['state'], $d['line'] );
-check( 'STAGE 2: spoken "25 of 50 travelers booked"', '25 of 50 travelers booked' === $d['spoken'] );
-$fake[ TRIP ] = trip_meta( array( 'cbv_lp_travelers_booked' => '49' ) );
+check( 'STAGE 2 (exactly 25 of min 25, capacity 50): "25 travelers booked", tiles 25 OF 50, chip On time', '25 travelers booked' === $d['line'] && array( '2', '5' ) === $d['tiles']['booked'] && array( '5', '0' ) === $d['tiles']['total'] && 'On time' === $d['chip'] && 'after' === $d['state'], json_encode( $d ) );
+check( 'STAGE 2: cruise kicker Departure status; spoken "25 of 50 travelers booked"', 'Departure status' === $d['kicker'] && '25 of 50 travelers booked' === $d['spoken'] );
+$fake[ TRIP ] = trip_meta( array( 'cbv_lp_travelers_booked' => '7', 'cb_min_group_size' => 5 ) );
 $d = cbv_lp_status_data( TRIP );
-check( 'STAGE 2: one spot left is singular', 'Departure confirmed · 1 spot left' === $d['line'] && 'after' === $d['state'] );
+check( 'STAGE 2 (7 of min 5, capacity 50): "7 travelers booked", tiles 07 OF 50, On time', '7 travelers booked' === $d['line'] && array( '0', '7' ) === $d['tiles']['booked'] && array( '5', '0' ) === $d['tiles']['total'] && 'On time' === $d['chip'], json_encode( $d ) );
+$fake[ TRIP ] = trip_meta( array( 'cbv_lp_travelers_booked' => '1', 'cb_min_group_size' => 1 ) );
+check( 'one traveler: singular "1 traveler booked"', '1 traveler booked' === cbv_lp_status_data( TRIP )['line'] );
 $fake[ TRIP ] = trip_meta( array( 'cbv_lp_travelers_booked' => '30', 'cb_capacity' => 0 ) );
 $d = cbv_lp_status_data( TRIP );
-check( 'STAGE 2 with no capacity: tiles stay 30 OF 25 and the line is just "Departure confirmed"', array( '3', '0' ) === $d['tiles']['booked'] && array( '2', '5' ) === $d['tiles']['total'] && 'Departure confirmed' === $d['line'] && 'On time' === $d['chip'], json_encode( $d ) );
+check( 'STAGE 2 with no capacity: tiles 30 OF 25 (the minimum), "30 travelers booked"', array( '3', '0' ) === $d['tiles']['booked'] && array( '2', '5' ) === $d['tiles']['total'] && '30 travelers booked' === $d['line'] && 'On time' === $d['chip'], json_encode( $d ) );
 $fake[ TRIP ] = trip_meta( array( 'cbv_lp_travelers_booked' => '120', 'cb_capacity' => 0 ) );
 $d = cbv_lp_status_data( TRIP );
 check( 'STAGE 2 with no capacity and more digits than the minimum: both padded to 3', array( '1', '2', '0' ) === $d['tiles']['booked'] && array( '0', '2', '5' ) === $d['tiles']['total'] );
 $fake[ TRIP ] = trip_meta( array( 'cbv_lp_travelers_booked' => '30', 'cb_capacity' => 120 ) );
 $d = cbv_lp_status_data( TRIP );
-check( 'STAGE 2 with a 3-digit capacity: 030 OF 120, 90 spots left', array( '0', '3', '0' ) === $d['tiles']['booked'] && array( '1', '2', '0' ) === $d['tiles']['total'] && 'Departure confirmed · 90 spots left' === $d['line'] );
+check( 'STAGE 2 with a 3-digit capacity: 030 OF 120', array( '0', '3', '0' ) === $d['tiles']['booked'] && array( '1', '2', '0' ) === $d['tiles']['total'] && '30 travelers booked' === $d['line'] );
 
 // Stage 3: full
 $fake[ TRIP ] = trip_meta( array( 'cbv_lp_travelers_booked' => '50' ) );
 $d = cbv_lp_status_data( TRIP );
-check( 'STAGE 3 (50 of capacity 50): tiles 50 OF 50, chip is the agreed full wording', array( '5', '0' ) === $d['tiles']['booked'] && array( '5', '0' ) === $d['tiles']['total'] && 'Fully booked · Ask about the waitlist' === $d['chip'] && 'full' === $d['state'] );
-check( 'STAGE 3: line "Departure confirmed" (no "0 spots left")', 'Departure confirmed' === $d['line'] );
+check( 'STAGE 3 (50 of capacity 50): "50 travelers booked", tiles 50 OF 50, the full chip', '50 travelers booked' === $d['line'] && array( '5', '0' ) === $d['tiles']['booked'] && array( '5', '0' ) === $d['tiles']['total'] && 'Fully booked · Ask about the waitlist' === $d['chip'] && 'full' === $d['state'] );
 $fake[ TRIP ] = trip_meta( array( 'cbv_lp_travelers_booked' => '52' ) );
 $d = cbv_lp_status_data( TRIP );
-check( 'STAGE 3: over capacity is still full (52 OF 50), never negative spots', 'full' === $d['state'] && array( '5', '2' ) === $d['tiles']['booked'] && array( '5', '0' ) === $d['tiles']['total'] && false === strpos( $d['line'], '-' ) );
+check( 'STAGE 3: over capacity is still full (52 OF 50)', 'full' === $d['state'] && array( '5', '2' ) === $d['tiles']['booked'] && array( '5', '0' ) === $d['tiles']['total'] && '52 travelers booked' === $d['line'] );
 $fake[ TRIP ] = trip_meta( array( 'cbv_lp_travelers_booked' => '20', 'cb_capacity' => 20 ) );
 check( 'capacity below the minimum: reaching capacity is full even before the minimum', 'full' === cbv_lp_status_data( TRIP )['state'] );
 
-// Non-cruise wording at each stage
+// Non-cruise wording
 $fake[ TRIP ] = trip_meta( array( 'cbv_lp_event_type' => 'resort', 'cbv_lp_travelers_booked' => '3' ) );
 $d = cbv_lp_status_data( TRIP );
-check( 'resort STAGE 1: "25 guests needed to confirm", chip Open, kicker Group status', '25 guests needed to confirm' === $d['line'] && 'Open' === $d['chip'] && 'Group status' === $d['kicker'] && '3 of 25 guests booked' === $d['spoken'], json_encode( $d ) );
+check( 'resort below the minimum: only the chip Open', '' === $d['line'] && null === $d['tiles'] && 'Open' === $d['chip'], json_encode( $d ) );
 $fake[ TRIP ] = trip_meta( array( 'cbv_lp_event_type' => 'resort', 'cbv_lp_travelers_booked' => '30' ) );
 $d = cbv_lp_status_data( TRIP );
-check( 'resort STAGE 2: "Group confirmed · 20 spots left", chip Confirmed', 'Group confirmed · 20 spots left' === $d['line'] && 'Confirmed' === $d['chip'], $d['line'] );
-$fake[ TRIP ] = trip_meta( array( 'cbv_lp_event_type' => 'resort', 'cbv_lp_travelers_booked' => '50' ) );
-check( 'resort STAGE 3: "Group confirmed" + full chip', 'Group confirmed' === cbv_lp_status_data( TRIP )['line'] && 'full' === cbv_lp_status_data( TRIP )['state'] );
-$fake[ TRIP ] = trip_meta( array( 'cbv_lp_event_type' => 'corporate', 'cbv_lp_travelers_booked' => '3' ) );
-check( 'corporate uses its own people word (attendees)', '25 attendees needed to confirm' === cbv_lp_status_data( TRIP )['line'] );
-$fake[ TRIP ] = trip_meta( array( 'cbv_lp_event_type' => 'destination', 'cbv_lp_travelers_booked' => '3' ) );
-check( 'destination: "25 travelers needed to confirm"', '25 travelers needed to confirm' === cbv_lp_status_data( TRIP )['line'] );
-$fake[ TRIP ] = trip_meta( array( 'cb_min_group_size' => 1 ) );
-check( 'a minimum of 1 uses the singular', '1 traveler needed to depart' === cbv_lp_status_data( TRIP )['line'] );
+check( 'resort at the minimum: "30 guests booked", chip Confirmed, kicker Group status', '30 guests booked' === $d['line'] && 'Confirmed' === $d['chip'] && 'Group status' === $d['kicker'] && '30 of 50 guests booked' === $d['spoken'], json_encode( $d ) );
+$fake[ TRIP ] = trip_meta( array( 'cbv_lp_event_type' => 'resort', 'cbv_lp_travelers_booked' => '1', 'cb_min_group_size' => 1 ) );
+check( 'resort singular: "1 guest booked"', '1 guest booked' === cbv_lp_status_data( TRIP )['line'] );
+$fake[ TRIP ] = trip_meta( array( 'cbv_lp_event_type' => 'corporate', 'cbv_lp_travelers_booked' => '30' ) );
+check( 'corporate uses its own people word ("30 attendees booked")', '30 attendees booked' === cbv_lp_status_data( TRIP )['line'] );
+$fake[ TRIP ] = trip_meta( array( 'cbv_lp_travelers_booked' => '30' ) );
 check( 'no "sailor" wording anywhere for a cruise', false === stripos( json_encode( cbv_lp_status_data( TRIP ) ), 'sailor' ) );
 check( 'the shared cruise label is Travelers / Traveler', 'Travelers' === cbv_lp_base_labels()['party'] && 'Traveler' === cbv_lp_base_labels()['party_one'] );
 
@@ -177,30 +173,29 @@ check( 'hidden by default for an event type without it (wedding)', null === cbv_
 $fake[ TRIP ] = trip_meta( array( 'cbv_lp_event_type' => 'wedding', 'cbv_lp_sections' => array( 'status' => 'on' ) ) );
 check( 'shown when switched On for a wedding', null !== cbv_lp_status_data( TRIP ) );
 $fake[ TRIP ] = trip_meta( array( 'cbv_lp_travelers_booked' => 'abc' ) );
-check( 'a junk stored number is treated as blank', null === cbv_lp_status_data( TRIP )['tiles'] );
+check( 'a junk stored number is treated as blank', null === cbv_lp_status_data( TRIP )['tiles'] && '' === cbv_lp_status_data( TRIP )['line'] );
 
 /* ---- D. status markup ---- */
 section( 'D. status board markup' );
 $fake[ TRIP ] = trip_meta( array( 'cbv_lp_travelers_booked' => '3' ) );
 $h = cbv_lp_render_status( TRIP );
 check( 'section has an accessible name', false !== strpos( $h, 'aria-label="Group status"' ) );
-check( 'tiles are hidden from screen readers; one plain sentence instead', 1 === preg_match( '/class="cbv-lp-status-tiles" aria-hidden="true"/', $h ) && false !== strpos( $h, '<p class="cbv-lp-sr">3 of 25 travelers booked</p>' ) );
-check( 'four tiles and the OF', 4 === substr_count( $h, 'class="cbv-lp-tile"' ) && false !== strpos( $h, '>of<' ) );
-check( 'chip carries its state class', false !== strpos( $h, 'cbv-lp-status-chip--before' ) && false !== strpos( $h, '>Boarding<' ) );
+check( 'below the minimum: the markup has only the chip (no line, no kicker, no tiles, no spoken sentence)', false === strpos( $h, 'cbv-lp-status-copy' ) && false === strpos( $h, 'cbv-lp-tile' ) && false === strpos( $h, 'cbv-lp-sr' ) && false !== strpos( $h, 'cbv-lp-status-chip--before">Boarding<' ) );
 $fake[ TRIP ] = trip_meta();
 $h = cbv_lp_render_status( TRIP );
-check( 'blank number: no tiles and no spoken sentence in the markup', false === strpos( $h, 'cbv-lp-tile' ) && false === strpos( $h, 'cbv-lp-sr' ) && false !== strpos( $h, '25 travelers needed to depart' ) );
-$fake[ TRIP ] = trip_meta( array( 'cbv_lp_travelers_booked' => '50' ) );
-check( 'full chip is escaped text', false !== strpos( cbv_lp_render_status( TRIP ), '>Fully booked · Ask about the waitlist<' ) );
+check( 'blank number: only the chip in the markup', false === strpos( $h, 'cbv-lp-status-copy' ) && false === strpos( $h, 'cbv-lp-tile' ) && false !== strpos( $h, '>Boarding<' ) );
 $fake[ TRIP ] = trip_meta( array( 'cbv_lp_travelers_booked' => '25' ) );
 $h = cbv_lp_render_status( TRIP );
-check( 'STAGE 2 markup: confirmed line, tiles 25 OF 50, chip On time', false !== strpos( $h, '>Departure confirmed · 25 spots left<' ) && 1 === preg_match( '/>2<\/span>\s*<span class="cbv-lp-tile">5<\/span>\s*<span class="cbv-lp-status-of">of<\/span>\s*<span class="cbv-lp-tile">5<\/span>\s*<span class="cbv-lp-tile">0</', $h ) && false !== strpos( $h, 'cbv-lp-status-chip--after">On time<' ) && false !== strpos( $h, '>25 of 50 travelers booked<' ) );
+check( 'STAGE 2 markup: "25 travelers booked", tiles 25 OF 50, chip On time, one plain sentence for screen readers', false !== strpos( $h, '>25 travelers booked<' ) && 1 === preg_match( '/>2<\/span>\s*<span class="cbv-lp-tile">5<\/span>\s*<span class="cbv-lp-status-of">of<\/span>\s*<span class="cbv-lp-tile">5<\/span>\s*<span class="cbv-lp-tile">0</', $h ) && false !== strpos( $h, 'cbv-lp-status-chip--after">On time<' ) && false !== strpos( $h, '<p class="cbv-lp-sr">25 of 50 travelers booked</p>' ) && 1 === preg_match( '/class="cbv-lp-status-tiles" aria-hidden="true"/', $h ) );
 $fake[ TRIP ] = trip_meta( array( 'cbv_lp_travelers_booked' => '50' ) );
-check( 'STAGE 3 markup: full chip class and 50 OF 50', false !== strpos( cbv_lp_render_status( TRIP ), 'cbv-lp-status-chip--full' ) && false !== strpos( cbv_lp_render_status( TRIP ), '>50 of 50 travelers booked<' ) );
+check( 'STAGE 3 markup: full chip class and text, 50 OF 50', false !== strpos( cbv_lp_render_status( TRIP ), 'cbv-lp-status-chip--full">Fully booked · Ask about the waitlist<' ) && false !== strpos( cbv_lp_render_status( TRIP ), '>50 of 50 travelers booked<' ) );
 add_filter( 'cbv_lp_labels', $evil = function ( $l ) { $l['party'] = '<img src=x onerror=alert(1)>'; $l['status_before'] = '<b>x</b>'; return $l; } );
 $fake[ TRIP ] = trip_meta( array( 'cbv_lp_travelers_booked' => '3' ) );
 $h = cbv_lp_render_status( TRIP );
-check( 'labels are escaped in the line, sentence and chip', false === strpos( $h, '<img' ) && false === strpos( $h, '<b>x' ) && false !== strpos( $h, '&lt;b&gt;x&lt;/b&gt;' ) );
+check( 'chip label is escaped (below the minimum)', false === strpos( $h, '<b>x' ) && false !== strpos( $h, '&lt;b&gt;x&lt;/b&gt;' ) );
+$fake[ TRIP ] = trip_meta( array( 'cbv_lp_travelers_booked' => '30' ) );
+$h = cbv_lp_render_status( TRIP );
+check( 'people word is escaped in the line and the sentence (at the minimum)', false === strpos( $h, '<img' ) && false !== strpos( $h, '&lt;img' ) );
 remove_filter( 'cbv_lp_labels', $evil );
 $fake[ TRIP ] = trip_meta( array( 'cb_status' => 'completed' ) );
 check( 'hidden status renders nothing', '' === cbv_lp_render_status( TRIP ) );
@@ -263,7 +258,12 @@ check( 'hidden intro renders nothing and does not use up GATE 14', '' === cbv_lp
 section( 'G. trip 181 and page assembly' );
 $d = cbv_lp_status_data( 181 );
 $min181 = (int) get_post_meta( 181, 'cb_min_group_size', true ); // 5 since 2026-10-14 (was 25)
-check( "REAL trip 181: \"$min181 travelers needed to depart\", no tiles yet, chip Boarding", $d && "$min181 travelers needed to depart" === $d['line'] && null === $d['tiles'] && 'Boarding' === $d['chip'], json_encode( $d ) );
+$bk181  = (int) get_post_meta( 181, 'cbv_lp_travelers_booked', true );
+if ( $bk181 >= $min181 ) {
+	check( "REAL trip 181 ($bk181 booked, minimum $min181): \"$bk181 travelers booked\", tiles, chip On time", $d && "$bk181 travelers booked" === $d['line'] && null !== $d['tiles'] && 'after' === $d['state'], json_encode( $d ) );
+} else {
+	check( "REAL trip 181 (booked blank or under the minimum of $min181): only the chip Boarding", $d && '' === $d['line'] && null === $d['tiles'] && 'Boarding' === $d['chip'], json_encode( $d ) );
+}
 check( 'REAL trip 181: the intro written 2026-10-05 is shown (heading, 3 paragraphs, chips after the automatic ones)', ( $i181 = cbv_lp_intro_data( 181 ) ) && "Five nights. One crew. Zero kids' table." === $i181['heading'] && 3 === substr_count( $i181['body'], '<p>' ) && array( '5 nights', 'Valiant Lady', 'Adults only · 18+', 'Miami round trip', 'Low 80s °F' ) === $i181['chips'], json_encode( $i181 ) );
 $page = cbv_lp_render_trip( 181, 'new_preview' );
 check( 'order: banner, hero, status board, legacy content', strpos( $page, 'cbv-lp-preview-banner' ) < strpos( $page, 'class="cbv-lp-hero"' ) && strpos( $page, 'class="cbv-lp-hero"' ) < strpos( $page, 'class="cbv-lp-status"' ) && strpos( $page, 'class="cbv-lp-status"' ) < strpos( $page, 'cbv-lp-legacy-wrap' ) );
@@ -273,7 +273,7 @@ $p1 = cbv_lp_render_trip( 181, 'new' );
 $p2 = cbv_lp_render_trip( 181, 'new' );
 check( 'intro sits between the status board and the legacy content', strpos( $p1, 'class="cbv-lp-status"' ) < strpos( $p1, 'class="cbv-lp-intro"' ) && strpos( $p1, 'class="cbv-lp-intro"' ) < strpos( $p1, 'cbv-lp-legacy-wrap' ) );
 check( 'GATE numbering restarts at 14 on every render (each render has exactly one GATE 14, on the intro)', 1 === substr_count( $p1, 'Gate 14 · ' ) && 1 === substr_count( $p2, 'Gate 14 · ' ) && false !== strpos( $p2, 'Gate 14 · The trip' ) );
-check( 'typed number shows as tiles: 07 OF ...', false !== strpos( $p1, '7 of ' ) && false !== strpos( $p1, ' travelers booked' ) && 4 === substr_count( $p1, 'class="cbv-lp-tile"' ) );
+check( 'typed number at or above the minimum: "7 travelers booked" and 4 tiles', ( 7 < $min181 ) || ( false !== strpos( $p1, '>7 travelers booked<' ) && 4 === substr_count( $p1, 'class="cbv-lp-tile"' ) ) );
 unset( $fake[ 181 ] );
 
 /* ---- H. admin box + save ---- */
