@@ -1,0 +1,52 @@
+== trip 181: changed meta keys ==
+  cb_trip_highlights
+    before: [{"icon":"","title":"Sail-Away Toast","description":"Once the safety check is wrapped and your bags are unpacked, head straight up to the top deck. Grab a glass, meet the crew, and raise a toast to kickoff five days of pure freedom as we pull away from the port."},{"icon":"","title":"Red-Hot Night Out (Scarlet Night)","description":"Draping ourselves in red for Virgin’s legendary signature event. We’re syncing up our best crimson outfits for a massive night of deck parties, live pop-up immersive art, and group dancing under the stars."},{"icon":"","title":"Private Beach Cabana Day","description":"Our day to take over the tropics together, lounging in a shaded, private beach cabana with tailored drinks in Puerto Plata. This is all about effortless group relaxation."},{"icon":"","title":"Recovery Brunch at The Wake + Group Sunset Dinner","description":"Start the day slow with a decadent, late-morning brunch overlooking the ship’s wake. After a day of ocean breeze, we’ll reconvene in our favorite evening attire for a full family-style sunset dinner."},{"icon":"","title":"\"Until Next Year\" Final Morning Coffee","description":"One last relaxed morning meetup before we pull back into dock. Grab your favorite roast, swap final photos from the week, and share a quiet moment together before heading home."}]
+    after:  [{"icon":"","title":"Sail-Away Toast","description":"Once the safety check is wrapped and your bags are unpacked, head straight up to the top deck. Grab a glass, meet the crew, and raise a toast to kickoff five days of pure freedom as we pull away from the port."},{"icon":"","title":"Red-Hot Night Out (Scarlet Night)","description":"Draping ourselves in red for Virgin’s legendary signature event. We’re syncing up our best crimson outfits for a massive night of deck parties, live pop-up immersive art, and group dancing under the stars."},{"icon":"","title":"Private Beach Cabana Day","description":"Our day to take over the tropics together, lounging in a private cabana at The Beach Club at Bimini. This is all about effortless group relaxation."},{"icon":"","title":"Recovery Brunch at The Wake + Group Sunset Dinner","description":"Start the day slow with a decadent, late-morning brunch overlooking the ship’s wake. After a day of ocean breeze, we’ll reconvene in our favorite evening attire for a full family-style sunset dinner."},{"icon":"","title":"\"Until Next Year\" Final Morning Coffee","description":"One last relaxed morning meetup before we pull back into dock. Grab your favorite roast, swap final photos from the week, and share a quiet moment together before heading home."}]
+  cbv_lp_featured
+    before: {"title":"Scarlet Night","day":4,"text":"Once a voyage, the whole ship turns red, and so do we. Scarlet Night is the party everyone talks about after they get home: a top-deck takeover with music, lights and the full crew dressed head to toe in crimson.\r\n\r\nWe'll meet up beforehand for a group photo, then head up together and stay until our feet give out. It's the one night of the trip with a dress code, and we fully intend to overdo it.","note_label":"Dress code · All red","note_text":"A dress, a shirt, a hat, a feather boa: anything red counts. Commitment is encouraged.","photo1":407,"focus1":"","photo2":408,"focus2":"","colour":"horizon"}
+    after:  {"title":"Scarlet Night","day":2,"text":"Once a voyage, the whole ship turns red, and so do we. Scarlet Night is the party everyone talks about after they get home: a top-deck takeover with music, lights and the full crew dressed head to toe in crimson.\r\n\r\nWe'll meet up beforehand for a group photo, then head up together and stay until our feet give out. It's the one night of the trip with a dress code, and we fully intend to overdo it.","note_label":"Dress code · All red","note_text":"A dress, a shirt, a hat, a feather boa: anything red counts. Commitment is encouraged.","photo1":407,"focus1":"","photo2":408,"focus2":"","colour":"horizon"}
+  cbv_lp_intro_body
+    before: "Every year we find a reason to get everyone in one place. This year, the place floats. We're sailing out of Miami aboard {vessel} for five adults-only nights: a stop in Puerto Plata, a day at Bimini Beach Club, and plenty of time in between to do absolutely nothing together.\r\n\r\nExpect a **sail-away toast** on the top deck before Miami fades from view, **Scarlet Night** with the whole crew dressed in red, a **private beach cabana day** in Puerto Plata, and a lazy **recovery brunch** before one last sunset dinner as a family.\r\n\r\nYou bring the people. We'll handle the plans, the payments and the group chat. All that's left is to claim your seat."
+    after:  "Every year we find a reason to get everyone in one place. This year, the place floats. We're sailing out of Miami aboard {vessel} for five adults-only nights: a stop in Puerto Plata, a day at Bimini Beach Club, and plenty of time in between to do absolutely nothing together.\r\n\r\nExpect a **sail-away toast** on our first night, **Scarlet Night** with the whole crew dressed in red, a free day to explore Puerto Plata at your own pace, a lazy **recovery brunch** and a group dinner at sea, and a **private cabana day** at The Beach Club at Bimini.\r\n\r\nYou bring the people. We'll handle the plans, the payments and the group chat. All that's left is to claim your seat."
+  cbv_lp_route_days
+    before: {"4":{"title":"","text":"","sticker":"Tonight: Scarlet Night","sticker_style":"highlight","photo":0,"focus":"","hide_time":false}}
+    after:  {"1":{"title":"Sail-away toast","text":"Kick off the trip together at 7:30 PM, after everyone has checked in and finished the safety drill.","sticker":"","sticker_style":"standard","photo":0,"focus":"","hide_time":false},"2":{"title":"Scarlet Night meetup","text":"Come dressed in your best red. We meet 30 minutes before Scarlet Night for a massive group photo.","sticker":"Tonight: Scarlet Night","sticker_style":"highlight","photo":0,"focus":"","hide_time":false},"3":{"title":"Puerto Plata, on your own","text":"Soak up island culture: waterfall hikes, a cable car ride or a beach day, at your own pace.","sticker":"","sticker_style":"standard","photo":0,"focus":"","hide_time":false},"4":{"title":"Recovery brunch & group dinner","text":"A relaxed late-morning brunch at The Wake, then a group dinner that night to celebrate our time at sea.","sticker":"","sticker_style":"standard","photo":0,"focus":"","hide_time":false},"5":{"title":"Private cabana day","text":"A private area reserved just for our group at The Beach Club at Bimini.","sticker":"","sticker_style":"standard","photo":0,"focus":"","hide_time":false},"6":{"title":"Coffee & goodbyes","text":"One last coffee together before we disembark, and hugs until next year's adventure.","sticker":"","sticker_style":"standard","photo":0,"focus":"","hide_time":false}}
+  cbv_lp_leave_home_trip
+    before: null
+    after:  []
+  cbv_lp_pack_forecast
+    before: null
+    after:  "FORECAST · LOW 80s °F · WARM & TROPICAL"
+  cbv_lp_pack_tags
+    before: null
+    after:  [{"category":"Theme nights","title":"Must-pack outfits","items":["**Scarlet Night (Day 2):** something red. The redder, the better!"]},{"category":"Days","title":"Daywear & excursions","items":["3–4 lightweight outfits: linen, sundresses, breathable tees, polos.","2–3 swimsuits plus cover-ups for the restaurants.","Breathable gear and water shoes for Puerto Plata."]},{"category":"Nights","title":"Evening, smart casual","items":["3–4 resort-casual looks: jumpsuits, sundresses, dark denim, chinos, linen button-downs.","A light layer for chilly A/C and windy top decks."]},{"category":"Cabin kit","title":"Cabin essentials","items":["Magnetic hooks for the cabin walls.","Waterproof phone pouch and dry bag.","Reusable water bottle (bring it empty: drinks only in sealed cans or cartons).","Reef-safe sunscreen, polarized shades, wide-brim hat."]}]
+  cbv_lp_program
+    before: null
+    after:  ["Private group chat for the whole trip","Sail-away toast (Day 1)","Scarlet Night meetup and group photo (Day 2)","Recovery brunch at The Wake and a group dinner (Day 4)","Private cabana day at The Beach Club at Bimini (Day 5)","Coffee and goodbyes (Day 6)"]
+  cbv_lp_program_note
+    before: null
+    after:  "All events and times are subject to change."
+  cbv_lp_route_note
+    before: null
+    after:  "All events and times are subject to change."
+only expected keys changed
+snapshots: ~/logs/old/trip181-{before,after}-inc-20261014-205704.json
+== provider 443: changed meta keys ==
+  cbv_lp_included_footnote
+    before: ""
+    after:  "Perks vary by fare. Your travel advisor will confirm exactly what's included when you book."
+  cbv_lp_every_fare
+    before: null
+    after:  []
+  cbv_lp_leave_home
+    before: null
+    after:  [{"text":"Clothing irons (hair dryers, straighteners and curling irons are fine).","source":"https://www.virginvoyages.com/faq/before-you-sail/pre-voyage-policies","checked":"2026-10-14"},{"text":"Liquor and beer. Wine: up to two 750 mL bottles per cabin, in carry-on.","source":"https://www.virginvoyages.com/safety-security/prohibited-items","checked":"2026-10-14"},{"text":"Drinks in bottles. Water and soft drinks only in sealed cans or cartons (up to 12, 12 oz or less, per person, carry-on).","source":"https://www.virginvoyages.com/safety-security/prohibited-items","checked":"2026-10-14"},{"text":"CBD and marijuana products, even with a prescription; kratom.","source":"https://www.virginvoyages.com/safety-security/prohibited-items","checked":"2026-10-14"},{"text":"Drones.","source":"https://www.virginvoyages.com/safety-security/prohibited-items","checked":"2026-10-14"},{"text":"Seashells, coral or any marine souvenirs (fake shells are fine).","source":"https://www.virginvoyages.com/safety-security/prohibited-items","checked":"2026-10-14"}]
+  cbv_lp_leave_home_link
+    before: null
+    after:  "https://www.virginvoyages.com/safety-security/prohibited-items"
+  cbv_lp_leave_home_link_label
+    before: null
+    after:  "Virgin Voyages' full prohibited items list"
+only expected keys changed
+snapshots: ~/logs/old/provider443-{before,after}-inc-20261014-205704.json
+DONE

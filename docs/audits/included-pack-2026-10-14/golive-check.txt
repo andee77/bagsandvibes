@@ -1,0 +1,56 @@
+  ok   out-golive: rendered, no writes/redirect/fatal
+  ok   out-golive: no InteleTravel / 'CBGV books your cabin' / catamaran
+  ok   nonmember-golive: rendered, no writes/redirect/fatal
+  ok   nonmember-golive: no InteleTravel / 'CBGV books your cabin' / catamaran
+  ok   member-golive: rendered, no writes/redirect/fatal
+  ok   member-golive: no InteleTravel / 'CBGV books your cabin' / catamaran
+  ok   admin-preview: rendered, no writes/redirect/fatal
+  ok   admin-preview: no InteleTravel / 'CBGV books your cabin' / catamaran
+  ok   out-today: rendered, no writes/redirect/fatal
+  ok   out-today: no InteleTravel / 'CBGV books your cabin' / catamaran
+  ok   out-golive: new design (body.cbv-lp)
+  ok   out-golive: Scarlet Night featured on Day 02
+  ok   out-golive: route Day 2 sticker 'Tonight: Scarlet Night'
+  ok   out-golive: six route titles
+  ok   out-golive: route note
+  ok   out-golive: new intro paragraph
+  ok   out-golive: What's included + Pack list
+  ok   out-golive: footnote, program note, Leave-at-home link
+  ok   out-golive: Scarlet tag 'The redder, the better!'
+  ok   out-golive: PJ Party / 80s Workout gone
+  ok   out-golive: old Highlights hidden
+  ok   out-golive: sources not shown (pre-voyage-policies link)
+  ok   out-golive: one og:image = poster
+  ok   nonmember-golive: new design (body.cbv-lp)
+  ok   nonmember-golive: Scarlet Night featured on Day 02
+  ok   nonmember-golive: route Day 2 sticker 'Tonight: Scarlet Night'
+  ok   nonmember-golive: six route titles
+  ok   nonmember-golive: route note
+  ok   nonmember-golive: new intro paragraph
+  ok   nonmember-golive: What's included + Pack list
+  ok   nonmember-golive: footnote, program note, Leave-at-home link
+  ok   nonmember-golive: Scarlet tag 'The redder, the better!'
+  ok   nonmember-golive: PJ Party / 80s Workout gone
+  ok   nonmember-golive: old Highlights hidden
+  ok   nonmember-golive: sources not shown (pre-voyage-policies link)
+  ok   nonmember-golive: one og:image = poster
+  ok   admin-preview: new design (body.cbv-lp)
+  ok   admin-preview: Scarlet Night featured on Day 02
+  ok   admin-preview: route Day 2 sticker 'Tonight: Scarlet Night'
+  ok   admin-preview: six route titles
+  ok   admin-preview: route note
+  ok   admin-preview: new intro paragraph
+  ok   admin-preview: What's included + Pack list
+  ok   admin-preview: footnote, program note, Leave-at-home link
+  ok   admin-preview: Scarlet tag 'The redder, the better!'
+  ok   admin-preview: PJ Party / 80s Workout gone
+  ok   admin-preview: old Highlights hidden
+  ok   admin-preview: sources not shown (pre-voyage-policies link)
+  ok   admin-preview: one og:image = poster
+  FAIL member-golive: legacy members' page (not new design) with both sections
+  ok   out-today (switches still off): old page, Highlights with Bimini text
+51 checks, 1 failures
+<meta property="og:image" content="https://bagsandvibes.com/wp-content/uploads/2026/10/terminal-v-hero-poster-ship.jpg" />
+
+Re-check, members page with an accepted roster member (user 1): both sections present, after the travel documents and before Who's going; no sources; no Highlights. User 106 has not accepted the trip agreement yet, so they get the agreement screen (by design).
+Phone (375px): signed-out page and members page, scrollWidth 375, nothing wider than the screen; Leave-at-home link 54px tall.
