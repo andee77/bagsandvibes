@@ -62,6 +62,8 @@ import re, sys
 s = open(sys.argv[1], encoding='utf-8').read().replace('\r\n', '\n')
 i = s.find('Forums (bbPress) -- CBGV member-area skin')
 block = s[s.find('*/', i) + 2:] if i >= 0 else ''
+end = block.find('\n/* ====')  # the forum block ends where the next section starts
+block = block[:end] if end >= 0 else block
 block = re.sub(r'/\*.*?\*/', '', block, flags=re.S)
 bad = []
 for sel in re.findall(r'([^{}]+)\{[^{}]*\}', block):

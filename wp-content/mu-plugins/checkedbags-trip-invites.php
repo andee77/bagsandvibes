@@ -850,9 +850,12 @@ add_action( 'um_after_register_fields', function () {
 	$content = cbv_get_current_terms_content();
 	?>
 	<div class="um-field cbv-terms-field" style="margin: 15px 0;">
+		<?php // The scroll box only when the Membership Terms have text (2026-10-14: v1 is empty, so it printed an empty bordered box). ?>
+		<?php if ( '' !== trim( wp_strip_all_tags( (string) $content ) ) ) : ?>
 		<div style="max-height:150px;overflow-y:auto;border:1px solid #ddd;padding:10px;margin-bottom:8px;font-size:13px;">
 			<?php echo wp_kses_post( wpautop( $content ) ); ?>
 		</div>
+		<?php endif; ?>
 		<?php // Points at the site's real, already-written Terms of Service
 		// page -- NOT the versioned Membership Terms system below, which
 		// this deliberately leaves untouched (no content copy, no version

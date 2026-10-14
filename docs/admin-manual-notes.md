@@ -863,6 +863,23 @@ Where you see the answers: the trip's **roster export** (Trips list: https://bag
 
 ---
 
+## 16. Page design: Privacy, Terms, Contact, sign-in pages, trip pages (design Group A + B part 1)
+What changed for visitors and members (no settings to change):
+- **Privacy Policy, Terms of Service, Contact** use the members' page design: the dark CBGV header, the page title on the paper ribbon, and the text in a readable column. The text itself is still edited in the normal page editor (Pages > Privacy Policy, etc.). The ribbon shows the **page title**, so the first heading inside the text ("Privacy Policy", "Contact Us") is hidden on screen and kept for screen readers; you do not need to delete it.
+- **Contact form** (WPForms) has brand fields and a coral **Submit** button. The form's own settings (who gets the emails) are unchanged.
+- **Login, Register, Password Reset** (Ultimate Member forms) use brand fonts, coral main buttons and ink-outline second buttons. The forms work as before.
+- **Register**: the empty grey box above "Read the Terms of Service" is gone. It comes back by itself if you ever put text into the Membership Terms (Settings > Membership Terms: https://bagsandvibes.com/wp-admin/options-general.php?page=cbv-membership-terms).
+- **Trip pages**: the "Discuss this trip" button now has a dark outline (it was cream on cream).
+- **Signed in as an admin**: the CBGV header now sits below the black WordPress admin bar, so the logo is no longer covered.
+
+### Who sees "Who's going" on a trip page
+Only travelers on that trip's roster who have accepted the trip's current agreement, plus admins. Not the public, and not members who are not on the trip.
+
+### Common mistakes
+- Editing the ribbon text inside the page body: the ribbon is the page **Title** field.
+
+---
+
 ## Coming in later steps (this file will be extended after each)
 - Registration opt-outs (gratuities and Voyage Protection) and the decline acknowledgment
 - Included cards and upgrades; pack list, group perks and timeline

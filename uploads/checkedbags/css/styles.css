@@ -3770,3 +3770,198 @@ body.checkedbags-dashboard .wpforms-container .wpforms-field-sublabel {
   .cbv-forums #bbpress-forums .forum-topic-bg,
   .cbv-forums #bbpress-forums .bbp-reply-form { padding: 1.1rem; }
 }
+
+/* ==========================================================================
+   Text pages (Privacy, Terms, Contact) and Ultimate Member form pages
+   (Login, Register, Password Reset) -- CBGV skin (owner, 2026-10-14).
+   Text pages use the gate shell (body.cbv-text-page, set in
+   checkedbags-landing.php): a readable text column under the ribbon. The
+   Contact form (WPForms) gets brand fields and the coral button. UM form
+   pages (body.cbv-um-page) get brand labels, fields and buttons; a few UM
+   rules use !important (label size, link colour, button border/height), so
+   those properties are matched with !important here.
+   ========================================================================== */
+.cbv-text-page .gate-page-content {
+  max-width: 46rem;
+  margin: 0 auto;
+  font-family: var(--font-body);
+  font-size: 1.02rem;
+  line-height: 1.7;
+  color: var(--ink);
+}
+.cbv-text-page .gate-page-content h1,
+.cbv-text-page .gate-page-content h2,
+.cbv-text-page .gate-page-content h3,
+.cbv-text-page .gate-page-content h4 {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1.25;
+  margin: 2.25rem 0 0.75rem;
+  text-wrap: balance;
+}
+.cbv-text-page .gate-page-content h2 { font-size: 1.6rem; }
+.cbv-text-page .gate-page-content h3 { font-size: 1.3rem; }
+.cbv-text-page .gate-page-content h4 { font-size: 1.1rem; }
+.cbv-text-page .gate-page-content > :first-child { margin-top: 0; }
+/* The ribbon already shows the page title: the text's own first heading
+   ("Privacy Policy", "Contact Us") stays for screen readers only. */
+.cbv-text-page .gate-page-content > h2:first-child {
+  position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.cbv-text-page .gate-page-content > h2:first-child + * { margin-top: 0; }
+.cbv-text-page .gate-page-content p { margin: 0 0 1rem; }
+.cbv-text-page .gate-page-content ul,
+.cbv-text-page .gate-page-content ol { margin: 0 0 1.25rem; padding-left: 1.4rem; }
+.cbv-text-page .gate-page-content li { margin: 0 0 0.45rem; }
+.cbv-text-page .gate-page-content strong { font-weight: 600; }
+.cbv-text-page .gate-page-content a { color: var(--coral); text-decoration: underline; text-underline-offset: 2px; }
+.cbv-text-page .gate-page-content a:hover,
+.cbv-text-page .gate-page-content a:focus-visible { color: var(--ink); }
+.cbv-text-page .gate-page-content hr { border: 0; border-top: 1px solid rgba(22,35,43,0.15); margin: 2rem 0; }
+
+/* Contact form (WPForms "modern" markup reads these settings). */
+.cbv-text-page .wpforms-container {
+  --wpforms-field-border-radius: 4px !important;
+  --wpforms-field-border-color: rgba(22,35,43,0.25) !important;
+  --wpforms-field-background-color: #ffffff !important;
+  --wpforms-field-text-color: #16232B !important;
+  --wpforms-label-color: #16232B !important;
+  --wpforms-label-sublabel-color: rgba(22,35,43,0.6) !important;
+  --wpforms-label-error-color: #FF6B4A !important;
+  --wpforms-button-border-radius: 2px !important;
+  --wpforms-button-background-color: #FF6B4A !important;
+  --wpforms-button-text-color: #FBF3E7 !important;
+  --wpforms-button-border-color: #FF6B4A !important;
+  margin: 1.5rem 0 0;
+}
+.cbv-text-page .wpforms-container .wpforms-field-label { font-family: var(--font-body); font-weight: 600; font-size: 1rem; }
+.cbv-text-page .wpforms-container .wpforms-field-sublabel { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.04em; }
+.cbv-text-page .wpforms-container .wpforms-required-label { color: var(--coral); }
+.cbv-text-page .wpforms-container input[type="text"],
+.cbv-text-page .wpforms-container input[type="email"],
+.cbv-text-page .wpforms-container textarea { font-family: var(--font-body); font-size: 1rem; }
+.cbv-text-page .wpforms-container input:focus,
+.cbv-text-page .wpforms-container textarea:focus { border-color: var(--coral) !important; box-shadow: 0 0 0 1px var(--coral) !important; }
+.cbv-text-page .wpforms-container button[type="submit"],
+.cbv-text-page .wpforms-container .wpforms-submit {
+  font-family: var(--font-mono) !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.85rem 1.6rem !important;
+  height: auto !important;
+  cursor: pointer;
+  transition: transform 0.2s var(--ease-standard), filter 0.2s var(--ease-standard);
+}
+.cbv-text-page .wpforms-container button[type="submit"]:hover { transform: translateY(-2px); filter: brightness(0.92); }
+
+/* Ultimate Member forms: Login, Register, Password Reset. */
+.cbv-um-page .um { font-family: var(--font-body); color: var(--ink); max-width: 30rem !important; }
+.cbv-um-page .um .um-field-label label {
+  font-family: var(--font-body);
+  font-size: 0.95rem !important;
+  font-weight: 600;
+  color: var(--ink);
+}
+.cbv-um-page .um .um-field-label { color: var(--ink); }
+.cbv-um-page .um input.um-form-field,
+.cbv-um-page .um .um-form-field {
+  font-family: var(--font-body) !important;
+  font-size: 1rem !important;
+  color: var(--ink) !important;
+  background: #fff !important;
+  border: 1px solid rgba(22,35,43,0.25) !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+}
+.cbv-um-page .um input.um-form-field:focus { border-color: var(--coral) !important; box-shadow: 0 0 0 1px var(--coral) !important; outline: none; }
+.cbv-um-page .um .um-button,
+.cbv-um-page .um input[type="submit"].um-button,
+.cbv-um-page .um a.um-button {
+  font-family: var(--font-mono) !important;
+  font-size: 0.75rem !important;
+  font-weight: 700;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  background: var(--coral) !important;
+  color: var(--sand) !important;
+  border-radius: 2px !important;
+  padding: 0.95rem 1.2rem !important;
+  box-shadow: none !important;
+  transition: transform 0.2s var(--ease-standard), filter 0.2s var(--ease-standard);
+}
+.cbv-um-page .um .um-button:hover,
+.cbv-um-page .um input[type="submit"].um-button:hover { transform: translateY(-2px); filter: brightness(0.92); background: var(--coral) !important; }
+.cbv-um-page .um .um-button.um-alt,
+.cbv-um-page .um input[type="submit"].um-button.um-alt,
+.cbv-um-page .um a.um-button.um-alt {
+  background: transparent !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--ink) !important;
+}
+.cbv-um-page .um .um-button.um-alt:hover,
+.cbv-um-page .um a.um-button.um-alt:hover { background: var(--ink) !important; color: var(--sand) !important; transform: none; filter: none; }
+.cbv-um-page .um a.um-link-alt {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--coral) !important;
+  text-decoration: underline !important;
+  text-underline-offset: 3px;
+}
+.cbv-um-page .um .um-field-checkbox-option { color: var(--ink) !important; font-family: var(--font-body); }
+.cbv-um-page .um .um-field-checkbox-state i { color: rgba(22,35,43,0.45); }
+.cbv-um-page .um .um-field-checkbox.active i { color: var(--coral) !important; }
+.cbv-um-page .um .um-toggle-password i { color: rgba(22,35,43,0.5); }
+.cbv-um-page .um .um-field-error { background: var(--coral) !important; font-family: var(--font-body); border-radius: 3px; }
+.cbv-um-page .um .um-field-error .um-arrow { color: var(--coral) !important; }
+.cbv-um-page .um p, .cbv-um-page .um .um-form > p { color: rgba(22,35,43,0.8); }
+.cbv-um-page .um .um-notice { font-family: var(--font-body); border-radius: 4px; }
+.cbv-um-page .um .um-notice.success { background: var(--teal) !important; }
+.cbv-um-page .um .um-notice.err { background: var(--coral) !important; }
+.cbv-um-page .um .cbv-terms-field a { color: var(--coral); }
+
+@media (max-width: 640px) {
+  .cbv-text-page .gate-page-content { font-size: 1rem; }
+  .cbv-um-page .um .um-col-alt .um-left,
+  .cbv-um-page .um .um-col-alt .um-right { float: none !important; width: 100% !important; margin: 0 0 0.75rem !important; }
+}
+
+/* ==========================================================================
+   Trip pages + admin bar (owner, 2026-10-14, with Group A/B part 1).
+   1. "Discuss this trip" (and any other ghost button in a trip page's detail
+      sections) used the cream outline meant for dark backgrounds, so it was
+      nearly invisible on the cream trip page: ink outline there instead.
+   2. Signed-in admins: WordPress's admin bar (32px, 46px on narrow screens)
+      is fixed over the top of the page and covered the fixed CBGV header and
+      logo. The header (and the phone menu under it) now sit below the bar;
+      on phones (<= 600px), where WordPress lets the bar scroll away, the bar
+      stays fixed so there is never a gap above the header.
+   ========================================================================== */
+body.single-cb_trip .trip-detail-section .btn-ghost {
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  background: transparent;
+}
+body.single-cb_trip .trip-detail-section .btn-ghost:hover,
+body.single-cb_trip .trip-detail-section .btn-ghost:focus-visible {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--sand);
+}
+body.admin-bar .site-header { top: 32px; }
+@media (max-width: 860px) {
+  body.admin-bar .primary-nav { top: calc(var(--header-h) + 32px); }
+}
+@media (max-width: 782px) {
+  body.admin-bar .site-header { top: 46px; }
+  body.admin-bar .primary-nav { top: calc(var(--header-h) + 46px); }
+}
+@media (max-width: 600px) {
+  body.admin-bar #wpadminbar { position: fixed; }
+}

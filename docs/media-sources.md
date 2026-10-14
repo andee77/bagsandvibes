@@ -2,7 +2,7 @@
 
 One line per Virgin Voyages image or video used (or planned) on the site. **Every Virgin asset comes from the official First Mates marketing toolkit on FirstMates.com.** Use each asset unaltered: web compression only, no cropping, editing or logos added to the asset itself. Never take Virgin images or video from Virgin's public website.
 
-Last updated: 2026-10-08.
+Last updated: 2026-10-14.
 
 Status key: **prepared** = the file exists but is not on the live site yet; **in design reference** = used in `docs/design/event-page-design-reference.html` and to be uploaded when its step is built. The reference only holds media-library placeholders, so real file names for these are filled in when each file is uploaded.
 
@@ -78,6 +78,13 @@ Reference ID is the `MEDIA-LIBRARY-URL` placeholder in the design reference.
 | `8a6cc90b` | Sea Terrace cabin with sheer ombré curtains | First Mates marketing toolkit | in design reference |
 
 The design reference's hero video (`e6a988c7`) and poster (`686f75df`) are the Terminal V hero above; confirm the match when the files are uploaded.
+
+## Images created by CBGV (not Virgin assets)
+These are CBGV's own work, not from the First Mates toolkit, so the Virgin asset rules above do not apply to them.
+
+| Media ID | File (Media Library) | What it shows | Used as | Source | Status |
+|---|---|---|---|---|---|
+| 321 | `2026/08/Valentine-and-Super-Bowl-scaled.png` ("Valentine and Super Bowl") | One image styled to look like two | Cover photo of trip 320, Helmets, Hearts & High Seas | **created by CBGV (Andrea M. Peaten), not a Virgin asset** (owner, 2026-10-14) | live since 2026-08-10 |
 
 ## Brand rules for Virgin assets ("With Love From" guidelines, Nov 2024)
 - The Virgin Voyages logo only in Virgin red, from the official toolkit file; never recoloured, redrawn or rebuilt from text.

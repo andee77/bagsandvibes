@@ -19,6 +19,17 @@ add_filter( 'wp_redirect', function ( $l ) { echo "<!-- REDIRECT $l -->\n"; thro
 foreach ( array( 'update_post_metadata', 'add_post_metadata', 'update_user_metadata', 'add_user_metadata' ) as $h ) {
 	add_filter( $h, function () { return true; }, 1 ); // never write
 }
+// Never create posts either (2026-10-14): rendering a member's profile used to create a new wall forum each time
+// (cb_ensure_user_wall_forum), since the meta that marks the wall was blocked above. wp_insert_post() now refuses.
+add_filter( 'wp_insert_post_empty_content', '__return_true', 1 );
+foreach ( array( 'delete_post_metadata', 'delete_user_metadata' ) as $h ) {
+	add_filter( $h, function () { return true; }, 1 );
+}
+$GLOBALS['cbv_render_posts_before'] = (int) $GLOBALS['wpdb']->get_var( "SELECT MAX(ID) FROM {$GLOBALS['wpdb']->posts}" );
+register_shutdown_function( function () {
+	$after = (int) $GLOBALS['wpdb']->get_var( "SELECT MAX(ID) FROM {$GLOBALS['wpdb']->posts}" );
+	if ( $after !== $GLOBALS['cbv_render_posts_before'] ) { echo "\n<!-- RENDER WROTE A POST: max ID {$GLOBALS['cbv_render_posts_before']} -> $after -->\n"; }
+} );
 try {
 	wp();
 	if ( ! defined( 'WP_USE_THEMES' ) ) { define( 'WP_USE_THEMES', true ); }

@@ -118,10 +118,35 @@ add_filter( 'bbp_allow_topic_tags', function ( $allowed ) {
 	return is_admin() ? $allowed : false;
 } );
 
+/**
+ * Text pages (owner, 2026-10-14): Privacy, Terms and Contact use the gate
+ * shell with a readable text column instead of the home page's landing
+ * template, which printed their text edge to edge under the header. The home
+ * page keeps its landing design.
+ */
+function cbv_text_page_slugs() {
+	return array( 'privacy-policy', 'terms-of-service', 'contact' );
+}
+
+/** Ultimate Member form pages that get the CBGV form skin (owner, 2026-10-14). */
+function cbv_um_form_page_slugs() {
+	return array( 'login', 'register', 'password-reset' );
+}
+
+add_filter( 'body_class', function ( $classes ) {
+	if ( is_page( cbv_text_page_slugs() ) ) {
+		$classes[] = 'cbv-text-page';
+	}
+	if ( is_page( cbv_um_form_page_slugs() ) ) {
+		$classes[] = 'cbv-um-page';
+	}
+	return $classes;
+} );
+
 add_filter(
 	'template_include',
 	function ( $template ) {
-		if ( is_singular( array( 'cb_trip', 'forum', 'topic', 'reply' ) ) || cbv_is_forum_page() ) {
+		if ( is_singular( array( 'cb_trip', 'forum', 'topic', 'reply' ) ) || cbv_is_forum_page() || is_page( cbv_text_page_slugs() ) ) {
 			$custom = __DIR__ . '/checkedbags-landing/template-gate.php';
 			if ( file_exists( $custom ) ) {
 				return $custom;
