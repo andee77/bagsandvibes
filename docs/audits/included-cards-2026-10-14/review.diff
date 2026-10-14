@@ -1,0 +1,152 @@
+diff --git a/tests/landing/test_included_pack.sh b/tests/landing/test_included_pack.sh
+index 01d1e4d..6c5f13b 100644
+--- a/tests/landing/test_included_pack.sh
++++ b/tests/landing/test_included_pack.sh
+@@ -20,21 +20,34 @@ check "running against the temp mu-plugins copy" "$(grep -c '/tmp/cbv_mu' /tmp/c
+ 
+ # 1. "In your all-in price".
+ out=$(weval 'echo implode( "|", cbv_inc_allin_parts( 181 ) );')
+-check "181: all five parts, in order, with the fee amount" "$([ "$out" = 'Cruise fare, at our group rate|Taxes & fees|Prepaid gratuities|Voyage Protection|CBGV Group Experience Fee ($225 per traveler)' ] && echo 1 || echo 0)" "($out)"
++check "181: all five parts, in order, with the fee amount" "$([ "$out" = 'Cruise fare|Taxes & fees|Prepaid gratuities|Voyage Protection|CBGV Group Experience Fee ($225 per traveler)' ] && echo 1 || echo 0)" "($out)"
+ out=$(weval "$(TIERS '$t[0]["occupancy_points"][0]["gratuities"] = 0;') echo implode( '|', cbv_inc_allin_parts( 181 ) );")
+ check "a part one price doesn't include is left out (gratuities 0 on one price)" "$(( $(hasnt "$out" 'Prepaid gratuities') * $(has "$out" 'Taxes & fees') ))" "($out)"
+-out=$(weval "$(TIERS 'foreach ( $t as &$tt ) { foreach ( $tt["occupancy_points"] as &$pp ) { $pp["discount"] = 0; } }') echo implode( '|', cbv_inc_allin_parts( 181 ) );")
+-check "no group discount on the prices: just \"Cruise fare\"" "$(has "$out" '^Cruise fare|')" "($out)"
++out=$(weval "$(TIERS 'foreach ( $t as &$tt ) { foreach ( $tt["occupancy_points"] as &$pp ) { $pp["discount"] = 50; } }') echo implode( '|', cbv_inc_allin_parts( 181 ) );")
++check "never \"at our group rate\", even with a discount on every price (owner, 2026-10-14)" "$(( $(has "$out" '^Cruise fare|') * $(hasnt "$out" 'group rate') ))" "($out)"
+ out=$(weval 'add_filter( "get_post_metadata", function ( $v, $id, $k ) { return ( 181 === (int) $id && "cbv_lp_planning_fee" === $k ) ? array( array( "mode" => "none", "amount" => 0, "basis" => "per_traveler" ) ) : $v; }, 1, 3 ); echo implode( "|", cbv_inc_allin_parts( 181 ) );')
+ check "no CBGV fee on the trip: no fee line" "$(hasnt "$out" 'CBGV Group Experience Fee')" "($out)"
+ out=$(weval 'add_filter( "get_post_metadata", function ( $v, $id, $k ) { return ( 181 === (int) $id && "cbv_lp_event_type" === $k ) ? array( "resort" ) : $v; }, 1, 3 ); echo implode( "|", cbv_inc_allin_parts( 181 ) );')
+-check "other trip types say \"Travel price\" and \"Travel protection\"" "$(( $(has "$out" '^Travel price, at our group rate|') * $(has "$out" 'Travel protection') ))" "($out)"
++check "other trip types say \"Travel price\" and \"Travel protection\"" "$(( $(has "$out" '^Travel price|') * $(has "$out" 'Travel protection') ))" "($out)"
++
++# 1b. Cruise-line cards follow the price board (owner, 2026-10-14).
++CARDS='$c = (array) cbv_lp_group( 181, "included" ); $b = function ( $cols, $groups ) { $g = array(); foreach ( $groups as $n ) { $g[] = array( "name" => $n, "rows" => array( array( "name" => $n ) ) ); } return array( "columns" => $cols, "groups" => $g ); }; $t = function ( $x ) { return implode( "|", wp_list_pluck( $x, "title" ) ); };'
++out=$(weval "$CARDS"' echo $t( cbv_inc_cards_for_board( 181, $c ) );')
++check "181 live board (Premium; Insider, Sea View, Sea Terrace XL, Sea Terrace): only the Premium card" "$([ "$out" = 'Premium' ] && echo 1 || echo 0)" "($out)"
++out=$(weval "$CARDS"' echo $t( cbv_inc_cards_for_board( 181, $c, $b( array( 1 => "Base", 3 => "Premium" ), array( "The Insider", "Sea View" ) ) ) );')
++check "board Base + Premium, no suites: Base and Premium cards only" "$([ "$out" = 'Base|Premium' ] && echo 1 || echo 0)" "($out)"
++out=$(weval "$CARDS"' echo $t( cbv_inc_cards_for_board( 181, $c, $b( array( 3 => "Premium" ), array( "Sea Terrace", "RockStar Quarters" ) ) ) );')
++check "board lists RockStar Quarters: that suite card shows, Mega RockStar doesn't" "$([ "$out" = 'Premium|RockStar Quarters' ] && echo 1 || echo 0)" "($out)"
++out=$(weval "$CARDS"' echo $t( cbv_inc_cards_for_board( 181, $c, $b( array( 2 => "Essential" ), array( "Sea View", "Massive Suite" ) ) ) );')
++check "a suite row named by a card's subline (\"Massive\") shows Mega RockStar" "$([ "$out" = 'Essential|Mega RockStar' ] && echo 1 || echo 0)" "($out)"
++out=$(weval "$CARDS"' echo count( cbv_inc_cards_for_board( 181, $c, array( "columns" => array(), "groups" => array() ) ) );')
++check "no price board yet: every card shows" "$([ "$out" = '5' ] && echo 1 || echo 0)" "($out)"
+ 
+ # 2. New design (181 preview with the proposed content).
+ h=$(render "/trip/annual-family-and-friends/?preview=new" 1)
+ check "preview: \"Gate 22 · What's included\" and \"Gate 23 · Pack list\" after Travel documents, before Who does what" "$(python3 -c 'import sys; h=sys.stdin.read(); a=[h.find(x) for x in ("class=\"cbv-lp-docs\"","class=\"cbv-lp-included\"","class=\"cbv-lp-pack\"","class=\"cbv-lp-who\"")]; print(1 if -1 not in a and a==sorted(a) and "Gate 22 · What&#039;s included" in h and "Gate 23 · Pack list" in h else 0)' <<< "$h")"
+ check "preview: heading \"Every fare comes with extras\" and the three-part lede" "$(( $(has "$h" '>Every fare comes with extras<') * $(has "$h" 'What your all-in price covers, what Virgin Voyages includes with each fare, and what our group adds.') ))"
+-check "preview: 5 cruise-line cards, verified lines only (no Wi-Fi, credits, bar tab, VIP boarding, terrace shower)" "$(( $([ "$(grep -o 'class="cbv-inc-card[" ]' <<< "$h" | wc -l)" -eq 5 ] && echo 1 || echo 0) * $(hasnt "$h" 'Wi-Fi') * $(hasnt "$h" 'onboard credit') * $(hasnt "$h" 'bar tab per') * $(hasnt "$h" 'VIP early boarding') * $(hasnt "$h" 'terrace shower') ))"
++check "preview: 1 cruise-line card (the board offers Premium only), verified lines only (no Wi-Fi, credits, bar tab, VIP boarding, terrace shower)" "$(( $([ "$(grep -o 'class="cbv-inc-card[" ]' <<< "$h" | wc -l)" -eq 1 ] && [ "$(grep -c '>Premium<' <<< "$h")" -ge 1 ] && echo 1 || echo 0) * $(hasnt "$h" 'Wi-Fi') * $(hasnt "$h" 'onboard credit') * $(hasnt "$h" 'bar tab per') * $(hasnt "$h" 'VIP early boarding') * $(hasnt "$h" 'terrace shower') ))"
+ check "preview: the provider footnote \"Perks vary by fare...\"" "$(has "$h" 'Perks vary by fare. Your travel advisor will confirm exactly what&#039;s included when you book.')"
+ check "preview: the 6-line group program and its note; no swag, no host line" "$(( $(python3 -c 'import sys,re; h=sys.stdin.read(); m=re.search(r"<ul class=\"cbv-inc-program-list\">(.*?)</ul>", h, re.S); print(1 if m and m.group(1).count("<li>")==6 else 0)' <<< "$h") * $(has "$h" 'Coffee and goodbyes (Day 6)') * $(has "$h" 'All events and times are subject to change.') * $(hasnt "$h" 'swag') * $(hasnt "$h" 'On-trip CBGV host\|An on-trip CBGV host') ))"
+ check "preview: 4 tags numbered TAG 01-04, the forecast chip" "$(( $(has "$h" '>Tag 01 · Theme nights<') * $(has "$h" '>Tag 04 · Cabin kit<') * $(hasnt "$h" '>Tag 05') * $(has "$h" 'class="cbv-lp-pack-forecast">FORECAST · LOW 80s °F · WARM &amp; TROPICAL<') ))"
+diff --git a/tests/landing/test_step7.php b/tests/landing/test_step7.php
+index 0a3e4bc..fb56592 100644
+--- a/tests/landing/test_step7.php
++++ b/tests/landing/test_step7.php
+@@ -162,7 +162,7 @@ check( 'hidden by default for corporate', null === cbv_lp_gallery_data( TRIP ) )
+ /* ---- E. page assembly (REAL trip 181) ---- */
+ section( 'E. page assembly' );
+ $page = cbv_lp_render_trip( 181, 'new_preview' );
+-check( 'REAL trip 181 (content set 2026-10-05/08): intro 14, route 15, Scarlet Night featured 16, gallery 17 with 9 prints', false !== strpos( $page, 'Gate 14 · The trip' ) && false !== strpos( $page, 'Gate 15 · Flight path' ) && ( false !== strpos( $page, 'Gate 16 · After dark' ) || false !== strpos( $page, 'Gate 16 · Day 04 · After dark' ) ) /* Day 04 added 2026-10-14 */ && false !== strpos( $page, 'id="cbv-lp-featured-title">Scarlet Night</h2>' ) && false !== strpos( $page, 'Gate 17 · Life on board' ) && 9 === substr_count( $page, '<li class="cbv-lp-print-item">' ) );
++check( 'REAL trip 181 (content set 2026-10-05/08): intro 14, route 15, Scarlet Night featured 16, gallery 17 with 9 prints', false !== strpos( $page, 'Gate 14 · The trip' ) && false !== strpos( $page, 'Gate 15 · Flight path' ) && ( false !== strpos( $page, 'Gate 16 · After dark' ) || false !== strpos( $page, 'Gate 16 · Day 02 · After dark' ) ) /* Day 02 since 2026-10-14 (was Day 04 earlier that day) */ && false !== strpos( $page, 'id="cbv-lp-featured-title">Scarlet Night</h2>' ) && false !== strpos( $page, 'Gate 17 · Life on board' ) && 9 === substr_count( $page, '<li class="cbv-lp-print-item">' ) );
+ $fake[ 181 ] = array( 'cbv_lp_featured' => array( 'title' => 'Scarlet Night', 'day' => 2, 'colour' => 'red' ), 'cbv_lp_gallery' => gallery_of( 4 ) );
+ $page = cbv_lp_render_trip( 181, 'new' );
+ check( 'order: route, featured, gallery, legacy content', strpos( $page, 'class="cbv-lp-route"' ) < strpos( $page, 'class="cbv-lp-featured' ) && strpos( $page, 'class="cbv-lp-featured' ) < strpos( $page, 'class="cbv-lp-gallery"' ) && strpos( $page, 'class="cbv-lp-gallery"' ) < strpos( $page, 'cbv-lp-legacy-wrap' ) );
+diff --git a/wp-content/mu-plugins/checkedbags-lp-included.php b/wp-content/mu-plugins/checkedbags-lp-included.php
+index 7bda31a..764f3b0 100644
+--- a/wp-content/mu-plugins/checkedbags-lp-included.php
++++ b/wp-content/mu-plugins/checkedbags-lp-included.php
+@@ -131,24 +131,11 @@ function cbv_inc_allin_parts( $trip_id ) {
+ 		return true;
+ 	};
+ 
+-	// Group rate: every on-board price point has a discount.
+-	$discount = true;
+-	$seen     = false;
+-	foreach ( (array) ( function_exists( 'cb_trip_get_pricing_tiers' ) ? cb_trip_get_pricing_tiers( $trip_id ) : array() ) as $tier ) {
+-		foreach ( (array) ( $tier['occupancy_points'] ?? array() ) as $pt ) {
+-			if ( ! is_array( $pt ) || ( function_exists( 'cbv_lp_point_column' ) && ! cbv_lp_point_column( $pt ) ) ) {
+-				continue;
+-			}
+-			$seen = true;
+-			if ( (float) ( $pt['discount'] ?? 0 ) <= 0 ) {
+-				$discount = false;
+-			}
+-		}
+-	}
++	// Plain "Cruise fare" (owner, 2026-10-14: no "at our group rate" until a group discount is confirmed).
+ 	$cruise = cbv_inc_is_cruise( $trip_id );
+ 	$out    = array();
+ 	if ( $every( 'cruise_fare' ) ) {
+-		$out[] = ( $cruise ? 'Cruise fare' : 'Travel price' ) . ( $seen && $discount ? ', at our group rate' : '' );
++		$out[] = $cruise ? 'Cruise fare' : 'Travel price';
+ 	}
+ 	if ( $every( 'taxes_fees' ) ) {
+ 		$out[] = 'Taxes & fees';
+@@ -168,11 +155,61 @@ function cbv_inc_allin_parts( $trip_id ) {
+ 	return $out;
+ }
+ 
+-/** The provider's What's included cards, footnote and "On every fare" line (verified content only lives there). */
++/** Lower-case, trimmed, without a leading "The " (board "The Insider" = card "INSIDER"). */
++function cbv_inc_norm_name( $s ) {
++	$s = strtolower( trim( wp_strip_all_tags( (string) $s ) ) );
++	return trim( preg_replace( '/^the\s+/', '', $s ) );
++}
++
++/**
++ * Cards follow the trip's price board (owner, 2026-10-14): a fare card (its title is one of the provider's fare
++ * columns) shows only when the board has that column; any other card (suites) only when the board lists one of
++ * its cabins (card title or a subline name matches a board cabin group or row). An empty board shows every card.
++ */
++function cbv_inc_cards_for_board( $trip_id, $cards, $board = null ) {
++	if ( null === $board ) {
++		$board = function_exists( 'cbv_lp_price_board_data' ) ? cbv_lp_price_board_data( $trip_id ) : null;
++	}
++	if ( ! $board || empty( $board['groups'] ) ) {
++		return $cards;
++	}
++	$cols = array_filter( array_map( 'cbv_inc_norm_name', (array) ( $board['columns'] ?? array() ) ) );
++	$cabins = array();
++	foreach ( (array) $board['groups'] as $g ) {
++		$cabins[] = cbv_inc_norm_name( $g['name'] ?? '' );
++		foreach ( (array) ( $g['rows'] ?? array() ) as $r ) {
++			$cabins[] = cbv_inc_norm_name( $r['name'] ?? '' );
++		}
++	}
++	$cabins     = array_filter( $cabins );
++	$fare_names = array_filter( array_map( 'cbv_inc_norm_name', (array) ( function_exists( 'cbv_lp_group' ) ? cbv_lp_group( $trip_id, 'columns' ) : array() ) ) );
++	$out        = array();
++	foreach ( (array) $cards as $card ) {
++		$title = cbv_inc_norm_name( $card['title'] ?? '' );
++		if ( in_array( $title, $fare_names, true ) ) {
++			if ( in_array( $title, $cols, true ) ) {
++				$out[] = $card;
++			}
++			continue;
++		}
++		$names = array_filter( array_merge( array( $title ), array_map( 'cbv_inc_norm_name', preg_split( '/\s*·\s*/u', (string) ( $card['subline'] ?? '' ) ) ) ) );
++		foreach ( $names as $n ) {
++			foreach ( $cabins as $c ) {
++				if ( $n === $c || 0 === strpos( $c, $n . ' ' ) ) {
++					$out[] = $card;
++					continue 3;
++				}
++			}
++		}
++	}
++	return $out;
++}
++
++/** The provider's What's included cards (those the trip's price board offers), footnote and "On every fare" line. */
+ function cbv_inc_cruise_line( $trip_id ) {
+ 	$prov = function_exists( 'cbv_lp_provider_id' ) ? cbv_lp_provider_id( $trip_id ) : 0;
+ 	return array(
+-		'cards'      => function_exists( 'cbv_lp_group' ) ? (array) cbv_lp_group( $trip_id, 'included' ) : array(),
++		'cards'      => cbv_inc_cards_for_board( $trip_id, function_exists( 'cbv_lp_group' ) ? (array) cbv_lp_group( $trip_id, 'included' ) : array() ),
+ 		'footnote'   => function_exists( 'cbv_lp_group' ) ? trim( (string) cbv_lp_group( $trip_id, 'included_footnote' ) ) : '',
+ 		'every_fare' => $prov ? cbv_inc_clean_lines( get_post_meta( $prov, 'cbv_lp_every_fare', true ), 10 ) : array(),
+ 	);

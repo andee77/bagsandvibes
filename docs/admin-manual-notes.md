@@ -953,8 +953,8 @@ Update the number by hand as deposits come in; it never counts by itself.
 Two sections on the new design, after Travel documents (and on the **members' trip page** after the travel documents, once the traveler has accepted the Trip Agreement). Each hides when it has nothing to show.
 
 **What's included** ("Every fare comes with extras"):
-- **In your all-in price:** built automatically from the price board. A part (taxes & fees, prepaid gratuities, Voyage Protection, the CBGV Group Experience Fee) is listed only when **every** price on the board includes it.
-- **Included by the cruise line:** the provider's fare cards (Providers > Virgin Voyages > fare cards), with the line under them ("Perks vary by fare...") in the same box's "Footnote under the cards" field. An optional "On every fare" line comes from the provider's **Pack list: Leave at home · and "On every fare"** box.
+- **In your all-in price:** built automatically from the price board. A part (taxes & fees, prepaid gratuities, Voyage Protection, the CBGV Group Experience Fee) is listed only when **every** price on the board includes it. The fare itself reads just "Cruise fare" (no "group rate" wording).
+- **Included by the cruise line:** the provider's fare cards (Providers > Virgin Voyages > fare cards), with the line under them ("Perks vary by fare...") in the same box's "Footnote under the cards" field. **The cards follow the trip's price board:** a fare card (Base, Essential, Premium...) shows only when the board has that fare column; a suite card only when the board lists one of its suites (the card's title or a name in its cabin line). A trip with no prices on its board yet shows every card. An optional "On every fare" line comes from the provider's **Pack list: Leave at home · and "On every fare"** box.
 - **The CBGV group program:** per trip, Trip edit screen > **What's included & pack list** box, one item per line, plus a short note (e.g. "All events and times are subject to change.").
 
 **Pack list** ("Pack List: Vibes Only"), Trip edit screen > **What's included & pack list** box:

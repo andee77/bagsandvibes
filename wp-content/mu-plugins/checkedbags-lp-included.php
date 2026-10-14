@@ -131,24 +131,11 @@ function cbv_inc_allin_parts( $trip_id ) {
 		return true;
 	};
 
-	// Group rate: every on-board price point has a discount.
-	$discount = true;
-	$seen     = false;
-	foreach ( (array) ( function_exists( 'cb_trip_get_pricing_tiers' ) ? cb_trip_get_pricing_tiers( $trip_id ) : array() ) as $tier ) {
-		foreach ( (array) ( $tier['occupancy_points'] ?? array() ) as $pt ) {
-			if ( ! is_array( $pt ) || ( function_exists( 'cbv_lp_point_column' ) && ! cbv_lp_point_column( $pt ) ) ) {
-				continue;
-			}
-			$seen = true;
-			if ( (float) ( $pt['discount'] ?? 0 ) <= 0 ) {
-				$discount = false;
-			}
-		}
-	}
+	// Plain "Cruise fare" (owner, 2026-10-14: no "at our group rate" until a group discount is confirmed).
 	$cruise = cbv_inc_is_cruise( $trip_id );
 	$out    = array();
 	if ( $every( 'cruise_fare' ) ) {
-		$out[] = ( $cruise ? 'Cruise fare' : 'Travel price' ) . ( $seen && $discount ? ', at our group rate' : '' );
+		$out[] = $cruise ? 'Cruise fare' : 'Travel price';
 	}
 	if ( $every( 'taxes_fees' ) ) {
 		$out[] = 'Taxes & fees';
@@ -168,11 +155,61 @@ function cbv_inc_allin_parts( $trip_id ) {
 	return $out;
 }
 
-/** The provider's What's included cards, footnote and "On every fare" line (verified content only lives there). */
+/** Lower-case, trimmed, without a leading "The " (board "The Insider" = card "INSIDER"). */
+function cbv_inc_norm_name( $s ) {
+	$s = strtolower( trim( wp_strip_all_tags( (string) $s ) ) );
+	return trim( preg_replace( '/^the\s+/', '', $s ) );
+}
+
+/**
+ * Cards follow the trip's price board (owner, 2026-10-14): a fare card (its title is one of the provider's fare
+ * columns) shows only when the board has that column; any other card (suites) only when the board lists one of
+ * its cabins (card title or a subline name matches a board cabin group or row). An empty board shows every card.
+ */
+function cbv_inc_cards_for_board( $trip_id, $cards, $board = null ) {
+	if ( null === $board ) {
+		$board = function_exists( 'cbv_lp_price_board_data' ) ? cbv_lp_price_board_data( $trip_id ) : null;
+	}
+	if ( ! $board || empty( $board['groups'] ) ) {
+		return $cards;
+	}
+	$cols = array_filter( array_map( 'cbv_inc_norm_name', (array) ( $board['columns'] ?? array() ) ) );
+	$cabins = array();
+	foreach ( (array) $board['groups'] as $g ) {
+		$cabins[] = cbv_inc_norm_name( $g['name'] ?? '' );
+		foreach ( (array) ( $g['rows'] ?? array() ) as $r ) {
+			$cabins[] = cbv_inc_norm_name( $r['name'] ?? '' );
+		}
+	}
+	$cabins     = array_filter( $cabins );
+	$fare_names = array_filter( array_map( 'cbv_inc_norm_name', (array) ( function_exists( 'cbv_lp_group' ) ? cbv_lp_group( $trip_id, 'columns' ) : array() ) ) );
+	$out        = array();
+	foreach ( (array) $cards as $card ) {
+		$title = cbv_inc_norm_name( $card['title'] ?? '' );
+		if ( in_array( $title, $fare_names, true ) ) {
+			if ( in_array( $title, $cols, true ) ) {
+				$out[] = $card;
+			}
+			continue;
+		}
+		$names = array_filter( array_merge( array( $title ), array_map( 'cbv_inc_norm_name', preg_split( '/\s*·\s*/u', (string) ( $card['subline'] ?? '' ) ) ) ) );
+		foreach ( $names as $n ) {
+			foreach ( $cabins as $c ) {
+				if ( $n === $c || 0 === strpos( $c, $n . ' ' ) ) {
+					$out[] = $card;
+					continue 3;
+				}
+			}
+		}
+	}
+	return $out;
+}
+
+/** The provider's What's included cards (those the trip's price board offers), footnote and "On every fare" line. */
 function cbv_inc_cruise_line( $trip_id ) {
 	$prov = function_exists( 'cbv_lp_provider_id' ) ? cbv_lp_provider_id( $trip_id ) : 0;
 	return array(
-		'cards'      => function_exists( 'cbv_lp_group' ) ? (array) cbv_lp_group( $trip_id, 'included' ) : array(),
+		'cards'      => cbv_inc_cards_for_board( $trip_id, function_exists( 'cbv_lp_group' ) ? (array) cbv_lp_group( $trip_id, 'included' ) : array() ),
 		'footnote'   => function_exists( 'cbv_lp_group' ) ? trim( (string) cbv_lp_group( $trip_id, 'included_footnote' ) ) : '',
 		'every_fare' => $prov ? cbv_inc_clean_lines( get_post_meta( $prov, 'cbv_lp_every_fare', true ), 10 ) : array(),
 	);
