@@ -48,7 +48,7 @@ done
 h=$(render /login/ 0)
 check "/login/: username, password, keep-signed-in and forgot-password link" "$(( $(has "$h" 'name="username-46"') * $(has "$h" 'name="user_password-46"') * $(has "$h" 'um-field-checkbox') * $(has "$h" 'um-link-alt') ))"
 h=$(render /register/ 0)
-check "/register/: Membership Terms checkbox and the Terms of Service link are there" "$(( $(has "$h" 'name="cbv_accept_terms"') * $(has "$h" 'Read the Terms of Service</a>') ))"
+check "/register/: the agreement checkbox and the Terms of Service link are there" "$(( $(has "$h" 'name="cbv_accept_terms"') * $(has "$h" 'terms-of-service/" target="_blank" rel="noopener">Terms of Service') ))"
 check "/register/: no empty Membership Terms box (the terms have no text yet)" "$(hasnt "$h" 'max-height:150px')"
 out=$(wp --require=/tmp/cbv_t/define.php eval 'add_filter( "pre_option_cbv_membership_terms", function () { return array( "version" => 1, "content" => "Test terms text" ); } ); ob_start(); do_action( "um_after_register_fields", array(), 45 ); echo ob_get_clean();' 2>/dev/null)
 check "/register/: the terms box still shows when the Membership Terms have text" "$(( $(has "$out" 'max-height:150px') * $(has "$out" 'Test terms text') ))"

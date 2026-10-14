@@ -757,7 +757,51 @@ add_action( 'init', function () {
  * soft-locked to a re-acceptance screen on their next page load.
  */
 add_action( 'admin_menu', function () {
-	add_options_page( 'Membership Terms', 'Membership Terms', 'manage_options', 'cbv-membership-terms', 'cbv_render_membership_terms_page' );
+	add_options_page( 'Master Traveler Agreement', 'Master Traveler Agreement', 'manage_options', 'cbv-membership-terms', 'cbv_render_membership_terms_page' );
+} );
+
+/**
+ * The name members see for what they accept at sign-up (owner, 2026-10-14):
+ * "Master Traveler Agreement, Code of Conduct & Travel Policies", formerly
+ * "Membership Terms". Same stored version number (cbv_membership_terms /
+ * _accepted_terms_version). Its text is the Travel Rules page (Gate 12),
+ * shown publicly, read only, at /master-traveler-agreement/ via
+ * [cbv_master_traveler_agreement].
+ */
+function cbv_master_agreement_name() {
+	return 'Master Traveler Agreement, Code of Conduct & Travel Policies';
+}
+
+function cbv_master_agreement_url() {
+	return home_url( '/master-traveler-agreement/' );
+}
+
+/** The Travel Rules page (Gate 12): the page that holds the [cb_gate_rules] shortcode. */
+function cbv_travel_rules_page() {
+	$page = get_page_by_path( 'gate-12-travel-rules' );
+	if ( $page && has_shortcode( $page->post_content, 'cb_gate_rules' ) ) {
+		return $page;
+	}
+	$found = get_posts( array( 'post_type' => 'page', 'post_status' => 'publish', 'numberposts' => 1, 's' => '[cb_gate_rules]' ) );
+	return $found ? $found[0] : null;
+}
+
+/**
+ * Public, read-only copy of the agreement -- [cbv_master_traveler_agreement]:
+ * the Travel Rules page's own text (everything except its members-only
+ * [cb_gate_rules] part), so there is one text to edit. No login required.
+ */
+add_shortcode( 'cbv_master_traveler_agreement', function () {
+	$page = cbv_travel_rules_page();
+	if ( ! $page ) {
+		return '<p class="cb-empty">The agreement is not available right now.</p>';
+	}
+	$raw  = preg_replace( '/\[cb_gate_rules[^\]]*\]/', '', $page->post_content );
+	$html    = wp_kses_post( wpautop( do_blocks( $raw ) ) );
+	$version = '<p class="cbv-terms-version">Version ' . (int) cbv_get_current_terms_version() . '</p>';
+	// The version line goes right under the document's own heading when it has one.
+	$html = preg_match( '#</h2>#i', $html ) ? preg_replace( '#</h2>#i', '</h2>' . $version, $html, 1 ) : $version . $html;
+	return '<div class="cbv-master-agreement">' . $html . '</div>';
 } );
 
 function cbv_render_membership_terms_page() {
@@ -786,14 +830,12 @@ function cbv_render_membership_terms_page() {
 	$terms = cbv_get_membership_terms();
 	?>
 	<div class="wrap">
-		<h1>Membership Terms</h1>
+		<h1><?php echo esc_html( cbv_master_agreement_name() ); ?></h1>
 		<p>
 			Current version: <strong><?php echo (int) $terms['version']; ?></strong>
 			(last updated <?php echo esc_html( $terms['updated'] ?: 'never' ); ?>)
 		</p>
-		<?php if ( '' === trim( $terms['content'] ) ) : ?>
-			<div class="notice notice-warning"><p>No terms content has been entered yet — new signups currently see an empty agreement box. Add real content below before relying on this for new registrations.</p></div>
-		<?php endif; ?>
+		<p>The agreement text members read is the <strong>Travel Rules</strong> page (Gate 12), also shown publicly at <a href="<?php echo esc_url( cbv_master_agreement_url() ); ?>" target="_blank" rel="noopener"><?php echo esc_html( cbv_master_agreement_url() ); ?></a>. Editing that page does not change the version. Text saved below is shown in a box above the sign-up checkbox and on the re-accept screen, and saving changed text here bumps the version.</p>
 		<p class="description">Saving with changed content automatically bumps the version and prompts re-acceptance from anyone already on an older version.</p>
 		<form method="post">
 			<?php wp_nonce_field( 'cbv_save_terms', 'cbv_terms_nonce' ); ?>
@@ -821,7 +863,7 @@ add_shortcode( 'cbv_membership_terms', function () {
 	<div class="cbv-membership-terms-page">
 		<p class="cbv-terms-version">Version <?php echo (int) $version; ?></p>
 		<?php if ( '' === trim( $content ) ) : ?>
-			<p class="cb-empty">No Membership Terms content has been published yet.</p>
+			<p class="cb-empty">Read the <a href="<?php echo esc_url( cbv_master_agreement_url() ); ?>"><?php echo esc_html( cbv_master_agreement_name() ); ?></a>.</p>
 		<?php else : ?>
 			<?php echo wp_kses_post( wpautop( $content ) ); ?>
 		<?php endif; ?>
@@ -856,27 +898,25 @@ add_action( 'um_after_register_fields', function () {
 			<?php echo wp_kses_post( wpautop( $content ) ); ?>
 		</div>
 		<?php endif; ?>
-		<?php // Points at the site's real, already-written Terms of Service
-		// page -- NOT the versioned Membership Terms system below, which
-		// this deliberately leaves untouched (no content copy, no version
-		// bump, no change to existing acceptance records). Link-destination
-		// and label only, per explicit correction: the tester meant the ToS
-		// page, not this separate acceptance-tracking mechanism. ?>
-		<p style="margin: 0 0 8px;"><a href="<?php echo esc_url( home_url( '/terms-of-service/' ) ); ?>" target="_blank" rel="noopener">Read the Terms of Service</a> (opens in a new tab)</p>
+		<?php // Owner, 2026-10-14: one checkbox for both documents, each linked (new tab). The version is the stored Master Traveler Agreement version. ?>
 		<label>
 			<input type="checkbox" name="cbv_accept_terms" value="1">
 			<span class="cbv-required" aria-hidden="true">*</span>
-			<?php
-			printf(
-				/* translators: %d: Membership Terms version number */
-				esc_html__( 'I have read and agree to the Membership Terms (v%d).', 'cbv' ),
-				(int) $version
-			);
-			?>
+			I have read and agree to the <a href="<?php echo esc_url( home_url( '/terms-of-service/' ) ); ?>" target="_blank" rel="noopener">Terms of Service<span class="screen-reader-text"> (opens in a new tab)</span></a>
+			and the <a href="<?php echo esc_url( cbv_master_agreement_url() ); ?>" target="_blank" rel="noopener"><?php echo esc_html( cbv_master_agreement_name() ); ?><span class="screen-reader-text"> (opens in a new tab)</span></a>
+			(v<?php echo (int) $version; ?>).
 		</label>
 	</div>
 	<?php
 }, 900 );
+
+/**
+ * Register page only (owner, 2026-10-14): Ultimate Member marks required
+ * fields with a red * (its "form_asterisk" setting, off site-wide).
+ */
+add_filter( 'um_get_option_filter__form_asterisk', function ( $value ) {
+	return is_page( 'register' ) ? 1 : $value;
+} );
 
 /**
  * Block registration if the terms checkbox wasn't checked. Fires before the
@@ -885,7 +925,7 @@ add_action( 'um_after_register_fields', function () {
  */
 add_action( 'um_submit_form_errors_hook__registration', function ( $submitted_data ) {
 	if ( empty( $submitted_data['cbv_accept_terms'] ) ) {
-		UM()->form()->add_error( 'cbv_accept_terms', __( 'You must agree to the Membership Terms to create an account.', 'cbv' ) );
+		UM()->form()->add_error( 'cbv_accept_terms', __( 'You must agree to the Terms of Service and the Master Traveler Agreement, Code of Conduct & Travel Policies to create an account.', 'cbv' ) );
 	}
 } );
 
@@ -934,15 +974,17 @@ add_shortcode( 'cbv_reaccept_terms', function () {
 	ob_start();
 	?>
 	<div class="cbv-reaccept-terms">
-		<h2>Updated Membership Terms</h2>
-		<p>We&#8217;ve updated our Membership Terms (now version <?php echo (int) $version; ?>). Please review and re-accept to continue.</p>
+		<h2>Updated <?php echo esc_html( cbv_master_agreement_name() ); ?></h2>
+		<p>We&#8217;ve updated our <a href="<?php echo esc_url( cbv_master_agreement_url() ); ?>" target="_blank" rel="noopener"><?php echo esc_html( cbv_master_agreement_name() ); ?></a> (now version <?php echo (int) $version; ?>). Please review and re-accept to continue.</p>
+		<?php if ( '' !== trim( wp_strip_all_tags( (string) $content ) ) ) : ?>
 		<div style="max-height:300px;overflow-y:auto;border:1px solid #ddd;padding:15px;margin-bottom:12px;">
 			<?php echo wp_kses_post( wpautop( $content ) ); ?>
 		</div>
+		<?php endif; ?>
 		<label>
 			<input type="checkbox" id="cbv-reaccept-checkbox">
 			<span class="cbv-required" aria-hidden="true">*</span>
-			I have read and agree to the updated Membership Terms.
+			I have read and agree to the updated <?php echo esc_html( cbv_master_agreement_name() ); ?>.
 		</label>
 		<p><button type="button" class="btn btn-ticket" id="cbv-reaccept-submit" disabled>Continue</button></p>
 		<div id="cbv-reaccept-result" style="margin-top:8px;"></div>
@@ -1029,7 +1071,7 @@ function cbv_render_user_meta_panel( $profile_user ) {
 	<h2>Trip-Invite Build — Field Status <span style="font-weight:normal;font-size:13px;">(read-only, for testing)</span></h2>
 	<table class="form-table" role="presentation">
 		<tr>
-			<th><label>Membership Terms</label></th>
+			<th><label>Master Traveler Agreement</label></th>
 			<td>
 				<?php if ( $terms_version ) : ?>
 					Version <strong><?php echo (int) $terms_version; ?></strong>

@@ -125,7 +125,7 @@ add_filter( 'bbp_allow_topic_tags', function ( $allowed ) {
  * page keeps its landing design.
  */
 function cbv_text_page_slugs() {
-	return array( 'privacy-policy', 'terms-of-service', 'contact' );
+	return array( 'privacy-policy', 'terms-of-service', 'contact', 'master-traveler-agreement' );
 }
 
 /** Ultimate Member form pages that get the CBGV form skin (owner, 2026-10-14). */
@@ -201,7 +201,8 @@ add_action(
 			return;
 		}
 
-		$slug = $is_trip ? CB_GATE_TEMPLATE_SLUG : get_page_template_slug();
+		// Text pages use the gate shell whatever page template they have (the Master Traveler Agreement page has none).
+		$slug = ( $is_trip || is_page( cbv_text_page_slugs() ) ) ? CB_GATE_TEMPLATE_SLUG : get_page_template_slug();
 		$known_slugs = array( CB_LANDING_TEMPLATE_SLUG, CB_DASHBOARD_TEMPLATE_SLUG, CB_GATE_TEMPLATE_SLUG );
 		if ( ! in_array( $slug, $known_slugs, true ) ) {
 			return;

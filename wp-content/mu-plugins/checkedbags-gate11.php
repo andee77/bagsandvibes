@@ -65,11 +65,11 @@ add_shortcode( 'cb_gate_rules', function () {
 		<?php if ( $terms_date && ! cbv_user_needs_terms_reaccept( $user_id ) ) : ?>
 			<span class="rules-agreed-badge">
 				<i class="ti ti-check" aria-hidden="true"></i>
-				Membership Terms (v<?php echo esc_html( $terms_version ); ?>) agreed on <?php echo esc_html( date_i18n( 'M j, Y', strtotime( $terms_date ) ) ); ?>
+				Master Traveler Agreement (v<?php echo esc_html( $terms_version ); ?>) agreed on <?php echo esc_html( date_i18n( 'M j, Y', strtotime( $terms_date ) ) ); ?>
 			</span>
 		<?php else : ?>
 			<p class="rules-addendum-none">
-				Your Membership Terms acceptance is out of date or missing.
+				Your Master Traveler Agreement acceptance is out of date or missing.
 				<a href="<?php echo esc_url( home_url( '/reaccept-terms/' ) ); ?>">Review and accept the current terms</a>.
 			</p>
 		<?php endif; ?>

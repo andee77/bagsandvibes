@@ -3965,3 +3965,25 @@ body.admin-bar .site-header { top: 32px; }
 @media (max-width: 600px) {
   body.admin-bar #wpadminbar { position: fixed; }
 }
+
+/* ==========================================================================
+   Design follow-ups (owner, 2026-10-14): Register required-field asterisks,
+   the sign-up checkbox links, full-width Contact fields, and the public
+   Master Traveler Agreement page.
+   ========================================================================== */
+.cbv-um-page .um .um-req { color: var(--coral) !important; margin-left: 0.2em; }
+.cbv-um-page .um .cbv-terms-field label { font-family: var(--font-body); color: var(--ink); line-height: 1.55; }
+.cbv-um-page .um .cbv-terms-field label a { color: var(--coral); text-decoration: underline; text-underline-offset: 2px; }
+.cbv-um-page .um .cbv-terms-field .cbv-required { color: var(--coral); }
+.cbv-text-page .wpforms-container .wpforms-field-medium,
+.cbv-text-page .wpforms-container .wpforms-field-row.wpforms-field-medium,
+.cbv-text-page .wpforms-container input.wpforms-field-medium { max-width: 100% !important; width: 100% !important; }
+.cbv-text-page .cbv-master-agreement > h2:first-child { font-size: 1.7rem; margin-top: 0; }
+.cbv-text-page .cbv-master-agreement .cbv-terms-version {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(22,35,43,0.6);
+  margin: -0.25rem 0 1.5rem;
+}

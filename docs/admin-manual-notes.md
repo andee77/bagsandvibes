@@ -880,6 +880,19 @@ Only travelers on that trip's roster who have accepted the trip's current agreem
 
 ---
 
+## 17. Master Traveler Agreement, Register page and small wording fixes
+- **New name:** what members accept at sign-up is the **Master Traveler Agreement, Code of Conduct & Travel Policies** (it used to be called "Membership Terms"). The version number is unchanged (still v1).
+- **Its text is the Travel Rules page (Gate 12):** Pages > Travel Rules. Everyone (signed in or not) can read it at https://bagsandvibes.com/master-traveler-agreement/ (not listed in search engines). Editing the Travel Rules page updates that public page right away, but does **not** start a new version and asks nobody to re-accept.
+- **Starting a new version (re-acceptance):** Settings > Master Traveler Agreement (https://bagsandvibes.com/wp-admin/options-general.php?page=cbv-membership-terms). Saving changed text there bumps the version; every member is asked to re-accept on their next visit. Planned: v2 (new Section 6 medical wording and attorney edits).
+- **Register:** one checkbox, "I have read and agree to the Terms of Service and the Master Traveler Agreement, Code of Conduct & Travel Policies (v1)", both linked. Required fields show a red *.
+- **Contact form:** Name and Email are full width.
+- **Dashboard:** the Gate 09 card reads "Track your CBGV Group Experience Fee payments."
+
+### Common mistakes
+- Expecting an edit on the Travel Rules page to make members re-accept: it doesn't. Use the Settings screen above for a new version.
+
+---
+
 ## Coming in later steps (this file will be extended after each)
 - Registration opt-outs (gratuities and Voyage Protection) and the decline acknowledgment
 - Included cards and upgrades; pack list, group perks and timeline

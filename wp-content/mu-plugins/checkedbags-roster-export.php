@@ -201,7 +201,7 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 		// Passport Status
 		'Has Passport', 'Passport Country', 'Passport Expiration', 'Passport Renewal Needed',
 		// Trip Role / Status
-		'Role', 'Invited By', 'Membership Terms Version', 'Membership Terms Accepted Date',
+		'Role', 'Invited By', 'Master Traveler Agreement Version', 'Master Traveler Agreement Accepted Date',
 		'Trip Agreement Version', 'Trip Agreement Accepted Date',
 		// Financial
 		'Budget Tier Requested', 'Trip Price', 'Payment Status', 'Amount Paid', 'Paid in Full',

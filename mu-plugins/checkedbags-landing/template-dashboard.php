@@ -44,7 +44,7 @@ $gates = array(
 	array(
 		'number' => 'GATE 09',
 		'title'  => 'Payments',
-		'desc'   => "Track deposits, balances, and who's paid what.",
+		'desc'   => 'Track your CBGV Group Experience Fee payments.',
 		'url'    => 'https://bagsandvibes.com/gate-09-payments/',
 	),
 	array(
