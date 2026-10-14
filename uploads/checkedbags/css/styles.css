@@ -4070,3 +4070,28 @@ body.admin-bar .site-header { top: 32px; }
 .cbv-kd-member .cbv-kd-doc-body { padding: 0 0 0.9rem; font-size: 0.95rem; line-height: 1.6; color: var(--ink); }
 .cbv-kd-member .cbv-kd-doc-body ul { margin: 0; padding-left: 1.2rem; }
 .cbv-kd-member .cbv-kd-doc-body li { margin: 0 0 0.4rem; }
+
+/* ==========================================================================
+   Members' trip page (owner, 2026-10-14): What's included + Pack list,
+   after the key dates and travel documents (cream styling).
+   ========================================================================== */
+.cbv-inc-member .cbv-inc-sub { margin: 1rem 0 0.4rem; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink); opacity: 0.75; }
+.cbv-inc-member .cbv-inc-allin { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.3rem; }
+.cbv-inc-member .cbv-inc-tick { color: var(--teal); font-weight: 700; margin-right: 0.5rem; }
+.cbv-inc-member .cbv-inc-every { margin: 0 0 0.5rem; }
+.cbv-inc-member .cbv-inc-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 0.75rem; }
+.cbv-inc-member .cbv-inc-card { border: 1px solid rgba(22,35,43,0.15); border-radius: 4px; padding: 0.9rem 1rem; display: flex; flex-direction: column; gap: 0.3rem; background: #fff; }
+.cbv-inc-member .cbv-inc-card--gold { border-color: var(--gold); }
+.cbv-inc-member .cbv-inc-card-label, .cbv-inc-member .cbv-inc-tag-label { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #8A3A1F; }
+.cbv-inc-member .cbv-inc-card-title, .cbv-inc-member .cbv-inc-tag-title { font-family: var(--font-display); font-weight: 600; font-size: 1.1rem; color: var(--ink); }
+.cbv-inc-member .cbv-inc-card-sub { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.08em; opacity: 0.65; }
+.cbv-inc-member ul { margin: 0.2rem 0 0; padding-left: 1.1rem; }
+.cbv-inc-member li { margin: 0 0 0.25rem; }
+.cbv-inc-member .cbv-inc-foot, .cbv-inc-member .cbv-inc-forecast { margin: 0.4rem 0 0; font-size: 0.85rem; color: rgba(22,35,43,0.7); }
+.cbv-inc-member .cbv-inc-forecast { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.cbv-inc-member .cbv-inc-tags { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 0.75rem; margin-top: 0.5rem; }
+.cbv-inc-member .cbv-inc-tag { position: relative; border: 1px solid rgba(22,35,43,0.15); border-radius: 4px; padding: 0.9rem 1rem; background: #fff; display: flex; flex-direction: column; gap: 0.3rem; }
+.cbv-inc-member .cbv-inc-tag-hole { position: absolute; top: 0.75rem; right: 0.75rem; width: 10px; height: 10px; border-radius: 50%; background: var(--ink); }
+.cbv-inc-member .cbv-inc-leave { grid-column: 1 / -1; border: 2px dashed rgba(255,107,74,0.7); border-radius: 4px; padding: 0.9rem 1rem; display: flex; flex-direction: column; gap: 0.3rem; }
+.cbv-inc-member .cbv-inc-leave-label { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--coral); }
+.cbv-inc-member .cbv-inc-leave-more a { color: var(--coral); }

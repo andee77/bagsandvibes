@@ -258,7 +258,7 @@ run_route_save( TRIP );
 $by = array(); foreach ( $writes as $w ) { if ( 'update_post_metadata' === $w[0] ) { $by[ $w[2] ] = $w[3]; } }
 check( 'valid save: heading cleaned', 'Our route' === $by['cbv_lp_route_heading'] );
 check( 'valid save: day 1 stored, day 2 emptied and removed, day 3 keeps hide_time but refuses the video, day 9 kept', array( 1, 3, 9 ) === array_keys( $by['cbv_lp_route_days'] ) && 'Sail-away toast' === $by['cbv_lp_route_days'][1]['title'] && 0 === $by['cbv_lp_route_days'][3]['photo'] && true === $by['cbv_lp_route_days'][3]['hide_time'], json_encode( $by['cbv_lp_route_days'] ) );
-check( 'only its own two keys are written', 2 === count( $by ) );
+check( 'only its own three keys are written (heading, days, and the route note added 2026-10-14)', array( 'cbv_lp_route_days', 'cbv_lp_route_heading', 'cbv_lp_route_note' ) === ( function ( $k ) { sort( $k ); return $k; } )( array_keys( $by ) ) );
 $low = 0;
 foreach ( get_users( array( 'number' => 40, 'fields' => 'ID', 'role__not_in' => array( 'administrator' ) ) ) as $uid ) {
 	if ( ! user_can( (int) $uid, 'edit_post', 181 ) ) { $low = (int) $uid; break; }

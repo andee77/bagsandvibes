@@ -440,6 +440,7 @@ add_filter( 'the_content', function ( $content ) {
 
 		<?php // Key dates + travel documents (owner, 2026-10-14): only here, inside the details shown after the agreement is accepted. ?>
 		<?php echo function_exists( 'cbv_render_member_countdown_docs' ) ? cbv_render_member_countdown_docs( $post->ID ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside ?>
+		<?php echo function_exists( 'cbv_render_member_included_pack' ) ? cbv_render_member_included_pack( $post->ID ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside ?>
 
 		<div class="trip-detail-section">
 			<h3>Who's going (<?php echo count( $roster ); ?>)</h3>

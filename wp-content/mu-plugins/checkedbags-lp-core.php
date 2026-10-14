@@ -174,6 +174,12 @@ function cbv_lp_render_trip( $trip_id, $view = 'new' ) {
 			echo cbv_lp_render_countdown( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
 			echo cbv_lp_render_docs( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
 		}
+		if ( function_exists( 'cbv_lp_render_included' ) ) {
+			// What's included + Pack list (owner, 2026-10-14); the old Highlights block goes on this design only.
+			echo cbv_lp_render_included( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
+			echo cbv_lp_render_pack( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
+			$legacy = cbv_lp_strip_legacy_highlights( $legacy );
+		}
 		echo cbv_lp_render_who( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
 	}
 	echo '<div class="cbv-lp-legacy-wrap">' . $legacy . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput -- the renderer escapes its own output

@@ -1,0 +1,56 @@
+  pass 1: running against the temp mu-plugins copy
+  pass 2: 181: all five parts, in order, with the fee amount
+  pass 3: a part one price doesn't include is left out (gratuities 0 on one price)
+  pass 4: no group discount on the prices: just "Cruise fare"
+  pass 5: no CBGV fee on the trip: no fee line
+  pass 6: other trip types say "Travel price" and "Travel protection"
+  pass 7: preview: "Gate 22 · What's included" and "Gate 23 · Pack list" after Travel documents, before Who does what
+  pass 8: preview: heading "Every fare comes with extras" and the three-part lede
+  pass 9: preview: 5 cruise-line cards, verified lines only (no Wi-Fi, credits, bar tab, VIP boarding, terrace shower)
+  pass 10: preview: the provider footnote "Perks vary by fare..."
+  pass 11: preview: the 6-line group program and its note; no swag, no host line
+  pass 12: preview: 4 tags numbered TAG 01-04, the forecast chip
+  pass 13: preview: no PJ Party / 80s Workout; "something red" for Scarlet Night (Day 2); magnetic hooks kept
+  pass 14: preview: Leave at home = the provider's 6 lines + the link to Virgin's full list (new tab); sources never shown
+  pass 15: preview: the old Highlights block is gone on the new design
+  pass 16: preview: no InteleTravel, no "CBGV books your cabin", no catamaran
+  pass 17: preview: route note "All events and times are subject to change." under the day cards
+  pass 18: old public page: keeps Highlights (new Bimini wording), no new sections
+  pass 19: members' page: What's included and Pack list, after the travel documents, before Who's going
+  pass 20: a traveler who still has to accept the trip agreement sees neither
+  pass 21: both switches off: neither section on either page
+  pass 22: Helmets (no provider, no pack data): no Pack list; the lede names only the price part
+  pass 23: cleaning: empty tags dropped, tags stripped, blank item lines dropped; unsafe source links and bad dates emptied; at most 6 tags
+  pass 24: admin: the trip box (program, note, forecast, tags, extra lines), the provider box (lines + source + date, link) and the route note field
+  pass 25: trip box save writes only its 5 fields (intercepted)
+  pass 26: share image: exactly one og:image, the hero poster (the trip's Yoast Social image)
+  pass 27: trip-landing.css: included cards, luggage tags, Leave at home, route note; styles.css: members' versions
+
+27 checks, 0 failures
+
+=== Regression (temp copy) ===
+MUTANT (live files): 27 checks, 22 failures
+restored: 27 checks, 0 failures
+test_step4: 123 checks, 0 failures
+test_step5: 130 checks, 0 failures
+test_step6: 102 checks, 0 failures (re-run after the test update)
+test_step7: 64 checks, 0 failures
+test_step8: 66 checks, 0 failures
+test_step8b: 76 checks, 0 failures
+test_step9: 88 checks, 0 failures
+test_step9a: 36 checks, 0 failures
+test_step9a_login: 24 checks, 0 failures
+test_fee_safeguard: 54 checks, 0 failures
+test_proposal_client_prices: 18 checks, 0 failures
+test_adults_only: 30 checks, 0 failures
+test_payment_wording: 10 checks, 0 failures
+test_travel_details_save: 13 checks, 0 failures
+test_wall_privacy: 33 checks, 0 failures
+test_virgin_seed: 21 checks, 0 failures
+test_step12a: 30 checks, 0 failures
+test_keydates_docs: 21 checks, 0 failures
+test_rules_merge: 16 checks, 0 failures
+test_design_followups: 19 checks, 0 failures
+test_text_um_pages: 67 checks, 0 failures
+test_forum_design: 51 checks, 0 failures
+test_mta_publish: 7 checks, 0 failures

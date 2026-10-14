@@ -422,6 +422,8 @@ function cbv_lp_route_data( $trip_id ) {
 		'heading' => '' !== $heading ? $heading : cbv_lp_route_default_heading( $type ),
 		'chain'   => cbv_lp_route_chain( $days, $itinerary ),
 		'cards'   => $cards,
+		// Owner, 2026-10-14: an optional small note under the day cards, e.g. "All events and times are subject to change."
+		'note'    => trim( (string) get_post_meta( $trip_id, 'cbv_lp_route_note', true ) ),
 	);
 }
 
@@ -482,6 +484,9 @@ function cbv_lp_render_route( $trip_id ) {
 					</li>
 				<?php endforeach; ?>
 			</ol>
+			<?php if ( '' !== $d['note'] ) : ?>
+				<p class="cbv-lp-route-note"><?php echo esc_html( $d['note'] ); ?></p>
+			<?php endif; ?>
 		</div>
 	</section>
 	<?php
@@ -556,6 +561,10 @@ function cbv_lp_render_route_box( $post ) {
 		<input type="text" name="cbv_lp_route_heading" id="cbv_lp_route_heading" value="<?php echo esc_attr( $heading ); ?>" maxlength="80" class="regular-text">
 	</p>
 	<p class="description">Leave blank to use "<?php echo esc_html( cbv_lp_route_default_heading( $type ) ); ?>" (the default for this event type). Grey placeholder text is not a saved value.</p>
+	<p>
+		<label for="cbv_lp_route_note"><strong>Note under the route</strong> <span class="description">(optional, one short line, e.g. "All events and times are subject to change.")</span></label><br>
+		<input type="text" name="cbv_lp_route_note" id="cbv_lp_route_note" value="<?php echo esc_attr( (string) get_post_meta( $post->ID, 'cbv_lp_route_note', true ) ); ?>" maxlength="160" class="large-text">
+	</p>
 
 	<?php if ( ! $days ) : ?>
 		<p><em>No itinerary days yet. Add rows (with dates) in the Day-by-Day Itinerary box and click Update / Save.</em></p>
@@ -626,5 +635,7 @@ add_action( 'save_post_cb_trip', function ( $post_id ) {
 	$stored  = get_post_meta( $post_id, 'cbv_lp_route_days', true );
 
 	update_post_meta( $post_id, 'cbv_lp_route_heading', $heading );
+	$note = isset( $_POST['cbv_lp_route_note'] ) && is_scalar( $_POST['cbv_lp_route_note'] ) ? sanitize_text_field( wp_unslash( $_POST['cbv_lp_route_note'] ) ) : '';
+	update_post_meta( $post_id, 'cbv_lp_route_note', function_exists( 'mb_substr' ) ? mb_substr( $note, 0, 160 ) : substr( $note, 0, 160 ) );
 	update_post_meta( $post_id, 'cbv_lp_route_days', cbv_lp_merge_route_days( is_array( $stored ) ? $stored : array(), $posted ) );
 } );

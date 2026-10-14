@@ -949,8 +949,34 @@ Update the number by hand as deposits come in; it never counts by itself.
 
 ---
 
+## 23. What's included and Pack list
+Two sections on the new design, after Travel documents (and on the **members' trip page** after the travel documents, once the traveler has accepted the Trip Agreement). Each hides when it has nothing to show.
+
+**What's included** ("Every fare comes with extras"):
+- **In your all-in price:** built automatically from the price board. A part (taxes & fees, prepaid gratuities, Voyage Protection, the CBGV Group Experience Fee) is listed only when **every** price on the board includes it.
+- **Included by the cruise line:** the provider's fare cards (Providers > Virgin Voyages > fare cards), with the line under them ("Perks vary by fare...") in the same box's "Footnote under the cards" field. An optional "On every fare" line comes from the provider's **Pack list: Leave at home · and "On every fare"** box.
+- **The CBGV group program:** per trip, Trip edit screen > **What's included & pack list** box, one item per line, plus a short note (e.g. "All events and times are subject to change.").
+
+**Pack list** ("Pack List: Vibes Only"), Trip edit screen > **What's included & pack list** box:
+- **Forecast:** the gold chip (e.g. "FORECAST · LOW 80s °F · WARM & TROPICAL").
+- **Tags (up to 6):** category, title and items (one per line; `**bold**` works). They show as luggage tags numbered "Tag 01", "Tag 02"...
+- **Leave at home:** the provider's list (Providers > **Pack list: Leave at home · and "On every fare"**: each line with its source link and the date you checked it; sources and dates are admin-only) plus any extra lines for this trip, then the link to the cruise line's full list (opens in a new tab).
+
+**Other changes in this step:**
+- The old **Highlights** block no longer shows on the new design (it still shows on the old page).
+- **Route note:** the route box has a "Note under the route" field (small italics under the day cards).
+- **Share image:** when the trip has a Yoast Social image set, that is the only image shared (trip 181: the hero poster).
+
+**Switch off for a trip:** Sections table, "What's included" and "Pack list".
+
+### Common mistakes
+- Adding a Leave-at-home line you haven't checked on the cruise line's own site: always fill in the source and the date checked.
+- Editing the provider's lists changes every trip on that provider: use the trip's own box for one-trip extras.
+
+---
+
 ## Coming in later steps (this file will be extended after each)
 - Registration opt-outs (gratuities and Voyage Protection) and the decline acknowledgment
-- Included cards and upgrades; pack list, group perks and timeline
+- Upgrades; group perks
 - How to book, member hint, travel documents editor on the trip
 - Wedding sections; "Copy this trip"; unlisted trips with an access code; go-live checklist

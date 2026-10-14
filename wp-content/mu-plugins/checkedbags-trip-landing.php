@@ -346,6 +346,11 @@ add_filter( 'wpseo_add_opengraph_images', function ( $image_container ) {
 	if ( ! cbv_trip_seo_eligible( $trip_id ) || ! function_exists( 'cbv_get_trip_cover_photo_url' ) ) {
 		return;
 	}
+	// A Social image chosen for the trip in Yoast wins (owner, 2026-10-14:
+	// trip 181 shares the hero poster): don't add the cover photo too.
+	if ( get_post_meta( $trip_id, '_yoast_wpseo_opengraph-image-id', true ) || get_post_meta( $trip_id, '_yoast_wpseo_opengraph-image', true ) ) {
+		return;
+	}
 	$cover_url = cbv_get_trip_cover_photo_url( $trip_id, 'large' );
 	if ( $cover_url ) {
 		$image_container->add_image_by_url( $cover_url );
