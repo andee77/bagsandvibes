@@ -331,7 +331,6 @@ add_filter( 'the_content', function ( $content ) {
 	$terms      = get_the_terms( $post->ID, 'cb_trip_type' );
 	$type_label = ( $terms && ! is_wp_error( $terms ) ) ? $terms[0]->name : 'Trip';
 	$packing    = get_post_meta( $post->ID, 'cb_packing_notes', true );
-	$addendum   = get_post_meta( $post->ID, 'cb_rules_addendum', true );
 	$roster     = cb_trip_get_roster( $post->ID );
 	$min_ok     = cb_trip_meets_minimum_group_size( $post->ID );
 
@@ -431,10 +430,11 @@ add_filter( 'the_content', function ( $content ) {
 		</div>
 		<?php endif; ?>
 
-		<?php if ( $addendum ) : ?>
+		<?php /* Rules merge (2026-10-14): the Trip Agreement is this trip's one rules text, shown with its version. */ ?>
+		<?php if ( function_exists( 'cbv_render_trip_agreement_summary' ) ) : ?>
 		<div class="trip-detail-section trip-detail-rules">
 			<h3>Rules for this trip</h3>
-			<p><?php echo nl2br( esc_html( $addendum ) ); ?></p>
+			<?php echo cbv_render_trip_agreement_summary( $post->ID, $viewer_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside ?>
 		</div>
 		<?php endif; ?>
 

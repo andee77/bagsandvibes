@@ -3987,3 +3987,28 @@ body.admin-bar .site-header { top: 32px; }
   color: rgba(22,35,43,0.6);
   margin: -0.25rem 0 1.5rem;
 }
+
+/* ==========================================================================
+   Rules merge (owner, 2026-10-14): the Trip Agreement, with its version and
+   the member's acceptance, is each trip's one rules text -- on Gate 12's
+   "Rules for Your Trips" cards (dark) and the trip page (light).
+   ========================================================================== */
+.cbv-trip-agreement-version {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0 0 0.5rem;
+  opacity: 0.7;
+}
+.cbv-trip-agreement-text { font-size: 0.95rem; line-height: 1.6; }
+.cbv-trip-agreement-text p { margin: 0 0 0.6rem; }
+.cbv-trip-agreement-status { font-size: 0.85rem; font-style: italic; margin: 0.5rem 0 0; opacity: 0.8; }
+.cbv-trip-agreement-status a { color: var(--coral); }
+.cbv-trip-agreement-none { font-style: italic; opacity: 0.6; }
+.rules-trip-card .cbv-trip-agreement-version,
+.rules-trip-card .cbv-trip-agreement-text,
+.rules-trip-card .cbv-trip-agreement-status { color: rgba(251,243,231,0.85); }
+.trip-detail-rules .cbv-trip-agreement-version,
+.trip-detail-rules .cbv-trip-agreement-text,
+.trip-detail-rules .cbv-trip-agreement-status { color: var(--ink); }

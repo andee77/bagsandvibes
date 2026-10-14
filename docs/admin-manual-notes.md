@@ -893,6 +893,18 @@ Only travelers on that trip's roster who have accepted the trip's current agreem
 
 ---
 
+## 18. Trip rules = the Trip Agreement
+Each trip has **one** rules text: its **Trip Agreement** (Trips: https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_trip, open the trip, **Trip Agreement** box).
+- Members see it on the trip page ("Rules for this trip") and on Gate 12 under "Rules for Your Trips", with its **version** and whether they accepted it ("You accepted version 4 on Oct 14, 2026" or "Not accepted yet").
+- **Changing the text and saving starts a new version**: every traveler on the trip must accept it again before they see the trip's details.
+- The old "Trip-specific rules addendum" box is gone. (Trip 181's old line, "Trip must be paid in full 120 days prior to sailing.", is kept in the database but no longer shown; its agreement v4 already says it.)
+
+### Common mistakes
+- Fixing a typo in the Trip Agreement: that also starts a new version and asks everyone to re-accept. Batch changes together.
+- A trip with an empty Trip Agreement shows "No trip agreement for this trip." (Helmets today).
+
+---
+
 ## Coming in later steps (this file will be extended after each)
 - Registration opt-outs (gratuities and Voyage Protection) and the decline acknowledgment
 - Included cards and upgrades; pack list, group perks and timeline

@@ -402,7 +402,6 @@ function cb_render_trip_meta_box( $post ) {
 	$quote_notes = get_post_meta( $post->ID, 'cb_quote_notes', true );
 	$privacy     = get_post_meta( $post->ID, 'cb_gallery_privacy', true ) ?: 'public';
 	$min_size    = get_post_meta( $post->ID, 'cb_min_group_size', true ) ?: 4;
-	$addendum    = get_post_meta( $post->ID, 'cb_rules_addendum', true );
 	$range_low   = get_post_meta( $post->ID, 'cb_price_range_low', true );
 	$range_high  = get_post_meta( $post->ID, 'cb_price_range_high', true );
 	$roster      = cb_trip_get_roster( $post->ID );
@@ -512,10 +511,8 @@ function cb_render_trip_meta_box( $post ) {
 		</select>
 	</div>
 
-	<div class="cb-field">
-		<label for="cb_rules_addendum">Trip-specific rules addendum</label>
-		<textarea name="cb_rules_addendum" id="cb_rules_addendum" rows="3" placeholder="e.g. Passport must be valid 6 months past return date. Visa required for entry."><?php echo esc_textarea( $addendum ); ?></textarea>
-	</div>
+	<?php // Rules merge (2026-10-14): the "Trip-specific rules addendum" box is retired; the Trip Agreement box is this trip's one rules text. ?>
+	<p class="description"><strong>Trip rules:</strong> write them in the <strong>Trip Agreement</strong> box on this screen. Members see it on the trip page and on Gate 12, with its version.</p>
 
 	<hr>
 	<h4>Point Person</h4>
@@ -1223,7 +1220,7 @@ add_action( 'save_post_cb_trip', function ( $post_id ) {
 
 	$text_fields = array(
 		'cb_status', 'cb_source', 'cb_start_date', 'cb_end_date',
-		'cb_gallery_privacy', 'cb_rules_addendum', 'cb_quote_notes',
+		'cb_gallery_privacy', 'cb_quote_notes',
 		'cb_point_person_name', 'cb_point_person_phone',
 	);
 	foreach ( $text_fields as $field ) {

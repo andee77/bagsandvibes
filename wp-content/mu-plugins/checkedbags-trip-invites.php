@@ -1235,6 +1235,7 @@ function cbv_render_trip_agreement_meta_box( $post ) {
 	$version = cbv_get_trip_agreement_version( $post->ID );
 	?>
 	<p>
+		<strong>This is the trip&#8217;s one rules text</strong>: members see it on the trip page and under &#8220;Rules for Your Trips&#8221; on Gate 12, with its version.
 		Current version: <strong><?php echo (int) $version; ?></strong>.
 		Changing the text below and saving bumps the version automatically —
 		anyone who already accepted an older version (roster members, invited
@@ -1301,6 +1302,33 @@ add_action( 'rest_api_init', function () {
 		},
 	) );
 } );
+
+/**
+ * Rules merge (owner, 2026-10-14): the Trip Agreement is each trip's ONE
+ * rules text (versioned; changing it asks members to re-accept). The old
+ * "Trip-specific rules addendum" box is retired. This block shows the
+ * agreement with its version and the member's acceptance, on the trip page
+ * and on Gate 12's "Rules for Your Trips".
+ */
+function cbv_render_trip_agreement_summary( $trip_id, $user_id ) {
+	$content = cbv_get_trip_agreement_content( $trip_id );
+	if ( '' === trim( wp_strip_all_tags( (string) $content ) ) ) {
+		return '<p class="cbv-trip-agreement-text cbv-trip-agreement-none">No trip agreement for this trip.</p>';
+	}
+	$version  = cbv_get_trip_agreement_version( $trip_id );
+	$accepted = get_user_meta( (int) $user_id, '_trip_agreement_accepted_' . (int) $trip_id, true );
+	$on_trip  = in_array( (int) $user_id, cb_trip_get_roster( $trip_id ), true );
+	if ( ! $on_trip ) {
+		$status = 'Travelers on this trip accept this before they see its details.';
+	} elseif ( is_array( $accepted ) && (int) $accepted['version'] >= $version ) {
+		$status = 'You accepted version ' . (int) $accepted['version'] . ( ! empty( $accepted['date'] ) ? ' on ' . date_i18n( 'M j, Y', strtotime( $accepted['date'] ) ) : '' ) . '.';
+	} else {
+		$status = 'Not accepted yet. <a href="' . esc_url( get_permalink( $trip_id ) ) . '">Review and accept it on the trip page</a>.';
+	}
+	return '<p class="cbv-trip-agreement-version">Trip Agreement &middot; Version ' . (int) $version . '</p>'
+		. '<div class="cbv-trip-agreement-text">' . wp_kses_post( wpautop( $content ) ) . '</div>'
+		. '<p class="cbv-trip-agreement-status">' . wp_kses_post( $status ) . '</p>';
+}
 
 /**
  * Inline "accept this trip's agreement" prompt, shared by any surface that

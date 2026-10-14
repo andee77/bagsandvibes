@@ -91,18 +91,14 @@ add_shortcode( 'cb_gate_rules', function () {
 	if ( ! empty( $my_trips ) ) : ?>
 		<h3 class="rules-section-title">Rules for Your Trips</h3>
 		<?php foreach ( $my_trips as $trip ) :
-			$addendum = get_post_meta( $trip->ID, 'cb_rules_addendum', true );
 			$min_size = (int) get_post_meta( $trip->ID, 'cb_min_group_size', true ) ?: 4;
 			$roster   = cb_trip_get_roster( $trip->ID );
 			?>
 			<div class="rules-trip-card">
 				<h4 class="rules-trip-title"><?php echo esc_html( get_the_title( $trip ) ); ?></h4>
 				<span class="rules-group-size">Minimum group size: <?php echo esc_html( $min_size ); ?> (currently <?php echo esc_html( count( $roster ) ); ?>)</span>
-				<?php if ( $addendum ) : ?>
-					<p class="rules-addendum-text"><?php echo nl2br( esc_html( $addendum ) ); ?></p>
-				<?php else : ?>
-					<p class="rules-addendum-text rules-addendum-none">No additional rules for this trip.</p>
-				<?php endif; ?>
+				<?php // Rules merge (2026-10-14): the trip's Trip Agreement, with its version and this member's acceptance. ?>
+				<?php echo function_exists( 'cbv_render_trip_agreement_summary' ) ? cbv_render_trip_agreement_summary( $trip->ID, $user_id ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside ?>
 			</div>
 		<?php endforeach; ?>
 	<?php endif; ?>
