@@ -79,6 +79,13 @@ Reference ID is the `MEDIA-LIBRARY-URL` placeholder in the design reference.
 
 The design reference's hero video (`e6a988c7`) and poster (`686f75df`) are the Terminal V hero above; confirm the match when the files are uploaded.
 
+## Trip 181 cover photo / social-share image (logged 2026-10-14)
+| Media ID | File (Media Library) | What it shows | Used as | Source | Credit in file | Status |
+|---|---|---|---|---|---|---|
+| 351 | `2026/08/IMG-SCL-2021-CAB-brilliant-exterior-balcony-day-UNCROPPED-scaled.jpg` ("Vitamin Sea Photoshoot / Sept 2021") | Sea Terrace balcony on Scarlet Lady: red hammock, a sailor's foot, cocktail, sea view (only the foot of the model is visible) | Trip 181 cover photo (`cb_cover_photo`), so it is the page's social-share image (og:image) | First Mates marketing toolkit (owner, 2026-10-14) | Melanie Acevedo / Virgin Voyages; shoot Sept 18-25, 2021 | live since 2026-08; **no offer stamp, no logo** (checked 2026-10-14) |
+
+**Usage note in the file's own metadata:** "Usage: Worldwide/universal unlimited rights in perpetuity for all media including 3rd party usage (Virgin Brands)... Excluding TV + Broadcast." and "Talent Usage: 5 Years Worldwide/universal unlimited rights in perpetuity..." The talent line is ambiguous (5 years from a Sept 2021 shoot would end around Sept 2026). The model is not identifiable (a foot only); if in doubt, confirm with Virgin's First Mates team or swap the share image for the hero poster (media 406). No alt text is set on this image yet.
+
 ## Images created by CBGV (not Virgin assets)
 These are CBGV's own work, not from the First Mates toolkit, so the Virgin asset rules above do not apply to them.
 
