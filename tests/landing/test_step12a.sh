@@ -35,9 +35,11 @@ check "Register now goes to this trip's registration link; \"Booking 5+ cabins? 
 check "Helmets preview: the disclosure once, with \"Last updated October 14, 2026\"" "$(( $([ "$(count "$h" 'class="cbv-who ')" -eq 1 ] && echo 1 || echo 0) * $(has "$h" 'Last updated October 14, 2026') ))"
 check "Helmets preview: no banned wording" "$(banned "$h")"
 
-# 3. Provider steps REPLACE the site default (trip 181 is on Test Provider 402, 2 steps).
+# 3. Provider steps REPLACE the site default (simulated); trip 181's Virgin provider has none, so it shows the site's 4.
+out=$(weval '$p = cbv_lp_provider_id( 181 ); add_filter( "get_post_metadata", function ( $v, $id, $k ) use ( $p ) { return ( $p && (int) $id === $p && "cbv_lp_steps" === $k ) ? array( array( array( "title" => "Provider step A", "body" => "x" ), array( "title" => "Provider step B", "body" => "y" ) ) ) : $v; }, 1, 3 ); $s = cbv_howto_steps( 181 ); echo count( $s ) . "|" . cbv_howto_heading( 181, count( $s ) ) . "|" . implode( ",", wp_list_pluck( $s, "title" ) );')
+check "a provider's own steps replace the default (2 provider steps -> \"Two steps to the gangway\")" "$(has "$out" '^2|Two steps to the gangway|Provider step A,Provider step B')" "($out)"
 h=$(render "/trip/annual-family-and-friends/?preview=new" 1)
-check "181 preview: the provider's own steps replace the default (\"Two steps to the gangway\")" "$(( $(has "$h" '>Two steps to the gangway<') * $(hasnt "$h" 'Book your cabin with our travel advisor') ))"
+check "181 preview (provider without steps): the site's 4 steps, \"Four steps to the gangway\"" "$(( $(has "$h" '>Four steps to the gangway<') * $(has "$h" 'Book your cabin with our travel advisor') ))"
 check "181 preview: the disclosure once" "$([ "$(count "$h" 'class="cbv-who ')" -eq 1 ] && echo 1 || echo 0)"
 
 # 4. No fee -> the fee step is left out and the count adjusts; other types say "to your trip".

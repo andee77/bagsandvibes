@@ -17,11 +17,12 @@ hasnt() { grep -c -- "$2" <<< "$1" | awk '{print ($1==0)?1:0}'; }
 NAME='Master Traveler Agreement, Code of Conduct &amp; Travel Policies'
 
 check "running against the temp mu-plugins copy" "$(grep -c '/tmp/cbv_mu' /tmp/cbv_t/define.php | awk '{print ($1>0)?1:0}')"
+V=$(weval 'echo (int) cbv_get_current_terms_version();')   # the published Master Traveler Agreement version (v2 since 2026-10-14)
 
 # Register.
 h=$(render /register/ 0)
 check "Register: checkbox names both documents with the version" "$(has "$h" "I have read and agree to the <a href=\"https://bagsandvibes.com/terms-of-service/\" target=\"_blank\" rel=\"noopener\">Terms of Service")"
-check "Register: the agreement link goes to /master-traveler-agreement/ (new tab) with its full name, then (v1)" "$(( $(has "$h" "href=\"https://bagsandvibes.com/master-traveler-agreement/\" target=\"_blank\" rel=\"noopener\">$NAME") * $(has "$h" '(v1)\.') ))"
+check "Register: the agreement link goes to /master-traveler-agreement/ (new tab) with its full name, then (v$V)" "$(( $(has "$h" "href=\"https://bagsandvibes.com/master-traveler-agreement/\" target=\"_blank\" rel=\"noopener\">$NAME") * $(has "$h" "(v$V)\.") ))"
 check "Register: no \"Membership Terms\" wording, no separate \"Read the Terms of Service\" line, no empty box" "$(( $(hasnt "$h" 'Membership Terms') * $(hasnt "$h" 'Read the Terms of Service') * $(hasnt "$h" 'max-height:150px') ))"
 req=$(grep -o 'class="um-req"' <<< "$h" | wc -l)
 check "Register: red * on the required fields (username, first name, email, password, confirm = 5)" "$([ "$req" -eq 5 ] && echo 1 || echo 0)" "(found $req)"
@@ -31,13 +32,13 @@ check "Login: no * added (asterisks are for Register only)" "$(hasnt "$h" 'class
 out=$(weval 'UM()->form()->errors = null; do_action( "um_submit_form_errors_hook__registration", array() ); echo implode( "|", (array) UM()->form()->errors );')
 check "Register: unticked box -> error names both documents" "$(has "$out" 'You must agree to the Terms of Service and the Master Traveler Agreement, Code of Conduct')"
 out=$(weval 'echo (int) cbv_get_current_terms_version();')
-check "the stored version is unchanged (v1)" "$([ "$out" = "1" ] && echo 1 || echo 0)" "($out)"
+check "the stored version is a whole number of at least 1 (v$V)" "$([ "$out" -ge 1 ] 2>/dev/null && echo 1 || echo 0)" "($out)"
 
 # Public agreement (shortcode), signed out.
 out=$(weval 'wp_set_current_user( 0 ); echo do_shortcode( "[cbv_master_traveler_agreement]" );')
 check "agreement: shows Gate 12's text (Section 1 to Section 8 and the checklist), signed out" "$(( $(has "$out" 'Section 1: Code of Conduct') * $(has "$out" 'Section 8: Destination-Specific Rules Notice') * $(has "$out" 'Pre-Trip Emergency') ))"
 check "agreement: never the members-only part ([cb_gate_rules], Rules for Your Trips, sign-in prompt)" "$(( $(hasnt "$out" 'cb_gate_rules') * $(hasnt "$out" 'Rules for Your Trips') * $(hasnt "$out" 'sign in</a> to view travel rules') ))"
-check "agreement: \"Version 1\" right under the document heading" "$(has "$out" 'Travel Policies</h2><p class="cbv-terms-version">Version 1</p>')"
+check "agreement: \"Version $V\" right under the document heading" "$(has "$out" "Travel Policies</h2><p class=\"cbv-terms-version\">Version $V</p>")"
 out=$(weval 'echo implode( ",", cbv_text_page_slugs() );')
 check "the agreement page (slug master-traveler-agreement) uses the text-page design" "$(has "$out" 'master-traveler-agreement')"
 
@@ -45,7 +46,7 @@ check "the agreement page (slug master-traveler-agreement) uses the text-page de
 out=$(weval 'wp_set_current_user( 1 ); add_filter( "get_user_metadata", function ( $v, $u, $k ) { return "_accepted_terms_version" === $k ? array( 0 ) : $v; }, 10, 3 ); echo do_shortcode( "[cbv_reaccept_terms]" );')
 check "re-accept screen: new name, link to the agreement page, no empty box" "$(( $(has "$out" "Updated $NAME") * $(has "$out" 'master-traveler-agreement/') * $(hasnt "$out" 'Membership Terms') * $(hasnt "$out" 'max-height:300px') ))"
 h=$(render /gate-12-travel-rules/ 1)
-check "Gate 12: badge reads \"Master Traveler Agreement (v1) agreed on\"" "$(( $(has "$h" 'Master Traveler Agreement (v1) agreed on') * $(hasnt "$h" 'Membership Terms (v') ))"
+check "Gate 12: badge says \"Master Traveler Agreement (v...) agreed on\" (or asks to re-accept), never \"Membership Terms\"" "$(( $(has "$h" 'Master Traveler Agreement (v[0-9]*) agreed on\|Your Master Traveler Agreement acceptance is out of date') * $(hasnt "$h" 'Membership Terms (v') ))"
 out=$(weval 'echo implode( "|", cbv_build_trip_roster_export_data( 181 )["headers"] );')
 check "roster export: \"Master Traveler Agreement Version / Accepted Date\" columns" "$(( $(has "$out" 'Master Traveler Agreement Version|Master Traveler Agreement Accepted Date') * $(hasnt "$out" 'Membership Terms') ))"
 

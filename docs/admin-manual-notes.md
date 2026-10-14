@@ -917,6 +917,18 @@ Each trip has **one** rules text: its **Trip Agreement** (Trips: https://bagsand
 
 ---
 
+## 20. The Virgin Voyages provider
+**Where:** Providers (https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_provider) > **Virgin Voyages**. Created 2026-10-14 from the checked text (only lines verified with Virgin; the rest is listed in `docs/audits/virgin-provider-2026-10-14/dry-run.txt` and can be added one by one once verified).
+- **Adults only (18+)** is ticked here, so every trip on this provider is adults only unless the trip's own Adults only box says otherwise.
+- It has **no How-to-book steps** on purpose: its trips use the site's steps (Settings > How to Book & Disclosure). Adding steps here would replace those on every Virgin trip.
+- It holds the price column names (Base, Essential, Premium), the What's included cards, 4 key dates (final payment 120 days before, last change day 46, payments final 45, name changes close 2) and 4 travel documents. Cards, key dates and documents show on the page as those sections are built.
+- **Trip 181** uses it (Trip edit screen, landing settings box, Provider). The old "Test Provider" is in the trash; don't restore it.
+
+### Common mistakes
+- Typing a fact into a card or document that hasn't been checked with Virgin. Only add lines you have confirmed.
+
+---
+
 ## Coming in later steps (this file will be extended after each)
 - Registration opt-outs (gratuities and Voyage Protection) and the decline acknowledgment
 - Included cards and upgrades; pack list, group perks and timeline
