@@ -25,7 +25,8 @@ check "Gate 12 (member): 181 card shows the Trip Agreement text with \"Version 4
 check "Gate 12 (member, accepted v3): \"Not accepted yet\" with a link to the trip page" "$(has "$h" 'Not accepted yet. <a href="https://bagsandvibes.com/trip/annual-family-and-friends/">Review and accept it on the trip page</a>')"
 check "Gate 12: the retired rule text is gone, and so is \"No additional rules\"" "$(( $(hasnt "$h" "$OLD_RULE") * $(hasnt "$h" 'No additional rules') ))"
 check "Gate 12: a trip with no agreement text says \"No trip agreement for this trip.\" (Helmets)" "$(has "$h" 'No trip agreement for this trip.')"
-check "Gate 12: minimum group size line still there" "$(has "$h" 'Minimum group size: 25')"
+min=$(weval 'echo (int) get_post_meta( 181, "cb_min_group_size", true ) ?: 4;')
+check "Gate 12: minimum group size line still there (181: $min)" "$(has "$h" "Minimum group size: $min (")"
 h=$(render /gate-12-travel-rules/ 1)
 check "Gate 12 (admin, accepted v4): \"You accepted version 4 on Oct 14, 2026.\"" "$(has "$h" 'You accepted version 4 on Oct 14, 2026.')"
 

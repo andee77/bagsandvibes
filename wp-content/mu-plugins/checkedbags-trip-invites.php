@@ -809,6 +809,25 @@ function cbv_render_membership_terms_page() {
 		return;
 	}
 
+	// "Publish a new version" (owner, 2026-10-14): the agreement's text is the
+	// Travel Rules page, so a new version is started here on purpose rather
+	// than by changing the box below. Same effect as a changed box: everyone
+	// on an older version is asked to re-accept on their next page load.
+	if ( isset( $_POST['cbv_publish_version_nonce'] ) && wp_verify_nonce( $_POST['cbv_publish_version_nonce'], 'cbv_publish_terms_version' ) ) {
+		if ( empty( $_POST['cbv_publish_version_confirm'] ) ) {
+			echo '<div class="notice notice-error"><p>Not published: tick the box to confirm that every member will be asked to re-accept.</p></div>';
+		} else {
+			$terms            = cbv_get_membership_terms();
+			$terms['version'] = (int) $terms['version'] + 1;
+			$terms['updated'] = current_time( 'mysql' );
+			update_option( 'cbv_membership_terms', $terms, false );
+			echo '<div class="notice notice-success"><p>' . sprintf(
+				esc_html__( 'Version %d published. Every member on an older version will be asked to re-accept on their next page load.', 'cbv' ),
+				(int) $terms['version']
+			) . '</p></div>';
+		}
+	}
+
 	if ( isset( $_POST['cbv_terms_nonce'] ) && wp_verify_nonce( $_POST['cbv_terms_nonce'], 'cbv_save_terms' ) ) {
 		$terms       = cbv_get_membership_terms();
 		$new_content = isset( $_POST['cbv_terms_content'] ) ? wp_kses_post( wp_unslash( $_POST['cbv_terms_content'] ) ) : '';
@@ -841,6 +860,14 @@ function cbv_render_membership_terms_page() {
 			<?php wp_nonce_field( 'cbv_save_terms', 'cbv_terms_nonce' ); ?>
 			<textarea name="cbv_terms_content" rows="20" style="width:100%;max-width:800px;font-family:monospace;"><?php echo esc_textarea( $terms['content'] ); ?></textarea>
 			<p><button type="submit" class="button button-primary">Save &amp; publish new version</button></p>
+		</form>
+		<hr>
+		<h2>Publish a new version</h2>
+		<p>Use this after changing the agreement&#8217;s text on the Travel Rules page (Gate 12). It starts version <strong><?php echo (int) $terms['version'] + 1; ?></strong>: every member is asked to read and accept the agreement again, once, on their next page load (you too). Trip Agreements are not affected.</p>
+		<form method="post">
+			<?php wp_nonce_field( 'cbv_publish_terms_version', 'cbv_publish_version_nonce' ); ?>
+			<p><label><input type="checkbox" name="cbv_publish_version_confirm" value="1"> I understand every member will be asked to re-accept.</label></p>
+			<p><button type="submit" class="button">Publish version <?php echo (int) $terms['version'] + 1; ?></button></p>
 		</form>
 	</div>
 	<?php
