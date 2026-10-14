@@ -280,8 +280,14 @@ function cb_trip_next_payment_amount( $trip_id, $user_id ) {
 	$paid_count  = count( cb_trip_payments_for_user( $trip_id, $user_id ) );
 	$installs    = max( 1, (int) get_post_meta( $trip_id, 'cb_num_installments', true ) );
 
+	// No deposit (owner, 2026-10-14, trip 181): the fee is split into up to
+	// $installs equal payments, the first one included.
+	if ( $deposit <= 0 ) {
+		return round( $balance / max( 1, $installs - $paid_count ), 2 );
+	}
+
 	if ( $paid_count === 0 ) {
-		return min( $deposit > 0 ? $deposit : $balance, $balance );
+		return min( $deposit, $balance );
 	}
 
 	$remaining_installments = max( 1, $installs - ( $paid_count - 1 ) );

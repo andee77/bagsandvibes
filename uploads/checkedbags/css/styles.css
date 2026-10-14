@@ -4012,3 +4012,35 @@ body.admin-bar .site-header { top: 32px; }
 .trip-detail-rules .cbv-trip-agreement-version,
 .trip-detail-rules .cbv-trip-agreement-text,
 .trip-detail-rules .cbv-trip-agreement-status { color: var(--ink); }
+
+/* ==========================================================================
+   Step 12a (owner, 2026-10-14): the "Who does what" disclosure on trip pages
+   (old public page, members' page) and the Terms of Service page.
+   ========================================================================== */
+.cbv-who--page,
+.cbv-who--terms {
+  margin: 2.5rem 0 0;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid rgba(22,35,43,0.15);
+  border-left: 3px solid var(--gold);
+  border-radius: 4px;
+  background: rgba(232,169,78,0.06);
+  font-family: var(--font-body);
+  color: var(--ink);
+}
+.cbv-who--page .cbv-who-title,
+.cbv-who--terms .cbv-who-title {
+  margin: 0 0 0.6rem;
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.cbv-who--page p,
+.cbv-who--terms p { margin: 0 0 0.6rem; font-size: 0.95rem; line-height: 1.65; color: var(--ink); }
+.cbv-who--page .cbv-who-updated,
+.cbv-who--terms .cbv-who-updated { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.04em; color: rgba(22,35,43,0.6); margin: 0; }
+.cbv-text-page .gate-page-content .cbv-who--terms .cbv-who-title { margin-top: 0; font-family: var(--font-mono); font-style: normal; font-size: 0.78rem; }

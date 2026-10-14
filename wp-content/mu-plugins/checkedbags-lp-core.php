@@ -166,6 +166,11 @@ function cbv_lp_render_trip( $trip_id, $view = 'new' ) {
 			$legacy = cbv_lp_strip_legacy_cta( $legacy );
 		}
 	}
+	if ( function_exists( 'cbv_lp_render_how' ) ) {
+		// Step 12a: How to book (when on), then the "Who does what" disclosure (always).
+		echo cbv_lp_render_how( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
+		echo cbv_lp_render_who( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
+	}
 	echo '<div class="cbv-lp-legacy-wrap">' . $legacy . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput -- the renderer escapes its own output
 	return ob_get_clean();
 }

@@ -1683,3 +1683,142 @@ body.cbv-lp .cbv-lp-prices-notes p {
 		transition: none;
 	}
 }
+
+/* ---- Step 12a: How to book (dark band) + "Who does what" ---- */
+body.cbv-lp .cbv-lp-how {
+	background: var(--cbv-horizon);
+}
+
+body.cbv-lp .cbv-lp-how-inner {
+	padding-top: 96px;
+	padding-bottom: 96px;
+	display: flex;
+	flex-direction: column;
+	gap: 44px;
+}
+
+body.cbv-lp .cbv-lp-how-head {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+body.cbv-lp .cbv-lp-how-steps {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr));
+	gap: 28px;
+	margin: 0 !important;
+	padding: 0 !important;
+	list-style: none !important;
+}
+
+body.cbv-lp .cbv-lp-how-step {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding-top: 18px;
+	border-top: 1px solid rgba(232, 169, 78, 0.45);
+	margin: 0 !important;
+}
+
+body.cbv-lp .cbv-lp-how-num {
+	font-family: 'Space Mono', monospace;
+	font-size: 14px;
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	color: var(--cbv-coral);
+}
+
+body.cbv-lp .cbv-lp-how-title {
+	font-family: 'Fraunces', serif;
+	font-style: italic;
+	font-weight: 500;
+	font-size: 24px;
+	line-height: 1.2;
+	color: var(--cbv-cream);
+}
+
+body.cbv-lp .cbv-lp-how-body {
+	font-size: 15px;
+	line-height: 1.6;
+	color: rgba(251, 243, 231, 0.85);
+}
+
+body.cbv-lp .cbv-lp-how-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 16px 28px;
+}
+
+body.cbv-lp .cbv-lp-how-btn {
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
+	box-sizing: border-box;
+	padding: 14px 24px;
+	border-radius: 2px;
+	background: var(--cbv-coral);
+	color: var(--cbv-ink) !important;
+	font-family: 'Space Mono', monospace;
+	font-weight: 700;
+	font-size: 13px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	text-decoration: none !important;
+}
+
+body.cbv-lp .cbv-lp-how-link {
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
+	color: var(--cbv-cream) !important;
+	font-size: 15px;
+	text-decoration: underline !important;
+	text-underline-offset: 3px;
+}
+
+body.cbv-lp .cbv-lp-who {
+	background: var(--cbv-deep);
+	border-top: 1px solid rgba(232, 169, 78, 0.3);
+}
+
+body.cbv-lp .cbv-lp-who .cbv-lp-inner {
+	padding-top: 48px;
+	padding-bottom: 48px;
+}
+
+body.cbv-lp .cbv-who {
+	max-width: 820px;
+}
+
+body.cbv-lp .cbv-who-title {
+	margin: 0 0 12px !important;
+	font-family: 'Space Mono', monospace !important;
+	font-size: 13px !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	color: var(--cbv-gold) !important;
+}
+
+body.cbv-lp .cbv-who p {
+	margin: 0 0 10px !important;
+	font-size: 15px;
+	line-height: 1.65;
+	color: rgba(251, 243, 231, 0.85) !important;
+}
+
+body.cbv-lp .cbv-who .cbv-who-updated {
+	font-family: 'Space Mono', monospace;
+	font-size: 12px;
+	letter-spacing: 0.06em;
+	color: rgba(251, 243, 231, 0.55) !important;
+}
+
+@media (max-width: 600px) {
+	body.cbv-lp .cbv-lp-how-inner {
+		padding-top: 64px;
+		padding-bottom: 64px;
+	}
+}

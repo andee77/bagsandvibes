@@ -905,6 +905,18 @@ Each trip has **one** rules text: its **Trip Agreement** (Trips: https://bagsand
 
 ---
 
+## 19. How to book and "Who does what" (Step 12a)
+**Where:** Settings > How to Book & Disclosure (https://bagsandvibes.com/wp-admin/options-general.php?page=cbv-how-to-book).
+- **How-to-book steps:** the steps every trip shows in the new design, after the price board ("Gate nn · Check-in"). A trip whose provider has its own How-to-book steps shows those instead. Tick **Fee step** on the step about the CBGV Group Experience Fee: it is left out on a trip with no fee, and the heading's count adjusts ("Four steps to the gangway" on cruises, "Four steps to your trip" on other types). To remove a step, empty its title and text; two empty rows are always there for new steps. Each trip can switch the section off (Trip edit screen, Sections table, "How to book").
+- **"Who does what" disclosure:** shown on every trip page (new design, old page, members' page) and on the Terms of Service page after section 2 (the page holds the short code `[cbv_who_does_what]`; don't delete it). "Last updated" changes by itself when you change the text. Plain text; a blank line starts a new paragraph.
+- **Rules:** never write "CBGV books your cabin" (the travel advisor books the cabin) and never name InteleTravel on the site.
+- **Installments with no deposit (Gate 09):** on a trip set to deposit + installments with a **$0 deposit**, the CBGV Group Experience Fee is split into equal payments, up to the number of installments (e.g. $225 over 3 = $75 each). With a deposit, the first payment is the deposit, as before.
+
+### Common mistakes
+- A provider with placeholder How-to-book steps (e.g. "Test Provider") replaces your steps on its trips: clear the provider's steps or switch the trip's provider.
+
+---
+
 ## Coming in later steps (this file will be extended after each)
 - Registration opt-outs (gratuities and Voyage Protection) and the decline acknowledgment
 - Included cards and upgrades; pack list, group perks and timeline

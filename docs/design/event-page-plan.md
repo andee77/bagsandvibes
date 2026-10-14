@@ -44,6 +44,7 @@ Virgin Voyages is seeded from the reference (separate approval; text reviewed in
 | 10 | Included cards, upgrades | |
 | 11 | Pack list, perks, timeline (provider merge) | |
 | 12 | How to book, member hint, travel docs (trip-side document editor, see below), footer; **brand features** (provider box, trip tick-list, "Only on {provider}" section) and **hide an inherited provider document on a trip** (see "Brand features ..." below) | |
+| 12a | How to book (default steps setting, fee step, heading count) + "Who does what" disclosure on every trip page and the Terms page; Gate 09 no-deposit installments | Built 2026-10-14 (29 checks, 24 fail on the live files); deployed with the owner's OK. Plan: `step12a-build-plan.md` |
 | 12b | **Provider glossary** ("Use the cruise line's own words" switch, `{term:...}` tokens; see "Brand features ..." below). After Step 12 so it can be checked against every section's wording | |
 | 13 | Wedding sections (story, schedule, RSVP) | |
 | 14 | "Copy this trip" | |
@@ -159,6 +160,20 @@ Owner decisions after the launch audit, built as one small step (diff shown befo
 - **Four new How-to-book steps** and a **"Who does what" disclosure**: the owner is sending the exact text as a file; it is recorded here word for word when it arrives. Used as the **How-to-book seed** (Step 12) and on the **Terms page** (footer, Step 12).
 - **Rule: "CBGV books your cabin" must never appear**, in any wording, anywhere on the site, in proposals or in emails. **The travel advisor books the cabin** (through InteleTravel); CBGV runs the group program and charges the CBGV Group Experience Fee. Checked in every step that writes booking wording, and again at go-live.
 - The disclosure must be **live on every trip page** before go-live (see the go-live checklist).
+
+### Text received 2026-10-14 (word for word)
+**HOW TO BOOK (4 steps)**
+1. **Register for the trip.** Tell us who's coming and which cabin you'd like.
+2. **Book your cabin with our travel advisor.** Andrea M. Peaten, our independent travel advisor, books your cabin, and the cruise line sends you a secure link to pay your deposit directly to them.
+3. **Pay the CBGV Group Experience Fee.** This is paid separately to Checked Bags & Good Vibes, for the group program.
+4. **You're cleared for boarding.** Log in anytime to see your trip, payments and updates.
+
+**WHO DOES WHAT (disclosure)**
+> Checked Bags & Good Vibes is a d/b/a of JourneyWell Global LLC, run by co-founder and COO LaDon Headen. CBGV organizes the group program and charges the CBGV Group Experience Fee. Travel is booked separately by Andrea M. Peaten, an independent travel advisor, and paid directly to the cruise line or travel supplier. Andrea M. Peaten is also an owner of JourneyWell Global LLC. She receives standard commissions from travel suppliers for the travel she books, separate from the CBGV Group Experience Fee. CBGV never collects or holds payments for travel. When a CBGV host travels with the group, their travel is paid for from CBGV Group Experience Fees, or with a complimentary cabin, room or seat provided to the group by the travel supplier.
+
+(Owner: "Wording may be updated after InteleTravel and the attorney reply." So both texts must be editable in wp-admin without code.)
+
+**Seed decisions (2026-10-14):** the Virgin seed does NOT write revision 4's three How-to-book steps (these four replace them). Accessibility bullet becomes: "Accessible cabins are limited. Ask your travel advisor to check availability when you book." Fare cards at one line each are fine. Seed text: `docs/design/virgin-voyages-seed-text-rev4.md`.
 
 ## Member Payment page and the Step 8b fee (recorded 2026-10-08)
 - **Before this change (Gate 09):** the Payment page billed through Stripe (live keys) a per-member amount = **Price per person** (`cb_price`) + **Extras Cost** (`cb_extras_cost`). On 2026-10-08 trip 181 = $0 + $225 and Helmets (320) = $0 + $150 (the fee was being held in Extras Cost); no payments recorded on either. Public pages never showed this amount.
