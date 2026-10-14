@@ -86,6 +86,37 @@ The design reference's hero video (`e6a988c7`) and poster (`686f75df`) are the T
 
 **Usage note in the file's own metadata:** "Usage: Worldwide/universal unlimited rights in perpetuity for all media including 3rd party usage (Virgin Brands)... Excluding TV + Broadcast." and "Talent Usage: 5 Years Worldwide/universal unlimited rights in perpetuity..." The talent line is ambiguous (5 years from a Sept 2021 shoot would end around Sept 2026). The model is not identifiable (a foot only); if in doubt, confirm with Virgin's First Mates team or swap the share image for the hero poster (media 406). No alt text is set on this image yet.
 
+## Intro, price board, route days and 10th gallery print, trip 181 — uploaded 2026-10-14
+These all come from the First Mates marketing toolkit and were reviewed on 2026-10-14 (proposal in `docs/audits/photos-2026-10-14/`). The owner approved them the same day.
+- **Web copies:** 2400px on the longest side, JPEG quality 82, **no cropping or other change**.
+- **Metadata:** EXIF, XMP and IPTC are kept, including credit and copyright. GPS location data is removed from both EXIF and XMP.
+- **Checks:** no offer stamps, no suite-only spaces, no wrong ship name, and no logo cut off at an edge. No talent-usage note in any file.
+- **Alt text** is set in each Media Library entry. The page frame trims the edges (4:3 polaroid, 3:2 day cards, 4:5 prints); the files themselves are not cropped.
+
+| Media ID | Web file (Media Library) | Original toolkit file | What it shows | Used as | Focus | Caption | Credit in file | Status |
+|---|---|---|---|---|---|---|---|---|
+| 444 | `img-val-2023-bim-bimini-beach-club-sunset-port-62418-uncropped-web.jpg` | `IMG-VAL-2023-BIM-Bimini-Beach-Club-sunset-port-62418-UNCROPPED.jpg` | Two friends hugging on the pier in Bimini at sunset | Intro photo | Centre | Your crew, golden hour | — | uploaded |
+| 445 | `img-val-2022-ls-cabin-12675-2-uncropped-web.jpg` | `IMG-VAL-2022-LS-cabin-12675-2-UNCROPPED.jpg` | A Sea Terrace cabin (hammock on the balcony), with a guest holding a coffee | Price board photo 1 | Centre | — | alberto oviedo | uploaded |
+| 446 | `img-val-2023-fnb-the-dock-sunset-lifestyle-39504-2-uncropped-web.jpg` | `IMG-VAL-2023-FNB-the-dock-sunset-lifestyle-39504-2-UNCROPPED.jpg` | A woman at Valiant Lady's deck rail at sunset | Route Day 1 | Centre | — | alberto oviedo | uploaded |
+| 447 | `img-val-2022-ls-dockhouse-fooddrinks-11449-uncropped-web.jpg` | `IMG-VAL-2022-LS-dockhouse-fooddrinks-11449-UNCROPPED.jpg` | Small plates from The Dock House on a deck table | Route Day 4 | Centre | — | alberto oviedo | uploaded |
+| 448 | `img-val-2023-bim-bimini-beach-club-boardwalk-pool-55235-2-uncropped-web.jpg` | `IMG-VAL-2023-BIM-Bimini-Beach-Club-boardwalk-pool-55235-2-UNCROPPED.jpg` | A couple walking along the boardwalk at The Beach Club at Bimini | Route Day 5 | Centre | — | alberto oviedo | uploaded |
+| 449 | `img-virgin-voyages-terminal-v-007-web.jpg` | `IMG-VIRGIN-VOYAGES-TERMINAL-V-007.JPG` | Terminal V in Miami at night ("VOYAGES" sign mid-frame) | Route Day 6 | Centre | — | We Fly Media; "2022 © Virgin Voyages - We Fly Media" | uploaded |
+| 450 | `img-fnb-girls-ice-cream-cones-ginajoyphoto-web.jpg` | `IMG-FNB-Girls-Ice-Cream-Cones-ginajoyphoto.jpg` | Two friends with ice cream cones on a lounge sofa (no ship named) | Gallery 10 | Centre | Ice cream o'clock | "@ginajoyphoto" in the description (credits optional, see above) | uploaded |
+
+**Left empty by the owner (2026-10-14):** price board photo 2, route Day 2 and Day 3.
+
+**Reviewed and not used (2026-10-14):**
+| Original toolkit file | Why not |
+|---|---|
+| `Virgin Voyages - Caribbean Shore Things - STCROIX.jpg` | St. Croix: not on this itinerary |
+| `Virgin Voyages - The Athletic Club - Woman.jpg` | A large Virgin logo is cut off by the left edge |
+| `IMG-VAL-2022-ENT-manor-happenings-makeup-9202-UNCROPPED.jpg` | Crew performers backstage; a make-up brand shows at the bottom edge |
+| `IMG-FNB-Ice-Cream-Cones-ginajoyphoto.jpg` | Safety signs along the right edge |
+| `IMG-FNB-You-Want-A-Pizza-Me-Girls-ginajoyphoto.jpg` | Same models as media 450; the gallery already has a pizza photo (415) |
+| `Virgin Voyages - The Manor Entrance.jpg` | Low resolution (800×533) |
+| `IMG-SPC-Roundabout-ginajoyphoto.jpg`, `Virgin Voyages - Bimini Beach Club Drone Expanded.jpg`, `Virgin Voyages - The Manor - Never Sleep Alone 136.jpg`, `Virgin Voyages - The Manor - Never Sleep Alone  1403.jpg` (only 1200×630) | Reserves (fine to use later) |
+| `valiant-lady-sunset.jpg` | **On hold: source not confirmed.** The file has no metadata and isn't named like a toolkit file. It may be used only once the owner confirms it came from the First Mates toolkit. |
+
 ## Images created by CBGV (not Virgin assets)
 These are CBGV's own work, not from the First Mates toolkit, so the Virgin asset rules above do not apply to them.
 

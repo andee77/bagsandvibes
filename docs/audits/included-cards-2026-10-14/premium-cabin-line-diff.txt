@@ -1,0 +1,5 @@
+changed: cbv_lp_included
+  [2] before: {"label":"FARE · MOST PERKS","title":"Premium","subline":"INSIDER · SEA VIEW · SEA TERRACE","bullets":"Date & cabin changes; transfer your booking to someone else","style":"gold","wide":0}
+  [2] after:  {"label":"FARE · MOST PERKS","title":"Premium","subline":"INSIDER · SEA VIEW · SEA TERRACE · SEA TERRACE XL","bullets":"Date & cabin changes; transfer your booking to someone else","style":"gold","wide":0}
+only cbv_lp_included changed
+snapshots: ~/logs/old/provider443-{before,after}-premium-20261014-214103.json
