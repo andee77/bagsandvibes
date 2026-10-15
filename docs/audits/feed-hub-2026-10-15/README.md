@@ -48,3 +48,18 @@
 
 ## Not changed yet
 After sign-in, members still land on **My Passport**. The plan was to switch to the Feed once it has Trip Tips and podcast content, which it now does. That switch is the owner's call.
+
+## Deployed 2026-10-15 (commit ccbe3c4): live check
+- `test_feed_hub.sh` on the live files: 26 checks, 0 failures.
+
+| | Trip 181 member (97) | Member on no trip (107) |
+|---|---|---|
+| Podcast | "Cleared for Boarding", Sep 27, 2026 · 9 min; play button; 4 Listen-on links | same |
+| Trip Tips | Check your Passport | same |
+| Your boards | Annual Family and Friends, Lounge | Lounge only |
+| Open trips | Helmets, then Annual Family and Friends | same |
+| Notices / wall posts / destinations / Spotify for Creators links | none / none / none / none | same |
+
+No trip updates have been written yet, so no Gate notice shows.
+
+After sign-in, members still land on My Passport (owner: switch to the Feed once it has more tips and episodes).
