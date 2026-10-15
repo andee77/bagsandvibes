@@ -146,12 +146,7 @@ function cbv_inc_allin_parts( $trip_id ) {
 	if ( $every( 'protection' ) ) {
 		$out[] = $cruise ? 'Voyage Protection' : 'Travel protection';
 	}
-	if ( $every( 'planning_fee' ) ) {
-		$fee   = function_exists( 'cbv_lp_planning_fee_shown' ) ? cbv_lp_planning_fee_shown( $trip_id, 'page' ) : null;
-		$basis = array( 'per_traveler' => 'per traveler', 'per_cabin' => $cruise ? 'per cabin' : 'per room' );
-		$amt   = $fee ? (float) $fee['amount'] : 0;
-		$out[] = 'CBGV Group Experience Fee' . ( $amt > 0 ? ' ($' . ( floor( $amt ) == $amt ? number_format( $amt ) : number_format( $amt, 2 ) ) . ( isset( $basis[ $fee['basis'] ] ) ? ' ' . $basis[ $fee['basis'] ] : '' ) . ')' : '' );
-	}
+	// The CBGV Group Experience Fee is not listed here (owner, 2026-10-15): it stays in the price breakdown and the board note.
 	return $out;
 }
 
@@ -308,9 +303,10 @@ function cbv_inc_included_body( $trip_id ) {
 	$prov  = function_exists( 'cbv_lp_provider_name' ) ? cbv_lp_provider_name( $trip_id ) : '';
 	$out   = '';
 	if ( $parts ) {
+		// Each part is its own boarding-pass ticket (owner, 2026-10-15; look of the mockup's luggage tags).
 		$out .= '<p class="cbv-inc-sub">In your all-in price</p><ul class="cbv-inc-allin">';
-		foreach ( $parts as $p ) {
-			$out .= '<li><span class="cbv-inc-tick" aria-hidden="true">✓</span>' . esc_html( $p ) . '</li>';
+		foreach ( array_values( $parts ) as $i => $p ) {
+			$out .= '<li class="cbv-inc-ticket"><span class="cbv-inc-ticket-main"><span class="cbv-inc-ticket-label">Included · ' . sprintf( '%02d', $i + 1 ) . '</span><span class="cbv-inc-ticket-title">' . esc_html( $p ) . '</span></span><span class="cbv-inc-ticket-stub" aria-hidden="true">✓</span></li>';
 		}
 		$out .= '</ul>';
 	}

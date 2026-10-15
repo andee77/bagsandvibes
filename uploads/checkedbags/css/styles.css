@@ -4076,8 +4076,12 @@ body.admin-bar .site-header { top: 32px; }
    after the key dates and travel documents (cream styling).
    ========================================================================== */
 .cbv-inc-member .cbv-inc-sub { margin: 1rem 0 0.4rem; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink); opacity: 0.75; }
-.cbv-inc-member .cbv-inc-allin { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.3rem; }
-.cbv-inc-member .cbv-inc-tick { color: var(--teal); font-weight: 700; margin-right: 0.5rem; }
+.cbv-inc-member .cbv-inc-allin { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 0.75rem; }
+.cbv-inc-member .cbv-inc-ticket { display: flex; margin: 0; border: 1px solid rgba(22,35,43,0.15); border-radius: 4px; background: #fff; }
+.cbv-inc-member .cbv-inc-ticket-main { flex: 1 1 auto; display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; padding: 0.8rem 1rem; }
+.cbv-inc-member .cbv-inc-ticket-label { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #8A3A1F; }
+.cbv-inc-member .cbv-inc-ticket-title { font-family: var(--font-display); font-weight: 600; font-size: 1.05rem; color: var(--ink); }
+.cbv-inc-member .cbv-inc-ticket-stub { flex: 0 0 2.75rem; display: flex; align-items: center; justify-content: center; border-left: 2px dashed rgba(22,35,43,0.3); border-radius: 0 4px 4px 0; background: var(--coral); color: var(--ink); font-weight: 700; }
 .cbv-inc-member .cbv-inc-every { margin: 0 0 0.5rem; }
 .cbv-inc-member .cbv-inc-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 0.75rem; }
 .cbv-inc-member .cbv-inc-card { border: 1px solid rgba(22,35,43,0.15); border-radius: 4px; padding: 0.9rem 1rem; display: flex; flex-direction: column; gap: 0.3rem; background: #fff; }

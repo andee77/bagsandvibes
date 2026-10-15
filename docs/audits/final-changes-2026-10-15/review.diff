@@ -1,0 +1,251 @@
+diff --git a/tests/landing/test_included_pack.sh b/tests/landing/test_included_pack.sh
+index 6c5f13b..c0d2974 100644
+--- a/tests/landing/test_included_pack.sh
++++ b/tests/landing/test_included_pack.sh
+@@ -20,13 +20,13 @@ check "running against the temp mu-plugins copy" "$(grep -c '/tmp/cbv_mu' /tmp/c
+ 
+ # 1. "In your all-in price".
+ out=$(weval 'echo implode( "|", cbv_inc_allin_parts( 181 ) );')
+-check "181: all five parts, in order, with the fee amount" "$([ "$out" = 'Cruise fare|Taxes & fees|Prepaid gratuities|Voyage Protection|CBGV Group Experience Fee ($225 per traveler)' ] && echo 1 || echo 0)" "($out)"
++check "181: the four parts, in order; never the CBGV fee (owner, 2026-10-15)" "$([ "$out" = 'Cruise fare|Taxes & fees|Prepaid gratuities|Voyage Protection' ] && echo 1 || echo 0)" "($out)"
+ out=$(weval "$(TIERS '$t[0]["occupancy_points"][0]["gratuities"] = 0;') echo implode( '|', cbv_inc_allin_parts( 181 ) );")
+ check "a part one price doesn't include is left out (gratuities 0 on one price)" "$(( $(hasnt "$out" 'Prepaid gratuities') * $(has "$out" 'Taxes & fees') ))" "($out)"
+ out=$(weval "$(TIERS 'foreach ( $t as &$tt ) { foreach ( $tt["occupancy_points"] as &$pp ) { $pp["discount"] = 50; } }') echo implode( '|', cbv_inc_allin_parts( 181 ) );")
+ check "never \"at our group rate\", even with a discount on every price (owner, 2026-10-14)" "$(( $(has "$out" '^Cruise fare|') * $(hasnt "$out" 'group rate') ))" "($out)"
+ out=$(weval 'add_filter( "get_post_metadata", function ( $v, $id, $k ) { return ( 181 === (int) $id && "cbv_lp_planning_fee" === $k ) ? array( array( "mode" => "none", "amount" => 0, "basis" => "per_traveler" ) ) : $v; }, 1, 3 ); echo implode( "|", cbv_inc_allin_parts( 181 ) );')
+-check "no CBGV fee on the trip: no fee line" "$(hasnt "$out" 'CBGV Group Experience Fee')" "($out)"
++check "no CBGV fee on the trip: still no fee line" "$(hasnt "$out" 'CBGV Group Experience Fee')" "($out)"
+ out=$(weval 'add_filter( "get_post_metadata", function ( $v, $id, $k ) { return ( 181 === (int) $id && "cbv_lp_event_type" === $k ) ? array( "resort" ) : $v; }, 1, 3 ); echo implode( "|", cbv_inc_allin_parts( 181 ) );')
+ check "other trip types say \"Travel price\" and \"Travel protection\"" "$(( $(has "$out" '^Travel price|') * $(has "$out" 'Travel protection') ))" "($out)"
+ 
+@@ -45,9 +45,11 @@ check "no price board yet: every card shows" "$([ "$out" = '5' ] && echo 1 || ec
+ 
+ # 2. New design (181 preview with the proposed content).
+ h=$(render "/trip/annual-family-and-friends/?preview=new" 1)
+-check "preview: \"Gate 22 · What's included\" and \"Gate 23 · Pack list\" after Travel documents, before Who does what" "$(python3 -c 'import sys; h=sys.stdin.read(); a=[h.find(x) for x in ("class=\"cbv-lp-docs\"","class=\"cbv-lp-included\"","class=\"cbv-lp-pack\"","class=\"cbv-lp-who\"")]; print(1 if -1 not in a and a==sorted(a) and "Gate 22 · What&#039;s included" in h and "Gate 23 · Pack list" in h else 0)' <<< "$h")"
++check "preview: mockup order: fare classes, \"Gate 19 · What's included\", \"Gate 20 · Pack list\", How to book, Countdown, then Travel documents last (Gate 23), then Who does what" "$(python3 -c 'import sys; h=sys.stdin.read(); a=[h.find(x) for x in ("class=\"cbv-lp-prices\"","class=\"cbv-lp-included\"","class=\"cbv-lp-pack\"","class=\"cbv-lp-how\"","class=\"cbv-lp-countdown\"","class=\"cbv-lp-docs\"","class=\"cbv-lp-who\"")]; print(1 if -1 not in a and a==sorted(a) and "Gate 19 · What&#039;s included" in h and "Gate 20 · Pack list" in h and "Gate 23 · Travel documents" in h and "Gate 24" not in h else 0)' <<< "$h")"
++
+ check "preview: heading \"Every fare comes with extras\" and the three-part lede" "$(( $(has "$h" '>Every fare comes with extras<') * $(has "$h" 'What your all-in price covers, what Virgin Voyages includes with each fare, and what our group adds.') ))"
+ check "preview: 1 cruise-line card (the board offers Premium only), verified lines only (no Wi-Fi, credits, bar tab, VIP boarding, terrace shower)" "$(( $([ "$(grep -o 'class="cbv-inc-card[" ]' <<< "$h" | wc -l)" -eq 1 ] && [ "$(grep -c '>Premium<' <<< "$h")" -ge 1 ] && echo 1 || echo 0) * $(hasnt "$h" 'Wi-Fi') * $(hasnt "$h" 'onboard credit') * $(hasnt "$h" 'bar tab per') * $(hasnt "$h" 'VIP early boarding') * $(hasnt "$h" 'terrace shower') ))"
++check "preview: each all-in part is its own ticket (label, title, stub); no CBGV fee in the list" "$(( $([ "$(grep -o 'class="cbv-inc-ticket"' <<< "$h" | wc -l)" -eq 4 ] && echo 1 || echo 0) * $(has "$h" '<span class="cbv-inc-ticket-label">Included · 01</span><span class="cbv-inc-ticket-title">Cruise fare</span>') * $(has "$h" 'class="cbv-inc-ticket-stub" aria-hidden="true"') * $(python3 -c 'import sys,re; h=sys.stdin.read(); m=re.search(r"<ul class=\"cbv-inc-allin\">(.*?)</ul>", h, re.S); print(1 if m and "Group Experience Fee" not in m.group(1) else 0)' <<< "$h") ))"
+ check "preview: the provider footnote \"Perks vary by fare...\"" "$(has "$h" 'Perks vary by fare. Your travel advisor will confirm exactly what&#039;s included when you book.')"
+ check "preview: the 6-line group program and its note; no swag, no host line" "$(( $(python3 -c 'import sys,re; h=sys.stdin.read(); m=re.search(r"<ul class=\"cbv-inc-program-list\">(.*?)</ul>", h, re.S); print(1 if m and m.group(1).count("<li>")==6 else 0)' <<< "$h") * $(has "$h" 'Coffee and goodbyes (Day 6)') * $(has "$h" 'All events and times are subject to change.') * $(hasnt "$h" 'swag') * $(hasnt "$h" 'On-trip CBGV host\|An on-trip CBGV host') ))"
+ check "preview: 4 tags numbered TAG 01-04, the forecast chip" "$(( $(has "$h" '>Tag 01 · Theme nights<') * $(has "$h" '>Tag 04 · Cabin kit<') * $(hasnt "$h" '>Tag 05') * $(has "$h" 'class="cbv-lp-pack-forecast">FORECAST · LOW 80s °F · WARM &amp; TROPICAL<') ))"
+@@ -61,7 +63,7 @@ check "preview: route note \"All events and times are subject to change.\" under
+ h=$(render /trip/annual-family-and-friends/ 0)
+ check "old public page: keeps Highlights (new Bimini wording), no new sections" "$(( $(has "$h" 'cbv-landing-highlights') * $(has "$h" 'lounging in a private cabana at The Beach Club at Bimini') * $(hasnt "$h" 'cbv-inc-') ))"
+ h=$(render /trip/annual-family-and-friends/ 1)
+-check "members' page: What's included and Pack list, after the travel documents, before Who's going" "$(python3 -c 'import sys; h=sys.stdin.read(); a=[h.find(x) for x in ("cbv-kd-member--docs","cbv-inc-member--included","cbv-inc-member--pack")]; w=max(h.find("Who&#039;s going"), h.find("Who'"'"'s going")); print(1 if -1 not in a and a==sorted(a) and w>a[-1] else 0)' <<< "$h")"
++check "members' page: What's included and Pack list, then the travel documents (fine print last), before Who's going" "$(python3 -c 'import sys; h=sys.stdin.read(); a=[h.find(x) for x in ("cbv-inc-member--included","cbv-inc-member--pack","cbv-kd-member--docs")]; w=max(h.find("Who&#039;s going"), h.find("Who'"'"'s going")); print(1 if -1 not in a and a==sorted(a) and w>a[-1] else 0)' <<< "$h")"
+ h=$(render /trip/annual-family-and-friends/ 105)
+ check "a traveler who still has to accept the trip agreement sees neither" "$(( $(has "$h" 'trip-agreement-gate') * $(hasnt "$h" 'cbv-inc-member') ))"
+ 
+diff --git a/tests/landing/test_step7.php b/tests/landing/test_step7.php
+index fb56592..53179c6 100644
+--- a/tests/landing/test_step7.php
++++ b/tests/landing/test_step7.php
+@@ -162,7 +162,7 @@ check( 'hidden by default for corporate', null === cbv_lp_gallery_data( TRIP ) )
+ /* ---- E. page assembly (REAL trip 181) ---- */
+ section( 'E. page assembly' );
+ $page = cbv_lp_render_trip( 181, 'new_preview' );
+-check( 'REAL trip 181 (content set 2026-10-05/08): intro 14, route 15, Scarlet Night featured 16, gallery 17 with 9 prints', false !== strpos( $page, 'Gate 14 · The trip' ) && false !== strpos( $page, 'Gate 15 · Flight path' ) && ( false !== strpos( $page, 'Gate 16 · After dark' ) || false !== strpos( $page, 'Gate 16 · Day 02 · After dark' ) ) /* Day 02 since 2026-10-14 (was Day 04 earlier that day) */ && false !== strpos( $page, 'id="cbv-lp-featured-title">Scarlet Night</h2>' ) && false !== strpos( $page, 'Gate 17 · Life on board' ) && 9 === substr_count( $page, '<li class="cbv-lp-print-item">' ) );
++check( 'REAL trip 181 (content set 2026-10-05/08): intro 14, route 15, Scarlet Night featured 16, gallery 17 with 10 prints (10th added 2026-10-14)', false !== strpos( $page, 'Gate 14 · The trip' ) && false !== strpos( $page, 'Gate 15 · Flight path' ) && ( false !== strpos( $page, 'Gate 16 · After dark' ) || false !== strpos( $page, 'Gate 16 · Day 02 · After dark' ) ) /* Day 02 since 2026-10-14 (was Day 04 earlier that day) */ && false !== strpos( $page, 'id="cbv-lp-featured-title">Scarlet Night</h2>' ) && false !== strpos( $page, 'Gate 17 · Life on board' ) && 10 === substr_count( $page, '<li class="cbv-lp-print-item">' ) );
+ $fake[ 181 ] = array( 'cbv_lp_featured' => array( 'title' => 'Scarlet Night', 'day' => 2, 'colour' => 'red' ), 'cbv_lp_gallery' => gallery_of( 4 ) );
+ $page = cbv_lp_render_trip( 181, 'new' );
+ check( 'order: route, featured, gallery, legacy content', strpos( $page, 'class="cbv-lp-route"' ) < strpos( $page, 'class="cbv-lp-featured' ) && strpos( $page, 'class="cbv-lp-featured' ) < strpos( $page, 'class="cbv-lp-gallery"' ) && strpos( $page, 'class="cbv-lp-gallery"' ) < strpos( $page, 'cbv-lp-legacy-wrap' ) );
+diff --git a/uploads/checkedbags/css/styles.css b/uploads/checkedbags/css/styles.css
+index 4967565..1c31212 100644
+--- a/uploads/checkedbags/css/styles.css
++++ b/uploads/checkedbags/css/styles.css
+@@ -4076,8 +4076,12 @@ body.admin-bar .site-header { top: 32px; }
+    after the key dates and travel documents (cream styling).
+    ========================================================================== */
+ .cbv-inc-member .cbv-inc-sub { margin: 1rem 0 0.4rem; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink); opacity: 0.75; }
+-.cbv-inc-member .cbv-inc-allin { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.3rem; }
+-.cbv-inc-member .cbv-inc-tick { color: var(--teal); font-weight: 700; margin-right: 0.5rem; }
++.cbv-inc-member .cbv-inc-allin { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 0.75rem; }
++.cbv-inc-member .cbv-inc-ticket { display: flex; margin: 0; border: 1px solid rgba(22,35,43,0.15); border-radius: 4px; background: #fff; }
++.cbv-inc-member .cbv-inc-ticket-main { flex: 1 1 auto; display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; padding: 0.8rem 1rem; }
++.cbv-inc-member .cbv-inc-ticket-label { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #8A3A1F; }
++.cbv-inc-member .cbv-inc-ticket-title { font-family: var(--font-display); font-weight: 600; font-size: 1.05rem; color: var(--ink); }
++.cbv-inc-member .cbv-inc-ticket-stub { flex: 0 0 2.75rem; display: flex; align-items: center; justify-content: center; border-left: 2px dashed rgba(22,35,43,0.3); border-radius: 0 4px 4px 0; background: var(--coral); color: var(--ink); font-weight: 700; }
+ .cbv-inc-member .cbv-inc-every { margin: 0 0 0.5rem; }
+ .cbv-inc-member .cbv-inc-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 0.75rem; }
+ .cbv-inc-member .cbv-inc-card { border: 1px solid rgba(22,35,43,0.15); border-radius: 4px; padding: 0.9rem 1rem; display: flex; flex-direction: column; gap: 0.3rem; background: #fff; }
+diff --git a/uploads/checkedbags/css/trip-landing.css b/uploads/checkedbags/css/trip-landing.css
+index 9f1e220..9560fb7 100644
+--- a/uploads/checkedbags/css/trip-landing.css
++++ b/uploads/checkedbags/css/trip-landing.css
+@@ -2048,32 +2048,81 @@ body.cbv-lp .cbv-inc-sub {
+ 	color: var(--cbv-gold) !important;
+ }
+ 
++/* "In your all-in price": one boarding-pass ticket per part (owner, 2026-10-15). */
+ body.cbv-lp .cbv-inc-allin {
+ 	display: grid;
+-	grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+-	gap: 14px 28px;
++	grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
++	gap: 18px;
+ 	margin: 0 !important;
+-	padding: 26px 28px !important;
++	padding: 0 !important;
+ 	list-style: none !important;
+-	background: var(--cbv-cream);
+-	color: var(--cbv-ink);
+-	border-radius: 4px;
+-	font-size: 16px;
+ }
+ 
+-body.cbv-lp .cbv-inc-allin li {
++body.cbv-lp .cbv-inc-ticket {
++	position: relative;
+ 	display: flex;
+-	gap: 10px;
+-	align-items: baseline;
+ 	margin: 0 !important;
++	overflow: hidden; /* the stub's notches cut in, never stick out */
++	border-radius: 4px;
++	background: var(--cbv-cream);
+ 	color: var(--cbv-ink) !important;
++	box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+ }
+ 
+-body.cbv-lp .cbv-inc-tick {
+-	color: var(--cbv-teal);
++body.cbv-lp .cbv-inc-ticket-main {
++	flex: 1 1 auto;
++	display: flex;
++	flex-direction: column;
++	gap: 8px;
++	min-width: 0;
++	padding: 20px 20px 22px;
++}
++
++body.cbv-lp .cbv-inc-ticket-label {
++	font-family: 'Space Mono', monospace;
++	font-size: 11px;
+ 	font-weight: 700;
++	letter-spacing: 0.14em;
++	text-transform: uppercase;
++	color: #8A3A1F;
+ }
+ 
++body.cbv-lp .cbv-inc-ticket-title {
++	font-family: 'Fraunces', serif;
++	font-size: 22px;
++	font-weight: 600;
++	line-height: 1.15;
++}
++
++/* The tear-off stub: coral, behind a dashed perforation with a notch top and bottom. */
++body.cbv-lp .cbv-inc-ticket-stub {
++	position: relative;
++	flex: 0 0 56px;
++	display: flex;
++	align-items: center;
++	justify-content: center;
++	border-left: 2px dashed rgba(22, 35, 43, 0.35);
++	border-radius: 0 4px 4px 0;
++	background: var(--cbv-coral);
++	color: var(--cbv-ink);
++	font-size: 22px;
++	font-weight: 700;
++}
++
++body.cbv-lp .cbv-inc-ticket-stub::before,
++body.cbv-lp .cbv-inc-ticket-stub::after {
++	content: '';
++	position: absolute;
++	left: -9px;
++	width: 16px;
++	height: 16px;
++	border-radius: 50%;
++	background: var(--cbv-horizon);
++}
++
++body.cbv-lp .cbv-inc-ticket-stub::before { top: -8px; }
++body.cbv-lp .cbv-inc-ticket-stub::after { bottom: -8px; }
++
+ body.cbv-lp .cbv-inc-every {
+ 	margin: 0 !important;
+ 	font-size: 15px;
+diff --git a/wp-content/mu-plugins/checkedbags-gate07.php b/wp-content/mu-plugins/checkedbags-gate07.php
+index 37d5f5b..3409848 100644
+--- a/wp-content/mu-plugins/checkedbags-gate07.php
++++ b/wp-content/mu-plugins/checkedbags-gate07.php
+@@ -438,9 +438,9 @@ add_filter( 'the_content', function ( $content ) {
+ 		</div>
+ 		<?php endif; ?>
+ 
+-		<?php // Key dates + travel documents (owner, 2026-10-14): only here, inside the details shown after the agreement is accepted. ?>
+-		<?php echo function_exists( 'cbv_render_member_countdown_docs' ) ? cbv_render_member_countdown_docs( $post->ID ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside ?>
++		<?php // What's included + Pack list, then key dates + travel documents (the fine print last, owner 2026-10-15): only here, inside the details shown after the agreement is accepted. ?>
+ 		<?php echo function_exists( 'cbv_render_member_included_pack' ) ? cbv_render_member_included_pack( $post->ID ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside ?>
++		<?php echo function_exists( 'cbv_render_member_countdown_docs' ) ? cbv_render_member_countdown_docs( $post->ID ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside ?>
+ 
+ 		<div class="trip-detail-section">
+ 			<h3>Who's going (<?php echo count( $roster ); ?>)</h3>
+diff --git a/wp-content/mu-plugins/checkedbags-lp-core.php b/wp-content/mu-plugins/checkedbags-lp-core.php
+index bfe2197..8aa6023 100644
+--- a/wp-content/mu-plugins/checkedbags-lp-core.php
++++ b/wp-content/mu-plugins/checkedbags-lp-core.php
+@@ -166,6 +166,14 @@ function cbv_lp_render_trip( $trip_id, $view = 'new' ) {
+ 			$legacy = cbv_lp_strip_legacy_cta( $legacy );
+ 		}
+ 	}
++	// Order from the original mockup (owner, 2026-10-15): fare classes, What's included, Pack list, How to book
++	// (check-in), Countdown, then the fine print (Travel documents) as the last gated section.
++	if ( function_exists( 'cbv_lp_render_included' ) ) {
++		// What's included + Pack list (owner, 2026-10-14); the old Highlights block goes on this design only.
++		echo cbv_lp_render_included( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
++		echo cbv_lp_render_pack( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
++		$legacy = cbv_lp_strip_legacy_highlights( $legacy );
++	}
+ 	if ( function_exists( 'cbv_lp_render_how' ) ) {
+ 		// Step 12a: How to book (when on), then the "Who does what" disclosure (always).
+ 		echo cbv_lp_render_how( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
+@@ -174,12 +182,6 @@ function cbv_lp_render_trip( $trip_id, $view = 'new' ) {
+ 			echo cbv_lp_render_countdown( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
+ 			echo cbv_lp_render_docs( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
+ 		}
+-		if ( function_exists( 'cbv_lp_render_included' ) ) {
+-			// What's included + Pack list (owner, 2026-10-14); the old Highlights block goes on this design only.
+-			echo cbv_lp_render_included( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
+-			echo cbv_lp_render_pack( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
+-			$legacy = cbv_lp_strip_legacy_highlights( $legacy );
+-		}
+ 		echo cbv_lp_render_who( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
+ 	}
+ 	echo '<div class="cbv-lp-legacy-wrap">' . $legacy . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput -- the renderer escapes its own output
+diff --git a/wp-content/mu-plugins/checkedbags-lp-included.php b/wp-content/mu-plugins/checkedbags-lp-included.php
+index 764f3b0..7f06306 100644
+--- a/wp-content/mu-plugins/checkedbags-lp-included.php
++++ b/wp-content/mu-plugins/checkedbags-lp-included.php
+@@ -146,12 +146,7 @@ function cbv_inc_allin_parts( $trip_id ) {
+ 	if ( $every( 'protection' ) ) {
+ 		$out[] = $cruise ? 'Voyage Protection' : 'Travel protection';
+ 	}
+-	if ( $every( 'planning_fee' ) ) {
+-		$fee   = function_exists( 'cbv_lp_planning_fee_shown' ) ? cbv_lp_planning_fee_shown( $trip_id, 'page' ) : null;
+-		$basis = array( 'per_traveler' => 'per traveler', 'per_cabin' => $cruise ? 'per cabin' : 'per room' );
+-		$amt   = $fee ? (float) $fee['amount'] : 0;
+-		$out[] = 'CBGV Group Experience Fee' . ( $amt > 0 ? ' ($' . ( floor( $amt ) == $amt ? number_format( $amt ) : number_format( $amt, 2 ) ) . ( isset( $basis[ $fee['basis'] ] ) ? ' ' . $basis[ $fee['basis'] ] : '' ) . ')' : '' );
+-	}
++	// The CBGV Group Experience Fee is not listed here (owner, 2026-10-15): it stays in the price breakdown and the board note.
+ 	return $out;
+ }
+ 
+@@ -308,9 +303,10 @@ function cbv_inc_included_body( $trip_id ) {
+ 	$prov  = function_exists( 'cbv_lp_provider_name' ) ? cbv_lp_provider_name( $trip_id ) : '';
+ 	$out   = '';
+ 	if ( $parts ) {
++		// Each part is its own boarding-pass ticket (owner, 2026-10-15; look of the mockup's luggage tags).
+ 		$out .= '<p class="cbv-inc-sub">In your all-in price</p><ul class="cbv-inc-allin">';
+-		foreach ( $parts as $p ) {
+-			$out .= '<li><span class="cbv-inc-tick" aria-hidden="true">✓</span>' . esc_html( $p ) . '</li>';
++		foreach ( array_values( $parts ) as $i => $p ) {
++			$out .= '<li class="cbv-inc-ticket"><span class="cbv-inc-ticket-main"><span class="cbv-inc-ticket-label">Included · ' . sprintf( '%02d', $i + 1 ) . '</span><span class="cbv-inc-ticket-title">' . esc_html( $p ) . '</span></span><span class="cbv-inc-ticket-stub" aria-hidden="true">✓</span></li>';
+ 		}
+ 		$out .= '</ul>';
+ 	}

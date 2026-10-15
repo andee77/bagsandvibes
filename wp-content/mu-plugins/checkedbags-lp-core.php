@@ -166,6 +166,14 @@ function cbv_lp_render_trip( $trip_id, $view = 'new' ) {
 			$legacy = cbv_lp_strip_legacy_cta( $legacy );
 		}
 	}
+	// Order from the original mockup (owner, 2026-10-15): fare classes, What's included, Pack list, How to book
+	// (check-in), Countdown, then the fine print (Travel documents) as the last gated section.
+	if ( function_exists( 'cbv_lp_render_included' ) ) {
+		// What's included + Pack list (owner, 2026-10-14); the old Highlights block goes on this design only.
+		echo cbv_lp_render_included( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
+		echo cbv_lp_render_pack( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
+		$legacy = cbv_lp_strip_legacy_highlights( $legacy );
+	}
 	if ( function_exists( 'cbv_lp_render_how' ) ) {
 		// Step 12a: How to book (when on), then the "Who does what" disclosure (always).
 		echo cbv_lp_render_how( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
@@ -173,12 +181,6 @@ function cbv_lp_render_trip( $trip_id, $view = 'new' ) {
 			// Go-live R4/R5: the Countdown (key dates) and Travel documents.
 			echo cbv_lp_render_countdown( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
 			echo cbv_lp_render_docs( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
-		}
-		if ( function_exists( 'cbv_lp_render_included' ) ) {
-			// What's included + Pack list (owner, 2026-10-14); the old Highlights block goes on this design only.
-			echo cbv_lp_render_included( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
-			echo cbv_lp_render_pack( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
-			$legacy = cbv_lp_strip_legacy_highlights( $legacy );
 		}
 		echo cbv_lp_render_who( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
 	}
