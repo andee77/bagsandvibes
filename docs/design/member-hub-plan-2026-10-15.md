@@ -92,7 +92,18 @@ A is first because it's small and visible. B comes before C because the Feed los
 - **Each episode has:** a title, date, description, its own artwork, an MP3 file (playable on the page) and a Spotify episode link.
 - **Server:** the site's server fetches it fine with WordPress's built-in feed reader.
 - **Caching:** checked at most every **6 hours**. If the feed is ever down, the last good copy is shown; with no copy at all, the podcast section hides itself.
-- **Apple Podcasts, Amazon Music and iHeart links aren't in the RSS.** A settings box will take the show's address on each platform. Each "Listen on" button shows only when its address is filled in, and Spotify comes from the feed.
+- **"Listen on" links (owner, 2026-10-15)** live in a settings box (Settings > CBGV Member Features > Podcast), so they can be updated without code. All four were checked on 2026-10-15 and load (HTTP 200).
+
+  | Platform | Show address |
+  |---|---|
+  | Apple Podcasts | https://podcasts.apple.com/us/podcast/the-good-vibe-check/id6819837564 |
+  | Spotify | https://open.spotify.com/show/4QKnVZeCikRxZa5kIvV9J7 |
+  | Amazon Music | https://music.amazon.com/podcasts/2aaf2a45-7d23-49ff-8bf5-7d27758eb4d0/the-good-vibe-check |
+  | iHeartRadio | https://www.iheart.com/podcast/269-the-good-vibe-check-347148735 |
+
+  - The feed address is stored in the same box.
+  - A button shows only when its address is filled in.
+  - Each episode's own RSS link points to podcasters.spotify.com (the Spotify for Creators site), so it is **not used publicly** (owner: creators.spotify.com is the admin page). Episodes play on the page, and the buttons go to the show on each platform.
 
 ---
 
@@ -159,5 +170,5 @@ It would read existing data (rosters, trip agreement acceptances, Gate 09 paymen
 4. **Feed:**
    - OK to remove "Upcoming open trips" and destinations?
    - Include the optional admin **trip updates** box?
-5. **Podcast links:** please send the show's Apple Podcasts, Amazon Music and iHeart addresses, or say whether to start with Spotify only.
+5. ~~Podcast links~~ **Answered 2026-10-15:** Apple, Spotify, Amazon and iHeart show links, stored in a settings field (see section 2).
 6. **Build order** A → B → C, each step with its own diff, tests, screenshots and OK. Approve?
