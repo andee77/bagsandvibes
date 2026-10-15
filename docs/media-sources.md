@@ -2,7 +2,7 @@
 
 One line per Virgin Voyages image or video used (or planned) on the site. **Every Virgin asset comes from the official First Mates marketing toolkit on FirstMates.com.** Use each asset unaltered: web compression only, no cropping, editing or logos added to the asset itself. Never take Virgin images or video from Virgin's public website.
 
-Last updated: 2026-10-14.
+Last updated: 2026-10-15.
 
 Status key: **prepared** = the file exists but is not on the live site yet; **in design reference** = used in `docs/design/event-page-design-reference.html` and to be uploaded when its step is built. The reference only holds media-library placeholders, so real file names for these are filled in when each file is uploaded.
 
@@ -115,7 +115,7 @@ These all come from the First Mates marketing toolkit and were reviewed on 2026-
 | `IMG-FNB-You-Want-A-Pizza-Me-Girls-ginajoyphoto.jpg` | Same models as media 450; the gallery already has a pizza photo (415) |
 | `Virgin Voyages - The Manor Entrance.jpg` | Low resolution (800×533) |
 | `IMG-SPC-Roundabout-ginajoyphoto.jpg`, `Virgin Voyages - Bimini Beach Club Drone Expanded.jpg`, `Virgin Voyages - The Manor - Never Sleep Alone 136.jpg`, `Virgin Voyages - The Manor - Never Sleep Alone  1403.jpg` (only 1200×630) | Reserves (fine to use later) |
-| `valiant-lady-sunset.jpg` | **On hold: source not confirmed.** The file has no metadata and isn't named like a toolkit file. It may be used only once the owner confirms it came from the First Mates toolkit. |
+| `valiant-lady-sunset.jpg` | Reserve (fine to use later). Valiant Lady at sea at sunset, with "VALIANT LADY" on the hull. The owner confirmed on 2026-10-15 that it is from the First Mates toolkit; the file itself has no metadata. |
 
 ## Images created by CBGV (not Virgin assets)
 These are CBGV's own work, not from the First Mates toolkit, so the Virgin asset rules above do not apply to them.
@@ -123,6 +123,9 @@ These are CBGV's own work, not from the First Mates toolkit, so the Virgin asset
 | Media ID | File (Media Library) | What it shows | Used as | Source | Status |
 |---|---|---|---|---|---|
 | 321 | `2026/08/Valentine-and-Super-Bowl-scaled.png` ("Valentine and Super Bowl") | One image styled to look like two | Cover photo of trip 320, Helmets, Hearts & High Seas | **created by CBGV (Andrea M. Peaten), not a Virgin asset** (owner, 2026-10-14) | live since 2026-08-10 |
+| 451 | `2026/10/scarlet-night-party-by-andee-web.jpg` ("Scarlet Night Party by Andee"; original `media-incoming/Scarlet Night Party by Andee.jpg`) | Friends dressed in red laughing and toasting at a red-lit Scarlet Night party (no Virgin logo shown) | Trip 181 route Day 2 (focus Centre) | **created by CBGV (Andrea M. Peaten), not a Virgin asset** (owner, 2026-10-15). Web copy: 2400px on the longest side, quality 82. Alt text set | uploaded 2026-10-15 |
+
+**Reviewed and not used (2026-10-15):** `media-incoming/Puerto Plata.jpg`. It shows a recreated Virgin ship and logo just off a surf beach, which isn't how ships call at Puerto Plata (they dock at Taino Bay). Owner: do not use.
 
 ## Brand rules for Virgin assets ("With Love From" guidelines, Nov 2024)
 - The Virgin Voyages logo only in Virgin red, from the official toolkit file; never recoloured, redrawn or rebuilt from text.

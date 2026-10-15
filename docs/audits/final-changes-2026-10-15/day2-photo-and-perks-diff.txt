@@ -1,0 +1,32 @@
+== trip 181 (route Day 2 photo) ==
+  changed: cbv_lp_route_days
+    [2] before: {"title":"Scarlet Night meetup","text":"Come dressed in your best red. We meet 30 minutes before Scarlet Night for a massive group photo.","sticker":"Tonight: Scarlet Night","sticker_style":"highlight","photo":0,"focus":"","hide_time":false}
+    [2] after:  {"title":"Scarlet Night meetup","text":"Come dressed in your best red. We meet 30 minutes before Scarlet Night for a massive group photo.","sticker":"Tonight: Scarlet Night","sticker_style":"highlight","photo":451,"focus":"","hide_time":false}
+only expected keys changed
+snapshots: ~/logs/old/trip181-{before,after}-day2photo-20261015-165937.json
+== provider 443 (perk lines + token dates) ==
+  changed: cbv_lp_included
+    [0] before: {"label":"FARE","title":"Base","subline":"INSIDER · SEA VIEW · SEA TERRACE","bullets":"Non-refundable, no changes","style":"","wide":0}
+    [0] after:  {"label":"FARE","title":"Base","subline":"INSIDER · SEA VIEW · SEA TERRACE","bullets":"Tips & Voyage Protection included\nBasic Wi-Fi, 1 device\nDining reservations open {date:dining_base}\n**Sea Terrace cabins add $50 onboard credit**\nNon-refundable, no changes","style":"","wide":0}
+    [1] before: {"label":"FARE","title":"Essential","subline":"INSIDER · SEA VIEW · SEA TERRACE","bullets":"Date & cabin changes; cancel for a Future Voyage Certificate","style":"","wide":0}
+    [1] after:  {"label":"FARE","title":"Essential","subline":"INSIDER · SEA VIEW · SEA TERRACE","bullets":"Tips & Voyage Protection included\nFaster Wi-Fi with calling, 1 device\nDining reservations open {date:dining_essential}\n**Sea Terrace cabins add $50 onboard credit**\nDate & cabin changes; credit if you cancel","style":"","wide":0}
+    [2] before: {"label":"FARE · MOST PERKS","title":"Premium","subline":"INSIDER · SEA VIEW · SEA TERRACE · SEA TERRACE XL","bullets":"Date & cabin changes; transfer your booking to someone else","style":"gold","wide":0}
+    [2] after:  {"label":"FARE · MOST PERKS","title":"Premium","subline":"INSIDER · SEA VIEW · SEA TERRACE · SEA TERRACE XL","bullets":"Tips & Voyage Protection included\nPremium Wi-Fi with streaming, 2 devices\n$75 premium bar tab per sailor\nDining reservations open {date:dining_premium}\nPriority pre-voyage support\n**Sea Terrace cabins add $50 onboard credit**\nDate, cabin & name changes","style":"gold","wide":0}
+    [3] before: {"label":"SUITES","title":"RockStar Quarters","subline":"SERIOUSLY · BRILLIANT · CHEEKY CORNER · SWEET AFT","bullets":"Curated in-room bar, first round on Virgin\nMembers-only Richard's Rooftop","style":"dark","wide":1}
+    [3] after:  {"label":"SUITES","title":"RockStar Quarters","subline":"SERIOUSLY · BRILLIANT · CHEEKY CORNER · SWEET AFT","bullets":"Tips & Voyage Protection included\nVIP early boarding\nFirst to book: dining & experiences open {date:dining_rockstar}\nCurated in-room bar, first round on Virgin\nMembers-only Richard's Rooftop\n24/7 RockStar Agents & room delivery\n$50 onboard credit\nWi-Fi with calling, 1 device","style":"dark","wide":1}
+    [4] before: {"label":"SUITES","title":"Mega RockStar","subline":"GORGEOUS · POSH · FAB · MASSIVE","bullets":"Everything in RockStar, plus:\nBottomless in-room bar + daily bar tab\nYour own dedicated Mega RockStar agent\nTransfers & complimentary parking\nDaily spa access","style":"dark","wide":1}
+    [4] after:  {"label":"SUITES","title":"Mega RockStar","subline":"GORGEOUS · POSH · FAB · MASSIVE","bullets":"Everything in RockStar, plus:\nBottomless in-room bar + daily bar tab\nYour own dedicated Mega RockStar agent\nWork-from-sea Wi-Fi, 2 devices, plus a Classic Wi-Fi pass\n$50 onboard credit\nFree parking at Terminal V (Miami sailings)\nOutdoor terrace shower\nTransfers & complimentary parking\nDaily spa access","style":"dark","wide":1}
+  changed: cbv_lp_key_dates
+    [4] before: null
+    [4] after:  {"key":"dining_base","title":"Dining reservations open (Base fare)","description":"","offset":15,"dot":"","date_text":"","hidden":1}
+    [5] before: null
+    [5] after:  {"key":"dining_essential","title":"Dining reservations open (Essential fare)","description":"","offset":45,"dot":"","date_text":"","hidden":1}
+    [6] before: null
+    [6] after:  {"key":"dining_premium","title":"Dining reservations open (Premium fare)","description":"","offset":60,"dot":"","date_text":"","hidden":1}
+    [7] before: null
+    [7] after:  {"key":"dining_rockstar","title":"Dining & experiences open (RockStar suites)","description":"","offset":120,"dot":"","date_text":"","hidden":1}
+only expected keys changed
+snapshots: ~/logs/old/provider443-{before,after}-perks-20261015-165937.json
+181 dining dates: October 10, 2027|September 10, 2027|August 26, 2027|June 27, 2027
+181 countdown rows: 4 (token-only dates add none)
+DONE
