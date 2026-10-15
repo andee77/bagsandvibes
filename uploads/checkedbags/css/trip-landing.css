@@ -2089,15 +2089,23 @@ body.cbv-lp .cbv-inc-ticket-label {
 
 body.cbv-lp .cbv-inc-ticket-title {
 	font-family: 'Fraunces', serif;
-	font-size: 22px;
+	font-size: 21px;
 	font-weight: 600;
 	line-height: 1.15;
+}
+
+/* A part's amount, e.g. "$225 per traveler" under "CBGV Group Experience Fee". */
+body.cbv-lp .cbv-inc-ticket-sub {
+	font-family: 'Space Mono', monospace;
+	font-size: 11px;
+	letter-spacing: 0.06em;
+	color: rgba(22, 35, 43, 0.7);
 }
 
 /* The tear-off stub: coral, behind a dashed perforation with a notch top and bottom. */
 body.cbv-lp .cbv-inc-ticket-stub {
 	position: relative;
-	flex: 0 0 56px;
+	flex: 0 0 48px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -2131,7 +2139,7 @@ body.cbv-lp .cbv-inc-every {
 
 body.cbv-lp .cbv-inc-cards {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+	grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
 	gap: 18px;
 	align-items: start;
 }
@@ -2154,7 +2162,14 @@ body.cbv-lp .cbv-inc-card--dark {
 	border: 1px solid rgba(232, 169, 78, 0.35);
 }
 
-body.cbv-lp .cbv-inc-card--wide { grid-column: span 2; }
+/* Suites run full width under the fares, their perks in two columns (as in the original mockup). */
+body.cbv-lp .cbv-inc-card--wide { grid-column: 1 / -1; }
+
+body.cbv-lp .cbv-inc-card--wide ul {
+	display: grid !important;
+	grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+	gap: 6px 36px;
+}
 
 body.cbv-lp .cbv-inc-card-label,
 body.cbv-lp .cbv-inc-tag-label {
@@ -2313,7 +2328,6 @@ body.cbv-lp .cbv-inc-leave-more a {
 }
 
 @media (max-width: 720px) {
-	body.cbv-lp .cbv-inc-card--wide { grid-column: auto; }
 }
 
 @media (max-width: 600px) {
@@ -2322,4 +2336,69 @@ body.cbv-lp .cbv-inc-leave-more a {
 		padding-top: 64px;
 		padding-bottom: 64px;
 	}
+}
+
+/* ---- Other fares on request (owner, 2026-10-15): note + "Request a quote" under the board ---- */
+body.cbv-lp .cbv-lp-prices-request {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 16px 28px;
+	margin-top: 28px;
+	padding: 20px 24px;
+	border-left: 4px solid var(--cbv-coral);
+	border-radius: 4px;
+	background: #fff;
+	color: var(--cbv-ink);
+}
+
+body.cbv-lp .cbv-lp-prices-request p {
+	flex: 1 1 420px;
+	margin: 0 !important;
+	font-size: 15px;
+	line-height: 1.6;
+	color: var(--cbv-ink) !important;
+}
+
+body.cbv-lp .cbv-lp-prices-request-cta {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 44px;
+	padding: 10px 18px;
+	border: 2px solid var(--cbv-ink);
+	border-radius: 2px;
+	color: var(--cbv-ink) !important;
+	font-family: 'Space Mono', monospace;
+	font-size: 13px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	text-decoration: none !important;
+	white-space: nowrap;
+}
+
+body.cbv-lp .cbv-lp-prices-request-cta:hover,
+body.cbv-lp .cbv-lp-prices-request-cta:focus-visible {
+	background: var(--cbv-ink);
+	color: var(--cbv-cream) !important;
+}
+
+/* A fare card the trip offers on request */
+body.cbv-lp .cbv-inc-card-request {
+	align-self: flex-start;
+	padding: 4px 8px;
+	border-radius: 2px;
+	background: var(--cbv-ink);
+	color: var(--cbv-cream);
+	font-family: 'Space Mono', monospace;
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+}
+
+body.cbv-lp .cbv-inc-card--dark .cbv-inc-card-request {
+	background: var(--cbv-gold);
+	color: var(--cbv-ink);
 }

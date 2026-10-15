@@ -20,20 +20,20 @@ check "running against the temp mu-plugins copy" "$(grep -c '/tmp/cbv_mu' /tmp/c
 
 # 1. "In your all-in price".
 out=$(weval 'echo implode( "|", cbv_inc_allin_parts( 181 ) );')
-check "181: the four parts, in order; never the CBGV fee (owner, 2026-10-15)" "$([ "$out" = 'Cruise fare|Taxes & fees|Prepaid gratuities|Voyage Protection' ] && echo 1 || echo 0)" "($out)"
+check "181: the five parts, in order, the fee as its own ticket with its amount (owner, 2026-10-15)" "$([ "$out" = 'Cruise fare|Taxes & fees|Prepaid gratuities|Voyage Protection|CBGV Group Experience Fee ($225 per traveler)' ] && echo 1 || echo 0)" "($out)"
 out=$(weval "$(TIERS '$t[0]["occupancy_points"][0]["gratuities"] = 0;') echo implode( '|', cbv_inc_allin_parts( 181 ) );")
 check "a part one price doesn't include is left out (gratuities 0 on one price)" "$(( $(hasnt "$out" 'Prepaid gratuities') * $(has "$out" 'Taxes & fees') ))" "($out)"
 out=$(weval "$(TIERS 'foreach ( $t as &$tt ) { foreach ( $tt["occupancy_points"] as &$pp ) { $pp["discount"] = 50; } }') echo implode( '|', cbv_inc_allin_parts( 181 ) );")
 check "never \"at our group rate\", even with a discount on every price (owner, 2026-10-14)" "$(( $(has "$out" '^Cruise fare|') * $(hasnt "$out" 'group rate') ))" "($out)"
 out=$(weval 'add_filter( "get_post_metadata", function ( $v, $id, $k ) { return ( 181 === (int) $id && "cbv_lp_planning_fee" === $k ) ? array( array( "mode" => "none", "amount" => 0, "basis" => "per_traveler" ) ) : $v; }, 1, 3 ); echo implode( "|", cbv_inc_allin_parts( 181 ) );')
-check "no CBGV fee on the trip: still no fee line" "$(hasnt "$out" 'CBGV Group Experience Fee')" "($out)"
+check "no CBGV fee on the trip: no fee line" "$(hasnt "$out" 'CBGV Group Experience Fee')" "($out)"
 out=$(weval 'add_filter( "get_post_metadata", function ( $v, $id, $k ) { return ( 181 === (int) $id && "cbv_lp_event_type" === $k ) ? array( "resort" ) : $v; }, 1, 3 ); echo implode( "|", cbv_inc_allin_parts( 181 ) );')
 check "other trip types say \"Travel price\" and \"Travel protection\"" "$(( $(has "$out" '^Travel price|') * $(has "$out" 'Travel protection') ))" "($out)"
 
 # 1b. Cruise-line cards follow the price board (owner, 2026-10-14).
 CARDS='$c = (array) cbv_lp_group( 181, "included" ); $b = function ( $cols, $groups ) { $g = array(); foreach ( $groups as $n ) { $g[] = array( "name" => $n, "rows" => array( array( "name" => $n ) ) ); } return array( "columns" => $cols, "groups" => $g ); }; $t = function ( $x ) { return implode( "|", wp_list_pluck( $x, "title" ) ); };'
 out=$(weval "$CARDS"' echo $t( cbv_inc_cards_for_board( 181, $c ) );')
-check "181 live board (Premium; Insider, Sea View, Sea Terrace XL, Sea Terrace): only the Premium card" "$([ "$out" = 'Premium' ] && echo 1 || echo 0)" "($out)"
+check "181 live board (Premium + one-price suites, Oct 15 invoices): the Premium card and both suite cards" "$([ "$out" = 'Premium|RockStar Quarters|Mega RockStar' ] && echo 1 || echo 0)" "($out)"
 out=$(weval "$CARDS"' echo $t( cbv_inc_cards_for_board( 181, $c, $b( array( 1 => "Base", 3 => "Premium" ), array( "The Insider", "Sea View" ) ) ) );')
 check "board Base + Premium, no suites: Base and Premium cards only" "$([ "$out" = 'Base|Premium' ] && echo 1 || echo 0)" "($out)"
 out=$(weval "$CARDS"' echo $t( cbv_inc_cards_for_board( 181, $c, $b( array( 3 => "Premium" ), array( "Sea Terrace", "RockStar Quarters" ) ) ) );')
@@ -43,13 +43,29 @@ check "a suite row named by a card's subline (\"Massive\") shows Mega RockStar" 
 out=$(weval "$CARDS"' echo count( cbv_inc_cards_for_board( 181, $c, array( "columns" => array(), "groups" => array() ) ) );')
 check "no price board yet: every card shows" "$([ "$out" = '5' ] && echo 1 || echo 0)" "($out)"
 
+# 1c. Other fares on request (owner, 2026-10-15): set in memory to Essential + Base (Premium ticked too: already on the board, ignored).
+OTHER='$pb = get_post_meta( 181, "cbv_lp_priceboard", true ); $pb = is_array( $pb ) ? $pb : array(); $pb["other"] = array( "Base", "Premium", "Essential" ); add_filter( "get_post_metadata", function ( $v, $id, $k ) use ( $pb ) { return ( 181 === (int) $id && "cbv_lp_priceboard" === $k ) ? array( $pb ) : $v; }, 0, 3 );'
+out=$(weval "$OTHER"' echo implode( "|", cbv_lp_board_other_fares( 181 ) );')
+check "on request: Essential, Base (richest first; Premium skipped, it is on the board)" "$([ "$out" = 'Essential|Base' ] && echo 1 || echo 0)" "($out)"
+out=$(weval "$OTHER"' echo cbv_lp_render_priceboard( 181 );')
+check "on request: the note under the board, word for word, and \"Request a quote\" to the Contact page" "$(( $(has "$out" "Prices shown are Premium fares. Essential and Base fares are also available. Ask us for a quote and we&#039;ll compare them for you. Some fares book outside our group block; your travel advisor will explain what that means for you.") * $(has "$out" 'class="cbv-lp-prices-request-cta" href="https://bagsandvibes.com/contact/">Request a quote') ))"
+out=$(weval "$OTHER"' echo implode( "|", array_map( function ( $c ) { return $c["title"] . ( empty( $c["on_request"] ) ? "" : "*" ); }, cbv_inc_cruise_line( 181 )["cards"] ) );')
+check "on request: What's included adds the Base and Essential cards, marked on request" "$([ "$out" = 'Base*|Essential*|Premium|RockStar Quarters|Mega RockStar' ] && echo 1 || echo 0)" "($out)"
+out=$(weval "$OTHER"' echo cbv_inc_cards_html( cbv_inc_cruise_line( 181 )["cards"], 181 );')
+check "on request: the cards carry the \"Available on request\" tag (2 of them)" "$([ "$(grep -o 'cbv-inc-card-request">Available on request' <<< "$out" | wc -l)" -eq 2 ] && echo 1 || echo 0)"
+out=$(weval 'echo "[" . cbv_lp_render_priceboard( 181 ) . "]";')
+check "nothing ticked: no note, no button, no on-request cards" "$(( $(hasnt "$out" 'cbv-lp-prices-request') * $(hasnt "$(weval 'echo cbv_inc_cards_html( cbv_inc_cruise_line( 181 )["cards"], 181 );')" 'Available on request') ))"
+out=$(weval 'echo cbv_lp_join_names( array( "A" ) ) . "|" . cbv_lp_join_names( array( "A", "B" ) ) . "|" . cbv_lp_join_names( array( "A", "B", "C" ) ) . "|" . wp_json_encode( cbv_lp_sanitize_priceboard( array( "other" => array( " Base ", "Base", "<b>X</b>", array( 1 ) ) ) )["other"] );')
+check "helpers: name lists read naturally; ticked fares cleaned and de-duplicated" "$([ "$out" = 'A|A and B|A, B and C|["Base","X"]' ] && echo 1 || echo 0)" "($out)"
+
 # 2. New design (181 preview with the proposed content).
 h=$(render "/trip/annual-family-and-friends/?preview=new" 1)
 check "preview: mockup order: fare classes, \"Gate 19 · What's included\", \"Gate 20 · Pack list\", How to book, Countdown, then Travel documents last (Gate 23), then Who does what" "$(python3 -c 'import sys; h=sys.stdin.read(); a=[h.find(x) for x in ("class=\"cbv-lp-prices\"","class=\"cbv-lp-included\"","class=\"cbv-lp-pack\"","class=\"cbv-lp-how\"","class=\"cbv-lp-countdown\"","class=\"cbv-lp-docs\"","class=\"cbv-lp-who\"")]; print(1 if -1 not in a and a==sorted(a) and "Gate 19 · What&#039;s included" in h and "Gate 20 · Pack list" in h and "Gate 23 · Travel documents" in h and "Gate 24" not in h else 0)' <<< "$h")"
 
 check "preview: heading \"Every fare comes with extras\" and the three-part lede" "$(( $(has "$h" '>Every fare comes with extras<') * $(has "$h" 'What your all-in price covers, what Virgin Voyages includes with each fare, and what our group adds.') ))"
-check "preview: 1 cruise-line card (the board offers Premium only) with the mockup's Premium lines; dining date from the sail date; no leftover tokens; suite lines hidden" "$(( $([ "$(grep -o 'class="cbv-inc-card[" ]' <<< "$h" | wc -l)" -eq 1 ] && [ "$(grep -c '>Premium<' <<< "$h")" -ge 1 ] && echo 1 || echo 0) * $(has "$h" 'Premium Wi-Fi with streaming, 2 devices') * $(has "$h" '\$75 premium bar tab per sailor') * $(has "$h" 'Dining reservations open August 26, 2027') * $(has "$h" '<strong>Sea Terrace cabins add \$50 onboard credit</strong>') * $(has "$h" 'Date, cabin &amp; name changes') * $(hasnt "$h" '{date:') * $(hasnt "$h" 'Richard&#039;s Rooftop') * $(hasnt "$h" 'Terminal V (Miami sailings)') ))"
-check "preview: each all-in part is its own ticket (label, title, stub); no CBGV fee in the list" "$(( $([ "$(grep -o 'class="cbv-inc-ticket"' <<< "$h" | wc -l)" -eq 4 ] && echo 1 || echo 0) * $(has "$h" '<span class="cbv-inc-ticket-label">Included · 01</span><span class="cbv-inc-ticket-title">Cruise fare</span>') * $(has "$h" 'class="cbv-inc-ticket-stub" aria-hidden="true"') * $(python3 -c 'import sys,re; h=sys.stdin.read(); m=re.search(r"<ul class=\"cbv-inc-allin\">(.*?)</ul>", h, re.S); print(1 if m and "Group Experience Fee" not in m.group(1) else 0)' <<< "$h") ))"
+check "preview: 3 cruise-line cards (Premium + the two suites the board lists) with the mockup's lines; dining dates from the sail date; no leftover tokens" "$(( $([ "$(grep -o 'class="cbv-inc-card[" ]' <<< "$h" | wc -l)" -eq 3 ] && echo 1 || echo 0) * $(has "$h" 'Premium Wi-Fi with streaming, 2 devices') * $(has "$h" '\$75 premium bar tab per sailor') * $(has "$h" 'Dining reservations open August 26, 2027') * $(has "$h" '<strong>Sea Terrace cabins add \$50 onboard credit</strong>') * $(has "$h" 'First to book: dining &amp; experiences open June 27, 2027') * $(has "$h" 'Free parking at Terminal V (Miami sailings)') * $(hasnt "$h" '{date:') * $(hasnt "$h" 'Available on request') ))"
+check "preview: each all-in part is its own ticket (label, title, stub), the fee included" "$(( $([ "$(grep -o 'class="cbv-inc-ticket"' <<< "$h" | wc -l)" -eq 5 ] && echo 1 || echo 0) * $(has "$h" '<span class="cbv-inc-ticket-label">Included · 01</span><span class="cbv-inc-ticket-title">Cruise fare</span>') * $(has "$h" '<span class="cbv-inc-ticket-label">Included · 05</span><span class="cbv-inc-ticket-title">CBGV Group Experience Fee</span><span class="cbv-inc-ticket-sub">$225 per traveler</span>') * $(has "$h" 'class="cbv-inc-ticket-stub" aria-hidden="true"') ))"
+check "preview: no empty legacy band above the footer (nothing of the old page left)" "$(hasnt "$h" 'class="cbv-lp-legacy-wrap"')"
 check "preview: the provider footnote \"Perks vary by fare...\"" "$(has "$h" 'Perks vary by fare. Your travel advisor will confirm exactly what&#039;s included when you book.')"
 check "preview: the 6-line group program and its note; no swag, no host line" "$(( $(python3 -c 'import sys,re; h=sys.stdin.read(); m=re.search(r"<ul class=\"cbv-inc-program-list\">(.*?)</ul>", h, re.S); print(1 if m and m.group(1).count("<li>")==6 else 0)' <<< "$h") * $(has "$h" 'Coffee and goodbyes (Day 6)') * $(has "$h" 'All events and times are subject to change.') * $(hasnt "$h" 'swag') * $(hasnt "$h" 'On-trip CBGV host\|An on-trip CBGV host') ))"
 check "preview: 4 tags numbered TAG 01-04, the forecast chip" "$(( $(has "$h" '>Tag 01 · Theme nights<') * $(has "$h" '>Tag 04 · Cabin kit<') * $(hasnt "$h" '>Tag 05') * $(has "$h" 'class="cbv-lp-pack-forecast">FORECAST · LOW 80s °F · WARM &amp; TROPICAL<') ))"

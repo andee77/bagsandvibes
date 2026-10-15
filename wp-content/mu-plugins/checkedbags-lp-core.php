@@ -184,7 +184,11 @@ function cbv_lp_render_trip( $trip_id, $view = 'new' ) {
 		}
 		echo cbv_lp_render_who( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
 	}
-	echo '<div class="cbv-lp-legacy-wrap">' . $legacy . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput -- the renderer escapes its own output
+	// Whatever is left of the old page, in a cream band -- skipped when nothing visible is left (owner, 2026-10-15:
+	// no empty strip above the footer once every old block has its new section).
+	if ( '' !== trim( wp_strip_all_tags( $legacy, true ) ) || preg_match( '/<(img|iframe|video|audio|a|button|form|input|svg)[\s>\/]/i', $legacy ) ) {
+		echo '<div class="cbv-lp-legacy-wrap">' . $legacy . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput -- the renderer escapes its own output
+	}
 	return ob_get_clean();
 }
 

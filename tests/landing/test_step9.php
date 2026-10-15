@@ -81,7 +81,7 @@ section( 'A. the "Price board" box: cleaning input' );
 $s = cbv_lp_sanitize_priceboard( array( 'note' => "  <b>All in</b> for {party}\nline 2 ", 'photo1' => 407, 'focus1' => 'top-left', 'photo2' => TRIP, 'focus2' => 'nonsense' ) );
 check( 'note: tags stripped, trimmed, line breaks kept', "All in for {party}\nline 2" === $s['note'], json_encode( $s['note'] ) );
 check( 'photo 1: a real image kept with its focus; photo 2: not an image -> 0, junk focus -> centre', 407 === $s['photo1'] && 'top-left' === $s['focus1'] && 0 === $s['photo2'] && '' === $s['focus2'], json_encode( $s ) );
-check( 'note capped at 600 characters; junk input gives an empty box', 600 === mb_strlen( cbv_lp_sanitize_priceboard( array( 'note' => str_repeat( 'x', 900 ) ) )['note'] ) && array( 'note' => '', 'photo1' => 0, 'focus1' => '', 'photo2' => 0, 'focus2' => '' ) === cbv_lp_sanitize_priceboard( 'junk' ) );
+check( 'note capped at 600 characters; junk input gives an empty box', 600 === mb_strlen( cbv_lp_sanitize_priceboard( array( 'note' => str_repeat( 'x', 900 ) ) )['note'] ) && array( 'note' => '', 'photo1' => 0, 'focus1' => '', 'photo2' => 0, 'focus2' => '', 'other' => array() ) === cbv_lp_sanitize_priceboard( 'junk' ) );
 
 /* ---- B. small helpers ---- */
 section( 'B. small helpers' );
@@ -217,12 +217,12 @@ $st = cbv_lp_strip_legacy_pricing( $legacy_sample );
 check( 'strip: the "Choose Your Option" block is removed, everything else kept', false === strpos( $st, 'Choose Your Option' ) && false === strpos( $st, 'cbv-landing-pricing' ) && false !== strpos( $st, '<h2>About</h2>' ) && false !== strpos( $st, 'Reserve Your Spot' ) );
 check( 'strip: unchanged when there is no pricing block, or nothing at all', '<div class="cbv-landing-section"><h2>About</h2></div>' === cbv_lp_strip_legacy_pricing( '<div class="cbv-landing-section"><h2>About</h2></div>' ) && '' === cbv_lp_strip_legacy_pricing( '' ) );
 $page = cbv_lp_render_trip( 181, 'new' );
-check( 'REAL trip 181, new design: the board is drawn once, after the gallery and before the legacy content', 1 === substr_count( $page, '<section class="cbv-lp-prices"' ) && strpos( $page, 'class="cbv-lp-gallery"' ) < strpos( $page, 'class="cbv-lp-prices"' ) && strpos( $page, 'class="cbv-lp-prices"' ) < strpos( $page, 'cbv-lp-legacy-wrap' ) );
+check( 'REAL trip 181, new design: the board is drawn once, after the gallery and before the legacy content', 1 === substr_count( $page, '<section class="cbv-lp-prices"' ) && strpos( $page, 'class="cbv-lp-gallery"' ) < strpos( $page, 'class="cbv-lp-prices"' ) && strpos( $page, 'class="cbv-lp-prices"' ) < ( false !== strpos( $page, 'cbv-lp-legacy-wrap' ) ? strpos( $page, 'cbv-lp-legacy-wrap' ) : strlen( $page ) ) /* band skipped when empty (2026-10-15) */ );
 check( "REAL trip 181, new design: today's \"Choose Your Option\" cards are gone", false === strpos( $page, 'Choose Your Option' ) );
 check( 'REAL trip 181, new design: GATE numbers run on (board = Gate 18 after intro, route, featured, gallery)', false !== strpos( $page, 'Gate 18 · Fare classes' ), '' );
 check( 'REAL trip 181, new design: one <h1>, and "Claim your seat" points at the board', 1 === substr_count( $page, '<h1' ) && false !== strpos( $page, 'href="#fares">Claim your seat' ) );
 $legacy = cbv_render_public_trip_landing( 181 );
-check( "today's public page (legacy renderer) is unchanged: still has its cards and the old prices", false !== strpos( $legacy, 'Choose Your Option' ) && false !== strpos( $legacy, '1,276' ) && false === strpos( $legacy, 'cbv-lp-prices' ) );
+check( "today's public page (legacy renderer) is unchanged: still has its cards and the old prices", false !== strpos( $legacy, 'Choose Your Option' ) && false !== strpos( $legacy, '1,304' ) /* Oct 15, 2026 invoices */ && false === strpos( $legacy, 'cbv-lp-prices' ) );
 
 /* ---- H. the "Price board" box and its save ---- */
 section( 'H. admin box and save' );
@@ -250,7 +250,7 @@ $writes = array();
 $_POST = array( 'cbv_lp_priceboard_nonce' => wp_create_nonce( 'cbv_lp_priceboard_save' ), 'cbv_lp_priceboard' => wp_slash( array( 'note' => ' <i>Hi</i> it\'s {party} ', 'photo1' => '407', 'focus1' => 'bottom-right', 'photo2' => 'junk' ) ) );
 run_board_save( TRIP );
 $by = array(); foreach ( $writes as $w ) { if ( 'update_post_metadata' === $w[0] ) { $by[ $w[2] ] = $w[3]; } }
-check( 'save: stored cleaned (slashes removed), only its own key', array( 'cbv_lp_priceboard' => array( 'note' => 'Hi it\'s {party}', 'photo1' => 407, 'focus1' => 'bottom-right', 'photo2' => 0, 'focus2' => '' ) ) === $by, json_encode( $by ) );
+check( 'save: stored cleaned (slashes removed), only its own key', array( 'cbv_lp_priceboard' => array( 'note' => 'Hi it\'s {party}', 'photo1' => 407, 'focus1' => 'bottom-right', 'photo2' => 0, 'focus2' => '', 'other' => array() ) ) === $by, json_encode( $by ) );
 wp_set_current_user( 0 );
 $writes = array();
 $_POST = array( 'cbv_lp_priceboard_nonce' => wp_create_nonce( 'cbv_lp_priceboard_save' ), 'cbv_lp_priceboard' => array( 'note' => 'x' ) );
@@ -265,7 +265,7 @@ $GLOBALS['opt_fees'] = array(); $GLOBALS['opt_live'] = '0';
 $d181 = cbv_lp_priceboard_data( 181 );
 check( 'REAL trip 181: board shown, 4 groups in one Premium column (Locked In tiers "Not on the price board" since 2026-10-11)', is_array( $d181 ) && 4 === count( $d181['groups'] ) && array( 3 => 'Premium' ) === $d181['columns'], json_encode( $d181 ? $d181['columns'] : null ) );
 check( "REAL trip 181: its own fee ($225 per traveler) is on the board; no children line (adults only via its provider since 2026-10-13)", 'trip' === cbv_lp_price_board_data( 181 )['fee']['source'] && ! in_array( 'Children pay half the CBGV Group Experience Fee.', $d181['fee_note'], true ) && ! empty( $d181['fee_note'] ) );
-check( 'REAL trip 181: "The Insider" $2,552 + $450 = $3,002 for 2 (Premium)', 3002.0 === $d181['groups'][0]['rows'][0]['cells'][3]['total'] );
+check( 'REAL trip 181: "The Insider" $2,608 + $450 = $3,058 for 2 (Premium, Oct 15, 2026 invoices)', 3058.0 === $d181['groups'][0]['rows'][0]['cells'][3]['total'] );
 $h181 = board_html( 181 );
 check( 'REAL trip 181: nothing on the board names the host agency, a deposit, payment plans, or says CBGV books', false === stripos( $h181, 'InteleTravel' ) && false === stripos( $h181, 'payment plan' ) && false === stripos( $h181, 'holds your cabin' ) && false === stripos( $h181, 'CBGV books' ) );
 $t181 = cb_trip_get_pricing_tiers( 181 );

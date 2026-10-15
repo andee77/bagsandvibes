@@ -1,0 +1,591 @@
+diff --git a/tests/landing/test_included_pack.sh b/tests/landing/test_included_pack.sh
+index bca8f17..e13fc61 100644
+--- a/tests/landing/test_included_pack.sh
++++ b/tests/landing/test_included_pack.sh
+@@ -20,20 +20,20 @@ check "running against the temp mu-plugins copy" "$(grep -c '/tmp/cbv_mu' /tmp/c
+ 
+ # 1. "In your all-in price".
+ out=$(weval 'echo implode( "|", cbv_inc_allin_parts( 181 ) );')
+-check "181: the four parts, in order; never the CBGV fee (owner, 2026-10-15)" "$([ "$out" = 'Cruise fare|Taxes & fees|Prepaid gratuities|Voyage Protection' ] && echo 1 || echo 0)" "($out)"
++check "181: the five parts, in order, the fee as its own ticket with its amount (owner, 2026-10-15)" "$([ "$out" = 'Cruise fare|Taxes & fees|Prepaid gratuities|Voyage Protection|CBGV Group Experience Fee ($225 per traveler)' ] && echo 1 || echo 0)" "($out)"
+ out=$(weval "$(TIERS '$t[0]["occupancy_points"][0]["gratuities"] = 0;') echo implode( '|', cbv_inc_allin_parts( 181 ) );")
+ check "a part one price doesn't include is left out (gratuities 0 on one price)" "$(( $(hasnt "$out" 'Prepaid gratuities') * $(has "$out" 'Taxes & fees') ))" "($out)"
+ out=$(weval "$(TIERS 'foreach ( $t as &$tt ) { foreach ( $tt["occupancy_points"] as &$pp ) { $pp["discount"] = 50; } }') echo implode( '|', cbv_inc_allin_parts( 181 ) );")
+ check "never \"at our group rate\", even with a discount on every price (owner, 2026-10-14)" "$(( $(has "$out" '^Cruise fare|') * $(hasnt "$out" 'group rate') ))" "($out)"
+ out=$(weval 'add_filter( "get_post_metadata", function ( $v, $id, $k ) { return ( 181 === (int) $id && "cbv_lp_planning_fee" === $k ) ? array( array( "mode" => "none", "amount" => 0, "basis" => "per_traveler" ) ) : $v; }, 1, 3 ); echo implode( "|", cbv_inc_allin_parts( 181 ) );')
+-check "no CBGV fee on the trip: still no fee line" "$(hasnt "$out" 'CBGV Group Experience Fee')" "($out)"
++check "no CBGV fee on the trip: no fee line" "$(hasnt "$out" 'CBGV Group Experience Fee')" "($out)"
+ out=$(weval 'add_filter( "get_post_metadata", function ( $v, $id, $k ) { return ( 181 === (int) $id && "cbv_lp_event_type" === $k ) ? array( "resort" ) : $v; }, 1, 3 ); echo implode( "|", cbv_inc_allin_parts( 181 ) );')
+ check "other trip types say \"Travel price\" and \"Travel protection\"" "$(( $(has "$out" '^Travel price|') * $(has "$out" 'Travel protection') ))" "($out)"
+ 
+ # 1b. Cruise-line cards follow the price board (owner, 2026-10-14).
+ CARDS='$c = (array) cbv_lp_group( 181, "included" ); $b = function ( $cols, $groups ) { $g = array(); foreach ( $groups as $n ) { $g[] = array( "name" => $n, "rows" => array( array( "name" => $n ) ) ); } return array( "columns" => $cols, "groups" => $g ); }; $t = function ( $x ) { return implode( "|", wp_list_pluck( $x, "title" ) ); };'
+ out=$(weval "$CARDS"' echo $t( cbv_inc_cards_for_board( 181, $c ) );')
+-check "181 live board (Premium; Insider, Sea View, Sea Terrace XL, Sea Terrace): only the Premium card" "$([ "$out" = 'Premium' ] && echo 1 || echo 0)" "($out)"
++check "181 live board (Premium + one-price suites, Oct 15 invoices): the Premium card and both suite cards" "$([ "$out" = 'Premium|RockStar Quarters|Mega RockStar' ] && echo 1 || echo 0)" "($out)"
+ out=$(weval "$CARDS"' echo $t( cbv_inc_cards_for_board( 181, $c, $b( array( 1 => "Base", 3 => "Premium" ), array( "The Insider", "Sea View" ) ) ) );')
+ check "board Base + Premium, no suites: Base and Premium cards only" "$([ "$out" = 'Base|Premium' ] && echo 1 || echo 0)" "($out)"
+ out=$(weval "$CARDS"' echo $t( cbv_inc_cards_for_board( 181, $c, $b( array( 3 => "Premium" ), array( "Sea Terrace", "RockStar Quarters" ) ) ) );')
+@@ -43,13 +43,29 @@ check "a suite row named by a card's subline (\"Massive\") shows Mega RockStar"
+ out=$(weval "$CARDS"' echo count( cbv_inc_cards_for_board( 181, $c, array( "columns" => array(), "groups" => array() ) ) );')
+ check "no price board yet: every card shows" "$([ "$out" = '5' ] && echo 1 || echo 0)" "($out)"
+ 
++# 1c. Other fares on request (owner, 2026-10-15): set in memory to Essential + Base (Premium ticked too: already on the board, ignored).
++OTHER='$pb = get_post_meta( 181, "cbv_lp_priceboard", true ); $pb = is_array( $pb ) ? $pb : array(); $pb["other"] = array( "Base", "Premium", "Essential" ); add_filter( "get_post_metadata", function ( $v, $id, $k ) use ( $pb ) { return ( 181 === (int) $id && "cbv_lp_priceboard" === $k ) ? array( $pb ) : $v; }, 0, 3 );'
++out=$(weval "$OTHER"' echo implode( "|", cbv_lp_board_other_fares( 181 ) );')
++check "on request: Essential, Base (richest first; Premium skipped, it is on the board)" "$([ "$out" = 'Essential|Base' ] && echo 1 || echo 0)" "($out)"
++out=$(weval "$OTHER"' echo cbv_lp_render_priceboard( 181 );')
++check "on request: the note under the board, word for word, and \"Request a quote\" to the Contact page" "$(( $(has "$out" "Prices shown are Premium fares. Essential and Base fares are also available. Ask us for a quote and we&#039;ll compare them for you. Some fares book outside our group block; your travel advisor will explain what that means for you.") * $(has "$out" 'class="cbv-lp-prices-request-cta" href="https://bagsandvibes.com/contact/">Request a quote') ))"
++out=$(weval "$OTHER"' echo implode( "|", array_map( function ( $c ) { return $c["title"] . ( empty( $c["on_request"] ) ? "" : "*" ); }, cbv_inc_cruise_line( 181 )["cards"] ) );')
++check "on request: What's included adds the Base and Essential cards, marked on request" "$([ "$out" = 'Base*|Essential*|Premium|RockStar Quarters|Mega RockStar' ] && echo 1 || echo 0)" "($out)"
++out=$(weval "$OTHER"' echo cbv_inc_cards_html( cbv_inc_cruise_line( 181 )["cards"], 181 );')
++check "on request: the cards carry the \"Available on request\" tag (2 of them)" "$([ "$(grep -o 'cbv-inc-card-request">Available on request' <<< "$out" | wc -l)" -eq 2 ] && echo 1 || echo 0)"
++out=$(weval 'echo "[" . cbv_lp_render_priceboard( 181 ) . "]";')
++check "nothing ticked: no note, no button, no on-request cards" "$(( $(hasnt "$out" 'cbv-lp-prices-request') * $(hasnt "$(weval 'echo cbv_inc_cards_html( cbv_inc_cruise_line( 181 )["cards"], 181 );')" 'Available on request') ))"
++out=$(weval 'echo cbv_lp_join_names( array( "A" ) ) . "|" . cbv_lp_join_names( array( "A", "B" ) ) . "|" . cbv_lp_join_names( array( "A", "B", "C" ) ) . "|" . wp_json_encode( cbv_lp_sanitize_priceboard( array( "other" => array( " Base ", "Base", "<b>X</b>", array( 1 ) ) ) )["other"] );')
++check "helpers: name lists read naturally; ticked fares cleaned and de-duplicated" "$([ "$out" = 'A|A and B|A, B and C|["Base","X"]' ] && echo 1 || echo 0)" "($out)"
++
+ # 2. New design (181 preview with the proposed content).
+ h=$(render "/trip/annual-family-and-friends/?preview=new" 1)
+ check "preview: mockup order: fare classes, \"Gate 19 · What's included\", \"Gate 20 · Pack list\", How to book, Countdown, then Travel documents last (Gate 23), then Who does what" "$(python3 -c 'import sys; h=sys.stdin.read(); a=[h.find(x) for x in ("class=\"cbv-lp-prices\"","class=\"cbv-lp-included\"","class=\"cbv-lp-pack\"","class=\"cbv-lp-how\"","class=\"cbv-lp-countdown\"","class=\"cbv-lp-docs\"","class=\"cbv-lp-who\"")]; print(1 if -1 not in a and a==sorted(a) and "Gate 19 · What&#039;s included" in h and "Gate 20 · Pack list" in h and "Gate 23 · Travel documents" in h and "Gate 24" not in h else 0)' <<< "$h")"
+ 
+ check "preview: heading \"Every fare comes with extras\" and the three-part lede" "$(( $(has "$h" '>Every fare comes with extras<') * $(has "$h" 'What your all-in price covers, what Virgin Voyages includes with each fare, and what our group adds.') ))"
+-check "preview: 1 cruise-line card (the board offers Premium only) with the mockup's Premium lines; dining date from the sail date; no leftover tokens; suite lines hidden" "$(( $([ "$(grep -o 'class="cbv-inc-card[" ]' <<< "$h" | wc -l)" -eq 1 ] && [ "$(grep -c '>Premium<' <<< "$h")" -ge 1 ] && echo 1 || echo 0) * $(has "$h" 'Premium Wi-Fi with streaming, 2 devices') * $(has "$h" '\$75 premium bar tab per sailor') * $(has "$h" 'Dining reservations open August 26, 2027') * $(has "$h" '<strong>Sea Terrace cabins add \$50 onboard credit</strong>') * $(has "$h" 'Date, cabin &amp; name changes') * $(hasnt "$h" '{date:') * $(hasnt "$h" 'Richard&#039;s Rooftop') * $(hasnt "$h" 'Terminal V (Miami sailings)') ))"
+-check "preview: each all-in part is its own ticket (label, title, stub); no CBGV fee in the list" "$(( $([ "$(grep -o 'class="cbv-inc-ticket"' <<< "$h" | wc -l)" -eq 4 ] && echo 1 || echo 0) * $(has "$h" '<span class="cbv-inc-ticket-label">Included · 01</span><span class="cbv-inc-ticket-title">Cruise fare</span>') * $(has "$h" 'class="cbv-inc-ticket-stub" aria-hidden="true"') * $(python3 -c 'import sys,re; h=sys.stdin.read(); m=re.search(r"<ul class=\"cbv-inc-allin\">(.*?)</ul>", h, re.S); print(1 if m and "Group Experience Fee" not in m.group(1) else 0)' <<< "$h") ))"
++check "preview: 3 cruise-line cards (Premium + the two suites the board lists) with the mockup's lines; dining dates from the sail date; no leftover tokens" "$(( $([ "$(grep -o 'class="cbv-inc-card[" ]' <<< "$h" | wc -l)" -eq 3 ] && echo 1 || echo 0) * $(has "$h" 'Premium Wi-Fi with streaming, 2 devices') * $(has "$h" '\$75 premium bar tab per sailor') * $(has "$h" 'Dining reservations open August 26, 2027') * $(has "$h" '<strong>Sea Terrace cabins add \$50 onboard credit</strong>') * $(has "$h" 'First to book: dining &amp; experiences open June 27, 2027') * $(has "$h" 'Free parking at Terminal V (Miami sailings)') * $(hasnt "$h" '{date:') * $(hasnt "$h" 'Available on request') ))"
++check "preview: each all-in part is its own ticket (label, title, stub), the fee included" "$(( $([ "$(grep -o 'class="cbv-inc-ticket"' <<< "$h" | wc -l)" -eq 5 ] && echo 1 || echo 0) * $(has "$h" '<span class="cbv-inc-ticket-label">Included · 01</span><span class="cbv-inc-ticket-title">Cruise fare</span>') * $(has "$h" '<span class="cbv-inc-ticket-label">Included · 05</span><span class="cbv-inc-ticket-title">CBGV Group Experience Fee</span><span class="cbv-inc-ticket-sub">$225 per traveler</span>') * $(has "$h" 'class="cbv-inc-ticket-stub" aria-hidden="true"') ))"
++check "preview: no empty legacy band above the footer (nothing of the old page left)" "$(hasnt "$h" 'class="cbv-lp-legacy-wrap"')"
+ check "preview: the provider footnote \"Perks vary by fare...\"" "$(has "$h" 'Perks vary by fare. Your travel advisor will confirm exactly what&#039;s included when you book.')"
+ check "preview: the 6-line group program and its note; no swag, no host line" "$(( $(python3 -c 'import sys,re; h=sys.stdin.read(); m=re.search(r"<ul class=\"cbv-inc-program-list\">(.*?)</ul>", h, re.S); print(1 if m and m.group(1).count("<li>")==6 else 0)' <<< "$h") * $(has "$h" 'Coffee and goodbyes (Day 6)') * $(has "$h" 'All events and times are subject to change.') * $(hasnt "$h" 'swag') * $(hasnt "$h" 'On-trip CBGV host\|An on-trip CBGV host') ))"
+ check "preview: 4 tags numbered TAG 01-04, the forecast chip" "$(( $(has "$h" '>Tag 01 · Theme nights<') * $(has "$h" '>Tag 04 · Cabin kit<') * $(hasnt "$h" '>Tag 05') * $(has "$h" 'class="cbv-lp-pack-forecast">FORECAST · LOW 80s °F · WARM &amp; TROPICAL<') ))"
+diff --git a/tests/landing/test_proposal_client_prices.php b/tests/landing/test_proposal_client_prices.php
+index 1988996..bfa0779 100644
+--- a/tests/landing/test_proposal_client_prices.php
++++ b/tests/landing/test_proposal_client_prices.php
+@@ -56,9 +56,9 @@ check( 'the default (no second argument) is the Internal Data Sheet view', $inte
+ $t181 = array( 'pricing_tiers' => cb_trip_get_pricing_tiers( 181 ), 'single_price' => (float) get_post_meta( 181, 'cb_price', true ), 'price_columns' => cbv_lp_price_columns( 181 ), 'planning_fee' => cbv_lp_planning_fee_shown( 181, 'pdf' ) );
+ $c181 = cb_proposal_render_pricing_html( $t181, true );
+ $i181 = cb_proposal_render_pricing_html( $t181 );
+-check( 'REAL trip 181, client PDF: the 4 Premium cabins only, no Locked In tier', 4 === substr_count( $c181, 'class="cb-tier-name"' ) && 4 === substr_count( $c181, '<td>Premium</td>' ) && false === strpos( $c181, 'Locked In' ) && false === strpos( $c181, 'Not on price board' ) );
+-check( 'REAL trip 181, Internal Data Sheet: all 7 tiers, the 3 Locked In labelled "Not on price board"', 7 === substr_count( $i181, 'class="cb-tier-name"' ) && 3 === substr_count( $i181, '<td>Not on price board</td>' ) && 3 === substr_count( $i181, 'Locked In' ) );
+-check( 'REAL trip 181: The Insider $2,552.00 per cabin in both', false !== strpos( $c181, '$2,552.00' ) && false !== strpos( $i181, '$2,552.00' ) );
++check( 'REAL trip 181, client PDF (Oct 15, 2026 invoices): all 8 cabins in Premium, no Locked In tier', 8 === substr_count( $c181, 'class="cb-tier-name"' ) && 8 === substr_count( $c181, '<td>Premium</td>' ) && false === strpos( $c181, 'Locked In' ) && false === strpos( $c181, 'Not on price board' ) );
++check( 'REAL trip 181, Internal Data Sheet: the same 8 tiers (Locked In tiers removed 2026-10-15)', 8 === substr_count( $i181, 'class="cb-tier-name"' ) && 0 === substr_count( $i181, '<td>Not on price board</td>' ) && 0 === substr_count( $i181, 'Locked In' ) );
++check( 'REAL trip 181: The Insider $2,608.00 per cabin in both', false !== strpos( $c181, '$2,608.00' ) && false !== strpos( $i181, '$2,608.00' ) );
+ 
+ /* ---- D. which document passes what (source) ---- */
+ $src = file_get_contents( WPMU_PLUGIN_DIR . '/checkedbags-proposal-pdf.php' );
+diff --git a/tests/landing/test_step4.php b/tests/landing/test_step4.php
+index 2a85a22..4579474 100644
+--- a/tests/landing/test_step4.php
++++ b/tests/landing/test_step4.php
+@@ -265,7 +265,7 @@ check( 'the number of accordions, tables and links is unchanged apart from the h
+ /* ---- I. wiring: cbv_lp_render_trip ---- */
+ section( 'I. page assembly' );
+ $page = cbv_lp_render_trip( 181, 'new_preview' );
+-check( 'preview banner first, then the new hero, then the content wrap', strpos( $page, 'cbv-lp-preview-banner' ) < strpos( $page, 'class="cbv-lp-hero"' ) && strpos( $page, 'class="cbv-lp-hero"' ) < strpos( $page, 'cbv-lp-legacy-wrap' ) );
++check( 'preview banner first, then the new hero, then the content wrap', strpos( $page, 'cbv-lp-preview-banner' ) < strpos( $page, 'class="cbv-lp-hero"' ) && strpos( $page, 'class="cbv-lp-hero"' ) < ( false !== strpos( $page, 'cbv-lp-legacy-wrap' ) ? strpos( $page, 'cbv-lp-legacy-wrap' ) : strlen( $page ) ) /* band skipped when empty (2026-10-15) */ );
+ check( 'assembled page: exactly one <h1>, no old hero', 1 === substr_count( $page, '<h1' ) && false === strpos( $page, 'cbv-landing-hero' ) );
+ $public = cbv_lp_render_trip( 181, 'new' );
+ check( 'public view has no preview banner but has the new hero', false === strpos( $public, 'cbv-lp-preview-banner' ) && false !== strpos( $public, 'class="cbv-lp-hero"' ) );
+diff --git a/tests/landing/test_step5.php b/tests/landing/test_step5.php
+index 44648b7..4af6692 100644
+--- a/tests/landing/test_step5.php
++++ b/tests/landing/test_step5.php
+@@ -266,12 +266,12 @@ if ( $bk181 >= $min181 ) {
+ }
+ check( 'REAL trip 181: the intro written 2026-10-05 is shown (heading, 3 paragraphs, chips after the automatic ones)', ( $i181 = cbv_lp_intro_data( 181 ) ) && "Five nights. One crew. Zero kids' table." === $i181['heading'] && 3 === substr_count( $i181['body'], '<p>' ) && array( '5 nights', 'Valiant Lady', 'Adults only · 18+', 'Miami round trip', 'Low 80s °F' ) === $i181['chips'], json_encode( $i181 ) );
+ $page = cbv_lp_render_trip( 181, 'new_preview' );
+-check( 'order: banner, hero, status board, legacy content', strpos( $page, 'cbv-lp-preview-banner' ) < strpos( $page, 'class="cbv-lp-hero"' ) && strpos( $page, 'class="cbv-lp-hero"' ) < strpos( $page, 'class="cbv-lp-status"' ) && strpos( $page, 'class="cbv-lp-status"' ) < strpos( $page, 'cbv-lp-legacy-wrap' ) );
++check( 'order: banner, hero, status board, legacy content', strpos( $page, 'cbv-lp-preview-banner' ) < strpos( $page, 'class="cbv-lp-hero"' ) && strpos( $page, 'class="cbv-lp-hero"' ) < strpos( $page, 'class="cbv-lp-status"' ) && strpos( $page, 'class="cbv-lp-status"' ) < ( false !== strpos( $page, 'cbv-lp-legacy-wrap' ) ? strpos( $page, 'cbv-lp-legacy-wrap' ) : strlen( $page ) ) /* band skipped when empty (2026-10-15) */ );
+ check( 'still exactly one <h1>', 1 === substr_count( $page, '<h1' ) );
+ $fake[ 181 ] = array( 'cbv_lp_intro_heading' => 'Hello', 'cbv_lp_travelers_booked' => '7' );
+ $p1 = cbv_lp_render_trip( 181, 'new' );
+ $p2 = cbv_lp_render_trip( 181, 'new' );
+-check( 'intro sits between the status board and the legacy content', strpos( $p1, 'class="cbv-lp-status"' ) < strpos( $p1, 'class="cbv-lp-intro"' ) && strpos( $p1, 'class="cbv-lp-intro"' ) < strpos( $p1, 'cbv-lp-legacy-wrap' ) );
++check( 'intro sits between the status board and the legacy content', strpos( $p1, 'class="cbv-lp-status"' ) < strpos( $p1, 'class="cbv-lp-intro"' ) && strpos( $p1, 'class="cbv-lp-intro"' ) < ( false !== strpos( $p1, 'cbv-lp-legacy-wrap' ) ? strpos( $p1, 'cbv-lp-legacy-wrap' ) : strlen( $p1 ) ) /* band skipped when empty (2026-10-15) */ );
+ check( 'GATE numbering restarts at 14 on every render (each render has exactly one GATE 14, on the intro)', 1 === substr_count( $p1, 'Gate 14 · ' ) && 1 === substr_count( $p2, 'Gate 14 · ' ) && false !== strpos( $p2, 'Gate 14 · The trip' ) );
+ check( 'typed number at or above the minimum: "7 travelers booked" and 4 tiles', ( 7 < $min181 ) || ( false !== strpos( $p1, '>7 travelers booked<' ) && 4 === substr_count( $p1, 'class="cbv-lp-tile"' ) ) );
+ unset( $fake[ 181 ] );
+diff --git a/tests/landing/test_step6.php b/tests/landing/test_step6.php
+index 80e0394..01c5bdd 100644
+--- a/tests/landing/test_step6.php
++++ b/tests/landing/test_step6.php
+@@ -212,7 +212,7 @@ check( 'no table, empty or plain text: returned unchanged', '<p>Hello</p>' === c
+ /* ---- I. page assembly (REAL trip 181) ---- */
+ section( 'I. page assembly' );
+ $page = cbv_lp_render_trip( 181, 'new_preview' );
+-check( 'order: hero, status board, intro, route, legacy content', strpos( $page, 'class="cbv-lp-hero"' ) < strpos( $page, 'class="cbv-lp-status"' ) && strpos( $page, 'class="cbv-lp-status"' ) < strpos( $page, 'class="cbv-lp-intro"' ) && strpos( $page, 'class="cbv-lp-intro"' ) < strpos( $page, 'class="cbv-lp-route"' ) && strpos( $page, 'class="cbv-lp-route"' ) < strpos( $page, 'cbv-lp-legacy-wrap' ) );
++check( 'order: hero, status board, intro, route, legacy content', strpos( $page, 'class="cbv-lp-hero"' ) < strpos( $page, 'class="cbv-lp-status"' ) && strpos( $page, 'class="cbv-lp-status"' ) < strpos( $page, 'class="cbv-lp-intro"' ) && strpos( $page, 'class="cbv-lp-intro"' ) < strpos( $page, 'class="cbv-lp-route"' ) && strpos( $page, 'class="cbv-lp-route"' ) < ( false !== strpos( $page, 'cbv-lp-legacy-wrap' ) ? strpos( $page, 'cbv-lp-legacy-wrap' ) : strlen( $page ) ) /* band skipped when empty (2026-10-15) */ );
+ check( 'GATE 14 = the trip (intro), GATE 15 = flight path (route)', false !== strpos( $page, 'Gate 14 · The trip' ) && false !== strpos( $page, 'Gate 15 · Flight path' ) );
+ check( 'REAL trip 181 route: six days, chain MIA → SEA → POP → SEA → BIM → MIA, times from the Virgin quote (set 2026-10-11: sail-away 17:00, back 06:30)', 6 === substr_count( $page, '<li class="cbv-lp-day">' ) && false !== strpos( $page, 'MIA → SEA → POP → SEA → BIM → MIA' ) && false !== strpos( $page, 'Sail-away 5:00 pm' ) && false !== strpos( $page, 'Back in Miami at 6:30 am' ) );
+ check( 'the old itinerary table is gone from the new page; still exactly one <h1>', false === strpos( $page, 'cbv-landing-itinerary' ) && 1 === substr_count( $page, '<h1' ) );
+diff --git a/tests/landing/test_step7.php b/tests/landing/test_step7.php
+index 53179c6..bf4a05c 100644
+--- a/tests/landing/test_step7.php
++++ b/tests/landing/test_step7.php
+@@ -165,7 +165,7 @@ $page = cbv_lp_render_trip( 181, 'new_preview' );
+ check( 'REAL trip 181 (content set 2026-10-05/08): intro 14, route 15, Scarlet Night featured 16, gallery 17 with 10 prints (10th added 2026-10-14)', false !== strpos( $page, 'Gate 14 · The trip' ) && false !== strpos( $page, 'Gate 15 · Flight path' ) && ( false !== strpos( $page, 'Gate 16 · After dark' ) || false !== strpos( $page, 'Gate 16 · Day 02 · After dark' ) ) /* Day 02 since 2026-10-14 (was Day 04 earlier that day) */ && false !== strpos( $page, 'id="cbv-lp-featured-title">Scarlet Night</h2>' ) && false !== strpos( $page, 'Gate 17 · Life on board' ) && 10 === substr_count( $page, '<li class="cbv-lp-print-item">' ) );
+ $fake[ 181 ] = array( 'cbv_lp_featured' => array( 'title' => 'Scarlet Night', 'day' => 2, 'colour' => 'red' ), 'cbv_lp_gallery' => gallery_of( 4 ) );
+ $page = cbv_lp_render_trip( 181, 'new' );
+-check( 'order: route, featured, gallery, legacy content', strpos( $page, 'class="cbv-lp-route"' ) < strpos( $page, 'class="cbv-lp-featured' ) && strpos( $page, 'class="cbv-lp-featured' ) < strpos( $page, 'class="cbv-lp-gallery"' ) && strpos( $page, 'class="cbv-lp-gallery"' ) < strpos( $page, 'cbv-lp-legacy-wrap' ) );
++check( 'order: route, featured, gallery, legacy content', strpos( $page, 'class="cbv-lp-route"' ) < strpos( $page, 'class="cbv-lp-featured' ) && strpos( $page, 'class="cbv-lp-featured' ) < strpos( $page, 'class="cbv-lp-gallery"' ) && strpos( $page, 'class="cbv-lp-gallery"' ) < ( false !== strpos( $page, 'cbv-lp-legacy-wrap' ) ? strpos( $page, 'cbv-lp-legacy-wrap' ) : strlen( $page ) ) /* band skipped when empty (2026-10-15) */ );
+ check( 'GATE 16 · Day 02 · After dark, then GATE 17 · Life on board', false !== strpos( $page, 'Gate 16 · Day 02 · After dark' ) && false !== strpos( $page, 'Gate 17 · Life on board' ) );
+ $fake[ 181 ] = array( 'cbv_lp_featured' => array(), 'cbv_lp_gallery' => gallery_of( 2 ) ); // hide the real featured moment for this check
+ check( 'with no featured moment, the gallery becomes GATE 16', false !== strpos( cbv_lp_render_trip( 181, 'new' ), 'Gate 16 · Life on board' ) );
+diff --git a/tests/landing/test_step8.php b/tests/landing/test_step8.php
+index 92b8663..8aa8834 100644
+--- a/tests/landing/test_step8.php
++++ b/tests/landing/test_step8.php
+@@ -127,8 +127,8 @@ $t181 = cb_trip_get_pricing_tiers( 181 );
+ // Since Step 9 the board shows a trip's OWN Group Experience Fee (trip 181: $225 per traveler, set 2026-10-09), so totals = cabin total + that fee.
+ $fee181 = cbv_lp_fee_for_cabin( cbv_lp_planning_fee( 181 ), $t181[0]['occupancy_points'][0]['occupancy_count'] ?? 2 );
+ // Tagged 2026-10-11 (Virgin quote): the 4 cabins in Premium (column 3), the 3 "Locked In" tiers Not on the price board.
+-check( 'REAL trip 181: 4 groups (Locked In tiers left out), one column, Premium (3); totals equal the existing cabin totals plus its own fee', array( 'The Insider', 'Sea View', 'Sea Terrace XL', 'Sea Terrace' ) === wp_list_pluck( $d181['groups'], 'name' ) && array( 3 => 'Premium' ) === $d181['columns'] && abs( $d181['groups'][0]['rows'][0]['cells'][3]['total'] - ( cb_pricing_occupancy_point_cabin_total( $t181[0]['occupancy_points'][0] ) + $fee181 ) ) < 0.005, json_encode( array( wp_list_pluck( $d181['groups'], 'name' ), $d181['columns'] ) ) );
+-check( 'REAL trip 181: "The Insider" all-in for 2 = $2,552 + its own fee 2 x $225 = $3,002, per person $1,501', 3002.0 === $d181['groups'][0]['rows'][0]['cells'][3]['total'] && 1501.0 === $d181['groups'][0]['rows'][0]['cells'][3]['per_person'] && 450.0 === $d181['groups'][0]['rows'][0]['cells'][3]['parts']['planning_fee'] );
++check( 'REAL trip 181 (Oct 15, 2026 invoices): 4 groups (Insider, Sea View, Sea Terraces, Suites), one column, Premium (3); totals equal the cabin totals plus its own fee', array( 'Insider', 'Sea View', 'Sea Terraces', 'Suites' ) === wp_list_pluck( $d181['groups'], 'name' ) && array( 3 => 'Premium' ) === $d181['columns'] && abs( $d181['groups'][0]['rows'][0]['cells'][3]['total'] - ( cb_pricing_occupancy_point_cabin_total( $t181[0]['occupancy_points'][0] ) + $fee181 ) ) < 0.005, json_encode( array( wp_list_pluck( $d181['groups'], 'name' ), $d181['columns'] ) ) );
++check( 'REAL trip 181: "The Insider" all-in for 2 = $2,608 + its own fee 2 x $225 = $3,058, per person $1,529 (Oct 15, 2026 invoices)', 3058.0 === $d181['groups'][0]['rows'][0]['cells'][3]['total'] && 1529.0 === $d181['groups'][0]['rows'][0]['cells'][3]['per_person'] && 450.0 === $d181['groups'][0]['rows'][0]['cells'][3]['parts']['planning_fee'] );
+ $d320 = cbv_lp_price_board_data( 320 );
+ $p320 = cb_trip_get_pricing_tiers( 320 )[0]['occupancy_points'][0];
+ check( 'REAL trip 320: read without errors; totals equal the existing cabin totals plus its own fee ($150 per traveler)', ! empty( $d320['groups'] ) && abs( $d320['groups'][0]['rows'][0]['cells'][1]['total'] - ( cb_pricing_occupancy_point_cabin_total( $p320 ) + cbv_lp_fee_for_cabin( cbv_lp_planning_fee( 320 ), $p320['occupancy_count'] ?? 1 ) ) ) < 0.005 );
+@@ -210,12 +210,12 @@ $h_one = cb_proposal_render_pricing_html( $one_tag );
+ check( 'one tag anywhere: the Fare column appears for every row (untagged rows show the column 1 name)', false !== strpos( $h_one, '<th>Fare</th><th># Sailors</th>' ) && false !== strpos( $h_one, '<td>Base</td><td>2</td>' ) && false !== strpos( $h_one, '<td>Not on price board</td><td>3</td>' ) );
+ check( 'totals are the same with and without the Fare column', preg_match_all( '/\$[\d,]+\.\d\d/', $h_untagged, $m1 ) && preg_match_all( '/\$[\d,]+\.\d\d/', $h_one, $m2 ) && $m1[0] === $m2[0] );
+ $h181 = cb_proposal_render_pricing_html( array( 'pricing_tiers' => cb_trip_get_pricing_tiers( 181 ), 'single_price' => 0, 'price_columns' => cbv_lp_price_columns( 181 ) ) );
+-check( 'REAL trip 181 (tagged since 2026-10-11): its proposal has the Fare column, Premium for the cabins, "Not on price board" for the Locked In tiers', false !== strpos( $h181, '<th>Fare</th><th># Sailors</th>' ) && 4 === substr_count( $h181, '<td>Premium</td>' ) && 3 === substr_count( $h181, '<td>Not on price board</td>' ) );
++check( 'REAL trip 181 (Oct 15, 2026 invoices): its proposal has the Fare column, Premium for all 8 cabins, no Locked In tiers left', false !== strpos( $h181, '<th>Fare</th><th># Sailors</th>' ) && 8 === substr_count( $h181, '<td>Premium</td>' ) && 0 === substr_count( $h181, '<td>Not on price board</td>' ) );
+ 
+ /* ---- G. what Step 8 must NOT do ---- */
+ section( 'G. no side effects' );
+ check( 'the public price range for trip 181 is computed exactly as before', cb_trip_get_price_range( 181 )['low'] === min( array_map( 'cb_pricing_occupancy_point_total', array_merge( ...array_map( function ( $t ) { return $t['occupancy_points']; }, $t181 ) ) ) ) );
+-check( 'the current (legacy) landing page still lists every tier, Lock-It-In included', false !== strpos( cbv_render_public_trip_landing( 181 ), 'Insider Locked In' ) );
++check( 'the current (legacy) landing page still lists every tier, the suites included', false !== strpos( cbv_render_public_trip_landing( 181 ), 'Mega RockStar' ) && false !== strpos( cbv_render_public_trip_landing( 181 ), 'Limited View Sea Terrace' ) );
+ check( 'master switch still off', ! get_option( 'cbv_lp_redesign_live' ) );
+ check( 'the new-design page draws the price board once (Step 9; Step 8 itself drew nothing)', 1 === substr_count( cbv_lp_render_trip( 181, 'new' ), '<section class="cbv-lp-prices"' ) );
+ 
+diff --git a/tests/landing/test_step8b.php b/tests/landing/test_step8b.php
+index 40facac..1ff433d 100644
+--- a/tests/landing/test_step8b.php
++++ b/tests/landing/test_step8b.php
+@@ -249,9 +249,9 @@ section( 'I. no side effects' );
+ $GLOBALS['opt_fees'] = $all250; $GLOBALS['opt_live'] = '1';
+ $t181 = cb_trip_get_pricing_tiers( 181 );
+ check( 'even with a live $250 fee: Gate 07 / legacy price range for trip 181 unchanged', cb_trip_get_price_range( 181 )['low'] === min( array_map( 'cb_pricing_occupancy_point_total', array_merge( ...array_map( function ( $t ) { return $t['occupancy_points']; }, $t181 ) ) ) ) );
+-check( "even with a live fee: today's landing page shows the old prices (From \$1,276 / person for The Insider)", false !== strpos( cbv_render_public_trip_landing( 181 ), '1,276' ) );
++check( "even with a live fee: today's landing page shows the plain prices (From \$1,304 / person for The Insider, Oct 15 invoices)", false !== strpos( cbv_render_public_trip_landing( 181 ), '1,304' ) );
+ $GLOBALS['opt_fees'] = false; $GLOBALS['opt_live'] = false;
+-check( 'REAL site today (no standard fee, not live): trip 181 shows only its OWN fee ($225 per traveler, set 2026-10-09; shown on the board since Step 9): $2,552 + $450', 'trip' === cbv_lp_price_board_data( 181 )['fee']['source'] && 225.0 === cbv_lp_price_board_data( 181 )['fee']['amount'] && 3002.0 === cbv_lp_price_board_data( 181 )['groups'][0]['rows'][0]['cells'][3]['total'] && null === cbv_lp_planning_fee_shown( 181, 'pdf' ) ); // The Insider, Premium column since 2026-10-11
++check( 'REAL site today (no standard fee, not live): trip 181 shows only its OWN fee ($225 per traveler, set 2026-10-09; shown on the board since Step 9): $2,608 + $450 (Oct 15 invoices)', 'trip' === cbv_lp_price_board_data( 181 )['fee']['source'] && 225.0 === cbv_lp_price_board_data( 181 )['fee']['amount'] && 3058.0 === cbv_lp_price_board_data( 181 )['groups'][0]['rows'][0]['cells'][3]['total'] && null === cbv_lp_planning_fee_shown( 181, 'pdf' ) ); // The Insider, Premium column since 2026-10-11
+ remove_all_filters( 'pre_option_cbv_lp_planning_fees' ); remove_all_filters( 'pre_option_cbv_lp_planning_fee_live' );
+ check( 'the real options are not set (nothing written by this build)', false === get_option( 'cbv_lp_planning_fees', false ) && ! get_option( 'cbv_lp_planning_fee_live' ) );
+ check( 'master switch still off', ! get_option( 'cbv_lp_redesign_live' ) );
+diff --git a/tests/landing/test_step9.php b/tests/landing/test_step9.php
+index cadd896..d86c070 100644
+--- a/tests/landing/test_step9.php
++++ b/tests/landing/test_step9.php
+@@ -81,7 +81,7 @@ section( 'A. the "Price board" box: cleaning input' );
+ $s = cbv_lp_sanitize_priceboard( array( 'note' => "  <b>All in</b> for {party}\nline 2 ", 'photo1' => 407, 'focus1' => 'top-left', 'photo2' => TRIP, 'focus2' => 'nonsense' ) );
+ check( 'note: tags stripped, trimmed, line breaks kept', "All in for {party}\nline 2" === $s['note'], json_encode( $s['note'] ) );
+ check( 'photo 1: a real image kept with its focus; photo 2: not an image -> 0, junk focus -> centre', 407 === $s['photo1'] && 'top-left' === $s['focus1'] && 0 === $s['photo2'] && '' === $s['focus2'], json_encode( $s ) );
+-check( 'note capped at 600 characters; junk input gives an empty box', 600 === mb_strlen( cbv_lp_sanitize_priceboard( array( 'note' => str_repeat( 'x', 900 ) ) )['note'] ) && array( 'note' => '', 'photo1' => 0, 'focus1' => '', 'photo2' => 0, 'focus2' => '' ) === cbv_lp_sanitize_priceboard( 'junk' ) );
++check( 'note capped at 600 characters; junk input gives an empty box', 600 === mb_strlen( cbv_lp_sanitize_priceboard( array( 'note' => str_repeat( 'x', 900 ) ) )['note'] ) && array( 'note' => '', 'photo1' => 0, 'focus1' => '', 'photo2' => 0, 'focus2' => '', 'other' => array() ) === cbv_lp_sanitize_priceboard( 'junk' ) );
+ 
+ /* ---- B. small helpers ---- */
+ section( 'B. small helpers' );
+@@ -217,12 +217,12 @@ $st = cbv_lp_strip_legacy_pricing( $legacy_sample );
+ check( 'strip: the "Choose Your Option" block is removed, everything else kept', false === strpos( $st, 'Choose Your Option' ) && false === strpos( $st, 'cbv-landing-pricing' ) && false !== strpos( $st, '<h2>About</h2>' ) && false !== strpos( $st, 'Reserve Your Spot' ) );
+ check( 'strip: unchanged when there is no pricing block, or nothing at all', '<div class="cbv-landing-section"><h2>About</h2></div>' === cbv_lp_strip_legacy_pricing( '<div class="cbv-landing-section"><h2>About</h2></div>' ) && '' === cbv_lp_strip_legacy_pricing( '' ) );
+ $page = cbv_lp_render_trip( 181, 'new' );
+-check( 'REAL trip 181, new design: the board is drawn once, after the gallery and before the legacy content', 1 === substr_count( $page, '<section class="cbv-lp-prices"' ) && strpos( $page, 'class="cbv-lp-gallery"' ) < strpos( $page, 'class="cbv-lp-prices"' ) && strpos( $page, 'class="cbv-lp-prices"' ) < strpos( $page, 'cbv-lp-legacy-wrap' ) );
++check( 'REAL trip 181, new design: the board is drawn once, after the gallery and before the legacy content', 1 === substr_count( $page, '<section class="cbv-lp-prices"' ) && strpos( $page, 'class="cbv-lp-gallery"' ) < strpos( $page, 'class="cbv-lp-prices"' ) && strpos( $page, 'class="cbv-lp-prices"' ) < ( false !== strpos( $page, 'cbv-lp-legacy-wrap' ) ? strpos( $page, 'cbv-lp-legacy-wrap' ) : strlen( $page ) ) /* band skipped when empty (2026-10-15) */ );
+ check( "REAL trip 181, new design: today's \"Choose Your Option\" cards are gone", false === strpos( $page, 'Choose Your Option' ) );
+ check( 'REAL trip 181, new design: GATE numbers run on (board = Gate 18 after intro, route, featured, gallery)', false !== strpos( $page, 'Gate 18 · Fare classes' ), '' );
+ check( 'REAL trip 181, new design: one <h1>, and "Claim your seat" points at the board', 1 === substr_count( $page, '<h1' ) && false !== strpos( $page, 'href="#fares">Claim your seat' ) );
+ $legacy = cbv_render_public_trip_landing( 181 );
+-check( "today's public page (legacy renderer) is unchanged: still has its cards and the old prices", false !== strpos( $legacy, 'Choose Your Option' ) && false !== strpos( $legacy, '1,276' ) && false === strpos( $legacy, 'cbv-lp-prices' ) );
++check( "today's public page (legacy renderer) is unchanged: still has its cards and the old prices", false !== strpos( $legacy, 'Choose Your Option' ) && false !== strpos( $legacy, '1,304' ) /* Oct 15, 2026 invoices */ && false === strpos( $legacy, 'cbv-lp-prices' ) );
+ 
+ /* ---- H. the "Price board" box and its save ---- */
+ section( 'H. admin box and save' );
+@@ -250,7 +250,7 @@ $writes = array();
+ $_POST = array( 'cbv_lp_priceboard_nonce' => wp_create_nonce( 'cbv_lp_priceboard_save' ), 'cbv_lp_priceboard' => wp_slash( array( 'note' => ' <i>Hi</i> it\'s {party} ', 'photo1' => '407', 'focus1' => 'bottom-right', 'photo2' => 'junk' ) ) );
+ run_board_save( TRIP );
+ $by = array(); foreach ( $writes as $w ) { if ( 'update_post_metadata' === $w[0] ) { $by[ $w[2] ] = $w[3]; } }
+-check( 'save: stored cleaned (slashes removed), only its own key', array( 'cbv_lp_priceboard' => array( 'note' => 'Hi it\'s {party}', 'photo1' => 407, 'focus1' => 'bottom-right', 'photo2' => 0, 'focus2' => '' ) ) === $by, json_encode( $by ) );
++check( 'save: stored cleaned (slashes removed), only its own key', array( 'cbv_lp_priceboard' => array( 'note' => 'Hi it\'s {party}', 'photo1' => 407, 'focus1' => 'bottom-right', 'photo2' => 0, 'focus2' => '', 'other' => array() ) ) === $by, json_encode( $by ) );
+ wp_set_current_user( 0 );
+ $writes = array();
+ $_POST = array( 'cbv_lp_priceboard_nonce' => wp_create_nonce( 'cbv_lp_priceboard_save' ), 'cbv_lp_priceboard' => array( 'note' => 'x' ) );
+@@ -265,7 +265,7 @@ $GLOBALS['opt_fees'] = array(); $GLOBALS['opt_live'] = '0';
+ $d181 = cbv_lp_priceboard_data( 181 );
+ check( 'REAL trip 181: board shown, 4 groups in one Premium column (Locked In tiers "Not on the price board" since 2026-10-11)', is_array( $d181 ) && 4 === count( $d181['groups'] ) && array( 3 => 'Premium' ) === $d181['columns'], json_encode( $d181 ? $d181['columns'] : null ) );
+ check( "REAL trip 181: its own fee ($225 per traveler) is on the board; no children line (adults only via its provider since 2026-10-13)", 'trip' === cbv_lp_price_board_data( 181 )['fee']['source'] && ! in_array( 'Children pay half the CBGV Group Experience Fee.', $d181['fee_note'], true ) && ! empty( $d181['fee_note'] ) );
+-check( 'REAL trip 181: "The Insider" $2,552 + $450 = $3,002 for 2 (Premium)', 3002.0 === $d181['groups'][0]['rows'][0]['cells'][3]['total'] );
++check( 'REAL trip 181: "The Insider" $2,608 + $450 = $3,058 for 2 (Premium, Oct 15, 2026 invoices)', 3058.0 === $d181['groups'][0]['rows'][0]['cells'][3]['total'] );
+ $h181 = board_html( 181 );
+ check( 'REAL trip 181: nothing on the board names the host agency, a deposit, payment plans, or says CBGV books', false === stripos( $h181, 'InteleTravel' ) && false === stripos( $h181, 'payment plan' ) && false === stripos( $h181, 'holds your cabin' ) && false === stripos( $h181, 'CBGV books' ) );
+ $t181 = cb_trip_get_pricing_tiers( 181 );
+diff --git a/uploads/checkedbags/css/styles.css b/uploads/checkedbags/css/styles.css
+index 1c31212..dcf0057 100644
+--- a/uploads/checkedbags/css/styles.css
++++ b/uploads/checkedbags/css/styles.css
+@@ -4076,14 +4076,16 @@ body.admin-bar .site-header { top: 32px; }
+    after the key dates and travel documents (cream styling).
+    ========================================================================== */
+ .cbv-inc-member .cbv-inc-sub { margin: 1rem 0 0.4rem; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink); opacity: 0.75; }
+-.cbv-inc-member .cbv-inc-allin { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 0.75rem; }
++.cbv-inc-member .cbv-inc-allin { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr)); gap: 0.75rem; }
+ .cbv-inc-member .cbv-inc-ticket { display: flex; margin: 0; border: 1px solid rgba(22,35,43,0.15); border-radius: 4px; background: #fff; }
+ .cbv-inc-member .cbv-inc-ticket-main { flex: 1 1 auto; display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; padding: 0.8rem 1rem; }
+ .cbv-inc-member .cbv-inc-ticket-label { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #8A3A1F; }
+ .cbv-inc-member .cbv-inc-ticket-title { font-family: var(--font-display); font-weight: 600; font-size: 1.05rem; color: var(--ink); }
+ .cbv-inc-member .cbv-inc-ticket-stub { flex: 0 0 2.75rem; display: flex; align-items: center; justify-content: center; border-left: 2px dashed rgba(22,35,43,0.3); border-radius: 0 4px 4px 0; background: var(--coral); color: var(--ink); font-weight: 700; }
+ .cbv-inc-member .cbv-inc-every { margin: 0 0 0.5rem; }
+-.cbv-inc-member .cbv-inc-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 0.75rem; }
++.cbv-inc-member .cbv-inc-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 0.75rem; }
++.cbv-inc-member .cbv-inc-card--wide { grid-column: 1 / -1; }
++.cbv-inc-member .cbv-inc-card--wide ul { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 0 1.5rem; }
+ .cbv-inc-member .cbv-inc-card { border: 1px solid rgba(22,35,43,0.15); border-radius: 4px; padding: 0.9rem 1rem; display: flex; flex-direction: column; gap: 0.3rem; background: #fff; }
+ .cbv-inc-member .cbv-inc-card--gold { border-color: var(--gold); }
+ .cbv-inc-member .cbv-inc-card-label, .cbv-inc-member .cbv-inc-tag-label { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #8A3A1F; }
+@@ -4099,3 +4101,5 @@ body.admin-bar .site-header { top: 32px; }
+ .cbv-inc-member .cbv-inc-leave { grid-column: 1 / -1; border: 2px dashed rgba(255,107,74,0.7); border-radius: 4px; padding: 0.9rem 1rem; display: flex; flex-direction: column; gap: 0.3rem; }
+ .cbv-inc-member .cbv-inc-leave-label { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--coral); }
+ .cbv-inc-member .cbv-inc-leave-more a { color: var(--coral); }
++.cbv-inc-member .cbv-inc-card-request { align-self: flex-start; padding: 2px 6px; border-radius: 2px; background: var(--ink); color: #fff; font-family: var(--font-mono); font-size: 0.6rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
++.cbv-inc-member .cbv-inc-ticket-sub { font-family: var(--font-mono); font-size: 0.65rem; color: rgba(22,35,43,0.7); }
+diff --git a/uploads/checkedbags/css/trip-landing.css b/uploads/checkedbags/css/trip-landing.css
+index 9560fb7..334b6d8 100644
+--- a/uploads/checkedbags/css/trip-landing.css
++++ b/uploads/checkedbags/css/trip-landing.css
+@@ -2089,15 +2089,23 @@ body.cbv-lp .cbv-inc-ticket-label {
+ 
+ body.cbv-lp .cbv-inc-ticket-title {
+ 	font-family: 'Fraunces', serif;
+-	font-size: 22px;
++	font-size: 21px;
+ 	font-weight: 600;
+ 	line-height: 1.15;
+ }
+ 
++/* A part's amount, e.g. "$225 per traveler" under "CBGV Group Experience Fee". */
++body.cbv-lp .cbv-inc-ticket-sub {
++	font-family: 'Space Mono', monospace;
++	font-size: 11px;
++	letter-spacing: 0.06em;
++	color: rgba(22, 35, 43, 0.7);
++}
++
+ /* The tear-off stub: coral, behind a dashed perforation with a notch top and bottom. */
+ body.cbv-lp .cbv-inc-ticket-stub {
+ 	position: relative;
+-	flex: 0 0 56px;
++	flex: 0 0 48px;
+ 	display: flex;
+ 	align-items: center;
+ 	justify-content: center;
+@@ -2131,7 +2139,7 @@ body.cbv-lp .cbv-inc-every {
+ 
+ body.cbv-lp .cbv-inc-cards {
+ 	display: grid;
+-	grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
++	grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+ 	gap: 18px;
+ 	align-items: start;
+ }
+@@ -2154,7 +2162,14 @@ body.cbv-lp .cbv-inc-card--dark {
+ 	border: 1px solid rgba(232, 169, 78, 0.35);
+ }
+ 
+-body.cbv-lp .cbv-inc-card--wide { grid-column: span 2; }
++/* Suites run full width under the fares, their perks in two columns (as in the original mockup). */
++body.cbv-lp .cbv-inc-card--wide { grid-column: 1 / -1; }
++
++body.cbv-lp .cbv-inc-card--wide ul {
++	display: grid !important;
++	grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
++	gap: 6px 36px;
++}
+ 
+ body.cbv-lp .cbv-inc-card-label,
+ body.cbv-lp .cbv-inc-tag-label {
+@@ -2313,7 +2328,6 @@ body.cbv-lp .cbv-inc-leave-more a {
+ }
+ 
+ @media (max-width: 720px) {
+-	body.cbv-lp .cbv-inc-card--wide { grid-column: auto; }
+ }
+ 
+ @media (max-width: 600px) {
+@@ -2323,3 +2337,68 @@ body.cbv-lp .cbv-inc-leave-more a {
+ 		padding-bottom: 64px;
+ 	}
+ }
++
++/* ---- Other fares on request (owner, 2026-10-15): note + "Request a quote" under the board ---- */
++body.cbv-lp .cbv-lp-prices-request {
++	display: flex;
++	flex-wrap: wrap;
++	align-items: center;
++	gap: 16px 28px;
++	margin-top: 28px;
++	padding: 20px 24px;
++	border-left: 4px solid var(--cbv-coral);
++	border-radius: 4px;
++	background: #fff;
++	color: var(--cbv-ink);
++}
++
++body.cbv-lp .cbv-lp-prices-request p {
++	flex: 1 1 420px;
++	margin: 0 !important;
++	font-size: 15px;
++	line-height: 1.6;
++	color: var(--cbv-ink) !important;
++}
++
++body.cbv-lp .cbv-lp-prices-request-cta {
++	display: inline-flex;
++	align-items: center;
++	gap: 8px;
++	min-height: 44px;
++	padding: 10px 18px;
++	border: 2px solid var(--cbv-ink);
++	border-radius: 2px;
++	color: var(--cbv-ink) !important;
++	font-family: 'Space Mono', monospace;
++	font-size: 13px;
++	font-weight: 700;
++	letter-spacing: 0.08em;
++	text-transform: uppercase;
++	text-decoration: none !important;
++	white-space: nowrap;
++}
++
++body.cbv-lp .cbv-lp-prices-request-cta:hover,
++body.cbv-lp .cbv-lp-prices-request-cta:focus-visible {
++	background: var(--cbv-ink);
++	color: var(--cbv-cream) !important;
++}
++
++/* A fare card the trip offers on request */
++body.cbv-lp .cbv-inc-card-request {
++	align-self: flex-start;
++	padding: 4px 8px;
++	border-radius: 2px;
++	background: var(--cbv-ink);
++	color: var(--cbv-cream);
++	font-family: 'Space Mono', monospace;
++	font-size: 10px;
++	font-weight: 700;
++	letter-spacing: 0.14em;
++	text-transform: uppercase;
++}
++
++body.cbv-lp .cbv-inc-card--dark .cbv-inc-card-request {
++	background: var(--cbv-gold);
++	color: var(--cbv-ink);
++}
+diff --git a/wp-content/mu-plugins/checkedbags-lp-core.php b/wp-content/mu-plugins/checkedbags-lp-core.php
+index 8aa6023..ce83379 100644
+--- a/wp-content/mu-plugins/checkedbags-lp-core.php
++++ b/wp-content/mu-plugins/checkedbags-lp-core.php
+@@ -184,7 +184,11 @@ function cbv_lp_render_trip( $trip_id, $view = 'new' ) {
+ 		}
+ 		echo cbv_lp_render_who( $trip_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the renderer
+ 	}
+-	echo '<div class="cbv-lp-legacy-wrap">' . $legacy . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput -- the renderer escapes its own output
++	// Whatever is left of the old page, in a cream band -- skipped when nothing visible is left (owner, 2026-10-15:
++	// no empty strip above the footer once every old block has its new section).
++	if ( '' !== trim( wp_strip_all_tags( $legacy, true ) ) || preg_match( '/<(img|iframe|video|audio|a|button|form|input|svg)[\s>\/]/i', $legacy ) ) {
++		echo '<div class="cbv-lp-legacy-wrap">' . $legacy . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput -- the renderer escapes its own output
++	}
+ 	return ob_get_clean();
+ }
+ 
+diff --git a/wp-content/mu-plugins/checkedbags-lp-included.php b/wp-content/mu-plugins/checkedbags-lp-included.php
+index 7f06306..1ab0ae1 100644
+--- a/wp-content/mu-plugins/checkedbags-lp-included.php
++++ b/wp-content/mu-plugins/checkedbags-lp-included.php
+@@ -146,7 +146,13 @@ function cbv_inc_allin_parts( $trip_id ) {
+ 	if ( $every( 'protection' ) ) {
+ 		$out[] = $cruise ? 'Voyage Protection' : 'Travel protection';
+ 	}
+-	// The CBGV Group Experience Fee is not listed here (owner, 2026-10-15): it stays in the price breakdown and the board note.
++	// The CBGV Group Experience Fee as its own ticket (owner, 2026-10-15: back on the list, after a day off it).
++	if ( $every( 'planning_fee' ) ) {
++		$fee   = function_exists( 'cbv_lp_planning_fee_shown' ) ? cbv_lp_planning_fee_shown( $trip_id, 'page' ) : null;
++		$basis = array( 'per_traveler' => 'per traveler', 'per_cabin' => $cruise ? 'per cabin' : 'per room' );
++		$amt   = $fee ? (float) $fee['amount'] : 0;
++		$out[] = 'CBGV Group Experience Fee' . ( $amt > 0 ? ' ($' . ( floor( $amt ) == $amt ? number_format( $amt ) : number_format( $amt, 2 ) ) . ( isset( $basis[ $fee['basis'] ] ) ? ' ' . $basis[ $fee['basis'] ] : '' ) . ')' : '' );
++	}
+ 	return $out;
+ }
+ 
+@@ -158,7 +164,8 @@ function cbv_inc_norm_name( $s ) {
+ 
+ /**
+  * Cards follow the trip's price board (owner, 2026-10-14): a fare card (its title is one of the provider's fare
+- * columns) shows only when the board has that column; any other card (suites) only when the board lists one of
++ * columns) shows only when the board has that column, or when the trip offers that fare on request (owner,
++ * 2026-10-15; the card is then marked 'on_request'); any other card (suites) only when the board lists one of
+  * its cabins (card title or a subline name matches a board cabin group or row). An empty board shows every card.
+  */
+ function cbv_inc_cards_for_board( $trip_id, $cards, $board = null ) {
+@@ -178,12 +185,15 @@ function cbv_inc_cards_for_board( $trip_id, $cards, $board = null ) {
+ 	}
+ 	$cabins     = array_filter( $cabins );
+ 	$fare_names = array_filter( array_map( 'cbv_inc_norm_name', (array) ( function_exists( 'cbv_lp_group' ) ? cbv_lp_group( $trip_id, 'columns' ) : array() ) ) );
++	$on_request = array_map( 'cbv_inc_norm_name', function_exists( 'cbv_lp_board_other_fares' ) ? cbv_lp_board_other_fares( $trip_id, (array) ( $board['columns'] ?? array() ) ) : array() );
+ 	$out        = array();
+ 	foreach ( (array) $cards as $card ) {
+ 		$title = cbv_inc_norm_name( $card['title'] ?? '' );
+ 		if ( in_array( $title, $fare_names, true ) ) {
+ 			if ( in_array( $title, $cols, true ) ) {
+ 				$out[] = $card;
++			} elseif ( in_array( $title, $on_request, true ) ) {
++				$out[] = array_merge( $card, array( 'on_request' => 1 ) );
+ 			}
+ 			continue;
+ 		}
+@@ -277,8 +287,11 @@ function cbv_inc_list_html( $items, $class, $trip_id ) {
+ function cbv_inc_cards_html( $cards, $trip_id ) {
+ 	$out = '<div class="cbv-inc-cards">';
+ 	foreach ( $cards as $c ) {
+-		$cls  = 'cbv-inc-card' . ( 'gold' === $c['style'] ? ' cbv-inc-card--gold' : '' ) . ( 'dark' === $c['style'] ? ' cbv-inc-card--dark' : '' ) . ( ! empty( $c['wide'] ) ? ' cbv-inc-card--wide' : '' );
++		$cls  = 'cbv-inc-card' . ( 'gold' === $c['style'] ? ' cbv-inc-card--gold' : '' ) . ( 'dark' === $c['style'] ? ' cbv-inc-card--dark' : '' ) . ( ! empty( $c['wide'] ) ? ' cbv-inc-card--wide' : '' ) . ( ! empty( $c['on_request'] ) ? ' cbv-inc-card--request' : '' );
+ 		$out .= '<div class="' . esc_attr( $cls ) . '">';
++		if ( ! empty( $c['on_request'] ) ) {
++			$out .= '<span class="cbv-inc-card-request">Available on request</span>';
++		}
+ 		if ( '' !== $c['label'] ) {
+ 			$out .= '<span class="cbv-inc-card-label">' . esc_html( $c['label'] ) . '</span>';
+ 		}
+@@ -306,7 +319,9 @@ function cbv_inc_included_body( $trip_id ) {
+ 		// Each part is its own boarding-pass ticket (owner, 2026-10-15; look of the mockup's luggage tags).
+ 		$out .= '<p class="cbv-inc-sub">In your all-in price</p><ul class="cbv-inc-allin">';
+ 		foreach ( array_values( $parts ) as $i => $p ) {
+-			$out .= '<li class="cbv-inc-ticket"><span class="cbv-inc-ticket-main"><span class="cbv-inc-ticket-label">Included · ' . sprintf( '%02d', $i + 1 ) . '</span><span class="cbv-inc-ticket-title">' . esc_html( $p ) . '</span></span><span class="cbv-inc-ticket-stub" aria-hidden="true">✓</span></li>';
++			// A trailing "(amount)" goes on its own small line: "CBGV Group Experience Fee" / "$225 per traveler".
++			$sub   = preg_match( '/^(.+?) \(([^()]+)\)$/', $p, $m ) ? $m[2] : '';
++			$out  .= '<li class="cbv-inc-ticket"><span class="cbv-inc-ticket-main"><span class="cbv-inc-ticket-label">Included · ' . sprintf( '%02d', $i + 1 ) . '</span><span class="cbv-inc-ticket-title">' . esc_html( '' !== $sub ? $m[1] : $p ) . '</span>' . ( '' !== $sub ? '<span class="cbv-inc-ticket-sub">' . esc_html( $sub ) . '</span>' : '' ) . '</span><span class="cbv-inc-ticket-stub" aria-hidden="true">✓</span></li>';
+ 		}
+ 		$out .= '</ul>';
+ 	}
+diff --git a/wp-content/mu-plugins/checkedbags-lp-priceboard.php b/wp-content/mu-plugins/checkedbags-lp-priceboard.php
+index 371e422..7986eed 100644
+--- a/wp-content/mu-plugins/checkedbags-lp-priceboard.php
++++ b/wp-content/mu-plugins/checkedbags-lp-priceboard.php
+@@ -68,15 +68,60 @@ function cbv_lp_sanitize_priceboard( $raw ) {
+ 	$focus = function ( $key ) use ( $raw ) {
+ 		return function_exists( 'cbv_lp_featured_focus' ) ? cbv_lp_featured_focus( $raw, $key ) : '';
+ 	};
++	// Other fares available on request (owner, 2026-10-15): fare names, checked against the provider's fare columns when shown.
++	$other = array();
++	foreach ( (array) ( $raw['other'] ?? array() ) as $name ) {
++		$name = is_scalar( $name ) ? trim( sanitize_text_field( (string) $name ) ) : '';
++		if ( '' !== $name && ! in_array( $name, $other, true ) && count( $other ) < 4 ) {
++			$other[] = $name;
++		}
++	}
+ 	return array(
+ 		'note'   => trim( $note ),
+ 		'photo1' => $img( $raw['photo1'] ?? 0 ),
+ 		'focus1' => $focus( 'focus1' ),
+ 		'photo2' => $img( $raw['photo2'] ?? 0 ),
+ 		'focus2' => $focus( 'focus2' ),
++		'other'  => $other,
+ 	);
+ }
+ 
++/** "A", "A and B", "A, B and C". */
++function cbv_lp_join_names( $names ) {
++	$names = array_values( array_filter( array_map( 'strval', (array) $names ), 'strlen' ) );
++	if ( count( $names ) < 2 ) {
++		return (string) ( $names[0] ?? '' );
++	}
++	$last = array_pop( $names );
++	return implode( ', ', $names ) . ' and ' . $last;
++}
++
++/**
++ * The trip's "other fares on request": the ticked fares that are one of the provider's fare columns and not already
++ * on the board, richest first (the provider lists its fares cheapest to richest, e.g. Base, Essential, Premium).
++ */
++function cbv_lp_board_other_fares( $trip_id, $board_columns = null ) {
++	$box = cbv_lp_sanitize_priceboard( get_post_meta( $trip_id, 'cbv_lp_priceboard', true ) );
++	if ( ! $box['other'] ) {
++		return array();
++	}
++	if ( null === $board_columns ) {
++		$board         = function_exists( 'cbv_lp_price_board_data' ) ? cbv_lp_price_board_data( $trip_id ) : null;
++		$board_columns = (array) ( $board['columns'] ?? array() );
++	}
++	$norm  = function ( $s ) { return strtolower( trim( (string) $s ) ); };
++	$shown = array_map( $norm, (array) $board_columns );
++	$ticked = array_map( $norm, $box['other'] );
++	$out   = array();
++	foreach ( array_reverse( (array) ( function_exists( 'cbv_lp_group' ) ? cbv_lp_group( $trip_id, 'columns' ) : array() ) ) as $fare ) {
++		$fare = trim( (string) $fare );
++		if ( '' !== $fare && in_array( $norm( $fare ), $ticked, true ) && ! in_array( $norm( $fare ), $shown, true ) ) {
++			$out[] = $fare;
++		}
++	}
++	return $out;
++}
++
+ /** "$2,552" for whole dollars, "$2,552.50" otherwise. */
+ function cbv_lp_board_money( $value ) {
+ 	$value = (float) $value;
+@@ -228,9 +273,20 @@ function cbv_lp_priceboard_data( $trip_id ) {
+ 		'cta_label' => 'Reserve a ' . strtolower( (string) ( $labels['accommodation'] ?? 'cabin' ) ),
+ 		'cta_url'   => cbv_lp_board_registration_url( $trip_id ),
+ 		'fee_note'  => (array) $board['fee_note'],
++		'shown'     => array_values( array_filter( array_map( 'strval', (array) $board['columns'] ), 'strlen' ) ),
++		'other'     => cbv_lp_board_other_fares( $trip_id, (array) $board['columns'] ),
+ 	);
+ }
+ 
++/** The "other fares on request" note under the board, or ''. */
++function cbv_lp_board_request_text( $shown, $other ) {
++	if ( ! $other ) {
++		return '';
++	}
++	$text = $shown ? 'Prices shown are ' . cbv_lp_join_names( $shown ) . ' fares. ' : '';
++	return $text . cbv_lp_join_names( $other ) . " fares are also available. Ask us for a quote and we'll compare them for you. Some fares book outside our group block; your travel advisor will explain what that means for you.";
++}
++
+ /** A board whose only rows are "one price only" rows has no columns but still has prices. */
+ function cbv_lp_board_has_single( $groups ) {
+ 	foreach ( (array) $groups as $group ) {
+@@ -388,6 +444,13 @@ function cbv_lp_render_priceboard( $trip_id ) {
+ 				</div>
+ 			</div>
+ 
++			<?php if ( $d['other'] ) : ?>
++				<div class="cbv-lp-prices-request">
++					<p><?php echo esc_html( cbv_lp_board_request_text( $d['shown'], $d['other'] ) ); ?></p>
++					<a class="cbv-lp-prices-request-cta" href="<?php echo esc_url( home_url( '/contact/' ) ); ?>">Request a quote <span aria-hidden="true">&rarr;</span></a>
++				</div>
++			<?php endif; ?>
++
+ 			<?php if ( $d['fee_note'] ) : ?>
+ 				<div class="cbv-lp-prices-notes">
+ 					<?php foreach ( $d['fee_note'] as $line ) : ?>
+@@ -530,6 +593,16 @@ function cbv_lp_render_priceboard_box( $post ) {
+ 	?>
+ 	<p class="description">No photos = the board runs full width. The board hides itself when the Price board section is Off or no price is left on it ("Not on the price board" everywhere).</p>
+ 	<?php
++	$fares = array_values( array_filter( array_map( 'trim', array_map( 'strval', (array) ( function_exists( 'cbv_lp_group' ) ? cbv_lp_group( $post->ID, 'columns' ) : array() ) ) ), 'strlen' ) );
++	if ( $fares ) :
++		?>
++		<p><strong>Other fares available on request</strong> <span class="description">(optional; fares the board doesn't show that we can quote. Adds a note and a "Request a quote" button under the board, and shows those fares' cards in What's included, tagged "Available on request".)</span><br>
++			<?php foreach ( $fares as $fare ) : ?>
++				<label style="margin-right:16px;"><input type="checkbox" name="cbv_lp_priceboard[other][]" value="<?php echo esc_attr( $fare ); ?>" <?php checked( in_array( $fare, $b['other'], true ) ); ?>> <?php echo esc_html( $fare ); ?></label>
++			<?php endforeach; ?>
++		</p>
++		<?php
++	endif;
+ }
+ 
+ add_action( 'save_post_cb_trip', function ( $post_id ) {

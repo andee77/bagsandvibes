@@ -265,7 +265,7 @@ check( 'the number of accordions, tables and links is unchanged apart from the h
 /* ---- I. wiring: cbv_lp_render_trip ---- */
 section( 'I. page assembly' );
 $page = cbv_lp_render_trip( 181, 'new_preview' );
-check( 'preview banner first, then the new hero, then the content wrap', strpos( $page, 'cbv-lp-preview-banner' ) < strpos( $page, 'class="cbv-lp-hero"' ) && strpos( $page, 'class="cbv-lp-hero"' ) < strpos( $page, 'cbv-lp-legacy-wrap' ) );
+check( 'preview banner first, then the new hero, then the content wrap', strpos( $page, 'cbv-lp-preview-banner' ) < strpos( $page, 'class="cbv-lp-hero"' ) && strpos( $page, 'class="cbv-lp-hero"' ) < ( false !== strpos( $page, 'cbv-lp-legacy-wrap' ) ? strpos( $page, 'cbv-lp-legacy-wrap' ) : strlen( $page ) ) /* band skipped when empty (2026-10-15) */ );
 check( 'assembled page: exactly one <h1>, no old hero', 1 === substr_count( $page, '<h1' ) && false === strpos( $page, 'cbv-landing-hero' ) );
 $public = cbv_lp_render_trip( 181, 'new' );
 check( 'public view has no preview banner but has the new hero', false === strpos( $public, 'cbv-lp-preview-banner' ) && false !== strpos( $public, 'class="cbv-lp-hero"' ) );

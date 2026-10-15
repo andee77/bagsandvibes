@@ -56,9 +56,9 @@ check( 'the default (no second argument) is the Internal Data Sheet view', $inte
 $t181 = array( 'pricing_tiers' => cb_trip_get_pricing_tiers( 181 ), 'single_price' => (float) get_post_meta( 181, 'cb_price', true ), 'price_columns' => cbv_lp_price_columns( 181 ), 'planning_fee' => cbv_lp_planning_fee_shown( 181, 'pdf' ) );
 $c181 = cb_proposal_render_pricing_html( $t181, true );
 $i181 = cb_proposal_render_pricing_html( $t181 );
-check( 'REAL trip 181, client PDF: the 4 Premium cabins only, no Locked In tier', 4 === substr_count( $c181, 'class="cb-tier-name"' ) && 4 === substr_count( $c181, '<td>Premium</td>' ) && false === strpos( $c181, 'Locked In' ) && false === strpos( $c181, 'Not on price board' ) );
-check( 'REAL trip 181, Internal Data Sheet: all 7 tiers, the 3 Locked In labelled "Not on price board"', 7 === substr_count( $i181, 'class="cb-tier-name"' ) && 3 === substr_count( $i181, '<td>Not on price board</td>' ) && 3 === substr_count( $i181, 'Locked In' ) );
-check( 'REAL trip 181: The Insider $2,552.00 per cabin in both', false !== strpos( $c181, '$2,552.00' ) && false !== strpos( $i181, '$2,552.00' ) );
+check( 'REAL trip 181, client PDF (Oct 15, 2026 invoices): all 8 cabins in Premium, no Locked In tier', 8 === substr_count( $c181, 'class="cb-tier-name"' ) && 8 === substr_count( $c181, '<td>Premium</td>' ) && false === strpos( $c181, 'Locked In' ) && false === strpos( $c181, 'Not on price board' ) );
+check( 'REAL trip 181, Internal Data Sheet: the same 8 tiers (Locked In tiers removed 2026-10-15)', 8 === substr_count( $i181, 'class="cb-tier-name"' ) && 0 === substr_count( $i181, '<td>Not on price board</td>' ) && 0 === substr_count( $i181, 'Locked In' ) );
+check( 'REAL trip 181: The Insider $2,608.00 per cabin in both', false !== strpos( $c181, '$2,608.00' ) && false !== strpos( $i181, '$2,608.00' ) );
 
 /* ---- D. which document passes what (source) ---- */
 $src = file_get_contents( WPMU_PLUGIN_DIR . '/checkedbags-proposal-pdf.php' );

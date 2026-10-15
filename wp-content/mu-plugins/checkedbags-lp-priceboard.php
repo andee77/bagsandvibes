@@ -68,13 +68,58 @@ function cbv_lp_sanitize_priceboard( $raw ) {
 	$focus = function ( $key ) use ( $raw ) {
 		return function_exists( 'cbv_lp_featured_focus' ) ? cbv_lp_featured_focus( $raw, $key ) : '';
 	};
+	// Other fares available on request (owner, 2026-10-15): fare names, checked against the provider's fare columns when shown.
+	$other = array();
+	foreach ( (array) ( $raw['other'] ?? array() ) as $name ) {
+		$name = is_scalar( $name ) ? trim( sanitize_text_field( (string) $name ) ) : '';
+		if ( '' !== $name && ! in_array( $name, $other, true ) && count( $other ) < 4 ) {
+			$other[] = $name;
+		}
+	}
 	return array(
 		'note'   => trim( $note ),
 		'photo1' => $img( $raw['photo1'] ?? 0 ),
 		'focus1' => $focus( 'focus1' ),
 		'photo2' => $img( $raw['photo2'] ?? 0 ),
 		'focus2' => $focus( 'focus2' ),
+		'other'  => $other,
 	);
+}
+
+/** "A", "A and B", "A, B and C". */
+function cbv_lp_join_names( $names ) {
+	$names = array_values( array_filter( array_map( 'strval', (array) $names ), 'strlen' ) );
+	if ( count( $names ) < 2 ) {
+		return (string) ( $names[0] ?? '' );
+	}
+	$last = array_pop( $names );
+	return implode( ', ', $names ) . ' and ' . $last;
+}
+
+/**
+ * The trip's "other fares on request": the ticked fares that are one of the provider's fare columns and not already
+ * on the board, richest first (the provider lists its fares cheapest to richest, e.g. Base, Essential, Premium).
+ */
+function cbv_lp_board_other_fares( $trip_id, $board_columns = null ) {
+	$box = cbv_lp_sanitize_priceboard( get_post_meta( $trip_id, 'cbv_lp_priceboard', true ) );
+	if ( ! $box['other'] ) {
+		return array();
+	}
+	if ( null === $board_columns ) {
+		$board         = function_exists( 'cbv_lp_price_board_data' ) ? cbv_lp_price_board_data( $trip_id ) : null;
+		$board_columns = (array) ( $board['columns'] ?? array() );
+	}
+	$norm  = function ( $s ) { return strtolower( trim( (string) $s ) ); };
+	$shown = array_map( $norm, (array) $board_columns );
+	$ticked = array_map( $norm, $box['other'] );
+	$out   = array();
+	foreach ( array_reverse( (array) ( function_exists( 'cbv_lp_group' ) ? cbv_lp_group( $trip_id, 'columns' ) : array() ) ) as $fare ) {
+		$fare = trim( (string) $fare );
+		if ( '' !== $fare && in_array( $norm( $fare ), $ticked, true ) && ! in_array( $norm( $fare ), $shown, true ) ) {
+			$out[] = $fare;
+		}
+	}
+	return $out;
 }
 
 /** "$2,552" for whole dollars, "$2,552.50" otherwise. */
@@ -228,7 +273,18 @@ function cbv_lp_priceboard_data( $trip_id ) {
 		'cta_label' => 'Reserve a ' . strtolower( (string) ( $labels['accommodation'] ?? 'cabin' ) ),
 		'cta_url'   => cbv_lp_board_registration_url( $trip_id ),
 		'fee_note'  => (array) $board['fee_note'],
+		'shown'     => array_values( array_filter( array_map( 'strval', (array) $board['columns'] ), 'strlen' ) ),
+		'other'     => cbv_lp_board_other_fares( $trip_id, (array) $board['columns'] ),
 	);
+}
+
+/** The "other fares on request" note under the board, or ''. */
+function cbv_lp_board_request_text( $shown, $other ) {
+	if ( ! $other ) {
+		return '';
+	}
+	$text = $shown ? 'Prices shown are ' . cbv_lp_join_names( $shown ) . ' fares. ' : '';
+	return $text . cbv_lp_join_names( $other ) . " fares are also available. Ask us for a quote and we'll compare them for you. Some fares book outside our group block; your travel advisor will explain what that means for you.";
 }
 
 /** A board whose only rows are "one price only" rows has no columns but still has prices. */
@@ -388,6 +444,13 @@ function cbv_lp_render_priceboard( $trip_id ) {
 				</div>
 			</div>
 
+			<?php if ( $d['other'] ) : ?>
+				<div class="cbv-lp-prices-request">
+					<p><?php echo esc_html( cbv_lp_board_request_text( $d['shown'], $d['other'] ) ); ?></p>
+					<a class="cbv-lp-prices-request-cta" href="<?php echo esc_url( home_url( '/contact/' ) ); ?>">Request a quote <span aria-hidden="true">&rarr;</span></a>
+				</div>
+			<?php endif; ?>
+
 			<?php if ( $d['fee_note'] ) : ?>
 				<div class="cbv-lp-prices-notes">
 					<?php foreach ( $d['fee_note'] as $line ) : ?>
@@ -530,6 +593,16 @@ function cbv_lp_render_priceboard_box( $post ) {
 	?>
 	<p class="description">No photos = the board runs full width. The board hides itself when the Price board section is Off or no price is left on it ("Not on the price board" everywhere).</p>
 	<?php
+	$fares = array_values( array_filter( array_map( 'trim', array_map( 'strval', (array) ( function_exists( 'cbv_lp_group' ) ? cbv_lp_group( $post->ID, 'columns' ) : array() ) ) ), 'strlen' ) );
+	if ( $fares ) :
+		?>
+		<p><strong>Other fares available on request</strong> <span class="description">(optional; fares the board doesn't show that we can quote. Adds a note and a "Request a quote" button under the board, and shows those fares' cards in What's included, tagged "Available on request".)</span><br>
+			<?php foreach ( $fares as $fare ) : ?>
+				<label style="margin-right:16px;"><input type="checkbox" name="cbv_lp_priceboard[other][]" value="<?php echo esc_attr( $fare ); ?>" <?php checked( in_array( $fare, $b['other'], true ) ); ?>> <?php echo esc_html( $fare ); ?></label>
+			<?php endforeach; ?>
+		</p>
+		<?php
+	endif;
 }
 
 add_action( 'save_post_cb_trip', function ( $post_id ) {

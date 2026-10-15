@@ -146,7 +146,13 @@ function cbv_inc_allin_parts( $trip_id ) {
 	if ( $every( 'protection' ) ) {
 		$out[] = $cruise ? 'Voyage Protection' : 'Travel protection';
 	}
-	// The CBGV Group Experience Fee is not listed here (owner, 2026-10-15): it stays in the price breakdown and the board note.
+	// The CBGV Group Experience Fee as its own ticket (owner, 2026-10-15: back on the list, after a day off it).
+	if ( $every( 'planning_fee' ) ) {
+		$fee   = function_exists( 'cbv_lp_planning_fee_shown' ) ? cbv_lp_planning_fee_shown( $trip_id, 'page' ) : null;
+		$basis = array( 'per_traveler' => 'per traveler', 'per_cabin' => $cruise ? 'per cabin' : 'per room' );
+		$amt   = $fee ? (float) $fee['amount'] : 0;
+		$out[] = 'CBGV Group Experience Fee' . ( $amt > 0 ? ' ($' . ( floor( $amt ) == $amt ? number_format( $amt ) : number_format( $amt, 2 ) ) . ( isset( $basis[ $fee['basis'] ] ) ? ' ' . $basis[ $fee['basis'] ] : '' ) . ')' : '' );
+	}
 	return $out;
 }
 
@@ -158,7 +164,8 @@ function cbv_inc_norm_name( $s ) {
 
 /**
  * Cards follow the trip's price board (owner, 2026-10-14): a fare card (its title is one of the provider's fare
- * columns) shows only when the board has that column; any other card (suites) only when the board lists one of
+ * columns) shows only when the board has that column, or when the trip offers that fare on request (owner,
+ * 2026-10-15; the card is then marked 'on_request'); any other card (suites) only when the board lists one of
  * its cabins (card title or a subline name matches a board cabin group or row). An empty board shows every card.
  */
 function cbv_inc_cards_for_board( $trip_id, $cards, $board = null ) {
@@ -178,12 +185,15 @@ function cbv_inc_cards_for_board( $trip_id, $cards, $board = null ) {
 	}
 	$cabins     = array_filter( $cabins );
 	$fare_names = array_filter( array_map( 'cbv_inc_norm_name', (array) ( function_exists( 'cbv_lp_group' ) ? cbv_lp_group( $trip_id, 'columns' ) : array() ) ) );
+	$on_request = array_map( 'cbv_inc_norm_name', function_exists( 'cbv_lp_board_other_fares' ) ? cbv_lp_board_other_fares( $trip_id, (array) ( $board['columns'] ?? array() ) ) : array() );
 	$out        = array();
 	foreach ( (array) $cards as $card ) {
 		$title = cbv_inc_norm_name( $card['title'] ?? '' );
 		if ( in_array( $title, $fare_names, true ) ) {
 			if ( in_array( $title, $cols, true ) ) {
 				$out[] = $card;
+			} elseif ( in_array( $title, $on_request, true ) ) {
+				$out[] = array_merge( $card, array( 'on_request' => 1 ) );
 			}
 			continue;
 		}
@@ -277,8 +287,11 @@ function cbv_inc_list_html( $items, $class, $trip_id ) {
 function cbv_inc_cards_html( $cards, $trip_id ) {
 	$out = '<div class="cbv-inc-cards">';
 	foreach ( $cards as $c ) {
-		$cls  = 'cbv-inc-card' . ( 'gold' === $c['style'] ? ' cbv-inc-card--gold' : '' ) . ( 'dark' === $c['style'] ? ' cbv-inc-card--dark' : '' ) . ( ! empty( $c['wide'] ) ? ' cbv-inc-card--wide' : '' );
+		$cls  = 'cbv-inc-card' . ( 'gold' === $c['style'] ? ' cbv-inc-card--gold' : '' ) . ( 'dark' === $c['style'] ? ' cbv-inc-card--dark' : '' ) . ( ! empty( $c['wide'] ) ? ' cbv-inc-card--wide' : '' ) . ( ! empty( $c['on_request'] ) ? ' cbv-inc-card--request' : '' );
 		$out .= '<div class="' . esc_attr( $cls ) . '">';
+		if ( ! empty( $c['on_request'] ) ) {
+			$out .= '<span class="cbv-inc-card-request">Available on request</span>';
+		}
 		if ( '' !== $c['label'] ) {
 			$out .= '<span class="cbv-inc-card-label">' . esc_html( $c['label'] ) . '</span>';
 		}
@@ -306,7 +319,9 @@ function cbv_inc_included_body( $trip_id ) {
 		// Each part is its own boarding-pass ticket (owner, 2026-10-15; look of the mockup's luggage tags).
 		$out .= '<p class="cbv-inc-sub">In your all-in price</p><ul class="cbv-inc-allin">';
 		foreach ( array_values( $parts ) as $i => $p ) {
-			$out .= '<li class="cbv-inc-ticket"><span class="cbv-inc-ticket-main"><span class="cbv-inc-ticket-label">Included · ' . sprintf( '%02d', $i + 1 ) . '</span><span class="cbv-inc-ticket-title">' . esc_html( $p ) . '</span></span><span class="cbv-inc-ticket-stub" aria-hidden="true">✓</span></li>';
+			// A trailing "(amount)" goes on its own small line: "CBGV Group Experience Fee" / "$225 per traveler".
+			$sub   = preg_match( '/^(.+?) \(([^()]+)\)$/', $p, $m ) ? $m[2] : '';
+			$out  .= '<li class="cbv-inc-ticket"><span class="cbv-inc-ticket-main"><span class="cbv-inc-ticket-label">Included · ' . sprintf( '%02d', $i + 1 ) . '</span><span class="cbv-inc-ticket-title">' . esc_html( '' !== $sub ? $m[1] : $p ) . '</span>' . ( '' !== $sub ? '<span class="cbv-inc-ticket-sub">' . esc_html( $sub ) . '</span>' : '' ) . '</span><span class="cbv-inc-ticket-stub" aria-hidden="true">✓</span></li>';
 		}
 		$out .= '</ul>';
 	}
