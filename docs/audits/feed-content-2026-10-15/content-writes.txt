@@ -1,0 +1,8 @@
+trip 181 changed: cbv_trip_updates
+  cbv_trip_updates: [{"text":"Welcome aboard, crew! Please accept your trip agreement and add your Travel Details on the trip page. Final cruise payment is due to Virgin Voyages by June 27, 2027.","until":"2027-06-27"}]
+tip 4 -> ID 453 "Your Day at The Beach Club at Bimini" (publish, 2026-10-15 20:21:27) text saved exactly
+tip 3 -> ID 454 "Book Dining the Day It Opens" (publish, 2026-10-15 20:22:27) text saved exactly
+tip 2 -> ID 455 "Scarlet Night: Go All In on Red" (publish, 2026-10-15 20:23:27) text saved exactly
+tips now (newest first): Scarlet Night: Go All In on Red | Book Dining the Day It Opens | Your Day at The Beach Club at Bimini | Check your Passport
+snapshots: ~/logs/old/{trip181-before,trip181-after}-updates-20261015-202427.json, tips-{before,after}-20261015-202427.json
+Success: Dynamic Cache Successfully Purged.
