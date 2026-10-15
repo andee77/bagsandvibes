@@ -51,7 +51,11 @@ out=$(weval 'echo get_page_by_path( "my-passport" ) ? cbv_legacy_redirect_target
 check "/dashboard/ redirects to /my-passport/ once the page is renamed (query kept)" "$( { [ "$out" = 'https://bagsandvibes.com/my-passport/?x=1' ] || [ "$out" = 'page-not-renamed-yet' ]; } && echo 1 || echo 0)" "($out)"
 out=$(weval '$t = apply_filters( "um_account_page_default_tabs_hook", array() ); echo $t[250]["travel-profile"]["title"] ?? "";')
 check "My Account tab renamed \"Traveler info\" (distinct from each trip's Travel Details form)" "$([ "$out" = 'Traveler info' ] && echo 1 || echo 0)" "($out)"
-check "trip guest sign-in default (code): redirect to My Passport, not the profile" "$(( $(grep -c "'_um_after_login'          => 'redirect_url'" /tmp/cbv_mu/checkedbags-trip-invites.php | awk '{print ($1>0)?1:0}') * $(grep -c "home_url( '/my-passport/' )" /tmp/cbv_mu/checkedbags-trip-invites.php | awk '{print ($1>2)?1:0}') ))"
+# These two follow whichever files the test runs against: the temp copy, or (CBV_DEF=...live...) the live files.
+case "$DEF" in *live*) MUDIR=~/www/bagsandvibes.com/public_html/wp-content/mu-plugins ;; *) MUDIR=/tmp/cbv_mu ;; esac
+check "trip guest sign-in fallback (code): the Feed, not the profile (owner, 2026-10-15)" "$(( $(grep -c "'_um_after_login'          => 'redirect_url'" $MUDIR/checkedbags-trip-invites.php | awk '{print ($1>0)?1:0}') * $(grep -c "'_um_login_redirect_url'   => home_url( '/member-feed/' )" $MUDIR/checkedbags-trip-invites.php | awk '{print ($1>0)?1:0}') ))"
+h=$(CBV_PATH=/reaccept-terms/ CBV_USER=97 wp --require=${DEF/_v2/} eval-file /tmp/cbv_t/render_page.php 2>/dev/null)   # without the in-memory v2 acceptance: 97 accepted v1 only, so the form shows
+check "after accepting the Master Traveler Agreement, members go to the Feed" "$(( $(grep -cF 'window.location.href = "https:\/\/bagsandvibes.com\/member-feed\/"' <<< "$h" | awk '{print ($1>0)?1:0}') * $(grep -cF 'window.location.href = "https:\/\/bagsandvibes.com\/my-passport' <<< "$h" | awk '{print ($1==0)?1:0}') ))"
 out=$(weval 'echo (int) in_array( "my-passport", cbv_login_gated_page_slugs(), true ) . (int) in_array( "dashboard", cbv_login_gated_page_slugs(), true );')
 check "SEO: my-passport (and the old dashboard) kept out of search" "$([ "$out" = '11' ] && echo 1 || echo 0)" "($out)"
 check "no \"/dashboard/\" link left in the member code" "$(grep -l "home_url( '/dashboard/' )" /tmp/cbv_mu/*.php /tmp/cbv_mu/checkedbags-landing/*.php 2>/dev/null | wc -l | awk '{print ($1==0)?1:0}')"

@@ -325,8 +325,8 @@ add_action( 'init', function () {
 			'_um_can_view_all'         => true,
 			'_um_default_homepage'     => true,
 			'_um_status'               => 'approved',
-			'_um_after_login'          => 'redirect_url', // My Passport (owner, 2026-10-15; was the profile)
-			'_um_login_redirect_url'   => home_url( '/my-passport/' ),
+			'_um_after_login'          => 'redirect_url', // the Feed (owner, 2026-10-15; was the profile, then My Passport)
+			'_um_login_redirect_url'   => home_url( '/member-feed/' ),
 			'_um_after_logout'         => 'redirect_home',
 		), '', false );
 	}
@@ -1034,7 +1034,7 @@ add_shortcode( 'cbv_reaccept_terms', function () {
 				.then( function ( r ) { return r.json().then( function ( body ) { return { ok: r.ok, body: body }; } ); } )
 				.then( function ( res ) {
 					if ( res.ok && res.body.accepted ) {
-						window.location.href = <?php echo wp_json_encode( home_url( '/my-passport/' ) ); ?>;
+						window.location.href = <?php echo wp_json_encode( home_url( '/member-feed/' ) ); // after accepting: the Feed (owner, 2026-10-15) ?>;
 					} else {
 						submit.disabled = false;
 						submit.textContent = 'Continue';
