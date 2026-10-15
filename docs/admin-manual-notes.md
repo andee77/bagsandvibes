@@ -983,7 +983,7 @@ Two sections on the new design, right after the price board (Fare classes), in t
   - Change Password, Privacy and Delete Account are tabs inside My Account.
   - The menu is set in code (`checkedbags-nav.php`), not in Appearance > Menus.
 - **Traveler info** is the member's general details: personal details, emergency contact, passport, health and accessibility, hotels and cruise lines they've enjoyed. It used to be called "Travel Profile". It is different from each trip's **Travel Details** form on the trip page.
-- **After sign-in:** full members and trip guests land on My Passport. This is set in Ultimate Member > User Roles > (role) > Login Options. Admins go to wp-admin.
+- **After sign-in:** see section 26: since 2026-10-15 members land on the Feed. My Passport is one click away in the menu.
 
 ### Common mistakes
 - Adding a menu item in Appearance > Menus: it won't show; the member menu is in code.
@@ -1019,7 +1019,9 @@ Two sections on the new design, right after the price board (Fare classes), in t
 
 Wall posts only appear while the member social features are on (section 25). Destination Inspiration is no longer shown.
 
-**After sign-in:** members land on **My Passport**. We'll switch this to the Feed once it has more tips and episodes (owner, 2026-10-15).
+**After sign-in:** full members and trip guests land on **the Feed** (owner, 2026-10-15); admins go to wp-admin. A sign-in link that carries a return address (e.g. a Gate page's "Please sign in") goes back to that page instead.
+- The setting lives in Ultimate Member > User Roles > (role) > Login Options > "Redirect to URL".
+- After changing it, clear Ultimate Member's user cache (Ultimate Member > Settings > Advanced > "Clear user cache", or the Dashboard widget). Members' cached copies keep the old page until then.
 
 ### Common mistakes
 - Putting a payment request or the host agency's name in a trip update: updates are seen by every member of the trip.

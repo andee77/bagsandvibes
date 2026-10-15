@@ -11,3 +11,15 @@ tips now (newest first): Sail-Away Day Carry-On | Scarlet Night: Go All In on Re
 snapshots: ~/logs/old/tips-{before,after}-tip1-20261015-202820.json
 Success: Dynamic Cache Successfully Purged.
 Feed tips as a 181 member: 
+
+== After-sign-in landing switched to the Feed (owner, 2026-10-15) ==
+- Ultimate Member role settings (snapshots ~/logs/old/um-landing-{before,after}-20261015-203040.json):
+  - subscriber: _um_login_redirect_url /my-passport/ -> /member-feed/ (after_login already redirect_url)
+  - trip_guest: _um_login_redirect_url /my-passport/ -> /member-feed/ (after_login already redirect_url since Step A)
+  - administrator: unchanged (redirect_admin)
+- Found: Ultimate Member's per-user cache (8 users) still held the OLD values (full members /dashboard/, trip guests
+  "redirect to profile"), so Step A's change had not reached existing members either. The cache was backed up
+  (~/logs/old/um-userdata-cache-backup-20261015-203119.json) and cleared with Ultimate Member's own remove_cache();
+  it rebuilds from the current settings.
+- Confirmed per user: full member 107, trip guests 97 and 105 -> redirect_url https://bagsandvibes.com/member-feed/;
+  admin 1 -> redirect_admin. UM's login code: a redirect_to on the sign-in link wins; otherwise the role setting.
