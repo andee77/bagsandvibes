@@ -1,0 +1,564 @@
+diff --git a/mu-plugins/checkedbags-landing.php b/mu-plugins/checkedbags-landing.php
+index 6a081de..a5206fc 100644
+--- a/mu-plugins/checkedbags-landing.php
++++ b/mu-plugins/checkedbags-landing.php
+@@ -44,7 +44,7 @@ add_filter(
+ 	'theme_page_templates',
+ 	function ( $templates ) {
+ 		$templates[ CB_LANDING_TEMPLATE_SLUG ]         = 'Scrollytelling Landing (Checked Bags & Good Vibes)';
+-		$templates[ CB_DASHBOARD_TEMPLATE_SLUG ]       = 'Member Dashboard (Checked Bags & Good Vibes)';
++		$templates[ CB_DASHBOARD_TEMPLATE_SLUG ]       = 'My Passport (member home, Checked Bags & Good Vibes)';
+ 		$templates[ CB_GATE_TEMPLATE_SLUG ]            = 'Gate Page (Checked Bags & Good Vibes)';
+ 		return $templates;
+ 	}
+diff --git a/mu-plugins/checkedbags-landing/template-dashboard.php b/mu-plugins/checkedbags-landing/template-dashboard.php
+index 70eb237..f7b5080 100644
+--- a/mu-plugins/checkedbags-landing/template-dashboard.php
++++ b/mu-plugins/checkedbags-landing/template-dashboard.php
+@@ -109,7 +109,7 @@ $needs_profile_nudge = function_exists( 'cbv_user_profile_is_complete' )
+     $cb_logo_id  = get_theme_mod( 'custom_logo' );
+     $cb_logo_url = $cb_logo_id ? wp_get_attachment_image_url( $cb_logo_id, 'medium' ) : '';
+     ?>
+-    <a href="<?php echo esc_url( home_url( '/dashboard/' ) ); ?>" class="brand brand-logo-only" aria-label="Dashboard">
++    <a href="<?php echo esc_url( home_url( '/my-passport/' ) ); ?>" class="brand brand-logo-only" aria-label="My Passport">
+       <?php if ( $cb_logo_url ) : ?>
+         <img src="<?php echo esc_url( $cb_logo_url ); ?>" alt="Checked Bags &amp; Good Vibes" class="brand-logo-img">
+       <?php endif; ?>
+@@ -122,7 +122,7 @@ $needs_profile_nudge = function_exists( 'cbv_user_profile_is_complete' )
+ 
+   <div class="dashboard-hero-row">
+     <section class="dashboard-hero">
+-      <p class="dashboard-hero-pagelabel">Dashboard</p>
++      <p class="dashboard-hero-pagelabel"><?php echo function_exists( 'cb_nav_passport_icon' ) ? cb_nav_passport_icon() : ''; // phpcs:ignore WordPress.Security.EscapeOutput -- fixed SVG ?>My Passport</p>
+       <p class="dashboard-hero-eyebrow">Welcome back</p>
+       <h1 class="dashboard-hero-name"><?php echo esc_html( $display_name ); ?></h1>
+       <p class="dashboard-hero-sub">
+@@ -140,9 +140,9 @@ $needs_profile_nudge = function_exists( 'cbv_user_profile_is_complete' )
+   <?php if ( $needs_profile_nudge ) : ?>
+     <section class="dashboard-highlight-banner" id="cbv-profile-nudge">
+       <p class="dashboard-highlight-text">
+-        Complete your Travel Profile so we have what we need before your next trip.
++        Add your traveler info so we have what we need before your next trip.
+       </p>
+-      <a href="<?php echo esc_url( function_exists( 'UM' ) ? UM()->account()->tab_link( 'travel-profile' ) : home_url( '/account/' ) ); ?>" class="btn btn-ticket">Complete profile</a>
++      <a href="<?php echo esc_url( function_exists( 'UM' ) ? UM()->account()->tab_link( 'travel-profile' ) : home_url( '/account/' ) ); ?>" class="btn btn-ticket">Add traveler info</a>
+       <button type="button" class="btn btn-ghost" id="cbv-dismiss-profile-nudge-btn">Dismiss</button>
+     </section>
+     <script>
+diff --git a/mu-plugins/checkedbags-landing/template-gate.php b/mu-plugins/checkedbags-landing/template-gate.php
+index 281ac31..61ba4b3 100644
+--- a/mu-plugins/checkedbags-landing/template-gate.php
++++ b/mu-plugins/checkedbags-landing/template-gate.php
+@@ -34,7 +34,7 @@ if ( ! defined( 'ABSPATH' ) ) {
+     $cb_logo_id  = get_theme_mod( 'custom_logo' );
+     $cb_logo_url = $cb_logo_id ? wp_get_attachment_image_url( $cb_logo_id, 'medium' ) : '';
+     ?>
+-    <a href="<?php echo esc_url( home_url( '/dashboard/' ) ); ?>" class="brand brand-logo-only" aria-label="Dashboard">
++    <a href="<?php echo esc_url( home_url( '/my-passport/' ) ); ?>" class="brand brand-logo-only" aria-label="My Passport">
+       <?php if ( $cb_logo_url ) : ?>
+         <img src="<?php echo esc_url( $cb_logo_url ); ?>" alt="Checked Bags &amp; Good Vibes" class="brand-logo-img">
+       <?php endif; ?>
+diff --git a/mu-plugins/checkedbags-landing/template-trip-landing.php b/mu-plugins/checkedbags-landing/template-trip-landing.php
+index 0af79c4..27db3fb 100644
+--- a/mu-plugins/checkedbags-landing/template-trip-landing.php
++++ b/mu-plugins/checkedbags-landing/template-trip-landing.php
+@@ -20,8 +20,8 @@ $cbv_lp_trip_id  = get_queried_object_id();
+ $cbv_lp_trip_url = get_permalink( $cbv_lp_trip_id );
+ 
+ if ( is_user_logged_in() ) {
+-	$cbv_lp_signin_url   = home_url( '/dashboard/' );
+-	$cbv_lp_signin_label = 'Dashboard';
++	$cbv_lp_signin_url   = home_url( '/my-passport/' );
++	$cbv_lp_signin_label = 'My Passport';
+ } else {
+ 	$cbv_lp_signin_url   = function_exists( 'um_get_core_page' ) ? um_get_core_page( 'login' ) : wp_login_url( $cbv_lp_trip_url );
+ 	$cbv_lp_signin_label = 'Members Sign In';
+diff --git a/tests/landing/master_off.php b/tests/landing/master_off.php
+new file mode 100644
+index 0000000..d73b747
+--- /dev/null
++++ b/tests/landing/master_off.php
+@@ -0,0 +1,5 @@
++<?php
++/* Test helper (read only): load the setup file named in CBV_MO_BASE, then treat the new-design master switch as OFF
++   in memory, so the "old public page" can still be checked after trip 181 went live (2026-10-15). */
++require getenv( 'CBV_MO_BASE' ) ?: '/tmp/cbv_t/define_v2.php';
++WP_CLI::add_wp_hook( 'pre_option_cbv_lp_redesign_live', function () { return '0'; } );
+diff --git a/tests/landing/test_design_followups.sh b/tests/landing/test_design_followups.sh
+index 0a7ef03..36ddf4e 100644
+--- a/tests/landing/test_design_followups.sh
++++ b/tests/landing/test_design_followups.sh
+@@ -51,7 +51,7 @@ out=$(weval 'echo implode( "|", cbv_build_trip_roster_export_data( 181 )["header
+ check "roster export: \"Master Traveler Agreement Version / Accepted Date\" columns" "$(( $(has "$out" 'Master Traveler Agreement Version|Master Traveler Agreement Accepted Date') * $(hasnt "$out" 'Membership Terms') ))"
+ 
+ # Dashboard card.
+-h=$(render /dashboard/ 1)
++h=$(render "$(weval 'echo get_page_by_path( "my-passport" ) ? "/my-passport/" : "/dashboard/";')" 1)   # My Passport (renamed 2026-10-15)
+ check "dashboard: Gate 09 card says \"Track your CBGV Group Experience Fee payments.\"" "$(( $(has "$h" 'Track your CBGV Group Experience Fee payments.') * $(hasnt "$h" 'Track deposits, balances') ))"
+ 
+ # CSS.
+diff --git a/tests/landing/test_included_pack.sh b/tests/landing/test_included_pack.sh
+index e13fc61..bba5936 100644
+--- a/tests/landing/test_included_pack.sh
++++ b/tests/landing/test_included_pack.sh
+@@ -31,7 +31,8 @@ out=$(weval 'add_filter( "get_post_metadata", function ( $v, $id, $k ) { return
+ check "other trip types say \"Travel price\" and \"Travel protection\"" "$(( $(has "$out" '^Travel price|') * $(has "$out" 'Travel protection') ))" "($out)"
+ 
+ # 1b. Cruise-line cards follow the price board (owner, 2026-10-14).
+-CARDS='$c = (array) cbv_lp_group( 181, "included" ); $b = function ( $cols, $groups ) { $g = array(); foreach ( $groups as $n ) { $g[] = array( "name" => $n, "rows" => array( array( "name" => $n ) ) ); } return array( "columns" => $cols, "groups" => $g ); }; $t = function ( $x ) { return implode( "|", wp_list_pluck( $x, "title" ) ); };'
++NOOTHER='$pb0 = get_post_meta( 181, "cbv_lp_priceboard", true ); $pb0 = is_array( $pb0 ) ? $pb0 : array(); $pb0["other"] = array(); add_filter( "get_post_metadata", function ( $v, $id, $k ) use ( $pb0 ) { return ( 181 === (int) $id && "cbv_lp_priceboard" === $k ) ? array( $pb0 ) : $v; }, 0, 3 );'   # no fares on request (181 has Essential + Base since 2026-10-15)
++CARDS="$NOOTHER"'$c = (array) cbv_lp_group( 181, "included" ); $b = function ( $cols, $groups ) { $g = array(); foreach ( $groups as $n ) { $g[] = array( "name" => $n, "rows" => array( array( "name" => $n ) ) ); } return array( "columns" => $cols, "groups" => $g ); }; $t = function ( $x ) { return implode( "|", wp_list_pluck( $x, "title" ) ); };'
+ out=$(weval "$CARDS"' echo $t( cbv_inc_cards_for_board( 181, $c ) );')
+ check "181 live board (Premium + one-price suites, Oct 15 invoices): the Premium card and both suite cards" "$([ "$out" = 'Premium|RockStar Quarters|Mega RockStar' ] && echo 1 || echo 0)" "($out)"
+ out=$(weval "$CARDS"' echo $t( cbv_inc_cards_for_board( 181, $c, $b( array( 1 => "Base", 3 => "Premium" ), array( "The Insider", "Sea View" ) ) ) );')
+@@ -53,8 +54,8 @@ out=$(weval "$OTHER"' echo implode( "|", array_map( function ( $c ) { return $c[
+ check "on request: What's included adds the Base and Essential cards, marked on request" "$([ "$out" = 'Base*|Essential*|Premium|RockStar Quarters|Mega RockStar' ] && echo 1 || echo 0)" "($out)"
+ out=$(weval "$OTHER"' echo cbv_inc_cards_html( cbv_inc_cruise_line( 181 )["cards"], 181 );')
+ check "on request: the cards carry the \"Available on request\" tag (2 of them)" "$([ "$(grep -o 'cbv-inc-card-request">Available on request' <<< "$out" | wc -l)" -eq 2 ] && echo 1 || echo 0)"
+-out=$(weval 'echo "[" . cbv_lp_render_priceboard( 181 ) . "]";')
+-check "nothing ticked: no note, no button, no on-request cards" "$(( $(hasnt "$out" 'cbv-lp-prices-request') * $(hasnt "$(weval 'echo cbv_inc_cards_html( cbv_inc_cruise_line( 181 )["cards"], 181 );')" 'Available on request') ))"
++out=$(weval "$NOOTHER"' echo "[" . cbv_lp_render_priceboard( 181 ) . "]";')
++check "nothing ticked: no note, no button, no on-request cards" "$(( $(hasnt "$out" 'cbv-lp-prices-request') * $(hasnt "$(weval "$NOOTHER"' echo cbv_inc_cards_html( cbv_inc_cruise_line( 181 )["cards"], 181 );')" 'Available on request') ))"
+ out=$(weval 'echo cbv_lp_join_names( array( "A" ) ) . "|" . cbv_lp_join_names( array( "A", "B" ) ) . "|" . cbv_lp_join_names( array( "A", "B", "C" ) ) . "|" . wp_json_encode( cbv_lp_sanitize_priceboard( array( "other" => array( " Base ", "Base", "<b>X</b>", array( 1 ) ) ) )["other"] );')
+ check "helpers: name lists read naturally; ticked fares cleaned and de-duplicated" "$([ "$out" = 'A|A and B|A, B and C|["Base","X"]' ] && echo 1 || echo 0)" "($out)"
+ 
+@@ -63,7 +64,7 @@ h=$(render "/trip/annual-family-and-friends/?preview=new" 1)
+ check "preview: mockup order: fare classes, \"Gate 19 · What's included\", \"Gate 20 · Pack list\", How to book, Countdown, then Travel documents last (Gate 23), then Who does what" "$(python3 -c 'import sys; h=sys.stdin.read(); a=[h.find(x) for x in ("class=\"cbv-lp-prices\"","class=\"cbv-lp-included\"","class=\"cbv-lp-pack\"","class=\"cbv-lp-how\"","class=\"cbv-lp-countdown\"","class=\"cbv-lp-docs\"","class=\"cbv-lp-who\"")]; print(1 if -1 not in a and a==sorted(a) and "Gate 19 · What&#039;s included" in h and "Gate 20 · Pack list" in h and "Gate 23 · Travel documents" in h and "Gate 24" not in h else 0)' <<< "$h")"
+ 
+ check "preview: heading \"Every fare comes with extras\" and the three-part lede" "$(( $(has "$h" '>Every fare comes with extras<') * $(has "$h" 'What your all-in price covers, what Virgin Voyages includes with each fare, and what our group adds.') ))"
+-check "preview: 3 cruise-line cards (Premium + the two suites the board lists) with the mockup's lines; dining dates from the sail date; no leftover tokens" "$(( $([ "$(grep -o 'class="cbv-inc-card[" ]' <<< "$h" | wc -l)" -eq 3 ] && echo 1 || echo 0) * $(has "$h" 'Premium Wi-Fi with streaming, 2 devices') * $(has "$h" '\$75 premium bar tab per sailor') * $(has "$h" 'Dining reservations open August 26, 2027') * $(has "$h" '<strong>Sea Terrace cabins add \$50 onboard credit</strong>') * $(has "$h" 'First to book: dining &amp; experiences open June 27, 2027') * $(has "$h" 'Free parking at Terminal V (Miami sailings)') * $(hasnt "$h" '{date:') * $(hasnt "$h" 'Available on request') ))"
++check "preview: 5 cruise-line cards (Base + Essential on request, Premium, the two suites) with the mockup's lines; dining dates from the sail date; no leftover tokens" "$(( $([ "$(grep -o 'class="cbv-inc-card[" ]' <<< "$h" | wc -l)" -eq 5 ] && echo 1 || echo 0) * $(has "$h" 'Premium Wi-Fi with streaming, 2 devices') * $(has "$h" '\$75 premium bar tab per sailor') * $(has "$h" 'Dining reservations open August 26, 2027') * $(has "$h" '<strong>Sea Terrace cabins add \$50 onboard credit</strong>') * $(has "$h" 'First to book: dining &amp; experiences open June 27, 2027') * $(has "$h" 'Free parking at Terminal V (Miami sailings)') * $(hasnt "$h" '{date:') * $([ "$(grep -o 'Available on request' <<< "$h" | wc -l)" -eq 2 ] && echo 1 || echo 0) ))"
+ check "preview: each all-in part is its own ticket (label, title, stub), the fee included" "$(( $([ "$(grep -o 'class="cbv-inc-ticket"' <<< "$h" | wc -l)" -eq 5 ] && echo 1 || echo 0) * $(has "$h" '<span class="cbv-inc-ticket-label">Included · 01</span><span class="cbv-inc-ticket-title">Cruise fare</span>') * $(has "$h" '<span class="cbv-inc-ticket-label">Included · 05</span><span class="cbv-inc-ticket-title">CBGV Group Experience Fee</span><span class="cbv-inc-ticket-sub">$225 per traveler</span>') * $(has "$h" 'class="cbv-inc-ticket-stub" aria-hidden="true"') ))"
+ check "preview: no empty legacy band above the footer (nothing of the old page left)" "$(hasnt "$h" 'class="cbv-lp-legacy-wrap"')"
+ check "preview: the provider footnote \"Perks vary by fare...\"" "$(has "$h" 'Perks vary by fare. Your travel advisor will confirm exactly what&#039;s included when you book.')"
+@@ -76,7 +77,7 @@ check "preview: no InteleTravel, no \"CBGV books your cabin\", no catamaran" "$(
+ check "preview: route note \"All events and times are subject to change.\" under the day cards" "$(has "$h" '<p class="cbv-lp-route-note">All events and times are subject to change.</p>')"
+ 
+ # 3. Old page and members' page.
+-h=$(render /trip/annual-family-and-friends/ 0)
++h=$(CBV_MO_BASE=$PV CBV_PATH=/trip/annual-family-and-friends/ CBV_USER=0 wp --require=/tmp/cbv_t/master_off.php eval-file /tmp/cbv_t/render_page.php 2>/dev/null)   # master switch off in memory (181 is live since 2026-10-15)
+ check "old public page: keeps Highlights (new Bimini wording), no new sections" "$(( $(has "$h" 'cbv-landing-highlights') * $(has "$h" 'lounging in a private cabana at The Beach Club at Bimini') * $(hasnt "$h" 'cbv-inc-') ))"
+ h=$(render /trip/annual-family-and-friends/ 1)
+ check "members' page: What's included and Pack list, then the travel documents (fine print last), before Who's going" "$(python3 -c 'import sys; h=sys.stdin.read(); a=[h.find(x) for x in ("cbv-inc-member--included","cbv-inc-member--pack","cbv-kd-member--docs")]; w=max(h.find("Who&#039;s going"), h.find("Who'"'"'s going")); print(1 if -1 not in a and a==sorted(a) and w>a[-1] else 0)' <<< "$h")"
+diff --git a/tests/landing/test_keydates_docs.sh b/tests/landing/test_keydates_docs.sh
+index 75d71da..34810fd 100644
+--- a/tests/landing/test_keydates_docs.sh
++++ b/tests/landing/test_keydates_docs.sh
+@@ -60,7 +60,7 @@ check "members' page (agreement accepted): Countdown and The fine print, after \
+ check "members' page: 4 rows, 4 panels, the Virgin lede, no banned wording" "$(( $([ "$(count "$h" 'class="cbv-kd-row')" -eq 4 ] && echo 1 || echo 0) * $([ "$(count "$h" '<details class="cbv-kd-doc">')" -eq 4 ] && echo 1 || echo 0) * $(has "$h" 'Key Virgin Voyages policies') * $(banned "$h") ))"
+ h=$(render /trip/annual-family-and-friends/ 105)
+ check "a traveler who still has to accept the trip agreement sees neither" "$(( $(has "$h" 'trip-agreement-gate') * $(hasnt "$h" 'cbv-kd-member') ))"
+-h=$(render /trip/annual-family-and-friends/ 0)
++h=$(CBV_MO_BASE=$DEF CBV_PATH=/trip/annual-family-and-friends/ CBV_USER=0 wp --require=/tmp/cbv_t/master_off.php eval-file /tmp/cbv_t/render_page.php 2>/dev/null)   # master switch off in memory (181 is live since 2026-10-15)
+ check "signed-out old public page: unchanged (no Countdown or documents)" "$(hasnt "$h" 'cbv-kd-')"
+ 
+ # 7. CSS.
+diff --git a/tests/landing/test_my_passport.sh b/tests/landing/test_my_passport.sh
+new file mode 100644
+index 0000000..9a139e4
+--- /dev/null
++++ b/tests/landing/test_my_passport.sh
+@@ -0,0 +1,62 @@
++#!/bin/bash
++# Step A of the member hub plan (owner, 2026-10-15): "Dashboard" renamed "My Passport" (page at /my-passport/, the
++# old /dashboard/ redirects), and the member menu: Feed | My Passport | Navigation | Account (My Account, Traveler
++# info, Log out); "My Profile" gone; Change Password / Privacy / Delete Account only as My Account tabs.
++# Renders real pages server-side with render_page.php (read only) against the temp copy (agreement v2 accepted in
++# memory so renders aren't sent to /reaccept-terms/).
++#   bash /tmp/cbv_t/test_my_passport.sh   (expects /tmp/cbv_t/define_v2.php, render_page.php, styles-new.css)
++# Set CBV_VERBOSE=1 to print every passing check.
++cd ~/www/bagsandvibes.com/public_html || exit 1
++n=0; fail=0
++check() { n=$((n+1)); if [ "$2" = "1" ]; then [ -n "$CBV_VERBOSE" ] && echo "  pass $n: $1"; else fail=$((fail+1)); echo "FAIL: $1 $3"; fi; }
++DEF=${CBV_DEF:-/tmp/cbv_t/define_v2.php}
++render() { CBV_PATH="$1" CBV_USER="$2" wp --require=$DEF eval-file /tmp/cbv_t/render_page.php 2>/dev/null; }
++weval() { wp --require=$DEF eval "$1" 2>/dev/null; }
++has() { grep -c -- "$2" <<< "$1" | awk '{print ($1>0)?1:0}'; }
++hasnt() { grep -c -- "$2" <<< "$1" | awk '{print ($1==0)?1:0}'; }
++nav() { python3 -c 'import sys,re; h=sys.stdin.read(); m=re.search(r"<nav class=\"primary-nav\".*?</nav>", h, re.S); print(m.group(0) if m else "")' <<< "$1"; }
++
++check "running against the temp mu-plugins copy" "$(grep -c '/tmp/cbv_mu' /tmp/cbv_t/define.php | awk '{print ($1>0)?1:0}')"
++HOME_PATH=$(weval 'echo get_page_by_path( "my-passport" ) ? "/my-passport/" : "/dashboard/";')   # the page is renamed at deploy
++
++# 1. The menu, as an admin (1), a full member (107) and a trip guest (105).
++for u in 1 107 105; do
++  h=$(render "$HOME_PATH" $u); m=$(nav "$h")
++  order=$(python3 -c 'import sys; h=sys.stdin.read(); a=[h.find(x) for x in (">Feed<","My Passport</a>",">Navigation<",">Account<")]; print(1 if -1 not in a and a==sorted(a) else 0)' <<< "$m")
++  check "user $u: menu order Feed | My Passport | Navigation | Account" "$order"
++  check "user $u: My Passport links to /my-passport/ with the passport icon" "$(( $(has "$m" 'class="nav-passport" href="https://bagsandvibes.com/my-passport/"><svg class="nav-passport-icon"') * $(hasnt "$m" '/dashboard/') * $(hasnt "$m" '>Dashboard<') ))"
++  check "user $u: Account = My Account, Traveler info, Log out (in that order)" "$(python3 -c 'import sys; h=sys.stdin.read(); a=[h.find(x) for x in ("account/general/\">My Account<","account/travel-profile/\">Traveler info<","logout/\">Log out<")]; print(1 if -1 not in a and a==sorted(a) else 0)' <<< "$m")"
++  check "user $u: no My Profile / Following / Find Members, no Change Password / Privacy / Delete Account, no top-level Logout" "$(( $(hasnt "$m" 'My Profile') * $(hasnt "$m" '>Following<') * $(hasnt "$m" 'Find Members') * $(hasnt "$m" 'Change Password') * $(hasnt "$m" '>Privacy<') * $(hasnt "$m" 'Delete Account') * $(hasnt "$m" '>Logout<') ))"
++  check "user $u: the six Gates still in Navigation" "$(( $(has "$m" 'Planned Vacations') * $(has "$m" 'Photo Gallery') * $(has "$m" '>Payments<') * $(has "$m" 'Discussion Boards') * $(has "$m" 'Vacation Requests') * $(has "$m" 'Travel Rules') ))"
++done
++
++# 2. The My Passport page itself.
++h=$(render "$HOME_PATH" 1)
++check "page: label \"My Passport\" (with the icon), logo link to /my-passport/ named \"My Passport\"" "$(( $(has "$h" '<p class="dashboard-hero-pagelabel"><svg class="nav-passport-icon"') * $(has "$h" 'My Passport</p>') * $(has "$h" 'href="https://bagsandvibes.com/my-passport/" class="brand brand-logo-only" aria-label="My Passport"') * $(hasnt "$h" '>Dashboard<') ))"
++h=$(render "$HOME_PATH" 107)   # the reminder shows for members who haven't filled in their traveler info
++check "page: reminder says \"Add your traveler info\" / \"Add traveler info\" (no \"Travel Profile\")" "$(( $(has "$h" 'Add your traveler info so we have what we need') * $(has "$h" '>Add traveler info</a>') * $(hasnt "$h" 'Travel Profile') ))"
++
++# 3. A Gate page's logo, the new trip page header (signed-in full member, not on the trip), the re-accept page.
++h=$(render /gate-09-payments/ 107)
++check "Gate page: logo goes to /my-passport/ (\"My Passport\")" "$(( $(has "$h" 'href="https://bagsandvibes.com/my-passport/" class="brand brand-logo-only" aria-label="My Passport"') * $(hasnt "$h" 'aria-label="Dashboard"') ))"
++h=$(render /trip/annual-family-and-friends/ 107)
++check "trip landing page (new design, signed in): header link \"My Passport\" to /my-passport/" "$(( $(has "$h" 'https://bagsandvibes.com/my-passport/') * $(has "$h" '>My Passport<') * $(hasnt "$h" '>Dashboard<') ))"
++h=$(render /reaccept-terms/ 1)
++check "re-accept page (already up to date): \"Go to My Passport\"" "$(( $(has "$h" 'my-passport/">Go to My Passport</a>') * $(hasnt "$h" 'Go to your dashboard') ))"
++
++# 4. The address move, the account tab, sign-in landing default, SEO.
++out=$(weval 'echo cbv_legacy_page_redirects()["dashboard"] ?? "";')
++check "redirect map: dashboard -> my-passport" "$([ "$out" = 'my-passport' ] && echo 1 || echo 0)" "($out)"
++out=$(weval 'echo get_page_by_path( "my-passport" ) ? cbv_legacy_redirect_target( "/dashboard/?x=1" ) : "page-not-renamed-yet";')
++check "/dashboard/ redirects to /my-passport/ once the page is renamed (query kept)" "$( { [ "$out" = 'https://bagsandvibes.com/my-passport/?x=1' ] || [ "$out" = 'page-not-renamed-yet' ]; } && echo 1 || echo 0)" "($out)"
++out=$(weval '$t = apply_filters( "um_account_page_default_tabs_hook", array() ); echo $t[250]["travel-profile"]["title"] ?? "";')
++check "My Account tab renamed \"Traveler info\" (distinct from each trip's Travel Details form)" "$([ "$out" = 'Traveler info' ] && echo 1 || echo 0)" "($out)"
++check "trip guest sign-in default (code): redirect to My Passport, not the profile" "$(( $(grep -c "'_um_after_login'          => 'redirect_url'" /tmp/cbv_mu/checkedbags-trip-invites.php | awk '{print ($1>0)?1:0}') * $(grep -c "home_url( '/my-passport/' )" /tmp/cbv_mu/checkedbags-trip-invites.php | awk '{print ($1>2)?1:0}') ))"
++out=$(weval 'echo (int) in_array( "my-passport", cbv_login_gated_page_slugs(), true ) . (int) in_array( "dashboard", cbv_login_gated_page_slugs(), true );')
++check "SEO: my-passport (and the old dashboard) kept out of search" "$([ "$out" = '11' ] && echo 1 || echo 0)" "($out)"
++check "no \"/dashboard/\" link left in the member code" "$(grep -l "home_url( '/dashboard/' )" /tmp/cbv_mu/*.php /tmp/cbv_mu/checkedbags-landing/*.php 2>/dev/null | wc -l | awk '{print ($1==0)?1:0}')"
++
++# 5. CSS.
++check "styles.css: passport icon styles for the menu and the page label" "$(( $(grep -c '.nav-passport {' /tmp/cbv_t/styles-new.css | awk '{print ($1>0)?1:0}') * $(grep -c '.dashboard-hero-pagelabel { display: inline-flex' /tmp/cbv_t/styles-new.css | awk '{print ($1>0)?1:0}') ))"
++
++echo "$n checks, $fail failures"
+diff --git a/tests/landing/test_step4.php b/tests/landing/test_step4.php
+index 4579474..77e8ff4 100644
+--- a/tests/landing/test_step4.php
++++ b/tests/landing/test_step4.php
+@@ -345,6 +345,6 @@ check( 'grid CSS has a column for the new input (9 columns)', 1 === preg_match(
+ /* ---- L. what Step 4 must NOT do ---- */
+ section( 'L. no side effects' );
+ check( 'the current (legacy) renderer is unchanged: still outputs its own hero for the public view', false !== strpos( cbv_render_public_trip_landing( 181 ), 'cbv-landing-hero' ) );
+-check( 'new-design switch logic untouched: master option is not live', ! get_option( 'cbv_lp_redesign_live' ) );
++check( 'go-live state (since 2026-10-15): master switch on, trip 181 the only trip opted in (320 still off)', get_option( 'cbv_lp_redesign_live' ) && cbv_lp_trip_opted_in( 181 ) && ! cbv_lp_trip_opted_in( 320 ) );
+ 
+ echo "\n{$GLOBALS['n']} checks, {$GLOBALS['fail']} failures\n";
+diff --git a/tests/landing/test_step5.php b/tests/landing/test_step5.php
+index 4af6692..bcc9008 100644
+--- a/tests/landing/test_step5.php
++++ b/tests/landing/test_step5.php
+@@ -353,7 +353,7 @@ check( 'intro text: the javascript: link is dropped, the https link stays', fals
+ /* ---- I. what Step 5 must NOT do ---- */
+ section( 'I. no side effects' );
+ check( 'the current (legacy) renderer has no status board or intro', false === strpos( cbv_render_public_trip_landing( 181 ), 'cbv-lp-status' ) && false === strpos( cbv_render_public_trip_landing( 181 ), 'cbv-lp-intro' ) );
+-check( 'master switch still off', ! get_option( 'cbv_lp_redesign_live' ) );
++check( 'go-live state (since 2026-10-15): master switch on, trip 181 the only trip opted in (320 still off)', get_option( 'cbv_lp_redesign_live' ) && cbv_lp_trip_opted_in( 181 ) && ! cbv_lp_trip_opted_in( 320 ) );
+ check( 'boarding pass title now reads "Boarding Pass · Traveler" for a cruise (shared label)', false !== strpos( cbv_lp_render_hero( 181 ), 'Boarding Pass · Traveler' ) );
+ check( 'Step 4 hero still renders', false !== strpos( cbv_lp_render_hero( 181 ), 'class="cbv-lp-hero"' ) );
+ 
+diff --git a/tests/landing/test_step6.php b/tests/landing/test_step6.php
+index 01c5bdd..9a26ac6 100644
+--- a/tests/landing/test_step6.php
++++ b/tests/landing/test_step6.php
+@@ -276,7 +276,7 @@ $_POST = array();
+ /* ---- K. what Step 6 must NOT do ---- */
+ section( 'K. no side effects' );
+ check( 'the current (legacy) public renderer still has its itinerary table', false !== strpos( cbv_render_public_trip_landing( 181 ), 'cbv-landing-itinerary' ) );
+-check( 'master switch still off', ! get_option( 'cbv_lp_redesign_live' ) );
++check( 'go-live state (since 2026-10-15): master switch on, trip 181 the only trip opted in (320 still off)', get_option( 'cbv_lp_redesign_live' ) && cbv_lp_trip_opted_in( 181 ) && ! cbv_lp_trip_opted_in( 320 ) );
+ check( 'Step 4 boarding pass route unchanged for trip 181 (MIA / VIA POP / BIM)', false !== strpos( cbv_lp_render_hero( 181 ), '>MIA<' ) && false !== strpos( cbv_lp_render_hero( 181 ), 'VIA POP' ) && false !== strpos( cbv_lp_render_hero( 181 ), '>BIM<' ) );
+ 
+ echo "\n{$GLOBALS['n']} checks, {$GLOBALS['fail']} failures\n";
+diff --git a/tests/landing/test_step7.php b/tests/landing/test_step7.php
+index bf4a05c..246e7f1 100644
+--- a/tests/landing/test_step7.php
++++ b/tests/landing/test_step7.php
+@@ -243,7 +243,7 @@ $_POST = array();
+ /* ---- H. what Step 7 must NOT do ---- */
+ section( 'H. no side effects' );
+ check( 'the current (legacy) public renderer is unchanged (still has its Highlights)', false !== strpos( cbv_render_public_trip_landing( 181 ), '<h2>Highlights</h2>' ) );
+-check( 'master switch still off', ! get_option( 'cbv_lp_redesign_live' ) );
++check( 'go-live state (since 2026-10-15): master switch on, trip 181 the only trip opted in (320 still off)', get_option( 'cbv_lp_redesign_live' ) && cbv_lp_trip_opted_in( 181 ) && ! cbv_lp_trip_opted_in( 320 ) );
+ check( 'Step 6 route for trip 181 unchanged (six days)', 6 === substr_count( cbv_lp_render_route( 181 ), '<li class="cbv-lp-day">' ) );
+ 
+ echo "\n{$GLOBALS['n']} checks, {$GLOBALS['fail']} failures\n";
+diff --git a/tests/landing/test_step8.php b/tests/landing/test_step8.php
+index 8aa8834..61feb20 100644
+--- a/tests/landing/test_step8.php
++++ b/tests/landing/test_step8.php
+@@ -216,7 +216,7 @@ check( 'REAL trip 181 (Oct 15, 2026 invoices): its proposal has the Fare column,
+ section( 'G. no side effects' );
+ check( 'the public price range for trip 181 is computed exactly as before', cb_trip_get_price_range( 181 )['low'] === min( array_map( 'cb_pricing_occupancy_point_total', array_merge( ...array_map( function ( $t ) { return $t['occupancy_points']; }, $t181 ) ) ) ) );
+ check( 'the current (legacy) landing page still lists every tier, the suites included', false !== strpos( cbv_render_public_trip_landing( 181 ), 'Mega RockStar' ) && false !== strpos( cbv_render_public_trip_landing( 181 ), 'Limited View Sea Terrace' ) );
+-check( 'master switch still off', ! get_option( 'cbv_lp_redesign_live' ) );
++check( 'go-live state (since 2026-10-15): master switch on, trip 181 the only trip opted in (320 still off)', get_option( 'cbv_lp_redesign_live' ) && cbv_lp_trip_opted_in( 181 ) && ! cbv_lp_trip_opted_in( 320 ) );
+ check( 'the new-design page draws the price board once (Step 9; Step 8 itself drew nothing)', 1 === substr_count( cbv_lp_render_trip( 181, 'new' ), '<section class="cbv-lp-prices"' ) );
+ 
+ echo "\n{$GLOBALS['n']} checks, {$GLOBALS['fail']} failures\n";
+diff --git a/tests/landing/test_step8b.php b/tests/landing/test_step8b.php
+index 1ff433d..f74a18e 100644
+--- a/tests/landing/test_step8b.php
++++ b/tests/landing/test_step8b.php
+@@ -254,6 +254,6 @@ $GLOBALS['opt_fees'] = false; $GLOBALS['opt_live'] = false;
+ check( 'REAL site today (no standard fee, not live): trip 181 shows only its OWN fee ($225 per traveler, set 2026-10-09; shown on the board since Step 9): $2,608 + $450 (Oct 15 invoices)', 'trip' === cbv_lp_price_board_data( 181 )['fee']['source'] && 225.0 === cbv_lp_price_board_data( 181 )['fee']['amount'] && 3058.0 === cbv_lp_price_board_data( 181 )['groups'][0]['rows'][0]['cells'][3]['total'] && null === cbv_lp_planning_fee_shown( 181, 'pdf' ) ); // The Insider, Premium column since 2026-10-11
+ remove_all_filters( 'pre_option_cbv_lp_planning_fees' ); remove_all_filters( 'pre_option_cbv_lp_planning_fee_live' );
+ check( 'the real options are not set (nothing written by this build)', false === get_option( 'cbv_lp_planning_fees', false ) && ! get_option( 'cbv_lp_planning_fee_live' ) );
+-check( 'master switch still off', ! get_option( 'cbv_lp_redesign_live' ) );
++check( 'go-live state (since 2026-10-15): master switch on, trip 181 the only trip opted in (320 still off)', get_option( 'cbv_lp_redesign_live' ) && cbv_lp_trip_opted_in( 181 ) && ! cbv_lp_trip_opted_in( 320 ) );
+ 
+ echo "\n{$GLOBALS['n']} checks, {$GLOBALS['fail']} failures\n";
+diff --git a/tests/landing/test_step9.php b/tests/landing/test_step9.php
+index d86c070..197e740 100644
+--- a/tests/landing/test_step9.php
++++ b/tests/landing/test_step9.php
+@@ -274,6 +274,6 @@ $d320 = cbv_lp_priceboard_data( 320 );
+ check( 'REAL trip 320: board data reads without errors, own fee $150 per traveler', is_array( $d320 ) && ! empty( $d320['groups'] ) && 150.0 === cbv_lp_price_board_data( 320 )['fee']['amount'] );
+ check( 'no write happened during the whole run', array() === array_filter( $writes ) );
+ remove_all_filters( 'pre_option_cbv_lp_planning_fees' ); remove_all_filters( 'pre_option_cbv_lp_planning_fee_live' );
+-check( 'real options untouched: no standard fee, fee not live, master switch off', false === get_option( 'cbv_lp_planning_fees', false ) && ! get_option( 'cbv_lp_planning_fee_live' ) && ! get_option( 'cbv_lp_redesign_live' ) );
++check( 'real options untouched: no standard fee, fee not live; master switch on since trip 181 went live (2026-10-15)', false === get_option( 'cbv_lp_planning_fees', false ) && ! get_option( 'cbv_lp_planning_fee_live' ) && get_option( 'cbv_lp_redesign_live' ) );
+ 
+ echo "\n{$GLOBALS['n']} checks, {$GLOBALS['fail']} failures\n";
+diff --git a/tests/landing/test_wall_privacy.php b/tests/landing/test_wall_privacy.php
+index a727f2d..851e30e 100644
+--- a/tests/landing/test_wall_privacy.php
++++ b/tests/landing/test_wall_privacy.php
+@@ -30,10 +30,12 @@ check( 'the site has walls to test with (4 today)', count( $walls ) >= 4, json_e
+ // Real users: a member on no trip who follows a wall owner, a member on both trips, a member on Helmets only, an admin.
+ $on = function ( $t ) { return array_map( 'intval', cb_trip_get_roster( $t ) ); };
+ $plain = 0; foreach ( get_users( array( 'fields' => 'ID' ) ) as $u ) { $u = (int) $u; if ( ! user_can( $u, 'moderate' ) && ! in_array( $u, $on( 181 ), true ) && ! in_array( $u, $on( 320 ), true ) ) { $plain = $u; break; } }
++// Since the 2026-10-15 Helmets move there is no Helmets-only member; the one-trip case is now a member on trip 181 only.
+ $both = 0; $h_only = 0;
+-foreach ( $on( 320 ) as $u ) { if ( user_can( $u, 'moderate' ) ) { continue; } if ( in_array( $u, $on( 181 ), true ) ) { $both = $both ?: $u; } else { $h_only = $h_only ?: $u; } }
++foreach ( $on( 320 ) as $u ) { if ( ! user_can( $u, 'moderate' ) && in_array( $u, $on( 181 ), true ) ) { $both = $both ?: $u; } }
++foreach ( $on( 181 ) as $u ) { if ( ! user_can( $u, 'moderate' ) && ! in_array( $u, $on( 320 ), true ) ) { $h_only = $h_only ?: $u; } }
+ $admin = 1;
+-check( 'test users found (no-trip member, member on both trips, Helmets-only member)', $plain && $both && $h_only );
++check( 'test users found (no-trip member, member on both trips, member on one trip only (181))', $plain && $both && $h_only );
+ 
+ function listed_forums() { $o = array(); if ( bbp_has_forums( array( 'post_parent' => 0 ) ) ) { while ( bbp_forums() ) { bbp_the_forum(); $o[] = (int) bbp_get_forum_id(); } } return $o; }
+ function listed_topics( $args = array() ) { $o = array(); if ( bbp_has_topics( array_merge( array( 'posts_per_page' => 100 ), $args ) ) ) { while ( bbp_topics() ) { bbp_the_topic(); $o[] = (int) bbp_get_topic_id(); } } return $o; }
+@@ -48,7 +50,7 @@ $probe_word = $probe ? preg_split( '/\s+/', trim( $probe ) )[0] . ' ' . ( preg_s
+ $cases = array(
+ 	'no-trip member (follows a wall owner)' => array( $plain, array( $lounge ) ),
+ 	'member on both trips' => array( $both, array( $lounge, $b181, $b320 ) ),
+-	'Helmets-only member' => array( $h_only, array( $lounge, $b320 ) ),
++	'member on trip 181 only' => array( $h_only, array( $lounge, $b181 ) ),
+ 	'admin' => array( $admin, array( $lounge, $b181, $b320 ) ),
+ );
+ foreach ( $cases as $who => $c ) {
+diff --git a/uploads/checkedbags/css/styles.css b/uploads/checkedbags/css/styles.css
+index dcf0057..01d60f6 100644
+--- a/uploads/checkedbags/css/styles.css
++++ b/uploads/checkedbags/css/styles.css
+@@ -4103,3 +4103,11 @@ body.admin-bar .site-header { top: 32px; }
+ .cbv-inc-member .cbv-inc-leave-more a { color: var(--coral); }
+ .cbv-inc-member .cbv-inc-card-request { align-self: flex-start; padding: 2px 6px; border-radius: 2px; background: var(--ink); color: #fff; font-family: var(--font-mono); font-size: 0.6rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+ .cbv-inc-member .cbv-inc-ticket-sub { font-family: var(--font-mono); font-size: 0.65rem; color: rgba(22,35,43,0.7); }
++
++/* ==========================================================================
++   My Passport (owner, 2026-10-15): the member home, formerly "Dashboard".
++   A small passport icon in the menu and on the page label.
++   ========================================================================== */
++.nav-passport { display: inline-flex; align-items: center; gap: 0.4rem; }
++.nav-passport-icon { flex: none; }
++.dashboard-hero-pagelabel { display: inline-flex; align-items: center; gap: 0.45rem; }
+diff --git a/wp-content/mu-plugins/checkedbags-nav.php b/wp-content/mu-plugins/checkedbags-nav.php
+index 38218a8..56ceb13 100644
+--- a/wp-content/mu-plugins/checkedbags-nav.php
++++ b/wp-content/mu-plugins/checkedbags-nav.php
+@@ -22,13 +22,18 @@ if ( ! defined( 'ABSPATH' ) ) {
+ 
+ /**
+  * Renders the hamburger toggle button + <nav class="primary-nav"> markup.
+- * Final order: Dashboard, My Profile (dropdown), Feed, Navigation (dropdown,
+- * Gates 07-12), Account (dropdown), Logout.
++ * Order (owner, 2026-10-15): Feed, My Passport, Navigation (dropdown, Gates
++ * 07-12), Account (dropdown: My Account, Traveler info, Log out).
+  *
+  * Every link/condition here matches what template-gate.php's inline markup
+  * had before this file existed -- this is a structural change (flat list ->
+  * dropdowns), not a change to who sees which links.
+  */
++/** A small passport-book icon for the My Passport menu item (inherits the menu's colour). */
++function cb_nav_passport_icon() {
++	return '<svg class="nav-passport-icon" width="14" height="16" viewBox="0 0 14 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true" focusable="false"><rect x="1" y="1" width="12" height="14" rx="1.5"/><circle cx="7" cy="7" r="2.6"/><path d="M4.4 7h5.2M7 4.4c-1 1.4-1 3.8 0 5.2M7 4.4c1 1.4 1 3.8 0 5.2M4.5 12.2h5"/></svg>';
++}
++
+ function cb_render_primary_nav() {
+ 
+ 	// A logged-out visitor on a Gate / Login / Register page used to get the
+@@ -54,24 +59,12 @@ function cb_render_primary_nav() {
+ 		array( 'label' => 'Travel Rules',       'gate' => 'GATE 12', 'url' => 'https://bagsandvibes.com/gate-12-travel-rules/' ),
+ 	);
+ 
+-	// "Following" and "Find Members" are built in the next phase of this
+-	// work -- these URLs are correct destinations already (Find Members
+-	// reuses the existing /members/ page/slug; Following is new), but until
+-	// that phase lands, Following 404s and Find Members still shows UM's
+-	// non-functional native directory. Expected, not a bug -- the nav is
+-	// deliberately going in first per this phase's own sequencing.
+-	$profile_nav = array(
+-		array( 'label' => 'My Profile',   'url' => ( function_exists( 'cb_member_profile_url' ) && is_user_logged_in() ) ? cb_member_profile_url( get_current_user_id() ) : '' ),
+-		array( 'label' => 'Following',    'url' => home_url( '/following/' ) ),
+-		array( 'label' => 'Find Members', 'url' => home_url( '/members/' ) ),
+-	);
+-
++	// Account menu (owner, 2026-10-15): My Account, Traveler info, Log out. Change Password, Privacy and Delete
++	// Account stay as tabs inside My Account. The "My Profile" menu (My Profile, Following, Find Members) is gone.
+ 	$account_nav = array(
+-		array( 'label' => 'Account',         'url' => home_url( '/account/general/' ) ),
+-		array( 'label' => 'Change Password', 'url' => home_url( '/account/password/' ) ),
+-		array( 'label' => 'Travel Profile',  'url' => home_url( '/account/travel-profile/' ) ),
+-		array( 'label' => 'Privacy',         'url' => home_url( '/account/privacy/' ) ),
+-		array( 'label' => 'Delete Account',  'url' => home_url( '/account/delete/' ) ),
++		array( 'label' => 'My Account',     'url' => home_url( '/account/general/' ) ),
++		array( 'label' => 'Traveler info',  'url' => home_url( '/account/travel-profile/' ) ),
++		array( 'label' => 'Log out',        'url' => home_url( '/logout/' ) ),
+ 	);
+ 
+ 	ob_start();
+@@ -83,22 +76,9 @@ function cb_render_primary_nav() {
+ 
+ 	<nav class="primary-nav" id="primary-nav" aria-label="Member navigation">
+ 		<ul class="gate-nav-list">
+-			<li><a href="<?php echo esc_url( home_url( '/dashboard/' ) ); ?>">Dashboard</a></li>
+-
+-			<li class="nav-dropdown">
+-				<button type="button" class="nav-dropdown-toggle" aria-expanded="false">My Profile</button>
+-				<ul class="nav-dropdown-menu">
+-					<?php foreach ( $profile_nav as $item ) :
+-						if ( empty( $item['url'] ) ) {
+-							continue;
+-						}
+-						?>
+-						<li><a href="<?php echo esc_url( $item['url'] ); ?>"><?php echo esc_html( $item['label'] ); ?></a></li>
+-					<?php endforeach; ?>
+-				</ul>
+-			</li>
+-
+-			<li><a href="https://bagsandvibes.com/member-feed/">Feed</a></li>
++			<?php // Menu order (owner, 2026-10-15): Feed | My Passport | Navigation | Account. ?>
++			<li><a href="<?php echo esc_url( home_url( '/member-feed/' ) ); ?>">Feed</a></li>
++			<li><a class="nav-passport" href="<?php echo esc_url( home_url( '/my-passport/' ) ); ?>"><?php echo cb_nav_passport_icon(); // phpcs:ignore WordPress.Security.EscapeOutput -- fixed SVG ?>My Passport</a></li>
+ 
+ 			<li class="nav-dropdown">
+ 				<button type="button" class="nav-dropdown-toggle" aria-expanded="false">Navigation</button>
+@@ -121,7 +101,6 @@ function cb_render_primary_nav() {
+ 				</ul>
+ 			</li>
+ 
+-			<li><a href="https://bagsandvibes.com/logout/">Logout</a></li>
+ 		</ul>
+ 	</nav>
+ 	<?php
+diff --git a/wp-content/mu-plugins/checkedbags-redirects.php b/wp-content/mu-plugins/checkedbags-redirects.php
+index b614c54..258d4ea 100644
+--- a/wp-content/mu-plugins/checkedbags-redirects.php
++++ b/wp-content/mu-plugins/checkedbags-redirects.php
+@@ -42,6 +42,8 @@ function cbv_legacy_page_redirects() {
+ 	return apply_filters( 'cbv_legacy_page_redirects', array(
+ 		'gate-11-travel-rules'      => 'gate-12-travel-rules',
+ 		'gate-12-vacation-requests' => 'gate-11-vacation-requests',
++		// The member home was renamed "My Passport" (owner, 2026-10-15).
++		'dashboard'                 => 'my-passport',
+ 	) );
+ }
+ 
+diff --git a/wp-content/mu-plugins/checkedbags-seo.php b/wp-content/mu-plugins/checkedbags-seo.php
+index 0410246..0b88905 100644
+--- a/wp-content/mu-plugins/checkedbags-seo.php
++++ b/wp-content/mu-plugins/checkedbags-seo.php
+@@ -55,7 +55,8 @@ function cbv_login_gated_page_slugs() {
+ 		'account',
+ 		// No content of its own for an anonymous visitor (redirect or
+ 		// fallthrough to another page).
+-		'dashboard',
++		'dashboard', // old address of My Passport (redirects)
++		'my-passport',
+ 		'logout',
+ 		'user',
+ 	);
+diff --git a/wp-content/mu-plugins/checkedbags-trip-invites.php b/wp-content/mu-plugins/checkedbags-trip-invites.php
+index aed5b00..d0f671f 100644
+--- a/wp-content/mu-plugins/checkedbags-trip-invites.php
++++ b/wp-content/mu-plugins/checkedbags-trip-invites.php
+@@ -325,8 +325,8 @@ add_action( 'init', function () {
+ 			'_um_can_view_all'         => true,
+ 			'_um_default_homepage'     => true,
+ 			'_um_status'               => 'approved',
+-			'_um_after_login'          => 'redirect_profile',
+-			'_um_login_redirect_url'   => home_url( '/dashboard/' ),
++			'_um_after_login'          => 'redirect_url', // My Passport (owner, 2026-10-15; was the profile)
++			'_um_login_redirect_url'   => home_url( '/my-passport/' ),
+ 			'_um_after_logout'         => 'redirect_home',
+ 		), '', false );
+ 	}
+@@ -838,7 +838,7 @@ function cbv_render_membership_terms_page() {
+ 			$terms['updated'] = current_time( 'mysql' );
+ 			update_option( 'cbv_membership_terms', $terms, false );
+ 			echo '<div class="notice notice-success"><p>' . sprintf(
+-				esc_html__( 'Saved as version %d. Anyone who already accepted an earlier version will be asked to re-accept before continuing to use their dashboard.', 'cbv' ),
++				esc_html__( 'Saved as version %d. Anyone who already accepted an earlier version will be asked to re-accept before continuing to use My Passport.', 'cbv' ),
+ 				(int) $terms['version']
+ 			) . '</p></div>';
+ 		} else {
+@@ -906,7 +906,7 @@ add_shortcode( 'cbv_membership_terms', function () {
+  * uses the "after" hook and this uses "before").
+  */
+ add_action( 'um_before_register_fields', function () {
+-	echo '<p class="cb-page-hint">Just a few details to get your account set up — you can fill in the rest of your Travel Profile later.</p>';
++	echo '<p class="cb-page-hint">Just a few details to get your account set up — you can fill in the rest of your traveler info later.</p>';
+ } );
+ 
+ /**
+@@ -992,7 +992,7 @@ add_shortcode( 'cbv_reaccept_terms', function () {
+ 
+ 	$user_id = get_current_user_id();
+ 	if ( ! cbv_user_needs_terms_reaccept( $user_id ) ) {
+-		return '<p class="cb-empty">You&#8217;re all caught up. <a href="' . esc_url( home_url( '/dashboard/' ) ) . '">Go to your dashboard</a>.</p>';
++		return '<p class="cb-empty">You&#8217;re all caught up. <a href="' . esc_url( home_url( '/my-passport/' ) ) . '">Go to My Passport</a>.</p>';
+ 	}
+ 
+ 	$version = cbv_get_current_terms_version();
+@@ -1034,7 +1034,7 @@ add_shortcode( 'cbv_reaccept_terms', function () {
+ 				.then( function ( r ) { return r.json().then( function ( body ) { return { ok: r.ok, body: body }; } ); } )
+ 				.then( function ( res ) {
+ 					if ( res.ok && res.body.accepted ) {
+-						window.location.href = <?php echo wp_json_encode( home_url( '/dashboard/' ) ); ?>;
++						window.location.href = <?php echo wp_json_encode( home_url( '/my-passport/' ) ); ?>;
+ 					} else {
+ 						submit.disabled = false;
+ 						submit.textContent = 'Continue';
+@@ -2320,7 +2320,7 @@ function cbv_trip_has_type( $trip_id, $type_name ) {
+ add_filter( 'um_account_page_default_tabs_hook', function ( $tabs ) {
+ 	$tabs[250]['travel-profile'] = array(
+ 		'icon'        => 'um-faicon-suitcase',
+-		'title'       => 'Travel Profile',
++		'title'       => 'Traveler info', // owner 2026-10-15: distinct from each trip's "Travel Details" form
+ 		'custom'      => true,
+ 		// UM would otherwise render its own default submit button (labeled
+ 		// with the tab title, i.e. "Travel Profile") below our own custom
+@@ -2355,7 +2355,7 @@ add_filter( 'the_content', function ( $content ) {
+ // class-account.php), so every other tab keeps seeing "Account".
+ add_filter( 'the_title', function ( $title ) {
+ 	if ( in_the_loop() && is_page( 'account' ) && 'travel-profile' === get_query_var( 'um_tab' ) ) {
+-		return 'Travel Profile';
++		return 'Traveler info';
+ 	}
+ 	return $title;
+ } );
+@@ -2502,7 +2502,7 @@ add_filter( 'um_account_content_hook_travel-profile', function ( $output, $args
+ 			<?php endforeach; ?>
+ 		</fieldset>
+ 
+-		<button type="button" class="btn btn-ticket" id="cbv-tp-save">Save Travel Profile</button>
++		<button type="button" class="btn btn-ticket" id="cbv-tp-save">Save traveler info</button>
+ 		<span id="cbv-tp-result" style="margin-left:10px;"></span>
+ 	</div>
+ 	<script>
+@@ -2543,12 +2543,12 @@ add_filter( 'um_account_content_hook_travel-profile', function ( $output, $args
+ 				.then( function ( res ) { return res.json(); } )
+ 				.then( function ( data ) {
+ 					btn.disabled = false;
+-					btn.textContent = 'Save Travel Profile';
++					btn.textContent = 'Save traveler info';
+ 					document.getElementById( 'cbv-tp-result' ).textContent = data.saved ? 'Saved!' : 'Could not save.';
+ 				} )
+ 				.catch( function () {
+ 					btn.disabled = false;
+-					btn.textContent = 'Save Travel Profile';
++					btn.textContent = 'Save traveler info';
+ 					document.getElementById( 'cbv-tp-result' ).textContent = 'Something went wrong.';
+ 				} );
+ 		} );

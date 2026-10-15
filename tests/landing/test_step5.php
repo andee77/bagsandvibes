@@ -353,7 +353,7 @@ check( 'intro text: the javascript: link is dropped, the https link stays', fals
 /* ---- I. what Step 5 must NOT do ---- */
 section( 'I. no side effects' );
 check( 'the current (legacy) renderer has no status board or intro', false === strpos( cbv_render_public_trip_landing( 181 ), 'cbv-lp-status' ) && false === strpos( cbv_render_public_trip_landing( 181 ), 'cbv-lp-intro' ) );
-check( 'master switch still off', ! get_option( 'cbv_lp_redesign_live' ) );
+check( 'go-live state (since 2026-10-15): master switch on, trip 181 the only trip opted in (320 still off)', get_option( 'cbv_lp_redesign_live' ) && cbv_lp_trip_opted_in( 181 ) && ! cbv_lp_trip_opted_in( 320 ) );
 check( 'boarding pass title now reads "Boarding Pass · Traveler" for a cruise (shared label)', false !== strpos( cbv_lp_render_hero( 181 ), 'Boarding Pass · Traveler' ) );
 check( 'Step 4 hero still renders', false !== strpos( cbv_lp_render_hero( 181 ), 'class="cbv-lp-hero"' ) );
 

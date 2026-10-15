@@ -22,13 +22,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Renders the hamburger toggle button + <nav class="primary-nav"> markup.
- * Final order: Dashboard, My Profile (dropdown), Feed, Navigation (dropdown,
- * Gates 07-12), Account (dropdown), Logout.
+ * Order (owner, 2026-10-15): Feed, My Passport, Navigation (dropdown, Gates
+ * 07-12), Account (dropdown: My Account, Traveler info, Log out).
  *
  * Every link/condition here matches what template-gate.php's inline markup
  * had before this file existed -- this is a structural change (flat list ->
  * dropdowns), not a change to who sees which links.
  */
+/** A small passport-book icon for the My Passport menu item (inherits the menu's colour). */
+function cb_nav_passport_icon() {
+	return '<svg class="nav-passport-icon" width="14" height="16" viewBox="0 0 14 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true" focusable="false"><rect x="1" y="1" width="12" height="14" rx="1.5"/><circle cx="7" cy="7" r="2.6"/><path d="M4.4 7h5.2M7 4.4c-1 1.4-1 3.8 0 5.2M7 4.4c1 1.4 1 3.8 0 5.2M4.5 12.2h5"/></svg>';
+}
+
 function cb_render_primary_nav() {
 
 	// A logged-out visitor on a Gate / Login / Register page used to get the
@@ -54,24 +59,12 @@ function cb_render_primary_nav() {
 		array( 'label' => 'Travel Rules',       'gate' => 'GATE 12', 'url' => 'https://bagsandvibes.com/gate-12-travel-rules/' ),
 	);
 
-	// "Following" and "Find Members" are built in the next phase of this
-	// work -- these URLs are correct destinations already (Find Members
-	// reuses the existing /members/ page/slug; Following is new), but until
-	// that phase lands, Following 404s and Find Members still shows UM's
-	// non-functional native directory. Expected, not a bug -- the nav is
-	// deliberately going in first per this phase's own sequencing.
-	$profile_nav = array(
-		array( 'label' => 'My Profile',   'url' => ( function_exists( 'cb_member_profile_url' ) && is_user_logged_in() ) ? cb_member_profile_url( get_current_user_id() ) : '' ),
-		array( 'label' => 'Following',    'url' => home_url( '/following/' ) ),
-		array( 'label' => 'Find Members', 'url' => home_url( '/members/' ) ),
-	);
-
+	// Account menu (owner, 2026-10-15): My Account, Traveler info, Log out. Change Password, Privacy and Delete
+	// Account stay as tabs inside My Account. The "My Profile" menu (My Profile, Following, Find Members) is gone.
 	$account_nav = array(
-		array( 'label' => 'Account',         'url' => home_url( '/account/general/' ) ),
-		array( 'label' => 'Change Password', 'url' => home_url( '/account/password/' ) ),
-		array( 'label' => 'Travel Profile',  'url' => home_url( '/account/travel-profile/' ) ),
-		array( 'label' => 'Privacy',         'url' => home_url( '/account/privacy/' ) ),
-		array( 'label' => 'Delete Account',  'url' => home_url( '/account/delete/' ) ),
+		array( 'label' => 'My Account',     'url' => home_url( '/account/general/' ) ),
+		array( 'label' => 'Traveler info',  'url' => home_url( '/account/travel-profile/' ) ),
+		array( 'label' => 'Log out',        'url' => home_url( '/logout/' ) ),
 	);
 
 	ob_start();
@@ -83,22 +76,9 @@ function cb_render_primary_nav() {
 
 	<nav class="primary-nav" id="primary-nav" aria-label="Member navigation">
 		<ul class="gate-nav-list">
-			<li><a href="<?php echo esc_url( home_url( '/dashboard/' ) ); ?>">Dashboard</a></li>
-
-			<li class="nav-dropdown">
-				<button type="button" class="nav-dropdown-toggle" aria-expanded="false">My Profile</button>
-				<ul class="nav-dropdown-menu">
-					<?php foreach ( $profile_nav as $item ) :
-						if ( empty( $item['url'] ) ) {
-							continue;
-						}
-						?>
-						<li><a href="<?php echo esc_url( $item['url'] ); ?>"><?php echo esc_html( $item['label'] ); ?></a></li>
-					<?php endforeach; ?>
-				</ul>
-			</li>
-
-			<li><a href="https://bagsandvibes.com/member-feed/">Feed</a></li>
+			<?php // Menu order (owner, 2026-10-15): Feed | My Passport | Navigation | Account. ?>
+			<li><a href="<?php echo esc_url( home_url( '/member-feed/' ) ); ?>">Feed</a></li>
+			<li><a class="nav-passport" href="<?php echo esc_url( home_url( '/my-passport/' ) ); ?>"><?php echo cb_nav_passport_icon(); // phpcs:ignore WordPress.Security.EscapeOutput -- fixed SVG ?>My Passport</a></li>
 
 			<li class="nav-dropdown">
 				<button type="button" class="nav-dropdown-toggle" aria-expanded="false">Navigation</button>
@@ -121,7 +101,6 @@ function cb_render_primary_nav() {
 				</ul>
 			</li>
 
-			<li><a href="https://bagsandvibes.com/logout/">Logout</a></li>
 		</ul>
 	</nav>
 	<?php

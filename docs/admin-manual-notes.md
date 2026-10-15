@@ -975,6 +975,21 @@ Two sections on the new design, right after the price board (Fare classes), in t
 
 ---
 
+## 24. My Passport and the member menu
+- **My Passport** is the member home, formerly "Dashboard".
+  - **Address:** https://bagsandvibes.com/my-passport/. Old /dashboard/ links redirect there.
+  - **Name:** to rename it, edit the page called "My Passport" (Pages); its template is "My Passport (member home...)".
+- **Member menu** (the same for everyone signed in, desktop and phone): **Feed | My Passport | Navigation** (Gates 07–12) **| Account** (My Account, Traveler info, Log out).
+  - Change Password, Privacy and Delete Account are tabs inside My Account.
+  - The menu is set in code (`checkedbags-nav.php`), not in Appearance > Menus.
+- **Traveler info** is the member's general details: personal details, emergency contact, passport, health and accessibility, hotels and cruise lines they've enjoyed. It used to be called "Travel Profile". It is different from each trip's **Travel Details** form on the trip page.
+- **After sign-in:** full members and trip guests land on My Passport. This is set in Ultimate Member > User Roles > (role) > Login Options. Admins go to wp-admin.
+
+### Common mistakes
+- Adding a menu item in Appearance > Menus: it won't show; the member menu is in code.
+
+---
+
 ## Coming in later steps (this file will be extended after each)
 - Registration opt-outs (gratuities and Voyage Protection) and the decline acknowledgment
 - Upgrades; group perks

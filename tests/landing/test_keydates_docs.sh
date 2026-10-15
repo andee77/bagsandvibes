@@ -60,7 +60,7 @@ check "members' page (agreement accepted): Countdown and The fine print, after \
 check "members' page: 4 rows, 4 panels, the Virgin lede, no banned wording" "$(( $([ "$(count "$h" 'class="cbv-kd-row')" -eq 4 ] && echo 1 || echo 0) * $([ "$(count "$h" '<details class="cbv-kd-doc">')" -eq 4 ] && echo 1 || echo 0) * $(has "$h" 'Key Virgin Voyages policies') * $(banned "$h") ))"
 h=$(render /trip/annual-family-and-friends/ 105)
 check "a traveler who still has to accept the trip agreement sees neither" "$(( $(has "$h" 'trip-agreement-gate') * $(hasnt "$h" 'cbv-kd-member') ))"
-h=$(render /trip/annual-family-and-friends/ 0)
+h=$(CBV_MO_BASE=$DEF CBV_PATH=/trip/annual-family-and-friends/ CBV_USER=0 wp --require=/tmp/cbv_t/master_off.php eval-file /tmp/cbv_t/render_page.php 2>/dev/null)   # master switch off in memory (181 is live since 2026-10-15)
 check "signed-out old public page: unchanged (no Countdown or documents)" "$(hasnt "$h" 'cbv-kd-')"
 
 # 7. CSS.

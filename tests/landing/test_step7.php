@@ -243,7 +243,7 @@ $_POST = array();
 /* ---- H. what Step 7 must NOT do ---- */
 section( 'H. no side effects' );
 check( 'the current (legacy) public renderer is unchanged (still has its Highlights)', false !== strpos( cbv_render_public_trip_landing( 181 ), '<h2>Highlights</h2>' ) );
-check( 'master switch still off', ! get_option( 'cbv_lp_redesign_live' ) );
+check( 'go-live state (since 2026-10-15): master switch on, trip 181 the only trip opted in (320 still off)', get_option( 'cbv_lp_redesign_live' ) && cbv_lp_trip_opted_in( 181 ) && ! cbv_lp_trip_opted_in( 320 ) );
 check( 'Step 6 route for trip 181 unchanged (six days)', 6 === substr_count( cbv_lp_render_route( 181 ), '<li class="cbv-lp-day">' ) );
 
 echo "\n{$GLOBALS['n']} checks, {$GLOBALS['fail']} failures\n";

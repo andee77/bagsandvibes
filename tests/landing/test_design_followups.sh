@@ -51,7 +51,7 @@ out=$(weval 'echo implode( "|", cbv_build_trip_roster_export_data( 181 )["header
 check "roster export: \"Master Traveler Agreement Version / Accepted Date\" columns" "$(( $(has "$out" 'Master Traveler Agreement Version|Master Traveler Agreement Accepted Date') * $(hasnt "$out" 'Membership Terms') ))"
 
 # Dashboard card.
-h=$(render /dashboard/ 1)
+h=$(render "$(weval 'echo get_page_by_path( "my-passport" ) ? "/my-passport/" : "/dashboard/";')" 1)   # My Passport (renamed 2026-10-15)
 check "dashboard: Gate 09 card says \"Track your CBGV Group Experience Fee payments.\"" "$(( $(has "$h" 'Track your CBGV Group Experience Fee payments.') * $(hasnt "$h" 'Track deposits, balances') ))"
 
 # CSS.

@@ -109,7 +109,7 @@ $needs_profile_nudge = function_exists( 'cbv_user_profile_is_complete' )
     $cb_logo_id  = get_theme_mod( 'custom_logo' );
     $cb_logo_url = $cb_logo_id ? wp_get_attachment_image_url( $cb_logo_id, 'medium' ) : '';
     ?>
-    <a href="<?php echo esc_url( home_url( '/dashboard/' ) ); ?>" class="brand brand-logo-only" aria-label="Dashboard">
+    <a href="<?php echo esc_url( home_url( '/my-passport/' ) ); ?>" class="brand brand-logo-only" aria-label="My Passport">
       <?php if ( $cb_logo_url ) : ?>
         <img src="<?php echo esc_url( $cb_logo_url ); ?>" alt="Checked Bags &amp; Good Vibes" class="brand-logo-img">
       <?php endif; ?>
@@ -122,7 +122,7 @@ $needs_profile_nudge = function_exists( 'cbv_user_profile_is_complete' )
 
   <div class="dashboard-hero-row">
     <section class="dashboard-hero">
-      <p class="dashboard-hero-pagelabel">Dashboard</p>
+      <p class="dashboard-hero-pagelabel"><?php echo function_exists( 'cb_nav_passport_icon' ) ? cb_nav_passport_icon() : ''; // phpcs:ignore WordPress.Security.EscapeOutput -- fixed SVG ?>My Passport</p>
       <p class="dashboard-hero-eyebrow">Welcome back</p>
       <h1 class="dashboard-hero-name"><?php echo esc_html( $display_name ); ?></h1>
       <p class="dashboard-hero-sub">
@@ -140,9 +140,9 @@ $needs_profile_nudge = function_exists( 'cbv_user_profile_is_complete' )
   <?php if ( $needs_profile_nudge ) : ?>
     <section class="dashboard-highlight-banner" id="cbv-profile-nudge">
       <p class="dashboard-highlight-text">
-        Complete your Travel Profile so we have what we need before your next trip.
+        Add your traveler info so we have what we need before your next trip.
       </p>
-      <a href="<?php echo esc_url( function_exists( 'UM' ) ? UM()->account()->tab_link( 'travel-profile' ) : home_url( '/account/' ) ); ?>" class="btn btn-ticket">Complete profile</a>
+      <a href="<?php echo esc_url( function_exists( 'UM' ) ? UM()->account()->tab_link( 'travel-profile' ) : home_url( '/account/' ) ); ?>" class="btn btn-ticket">Add traveler info</a>
       <button type="button" class="btn btn-ghost" id="cbv-dismiss-profile-nudge-btn">Dismiss</button>
     </section>
     <script>

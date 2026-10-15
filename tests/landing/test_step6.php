@@ -276,7 +276,7 @@ $_POST = array();
 /* ---- K. what Step 6 must NOT do ---- */
 section( 'K. no side effects' );
 check( 'the current (legacy) public renderer still has its itinerary table', false !== strpos( cbv_render_public_trip_landing( 181 ), 'cbv-landing-itinerary' ) );
-check( 'master switch still off', ! get_option( 'cbv_lp_redesign_live' ) );
+check( 'go-live state (since 2026-10-15): master switch on, trip 181 the only trip opted in (320 still off)', get_option( 'cbv_lp_redesign_live' ) && cbv_lp_trip_opted_in( 181 ) && ! cbv_lp_trip_opted_in( 320 ) );
 check( 'Step 4 boarding pass route unchanged for trip 181 (MIA / VIA POP / BIM)', false !== strpos( cbv_lp_render_hero( 181 ), '>MIA<' ) && false !== strpos( cbv_lp_render_hero( 181 ), 'VIA POP' ) && false !== strpos( cbv_lp_render_hero( 181 ), '>BIM<' ) );
 
 echo "\n{$GLOBALS['n']} checks, {$GLOBALS['fail']} failures\n";

@@ -254,6 +254,6 @@ $GLOBALS['opt_fees'] = false; $GLOBALS['opt_live'] = false;
 check( 'REAL site today (no standard fee, not live): trip 181 shows only its OWN fee ($225 per traveler, set 2026-10-09; shown on the board since Step 9): $2,608 + $450 (Oct 15 invoices)', 'trip' === cbv_lp_price_board_data( 181 )['fee']['source'] && 225.0 === cbv_lp_price_board_data( 181 )['fee']['amount'] && 3058.0 === cbv_lp_price_board_data( 181 )['groups'][0]['rows'][0]['cells'][3]['total'] && null === cbv_lp_planning_fee_shown( 181, 'pdf' ) ); // The Insider, Premium column since 2026-10-11
 remove_all_filters( 'pre_option_cbv_lp_planning_fees' ); remove_all_filters( 'pre_option_cbv_lp_planning_fee_live' );
 check( 'the real options are not set (nothing written by this build)', false === get_option( 'cbv_lp_planning_fees', false ) && ! get_option( 'cbv_lp_planning_fee_live' ) );
-check( 'master switch still off', ! get_option( 'cbv_lp_redesign_live' ) );
+check( 'go-live state (since 2026-10-15): master switch on, trip 181 the only trip opted in (320 still off)', get_option( 'cbv_lp_redesign_live' ) && cbv_lp_trip_opted_in( 181 ) && ! cbv_lp_trip_opted_in( 320 ) );
 
 echo "\n{$GLOBALS['n']} checks, {$GLOBALS['fail']} failures\n";

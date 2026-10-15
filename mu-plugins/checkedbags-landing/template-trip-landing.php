@@ -20,8 +20,8 @@ $cbv_lp_trip_id  = get_queried_object_id();
 $cbv_lp_trip_url = get_permalink( $cbv_lp_trip_id );
 
 if ( is_user_logged_in() ) {
-	$cbv_lp_signin_url   = home_url( '/dashboard/' );
-	$cbv_lp_signin_label = 'Dashboard';
+	$cbv_lp_signin_url   = home_url( '/my-passport/' );
+	$cbv_lp_signin_label = 'My Passport';
 } else {
 	$cbv_lp_signin_url   = function_exists( 'um_get_core_page' ) ? um_get_core_page( 'login' ) : wp_login_url( $cbv_lp_trip_url );
 	$cbv_lp_signin_label = 'Members Sign In';

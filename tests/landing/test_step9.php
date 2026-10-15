@@ -274,6 +274,6 @@ $d320 = cbv_lp_priceboard_data( 320 );
 check( 'REAL trip 320: board data reads without errors, own fee $150 per traveler', is_array( $d320 ) && ! empty( $d320['groups'] ) && 150.0 === cbv_lp_price_board_data( 320 )['fee']['amount'] );
 check( 'no write happened during the whole run', array() === array_filter( $writes ) );
 remove_all_filters( 'pre_option_cbv_lp_planning_fees' ); remove_all_filters( 'pre_option_cbv_lp_planning_fee_live' );
-check( 'real options untouched: no standard fee, fee not live, master switch off', false === get_option( 'cbv_lp_planning_fees', false ) && ! get_option( 'cbv_lp_planning_fee_live' ) && ! get_option( 'cbv_lp_redesign_live' ) );
+check( 'real options untouched: no standard fee, fee not live; master switch on since trip 181 went live (2026-10-15)', false === get_option( 'cbv_lp_planning_fees', false ) && ! get_option( 'cbv_lp_planning_fee_live' ) && get_option( 'cbv_lp_redesign_live' ) );
 
 echo "\n{$GLOBALS['n']} checks, {$GLOBALS['fail']} failures\n";

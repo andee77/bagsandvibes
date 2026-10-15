@@ -216,7 +216,7 @@ check( 'REAL trip 181 (Oct 15, 2026 invoices): its proposal has the Fare column,
 section( 'G. no side effects' );
 check( 'the public price range for trip 181 is computed exactly as before', cb_trip_get_price_range( 181 )['low'] === min( array_map( 'cb_pricing_occupancy_point_total', array_merge( ...array_map( function ( $t ) { return $t['occupancy_points']; }, $t181 ) ) ) ) );
 check( 'the current (legacy) landing page still lists every tier, the suites included', false !== strpos( cbv_render_public_trip_landing( 181 ), 'Mega RockStar' ) && false !== strpos( cbv_render_public_trip_landing( 181 ), 'Limited View Sea Terrace' ) );
-check( 'master switch still off', ! get_option( 'cbv_lp_redesign_live' ) );
+check( 'go-live state (since 2026-10-15): master switch on, trip 181 the only trip opted in (320 still off)', get_option( 'cbv_lp_redesign_live' ) && cbv_lp_trip_opted_in( 181 ) && ! cbv_lp_trip_opted_in( 320 ) );
 check( 'the new-design page draws the price board once (Step 9; Step 8 itself drew nothing)', 1 === substr_count( cbv_lp_render_trip( 181, 'new' ), '<section class="cbv-lp-prices"' ) );
 
 echo "\n{$GLOBALS['n']} checks, {$GLOBALS['fail']} failures\n";

@@ -55,7 +55,8 @@ function cbv_login_gated_page_slugs() {
 		'account',
 		// No content of its own for an anonymous visitor (redirect or
 		// fallthrough to another page).
-		'dashboard',
+		'dashboard', // old address of My Passport (redirects)
+		'my-passport',
 		'logout',
 		'user',
 	);

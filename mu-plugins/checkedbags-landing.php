@@ -44,7 +44,7 @@ add_filter(
 	'theme_page_templates',
 	function ( $templates ) {
 		$templates[ CB_LANDING_TEMPLATE_SLUG ]         = 'Scrollytelling Landing (Checked Bags & Good Vibes)';
-		$templates[ CB_DASHBOARD_TEMPLATE_SLUG ]       = 'Member Dashboard (Checked Bags & Good Vibes)';
+		$templates[ CB_DASHBOARD_TEMPLATE_SLUG ]       = 'My Passport (member home, Checked Bags & Good Vibes)';
 		$templates[ CB_GATE_TEMPLATE_SLUG ]            = 'Gate Page (Checked Bags & Good Vibes)';
 		return $templates;
 	}

@@ -42,6 +42,8 @@ function cbv_legacy_page_redirects() {
 	return apply_filters( 'cbv_legacy_page_redirects', array(
 		'gate-11-travel-rules'      => 'gate-12-travel-rules',
 		'gate-12-vacation-requests' => 'gate-11-vacation-requests',
+		// The member home was renamed "My Passport" (owner, 2026-10-15).
+		'dashboard'                 => 'my-passport',
 	) );
 }
 

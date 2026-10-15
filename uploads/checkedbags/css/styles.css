@@ -4103,3 +4103,11 @@ body.admin-bar .site-header { top: 32px; }
 .cbv-inc-member .cbv-inc-leave-more a { color: var(--coral); }
 .cbv-inc-member .cbv-inc-card-request { align-self: flex-start; padding: 2px 6px; border-radius: 2px; background: var(--ink); color: #fff; font-family: var(--font-mono); font-size: 0.6rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
 .cbv-inc-member .cbv-inc-ticket-sub { font-family: var(--font-mono); font-size: 0.65rem; color: rgba(22,35,43,0.7); }
+
+/* ==========================================================================
+   My Passport (owner, 2026-10-15): the member home, formerly "Dashboard".
+   A small passport icon in the menu and on the page label.
+   ========================================================================== */
+.nav-passport { display: inline-flex; align-items: center; gap: 0.4rem; }
+.nav-passport-icon { flex: none; }
+.dashboard-hero-pagelabel { display: inline-flex; align-items: center; gap: 0.45rem; }

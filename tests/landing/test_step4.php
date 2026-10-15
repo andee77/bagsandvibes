@@ -345,6 +345,6 @@ check( 'grid CSS has a column for the new input (9 columns)', 1 === preg_match( 
 /* ---- L. what Step 4 must NOT do ---- */
 section( 'L. no side effects' );
 check( 'the current (legacy) renderer is unchanged: still outputs its own hero for the public view', false !== strpos( cbv_render_public_trip_landing( 181 ), 'cbv-landing-hero' ) );
-check( 'new-design switch logic untouched: master option is not live', ! get_option( 'cbv_lp_redesign_live' ) );
+check( 'go-live state (since 2026-10-15): master switch on, trip 181 the only trip opted in (320 still off)', get_option( 'cbv_lp_redesign_live' ) && cbv_lp_trip_opted_in( 181 ) && ! cbv_lp_trip_opted_in( 320 ) );
 
 echo "\n{$GLOBALS['n']} checks, {$GLOBALS['fail']} failures\n";

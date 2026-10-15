@@ -325,8 +325,8 @@ add_action( 'init', function () {
 			'_um_can_view_all'         => true,
 			'_um_default_homepage'     => true,
 			'_um_status'               => 'approved',
-			'_um_after_login'          => 'redirect_profile',
-			'_um_login_redirect_url'   => home_url( '/dashboard/' ),
+			'_um_after_login'          => 'redirect_url', // My Passport (owner, 2026-10-15; was the profile)
+			'_um_login_redirect_url'   => home_url( '/my-passport/' ),
 			'_um_after_logout'         => 'redirect_home',
 		), '', false );
 	}
@@ -838,7 +838,7 @@ function cbv_render_membership_terms_page() {
 			$terms['updated'] = current_time( 'mysql' );
 			update_option( 'cbv_membership_terms', $terms, false );
 			echo '<div class="notice notice-success"><p>' . sprintf(
-				esc_html__( 'Saved as version %d. Anyone who already accepted an earlier version will be asked to re-accept before continuing to use their dashboard.', 'cbv' ),
+				esc_html__( 'Saved as version %d. Anyone who already accepted an earlier version will be asked to re-accept before continuing to use My Passport.', 'cbv' ),
 				(int) $terms['version']
 			) . '</p></div>';
 		} else {
@@ -906,7 +906,7 @@ add_shortcode( 'cbv_membership_terms', function () {
  * uses the "after" hook and this uses "before").
  */
 add_action( 'um_before_register_fields', function () {
-	echo '<p class="cb-page-hint">Just a few details to get your account set up — you can fill in the rest of your Travel Profile later.</p>';
+	echo '<p class="cb-page-hint">Just a few details to get your account set up — you can fill in the rest of your traveler info later.</p>';
 } );
 
 /**
@@ -992,7 +992,7 @@ add_shortcode( 'cbv_reaccept_terms', function () {
 
 	$user_id = get_current_user_id();
 	if ( ! cbv_user_needs_terms_reaccept( $user_id ) ) {
-		return '<p class="cb-empty">You&#8217;re all caught up. <a href="' . esc_url( home_url( '/dashboard/' ) ) . '">Go to your dashboard</a>.</p>';
+		return '<p class="cb-empty">You&#8217;re all caught up. <a href="' . esc_url( home_url( '/my-passport/' ) ) . '">Go to My Passport</a>.</p>';
 	}
 
 	$version = cbv_get_current_terms_version();
@@ -1034,7 +1034,7 @@ add_shortcode( 'cbv_reaccept_terms', function () {
 				.then( function ( r ) { return r.json().then( function ( body ) { return { ok: r.ok, body: body }; } ); } )
 				.then( function ( res ) {
 					if ( res.ok && res.body.accepted ) {
-						window.location.href = <?php echo wp_json_encode( home_url( '/dashboard/' ) ); ?>;
+						window.location.href = <?php echo wp_json_encode( home_url( '/my-passport/' ) ); ?>;
 					} else {
 						submit.disabled = false;
 						submit.textContent = 'Continue';
@@ -2320,7 +2320,7 @@ function cbv_trip_has_type( $trip_id, $type_name ) {
 add_filter( 'um_account_page_default_tabs_hook', function ( $tabs ) {
 	$tabs[250]['travel-profile'] = array(
 		'icon'        => 'um-faicon-suitcase',
-		'title'       => 'Travel Profile',
+		'title'       => 'Traveler info', // owner 2026-10-15: distinct from each trip's "Travel Details" form
 		'custom'      => true,
 		// UM would otherwise render its own default submit button (labeled
 		// with the tab title, i.e. "Travel Profile") below our own custom
@@ -2355,7 +2355,7 @@ add_filter( 'the_content', function ( $content ) {
 // class-account.php), so every other tab keeps seeing "Account".
 add_filter( 'the_title', function ( $title ) {
 	if ( in_the_loop() && is_page( 'account' ) && 'travel-profile' === get_query_var( 'um_tab' ) ) {
-		return 'Travel Profile';
+		return 'Traveler info';
 	}
 	return $title;
 } );
@@ -2502,7 +2502,7 @@ add_filter( 'um_account_content_hook_travel-profile', function ( $output, $args 
 			<?php endforeach; ?>
 		</fieldset>
 
-		<button type="button" class="btn btn-ticket" id="cbv-tp-save">Save Travel Profile</button>
+		<button type="button" class="btn btn-ticket" id="cbv-tp-save">Save traveler info</button>
 		<span id="cbv-tp-result" style="margin-left:10px;"></span>
 	</div>
 	<script>
@@ -2543,12 +2543,12 @@ add_filter( 'um_account_content_hook_travel-profile', function ( $output, $args 
 				.then( function ( res ) { return res.json(); } )
 				.then( function ( data ) {
 					btn.disabled = false;
-					btn.textContent = 'Save Travel Profile';
+					btn.textContent = 'Save traveler info';
 					document.getElementById( 'cbv-tp-result' ).textContent = data.saved ? 'Saved!' : 'Could not save.';
 				} )
 				.catch( function () {
 					btn.disabled = false;
-					btn.textContent = 'Save Travel Profile';
+					btn.textContent = 'Save traveler info';
 					document.getElementById( 'cbv-tp-result' ).textContent = 'Something went wrong.';
 				} );
 		} );
