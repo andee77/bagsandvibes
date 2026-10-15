@@ -1005,6 +1005,27 @@ Two sections on the new design, right after the price board (Fare classes), in t
 
 ---
 
+## 26. The Feed hub (/member-feed/)
+**What members see, in order:**
+1. **Trip updates ("Gate notice"):** shown only to that trip's members. Write them in the trip's **Trip updates (shown on members' Feed)** box: up to 5 short messages of 300 characters, each with an optional "show until" date. An update disappears after its date.
+2. **The Good Vibe Check podcast:**
+   - The latest episode shows with a play button and "Listen on" buttons; older episodes appear as rows.
+   - Episodes come from the RSS feed by themselves, checked at most every 6 hours.
+   - Change the feed address or the Apple, Spotify, Amazon and iHeart links on **Settings > CBGV Member Features**. A button only shows when its link is filled in.
+   - Never paste the Spotify for Creators (admin) address there.
+3. **Trip Tips:** the newest 6 Travel Tips (Travel Tips > Add New). Title = headline; "Short tip text" = the line under it.
+4. **Your boards:** the Lounge and the member's own trips' boards, most active first.
+5. **Upcoming open trips:** a small strip, soonest first.
+
+Wall posts only appear while the member social features are on (section 25). Destination Inspiration is no longer shown.
+
+**After sign-in:** members land on **My Passport**. We'll switch this to the Feed once it has more tips and episodes (owner, 2026-10-15).
+
+### Common mistakes
+- Putting a payment request or the host agency's name in a trip update: updates are seen by every member of the trip.
+
+---
+
 ## Coming in later steps (this file will be extended after each)
 - Registration opt-outs (gratuities and Voyage Protection) and the decline acknowledgment
 - Upgrades; group perks

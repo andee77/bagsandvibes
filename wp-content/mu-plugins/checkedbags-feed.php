@@ -119,13 +119,13 @@ add_action( 'init', function () {
    3. Data helpers
    ========================================================================== */
 function cb_feed_upcoming_trips( $limit = 6 ) {
+	// Active trips, soonest first ("meta_key2" was never a real query argument, so they weren't sorted).
 	return get_posts( array(
 		'post_type'   => 'cb_trip',
 		'numberposts' => $limit,
-		'meta_key'    => 'cb_status',
-		'meta_value'  => 'active',
+		'meta_query'  => array( array( 'key' => 'cb_status', 'value' => 'active' ) ),
+		'meta_key'    => 'cb_start_date',
 		'orderby'     => 'meta_value',
-		'meta_key2'   => 'cb_start_date',
 		'order'       => 'ASC',
 	) );
 }
@@ -284,116 +284,10 @@ add_shortcode( 'cb_feed', function () {
 		return '<p class="cb-empty">Please <a href="' . esc_url( cbv_login_url( get_permalink() ) ) . '">sign in</a> to see your feed.</p>';
 	}
 
-	$trips      = cb_feed_upcoming_trips();
-	$topics     = cb_feed_recent_topics();
-	$boards     = $topics['boards'];
-	$wall_posts = $topics['wall_posts'];
-	$tips       = get_posts( array( 'post_type' => 'cb_tip', 'numberposts' => -1 ) );
-	$dests      = get_posts( array( 'post_type' => 'cb_destination', 'numberposts' => -1 ) );
-
-	ob_start();
-	?>
-
-	<?php if ( ! function_exists( 'cbv_member_social_enabled' ) || cbv_member_social_enabled() ) : ?>
-	<p class="cb-page-hint">See what&#8217;s new across your trips — upcoming open travel, and posts your friends have shared with the group.</p>
-	<?php else : ?>
-	<p class="cb-page-hint">See what&#8217;s new across your trips — upcoming open travel, travel tips and the latest from your trip boards.</p>
-	<?php endif; ?>
-
-	<?php if ( ! empty( $trips ) ) : ?>
-	<section class="feed-section">
-		<h3 class="feed-section-title">Upcoming Open Travel</h3>
-		<div class="feed-trip-row">
-			<?php foreach ( $trips as $trip ) :
-				$terms      = get_the_terms( $trip->ID, 'cb_trip_type' );
-				$type_label = ( $terms && ! is_wp_error( $terms ) ) ? $terms[0]->name : 'Trip';
-				$spots      = cb_trip_spots_remaining( $trip->ID );
-				?>
-				<a href="<?php echo esc_url( get_permalink( $trip ) ); ?>" class="feed-trip-card">
-					<span class="feed-trip-type"><?php echo esc_html( $type_label ); ?></span>
-					<span class="feed-trip-title"><?php echo esc_html( get_the_title( $trip ) ); ?></span>
-					<span class="feed-trip-spots"><?php echo $spots === null ? 'Open' : esc_html( $spots ) . ' spot' . ( $spots === 1 ? '' : 's' ) . ' left'; ?></span>
-				</a>
-			<?php endforeach; ?>
-		</div>
-	</section>
-	<?php endif; ?>
-
-	<?php if ( ! empty( $tips ) ) : ?>
-	<section class="feed-section">
-		<h3 class="feed-section-title">Travel Tips</h3>
-		<div class="feed-tip-grid">
-			<?php foreach ( $tips as $tip ) :
-				$icon = get_post_meta( $tip->ID, 'cb_tip_icon', true ) ?: 'ti-bulb';
-				$text = get_post_meta( $tip->ID, 'cb_tip_text', true );
-				?>
-				<div class="tip-card">
-					<i class="ti <?php echo esc_attr( $icon ); ?> tip-card-icon" aria-hidden="true"></i>
-					<h4 class="tip-card-title"><?php echo esc_html( get_the_title( $tip ) ); ?></h4>
-					<?php if ( $text ) : ?><p class="tip-card-text"><?php echo esc_html( $text ); ?></p><?php endif; ?>
-				</div>
-			<?php endforeach; ?>
-		</div>
-	</section>
-	<?php endif; ?>
-
-	<?php if ( ! empty( $boards ) || ! empty( $wall_posts ) ) : ?>
-	<div class="feed-columns">
-		<?php if ( ! empty( $wall_posts ) ) : ?>
-		<section class="feed-section">
-			<h3 class="feed-section-title">Members Post</h3>
-			<div class="feed-topic-list">
-				<?php foreach ( $wall_posts as $topic ) :
-					$forum_id    = get_post_meta( $topic->ID, '_bbp_forum_id', true );
-					$forum_title = $forum_id ? get_the_title( $forum_id ) : '';
-					?>
-					<a href="<?php echo esc_url( function_exists( 'bbp_get_topic_permalink' ) ? bbp_get_topic_permalink( $topic->ID ) : get_permalink( $topic ) ); ?>" class="feed-topic-row">
-						<span class="feed-topic-title"><?php echo esc_html( get_the_title( $topic ) ); ?></span>
-						<?php if ( $forum_title ) : ?><span class="feed-topic-forum"><?php echo esc_html( $forum_title ); ?></span><?php endif; ?>
-					</a>
-				<?php endforeach; ?>
-			</div>
-		</section>
-		<?php endif; ?>
-
-		<?php if ( ! empty( $boards ) ) : ?>
-		<section class="feed-section">
-			<h3 class="feed-section-title">Discussion Topics</h3>
-			<div class="feed-topic-list">
-				<?php foreach ( $boards as $topic ) :
-					$forum_id    = get_post_meta( $topic->ID, '_bbp_forum_id', true );
-					$forum_title = $forum_id ? get_the_title( $forum_id ) : '';
-					?>
-					<a href="<?php echo esc_url( function_exists( 'bbp_get_topic_permalink' ) ? bbp_get_topic_permalink( $topic->ID ) : get_permalink( $topic ) ); ?>" class="feed-topic-row">
-						<span class="feed-topic-title"><?php echo esc_html( get_the_title( $topic ) ); ?></span>
-						<?php if ( $forum_title ) : ?><span class="feed-topic-forum"><?php echo esc_html( $forum_title ); ?></span><?php endif; ?>
-					</a>
-				<?php endforeach; ?>
-			</div>
-		</section>
-		<?php endif; ?>
-	</div>
-	<?php endif; ?>
-
-	<?php if ( ! empty( $dests ) ) : ?>
-	<section class="feed-section">
-		<h3 class="feed-section-title">Destination Inspiration</h3>
-		<div class="destination-grid">
-			<?php foreach ( $dests as $dest ) :
-				$photo = get_the_post_thumbnail_url( $dest->ID, 'medium_large' );
-				?>
-				<div class="destination-card" <?php if ( $photo ) : ?>style="background-image:url('<?php echo esc_url( $photo ); ?>');"<?php endif; ?>>
-					<span class="destination-card-name"><?php echo esc_html( get_the_title( $dest ) ); ?></span>
-				</div>
-			<?php endforeach; ?>
-		</div>
-	</section>
-	<?php endif; ?>
-
-	<?php if ( empty( $trips ) && empty( $boards ) && empty( $wall_posts ) && empty( $tips ) && empty( $dests ) ) : ?>
-		<p class="cb-empty">Nothing to show yet — check back soon.</p>
-	<?php endif; ?>
-
-	<?php
-	return ob_get_clean();
+	// The CBGV hub (owner, 2026-10-15): trip updates, podcast, Trip Tips, your boards, open trips -- see
+	// checkedbags-feed-hub.php. Destinations are no longer shown (the cb_destination data is kept).
+	if ( function_exists( 'cbv_render_feed_hub' ) ) {
+		return cbv_render_feed_hub( get_current_user_id() );
+	}
+	return '<p class="cb-empty">Nothing to show yet — check back soon.</p>';
 } );

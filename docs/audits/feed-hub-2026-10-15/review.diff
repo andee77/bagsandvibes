@@ -1,0 +1,763 @@
+diff --git a/tests/landing/test_feed_hub.sh b/tests/landing/test_feed_hub.sh
+new file mode 100644
+index 0000000..97b1afb
+--- /dev/null
++++ b/tests/landing/test_feed_hub.sh
+@@ -0,0 +1,78 @@
++#!/bin/bash
++# Step C of the member hub plan (owner, 2026-10-15): the Feed becomes the CBGV hub -- trip updates (that trip's
++# members only), The Good Vibe Check podcast from its RSS feed (played on the page, four "Listen on" links from a
++# settings field, never the Spotify for Creators address), Trip Tips, the member's boards (Lounge + their own trips'
++# boards only, never another trip's, never walls), a small open-trips strip; destinations gone. Read only: pages are
++# rendered with render_page.php; content variations are held in memory; the save check intercepts writes.
++#   bash /tmp/cbv_t/test_feed_hub.sh   (expects /tmp/cbv_t/define_v2.php, social_on.php, render_page.php, styles-new.css)
++# Set CBV_VERBOSE=1 to print every passing check.
++cd ~/www/bagsandvibes.com/public_html || exit 1
++n=0; fail=0
++check() { n=$((n+1)); if [ "$2" = "1" ]; then [ -n "$CBV_VERBOSE" ] && echo "  pass $n: $1"; else fail=$((fail+1)); echo "FAIL: $1 $3"; fi; }
++DEF=${CBV_DEF:-/tmp/cbv_t/define_v2.php}
++render() { CBV_PATH="$1" CBV_USER="$2" wp --require=$DEF eval-file /tmp/cbv_t/render_page.php 2>/dev/null; }
++weval()  { wp --require=$DEF eval "$1" 2>/dev/null; }
++has()   { grep -c -- "$2" <<< "$1" | awk '{print ($1>0)?1:0}'; }
++hasnt() { grep -c -- "$2" <<< "$1" | awk '{print ($1==0)?1:0}'; }
++cnt()   { grep -o -- "$2" <<< "$1" | wc -l; }
++# Trip 181 updates held in memory: one current, one expired, one ending today.
++UPD='$u = array( array( "text" => "Group photo at 7:15 PM sharp", "until" => "" ), array( "text" => "OLD NOTICE", "until" => "2020-01-01" ), array( "text" => "Ends today", "until" => wp_date( "Y-m-d" ) ) ); add_filter( "get_post_metadata", function ( $v, $id, $k ) use ( $u ) { return ( 181 === (int) $id && "cbv_trip_updates" === $k ) ? array( $u ) : $v; }, 0, 3 );'
++
++# Podcast checks keep the feed cache in memory and never save the "last good copy", so nothing is written.
++NOCACHE='wp_using_ext_object_cache( true ); add_filter( "pre_update_option_cbv_podcast_last_good", function ( $v, $old ) { return $old; }, 10, 2 );'
++check "running against the temp mu-plugins copy" "$(grep -c '/tmp/cbv_mu' /tmp/cbv_t/define.php | awk '{print ($1>0)?1:0}')"
++
++# 1. Podcast settings and data.
++out=$(weval '$s = cbv_podcast_settings(); echo $s["rss"] . "|" . count( array_filter( array_intersect_key( $s, cbv_podcast_platforms() ) ) );')
++check "settings default to the owner's feed and four links" "$( [ "$out" = 'https://anchor.fm/s/117a25e28/podcast/rss|4' ] && echo 1 || echo 0)" "($out)"
++out=$(weval '$c = cbv_podcast_sanitize( array( "rss" => " https://example.com/feed ", "apple" => "javascript:alert(1)", "spotify" => "", "junk" => "x" ) ); echo wp_json_encode( $c );')
++check "settings cleaned: http(s) only, blanks allowed, unknown keys dropped" "$( [ "$out" = '{"rss":"https:\/\/example.com\/feed","apple":"","spotify":"","amazon":"","iheart":""}' ] && echo 1 || echo 0)" "($out)"
++out=$(weval "$NOCACHE"' $d = cbv_podcast_data(); echo $d ? $d["show"] . "|" . $d["episodes"][ count( $d["episodes"] ) - 1 ]["title"] . "|" . ( false !== strpos( $d["episodes"][0]["audio"], "anchor.fm" ) ? "audio" : "noaudio" ) . "|" . ( $d["image"] ? "art" : "noart" ) : "none";')
++check "the RSS feed reads: The Good Vibe Check, first episode \"Cleared for Boarding\", playable audio, artwork" "$( [ "$out" = 'The Good Vibe Check|Cleared for Boarding|audio|art' ] && echo 1 || echo 0)" "($out)"
++out=$(weval 'echo cbv_podcast_meta_line( array( "date" => strtotime( "2026-09-27 12:00 UTC" ), "duration" => "00:09:25" ) );')
++check "episode line: \"Sep 27, 2026 · 9 min\"" "$( [ "$out" = 'Sep 27, 2026 · 9 min' ] && echo 1 || echo 0)" "($out)"
++out=$(weval "$NOCACHE"' add_filter( "pre_http_request", function () { return new WP_Error( "down", "feed down" ); } ); add_filter( "pre_option_cbv_podcast_last_good", function () { return array( "show" => "Saved copy", "image" => "", "episodes" => array( array( "title" => "Kept episode", "date" => 0, "desc" => "", "audio" => "", "image" => "", "duration" => "" ) ) ); } ); $d = cbv_podcast_data(); echo $d ? $d["episodes"][0]["title"] : "none";')
++check "feed down: the last good copy is shown" "$( [ "$out" = 'Kept episode' ] && echo 1 || echo 0)" "($out)"
++out=$(weval "$NOCACHE"' add_filter( "pre_option_cbv_podcast", function () { return array( "rss" => "" ); } ); echo cbv_podcast_data() ? "shown" : "hidden";')
++check "no feed address: the podcast section hides" "$( [ "$out" = 'hidden' ] && echo 1 || echo 0)" "($out)"
++
++# 2. The Feed as a member of trip 181 (97), with in-memory trip updates.
++h=$(CBV_PATH=/member-feed/ CBV_USER=97 wp --require=$DEF eval-file /tmp/cbv_t/render_page.php 2>/dev/null)
++check "order: podcast, Trip Tips, Your boards, open trips" "$(python3 -c 'import sys; h=sys.stdin.read(); a=[h.find(x) for x in ("hub-pod-title\">","id=\"hub-tips-title\"","id=\"hub-boards-title\"","id=\"hub-open-title\"")]; print(1 if -1 not in a and a==sorted(a) else 0)' <<< "$h")"
++check "podcast card: title, date line, play button (loads only when pressed), 4 Listen-on links in new tabs" "$(( $(has "$h" 'hub-pod-title">Cleared for Boarding<') * $(has "$h" 'hub-pod-meta">Sep 27, 2026 · 9 min<') * $(has "$h" '<audio class="hub-pod-audio" controls preload="none"') * $( [ "$(cnt "$h" 'class="hub-pod-link" href="https://[^"]*" target="_blank" rel="noopener">Listen on')" -eq 4 ] && echo 1 || echo 0) ))"
++check "never the Spotify for Creators (admin) addresses" "$(( $(hasnt "$h" 'podcasters.spotify.com') * $(hasnt "$h" 'creators.spotify.com') ))"
++check "Trip Tips as luggage tags (\"Tip 01\", Check your Passport)" "$(( $(has "$h" 'hub-tip-label">Tip 01<') * $(has "$h" 'hub-tip-title">Check your Passport<') ))"
++check "boards for a member of 181 only: the Lounge and Annual Family and Friends, not Helmets, no walls" "$(( $(has "$h" 'hub-board-name" role="cell">Lounge<') * $(has "$h" 'hub-board-name" role="cell">Annual Family and Friends<') * $(hasnt "$h" 'hub-board-name" role="cell">HELMETS') * $(hasnt "$h" 'Wall<') ))"
++check "quiet boards invite the first post" "$(has "$h" 'Be the first to post')"
++check "destinations gone; no wall posts while social features are off" "$(( $(hasnt "$h" 'Destination Inspiration') * $(hasnt "$h" 'Members Post') ))"
++out=$(weval 'echo implode( "|", array_map( "get_the_title", cb_feed_upcoming_trips() ) );')
++check "open trips strip, soonest first (Helmets Feb 2027, then Annual Family and Friends Oct 2027)" "$(python3 -c 'import sys; s=sys.stdin.read(); print(1 if s.find("HELMETS")!=-1 and s.find("Annual Family")!=-1 and s.find("HELMETS")<s.find("Annual Family") else 0)' <<< "$out")" "($out)"
++out=$(weval "$NOCACHE $UPD"' echo cbv_render_feed_hub( 97 );')
++check "trip updates: a member of 181 sees the current ones (not the expired one) as gate notices" "$(( $(has "$out" 'hub-notice-text">Group photo at 7:15 PM sharp<') * $(has "$out" 'Ends today') * $(hasnt "$out" 'OLD NOTICE') * $(has "$out" 'Gate notice · <a href') ))"
++out=$(weval "$NOCACHE $UPD"' echo cbv_render_feed_hub( 107 );')
++check "trip updates: a member not on 181 sees none" "$(hasnt "$out" 'Group photo at 7:15 PM sharp')"
++
++# 3. Boards per member.
++b() { weval 'echo implode( "|", wp_list_pluck( cbv_hub_boards( '"$1"' ), "forum" ) );'; }
++L=$(weval 'echo (int) get_option( "cb_lounge_forum_id" );'); B181=$(weval 'echo (int) get_post_meta( 181, "cb_forum_id", true );'); B320=$(weval 'echo (int) get_post_meta( 320, "cb_forum_id", true );')
++sorted() { tr '|' '\n' <<< "$1" | sort -n | tr '\n' '|' | sed 's/|$//'; }
++check "member on both trips (105): Lounge + both trip boards" "$( [ "$(sorted "$(b 105)")" = "$(sorted "$L|$B181|$B320")" ] && echo 1 || echo 0)"
++check "member on no trip (107): the Lounge only" "$( [ "$(b 107)" = "$L" ] && echo 1 || echo 0)"
++check "admin: Lounge + every trip board, never a wall" "$(( $( [ "$(sorted "$(b 1)")" = "$(sorted "$L|$B181|$B320")" ] && echo 1 || echo 0) ))"
++out=$(weval '$r = cbv_hub_boards( 1 ); $ok = 1; for ( $i = 1; $i < count( $r ); $i++ ) { if ( array( $r[ $i - 1 ]["recent"], $r[ $i - 1 ]["last"] ) < array( $r[ $i ]["recent"], $r[ $i ]["last"] ) ) { $ok = 0; } } echo $ok;')
++check "boards ordered by posts in the last 30 days, then last activity" "$out"
++
++# 4. Trip updates box: cleaning, admin box, save writes only its own field.
++out=$(weval '$c = cbv_trip_updates_sanitize( array( array( "text" => "  Hi <b>there</b> ", "until" => "2027-01-02" ), array( "text" => "", "until" => "2027-01-01" ), array( "text" => "x", "until" => "bad" ), "junk", array( "text" => str_repeat( "a", 400 ) ), array( "text" => "4" ), array( "text" => "5" ), array( "text" => "6" ) ) ); echo count( $c ) . "|" . $c[0]["text"] . "|" . $c[0]["until"] . "|" . $c[1]["until"] . "|" . mb_strlen( $c[2]["text"] );')
++check "updates cleaned: tags stripped, empty rows dropped, bad dates blanked, 300 characters max, 5 at most" "$( [ "$out" = '5|Hi there|2027-01-02||300' ] && echo 1 || echo 0)" "($out)"
++out=$(weval '$w = array(); add_filter( "update_post_metadata", function ( $c, $id, $k ) use ( &$w ) { $w[] = $k; return true; }, 0, 3 ); add_filter( "add_post_metadata", function ( $c, $id, $k ) use ( &$w ) { $w[] = $k; return true; }, 0, 3 ); wp_set_current_user( 1 ); $_POST = array( "cbv_trip_updates_nonce" => wp_create_nonce( "cbv_trip_updates_save" ), "cbv_trip_updates" => array( array( "text" => "Hello", "until" => "" ) ) ); do_action( "save_post_cb_trip", 181, get_post( 181 ), true ); echo implode( ",", array_unique( $w ) );')
++check "trip updates box saves only its own field (write intercepted)" "$( [ "$out" = 'cbv_trip_updates' ] && echo 1 || echo 0)" "($out)"
++out=$(weval 'ob_start(); cbv_render_trip_updates_box( get_post( 181 ) ); $h = ob_get_clean(); echo substr_count( $h, "<textarea name=\"cbv_trip_updates[" ) . "|" . substr_count( $h, "type=\"date\"" );')
++check "admin box: 5 update rows, each with a \"show until\" date" "$( [ "$out" = '5|5' ] && echo 1 || echo 0)" "($out)"
++out=$(weval 'ob_start(); do_action( "cbv_member_features_fields" ); $h = ob_get_clean(); echo substr_count( $h, "name=\"cbv_podcast[" );')
++check "Settings > CBGV Member Features: feed + 4 Listen-on fields" "$( [ "$out" = '5' ] && echo 1 || echo 0)" "($out)"
++
++# 5. CSS.
++check "styles.css: hub notices, podcast card, luggage-tag tips, departures board, open-trip chips" "$(( $(grep -c '.hub-notice {' /tmp/cbv_t/styles-new.css | awk '{print ($1>0)?1:0}') * $(grep -c '.hub-pod {' /tmp/cbv_t/styles-new.css | awk '{print ($1>0)?1:0}') * $(grep -c '.hub-tip-hole' /tmp/cbv_t/styles-new.css | awk '{print ($1>0)?1:0}') * $(grep -c '.hub-board-head' /tmp/cbv_t/styles-new.css | awk '{print ($1>0)?1:0}') * $(grep -c '.hub-open-chip' /tmp/cbv_t/styles-new.css | awk '{print ($1>0)?1:0}') ))"
++
++echo "$n checks, $fail failures"
+diff --git a/tests/landing/test_member_social.sh b/tests/landing/test_member_social.sh
+index 068dd52..47b9711 100644
+--- a/tests/landing/test_member_social.sh
++++ b/tests/landing/test_member_social.sh
+@@ -47,7 +47,7 @@ check "off: walls readable by moderators only (not the owner, not a trip-mate)"
+ out=$(weval 'wp_set_current_user( '"$OWNER"' ); echo (int) in_array( 356, array_map( "intval", bbp_get_excluded_forum_ids() ), true );')
+ check "off: the owner's own wall stays hidden from forum queries" "$out"
+ h=$(render /member-feed/ 1)
+-check "off: Feed has no \"Members Post\" wall section; wording without \"posts your friends\"" "$(( $(hasnt "$h" 'Members Post') * $(hasnt "$h" 'posts your friends') * $(has "$h" 'travel tips and the latest from your trip boards') ))"
++check "off: Feed has no \"Members Post\" wall section; wording without \"posts your friends\"" "$(( $(hasnt "$h" 'Members Post') * $(hasnt "$h" 'posts your friends') * $( [ "$(has "$h" 'travel tips and the latest from your trip boards')" = 1 ] || [ "$(has "$h" 'travel tips and the latest from your boards')" = 1 ] && echo 1 || echo 0) ))"
+ ro=$(roster "$(render /trip/annual-family-and-friends/ 1)")
+ check "off: Who's going = a photo + name for each of the $ROSTER, no profile links" "$(( $( [ "$(cnt "$ro" '<li class="trip-roster-member"><img ')" -eq "$ROSTER" ] && echo 1 || echo 0) * $( [ "$(cnt "$ro" 'trip-roster-name')" -eq "$ROSTER" ] && echo 1 || echo 0) * $(hasnt "$ro" '<a href') ))"
+ out=$(weval "$NOWRITE"' do_action( "um_registration_complete", 999999, array() ); echo (int) in_array( "_cb_following", $GLOBALS["cbv_keys"] ?? array(), true );')
+diff --git a/uploads/checkedbags/css/styles.css b/uploads/checkedbags/css/styles.css
+index 9406e41..b81e348 100644
+--- a/uploads/checkedbags/css/styles.css
++++ b/uploads/checkedbags/css/styles.css
+@@ -4116,3 +4116,76 @@ body.admin-bar .site-header { top: 32px; }
+ /* "Who's going": member photo + name (owner, 2026-10-15). */
+ .trip-roster-list li.trip-roster-member { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0.75rem 0.25rem 0.3rem; }
+ .trip-roster-member img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex: none; } /* Ultimate Member replaces the avatar's own class */
++
++/* ==========================================================================
++   Feed hub (owner, 2026-10-15): trip updates, the podcast, Trip Tips, your
++   boards, open trips. CBGV look: gate notices, a boarding-pass podcast card,
++   luggage-tag tips, a departures-board list of boards.
++   ========================================================================== */
++.hub { display: flex; flex-direction: column; gap: 2.25rem; }
++.hub-section { margin: 0; }
++.hub-section .feed-section-title { margin-bottom: 0.9rem; }
++
++/* Trip updates: coral "gate notice" strips */
++.hub-notices { display: flex; flex-direction: column; gap: 0.75rem; }
++.hub-notice { border-left: 4px solid var(--coral); background: var(--horizon); color: var(--sand); border-radius: 4px; padding: 0.9rem 1.1rem; }
++.hub-notice-label { display: block; font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--coral); margin-bottom: 0.35rem; }
++.hub-notice-label a { color: inherit; }
++.hub-notice-text { margin: 0; line-height: 1.55; }
++
++/* Podcast: boarding-pass card */
++.hub-pod { display: flex; gap: 1.5rem; align-items: flex-start; background: var(--ink); color: var(--sand); border: 1px solid rgba(232,169,78,0.35); border-radius: 6px; padding: 1.4rem; }
++.hub-pod-art { flex: none; width: 160px; height: 160px; border-radius: 4px; object-fit: cover; }
++.hub-pod-body { display: flex; flex-direction: column; gap: 0.45rem; min-width: 0; flex: 1 1 auto; }
++.hub-pod-label { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); }
++.hub-pod-title { margin: 0; font-family: var(--font-display); font-style: italic; font-weight: 600; font-size: 1.5rem; line-height: 1.15; color: var(--sand); }
++.hub-pod-meta { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.06em; opacity: 0.75; }
++.hub-pod-desc { margin: 0.2rem 0 0; font-size: 0.95rem; line-height: 1.55; opacity: 0.9; }
++.hub-pod-audio { width: 100%; max-width: 520px; margin-top: 0.4rem; }
++.hub-pod-links { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.4rem; }
++.hub-pod-link { display: inline-flex; align-items: center; min-height: 40px; padding: 0.45rem 0.85rem; border: 1px solid rgba(251,243,231,0.4); border-radius: 2px; font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sand); text-decoration: none; }
++.hub-pod-link:hover, .hub-pod-link:focus-visible { border-color: var(--gold); color: var(--gold); }
++.hub-pod-more { list-style: none; margin: 0.75rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
++.hub-pod-more li { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 1rem; padding: 0.6rem 0.9rem; background: var(--horizon); color: var(--sand); border-radius: 4px; }
++.hub-pod-more-title { font-weight: 600; }
++.hub-pod-more-meta { font-family: var(--font-mono); font-size: 0.7rem; opacity: 0.75; }
++.hub-pod-more audio { height: 36px; max-width: 100%; }
++
++/* Trip Tips: luggage tags */
++.hub-tips { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 1rem; }
++.hub-tip { position: relative; display: flex; flex-direction: column; gap: 0.5rem; padding: 1.3rem 1.2rem; background: #fff; color: var(--ink); border: 1px solid rgba(22,35,43,0.15); border-radius: 4px; }
++.hub-tip-hole { position: absolute; top: 0.9rem; right: 0.9rem; width: 12px; height: 12px; border-radius: 50%; background: var(--ink); }
++.hub-tip-label { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #8A3A1F; }
++.hub-tip-title { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; line-height: 1.2; color: var(--ink); }
++.hub-tip-text { margin: 0; font-size: 0.92rem; line-height: 1.55; }
++
++/* Your boards: departures board */
++.hub-board { background: var(--ink); color: var(--sand); border-radius: 6px; overflow: hidden; }
++.hub-board-head, .hub-board-row { display: grid; grid-template-columns: 1.3fr 2fr 1fr 0.5fr auto; gap: 1rem; align-items: center; padding: 0.8rem 1.1rem; }
++.hub-board-head { background: var(--coral); color: var(--ink); font-family: var(--font-mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }
++.hub-board-row + .hub-board-row { border-top: 1px solid rgba(251,243,231,0.1); }
++.hub-board-name { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold); }
++.hub-board-latest { font-size: 0.92rem; opacity: 0.9; min-width: 0; overflow-wrap: anywhere; }
++.hub-board-latest a { color: var(--sand); }
++.hub-board-when, .hub-board-count { font-family: var(--font-mono); font-size: 0.72rem; opacity: 0.8; }
++.hub-board-btn { display: inline-flex; align-items: center; gap: 0.35rem; min-height: 40px; padding: 0.4rem 0.8rem; border: 1px solid var(--sand); border-radius: 2px; font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sand); text-decoration: none; white-space: nowrap; }
++.hub-board-btn:hover, .hub-board-btn:focus-visible { background: var(--sand); color: var(--ink); }
++
++/* Upcoming open trips: a small strip */
++.hub-open { display: flex; flex-wrap: wrap; gap: 0.6rem; }
++.hub-open-chip { display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.55rem 0.9rem; background: var(--horizon); color: var(--sand); border: 1px solid rgba(232,169,78,0.3); border-radius: 999px; text-decoration: none; font-size: 0.85rem; }
++.hub-open-spots { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold); }
++
++@media (max-width: 640px) {
++  .hub-pod { flex-direction: column; }
++  .hub-pod-art { width: 100%; height: auto; aspect-ratio: 1 / 1; max-width: 240px; }
++  .hub-board-head { display: none; }
++  .hub-board-row { grid-template-columns: 1fr auto; grid-template-areas: "name open" "latest latest" "when count"; gap: 0.35rem 1rem; }
++  .hub-board-name { grid-area: name; }
++  .hub-board-open { grid-area: open; }
++  .hub-board-latest { grid-area: latest; }
++  .hub-board-when { grid-area: when; }
++  .hub-board-count { grid-area: count; justify-self: end; }
++  .hub-board-count::after { content: " posts"; }
++}
++.hub .screen-reader-text { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+diff --git a/wp-content/mu-plugins/checkedbags-feed-hub.php b/wp-content/mu-plugins/checkedbags-feed-hub.php
+new file mode 100644
+index 0000000..9af4fde
+--- /dev/null
++++ b/wp-content/mu-plugins/checkedbags-feed-hub.php
+@@ -0,0 +1,423 @@
++<?php
++/**
++ * Plugin Name: Checked Bags & Good Vibes — Feed hub
++ * Description: Step C of the member hub plan (owner, 2026-10-15). The Feed ([cb_feed], /member-feed/) becomes the
++ *              CBGV hub, in this order: trip updates from admins (members of that trip only), The Good Vibe Check
++ *              podcast (episodes from the RSS feed, played on the page, "Listen on" buttons), Trip Tips (cb_tip),
++ *              the member's most active boards (the Lounge + their own trips' boards only, never other trips' and
++ *              never walls), wall posts only while the member social features are on, and a small strip of
++ *              upcoming open trips. Destinations are no longer shown (their data is kept).
++ *
++ * Settings: the podcast feed address and the four "Listen on" links live on Settings > CBGV Member Features
++ * (option cbv_podcast), so they can be changed without code. Each episode's own RSS link (Spotify for Creators,
++ * the admin site) is never shown publicly.
++ */
++
++if ( ! defined( 'ABSPATH' ) ) {
++	exit;
++}
++
++/* ==========================================================================
++   1. Podcast settings (Settings > CBGV Member Features).
++   ========================================================================== */
++function cbv_podcast_defaults() {
++	return array(
++		'rss'     => 'https://anchor.fm/s/117a25e28/podcast/rss',
++		'apple'   => 'https://podcasts.apple.com/us/podcast/the-good-vibe-check/id6819837564',
++		'spotify' => 'https://open.spotify.com/show/4QKnVZeCikRxZa5kIvV9J7',
++		'amazon'  => 'https://music.amazon.com/podcasts/2aaf2a45-7d23-49ff-8bf5-7d27758eb4d0/the-good-vibe-check',
++		'iheart'  => 'https://www.iheart.com/podcast/269-the-good-vibe-check-347148735',
++	);
++}
++
++/** Platform key => button label, in display order. */
++function cbv_podcast_platforms() {
++	return array( 'apple' => 'Apple Podcasts', 'spotify' => 'Spotify', 'amazon' => 'Amazon Music', 'iheart' => 'iHeartRadio' );
++}
++
++function cbv_podcast_settings() {
++	$saved = get_option( 'cbv_podcast', null );
++	return is_array( $saved ) ? array_merge( array_fill_keys( array_keys( cbv_podcast_defaults() ), '' ), cbv_podcast_sanitize( $saved ) ) : cbv_podcast_defaults();
++}
++
++/** Every field is an http(s) address or blank. */
++function cbv_podcast_sanitize( $raw ) {
++	$out = array();
++	foreach ( array_keys( cbv_podcast_defaults() ) as $k ) {
++		$v         = is_array( $raw ) && isset( $raw[ $k ] ) && is_scalar( $raw[ $k ] ) ? trim( (string) $raw[ $k ] ) : '';
++		$out[ $k ] = '' === $v ? '' : esc_url_raw( $v, array( 'http', 'https' ) );
++	}
++	return $out;
++}
++
++add_action( 'admin_init', function () {
++	register_setting( 'cbv_member_features', 'cbv_podcast', array(
++		'type'              => 'array',
++		'sanitize_callback' => 'cbv_podcast_sanitize',
++	) );
++} );
++
++add_action( 'cbv_member_features_fields', function () {
++	$s = cbv_podcast_settings();
++	?>
++	<tr>
++		<th scope="row">Podcast on the Feed<br><span style="font-weight:normal;">The Good Vibe Check</span></th>
++		<td>
++			<p><label>RSS feed (episodes)<br><input type="url" class="large-text" name="cbv_podcast[rss]" value="<?php echo esc_attr( $s['rss'] ); ?>"></label></p>
++			<?php foreach ( cbv_podcast_platforms() as $k => $label ) : ?>
++				<p><label>"Listen on <?php echo esc_html( $label ); ?>" link<br><input type="url" class="large-text" name="cbv_podcast[<?php echo esc_attr( $k ); ?>]" value="<?php echo esc_attr( $s[ $k ] ); ?>"></label></p>
++			<?php endforeach; ?>
++			<p class="description">Episodes come from the RSS feed (checked at most every 6 hours) and play on the Feed. A "Listen on" button shows only when its link is filled in. Never use the Spotify for Creators (admin) address here.</p>
++		</td>
++	</tr>
++	<?php
++} );
++
++/* ==========================================================================
++   2. Podcast episodes from the RSS feed (cached 6 hours; the last good copy
++      is kept for when the feed is down; nothing shows if there's neither).
++   ========================================================================== */
++function cbv_podcast_parse_feed( $feed ) {
++	$ns    = 'http://www.itunes.com/dtds/podcast-1.0.dtd';
++	$img   = function ( $tags ) {
++		return isset( $tags[0]['attribs']['']['href'] ) ? esc_url_raw( $tags[0]['attribs']['']['href'] ) : '';
++	};
++	$show  = $img( $feed->get_channel_tags( $ns, 'image' ) );
++	$show  = '' !== $show ? $show : esc_url_raw( (string) $feed->get_image_url() );
++	$items = array();
++	foreach ( (array) $feed->get_items( 0, 8 ) as $item ) {
++		$enc   = $item->get_enclosure();
++		$audio = ( $enc && 0 === strpos( (string) $enc->get_type(), 'audio/' ) ) ? esc_url_raw( (string) $enc->get_link() ) : '';
++		$desc  = trim( preg_replace( '/\s+/', ' ', html_entity_decode( wp_strip_all_tags( (string) $item->get_description() ), ENT_QUOTES, 'UTF-8' ) ) );
++		$dur   = $item->get_item_tags( $ns, 'duration' );
++		$items[] = array(
++			'title'    => trim( html_entity_decode( wp_strip_all_tags( (string) $item->get_title() ), ENT_QUOTES, 'UTF-8' ) ),
++			'date'     => (int) $item->get_date( 'U' ),
++			'desc'     => $desc,
++			'audio'    => $audio,
++			'image'    => $img( $item->get_item_tags( $ns, 'image' ) ),
++			'duration' => isset( $dur[0]['data'] ) ? sanitize_text_field( $dur[0]['data'] ) : '',
++		);
++	}
++	if ( ! $items ) {
++		return null;
++	}
++	return array(
++		'show'     => trim( html_entity_decode( wp_strip_all_tags( (string) $feed->get_title() ), ENT_QUOTES, 'UTF-8' ) ),
++		'image'    => $show,
++		'episodes' => $items,
++	);
++}
++
++function cbv_podcast_data() {
++	$s = cbv_podcast_settings();
++	if ( '' === $s['rss'] ) {
++		return null;
++	}
++	$key  = 'cbv_podcast_' . md5( $s['rss'] );
++	$data = get_transient( $key );
++	if ( false === $data ) {
++		include_once ABSPATH . WPINC . '/feed.php';
++		$life = function () { return 6 * HOUR_IN_SECONDS; };
++		add_filter( 'wp_feed_cache_transient_lifetime', $life );
++		$feed = fetch_feed( $s['rss'] );
++		remove_filter( 'wp_feed_cache_transient_lifetime', $life );
++		$data = is_wp_error( $feed ) ? null : cbv_podcast_parse_feed( $feed );
++		if ( $data ) {
++			set_transient( $key, $data, 6 * HOUR_IN_SECONDS );
++			update_option( 'cbv_podcast_last_good', $data, false );
++		} else {
++			$data = get_option( 'cbv_podcast_last_good', null );
++			set_transient( $key, $data ? $data : array(), HOUR_IN_SECONDS ); // try the feed again in an hour
++		}
++	}
++	return ! empty( $data['episodes'] ) ? $data : null;
++}
++
++/** "Sep 27, 2026 · 9 min". */
++function cbv_podcast_meta_line( $ep ) {
++	$bits = array();
++	if ( $ep['date'] ) {
++		$bits[] = wp_date( 'M j, Y', $ep['date'] );
++	}
++	if ( '' !== $ep['duration'] ) {
++		$p    = array_map( 'intval', explode( ':', $ep['duration'] ) );
++		$secs = 3 === count( $p ) ? $p[0] * 3600 + $p[1] * 60 + $p[2] : ( 2 === count( $p ) ? $p[0] * 60 + $p[1] : $p[0] );
++		if ( $secs > 0 ) {
++			$bits[] = max( 1, (int) round( $secs / 60 ) ) . ' min';
++		}
++	}
++	return implode( ' · ', $bits );
++}
++
++/* ==========================================================================
++   3. Trip updates: admins post short notices on a trip's edit screen; the
++      trip's members see them at the top of the Feed until the end date.
++   ========================================================================== */
++define( 'CBV_TRIP_UPDATES_MAX', 5 );
++
++function cbv_trip_updates_sanitize( $raw ) {
++	$out = array();
++	foreach ( (array) $raw as $row ) {
++		if ( ! is_array( $row ) ) {
++			continue;
++		}
++		$text  = isset( $row['text'] ) && is_scalar( $row['text'] ) ? sanitize_textarea_field( (string) $row['text'] ) : '';
++		$text  = function_exists( 'mb_substr' ) ? mb_substr( trim( $text ), 0, 300 ) : substr( trim( $text ), 0, 300 );
++		$until = isset( $row['until'] ) && is_scalar( $row['until'] ) && preg_match( '/^\d{4}-\d{2}-\d{2}$/', (string) $row['until'] ) ? (string) $row['until'] : '';
++		if ( '' === $text ) {
++			continue;
++		}
++		$out[] = array( 'text' => $text, 'until' => $until );
++		if ( count( $out ) >= CBV_TRIP_UPDATES_MAX ) {
++			break;
++		}
++	}
++	return $out;
++}
++
++/** The trip's updates still showing today (no end date, or ending today or later). */
++function cbv_trip_updates_current( $trip_id ) {
++	$today = wp_date( 'Y-m-d' );
++	return array_values( array_filter( cbv_trip_updates_sanitize( get_post_meta( $trip_id, 'cbv_trip_updates', true ) ), function ( $u ) use ( $today ) {
++		return '' === $u['until'] || $u['until'] >= $today;
++	} ) );
++}
++
++add_action( 'add_meta_boxes_cb_trip', function () {
++	add_meta_box( 'cbv_trip_updates', 'Trip updates (shown on members\' Feed)', 'cbv_render_trip_updates_box', 'cb_trip', 'side', 'default' );
++} );
++
++function cbv_render_trip_updates_box( $post ) {
++	wp_nonce_field( 'cbv_trip_updates_save', 'cbv_trip_updates_nonce' );
++	$rows = cbv_trip_updates_sanitize( get_post_meta( $post->ID, 'cbv_trip_updates', true ) );
++	$rows = array_pad( $rows, CBV_TRIP_UPDATES_MAX, array( 'text' => '', 'until' => '' ) );
++	echo '<p class="description">Short notices for this trip\'s members, shown at the top of their Feed (newest first). Leave the date blank to keep it up; it disappears after the date. Never name the host agency or ask for travel payments.</p>';
++	foreach ( $rows as $i => $r ) {
++		printf(
++			'<p><label>Update %1$d<br><textarea name="cbv_trip_updates[%2$d][text]" rows="2" maxlength="300" style="width:100%%;">%3$s</textarea></label><label>Show until <input type="date" name="cbv_trip_updates[%2$d][until]" value="%4$s"></label></p>',
++			(int) $i + 1,
++			(int) $i,
++			esc_textarea( $r['text'] ),
++			esc_attr( $r['until'] )
++		);
++	}
++}
++
++add_action( 'save_post_cb_trip', function ( $post_id ) {
++	if ( ! isset( $_POST['cbv_trip_updates_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['cbv_trip_updates_nonce'] ) ), 'cbv_trip_updates_save' ) ) {
++		return;
++	}
++	if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || ! current_user_can( 'edit_post', $post_id ) ) {
++		return;
++	}
++	update_post_meta( $post_id, 'cbv_trip_updates', cbv_trip_updates_sanitize( wp_unslash( $_POST['cbv_trip_updates'] ?? array() ) ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- cleaned row by row
++} );
++
++/* ==========================================================================
++   4. Who sees what: the member's trips, and their boards.
++   ========================================================================== */
++/** Trips the member is on (moderators: every trip). */
++function cbv_hub_member_trip_ids( $user_id ) {
++	$ids = get_posts( array( 'post_type' => 'cb_trip', 'post_status' => 'publish', 'numberposts' => -1, 'fields' => 'ids' ) );
++	if ( user_can( $user_id, 'moderate' ) ) {
++		return array_map( 'intval', $ids );
++	}
++	return array_values( array_filter( array_map( 'intval', $ids ), function ( $t ) use ( $user_id ) {
++		return in_array( (int) $user_id, array_map( 'intval', cb_trip_get_roster( $t ) ), true );
++	} ) );
++}
++
++/**
++ * The member's boards: the Lounge and their own trips' boards, never another trip's and never a wall; each one
++ * also has to pass the site's own read_forum check. Ordered by posts in the last 30 days, then last activity.
++ */
++function cbv_hub_boards( $user_id ) {
++	$forum_trip = array();
++	$lounge     = (int) get_option( 'cb_lounge_forum_id' );
++	if ( $lounge ) {
++		$forum_trip[ $lounge ] = 0;
++	}
++	foreach ( cbv_hub_member_trip_ids( $user_id ) as $t ) {
++		$f = (int) get_post_meta( $t, 'cb_forum_id', true );
++		if ( $f ) {
++			$forum_trip[ $f ] = $t;
++		}
++	}
++	$since = gmdate( 'Y-m-d H:i:s', time() - 30 * DAY_IN_SECONDS );
++	$out   = array();
++	foreach ( $forum_trip as $f => $t ) {
++		if ( 'forum' !== get_post_type( $f ) || ( function_exists( 'cb_wall_forum_owner_id' ) && cb_wall_forum_owner_id( $f ) ) || ! user_can( $user_id, 'read_forum', $f ) ) {
++			continue;
++		}
++		$posts  = get_posts( array(
++			'post_type'        => array( 'topic', 'reply' ),
++			'post_status'      => 'publish',
++			'numberposts'      => -1,
++			'fields'           => 'ids',
++			'meta_key'         => '_bbp_forum_id',
++			'meta_value'       => $f,
++			'suppress_filters' => true,
++		) );
++		$recent = 0;
++		$latest = null;
++		foreach ( $posts as $p ) {
++			$gmt = get_post_field( 'post_date_gmt', $p );
++			if ( $gmt >= $since ) {
++				$recent++;
++			}
++			if ( ! $latest || $gmt > get_post_field( 'post_date_gmt', $latest ) ) {
++				$latest = $p;
++			}
++		}
++		$topic = $latest ? ( 'reply' === get_post_type( $latest ) ? (int) get_post_meta( $latest, '_bbp_topic_id', true ) : $latest ) : 0;
++		$name  = $t ? get_the_title( $t ) : get_the_title( $f );
++		$out[] = array(
++			'forum'  => $f,
++			'name'   => html_entity_decode( wp_strip_all_tags( $name ), ENT_QUOTES, 'UTF-8' ),
++			'url'    => function_exists( 'bbp_get_forum_permalink' ) ? bbp_get_forum_permalink( $f ) : get_permalink( $f ),
++			'count'  => count( $posts ),
++			'recent' => $recent,
++			'last'   => $latest ? strtotime( get_post_field( 'post_date_gmt', $latest ) . ' UTC' ) : 0,
++			'topic'  => $topic ? html_entity_decode( wp_strip_all_tags( get_the_title( $topic ) ), ENT_QUOTES, 'UTF-8' ) : '',
++			'turl'   => $topic && function_exists( 'bbp_get_topic_permalink' ) ? bbp_get_topic_permalink( $topic ) : '',
++		);
++	}
++	usort( $out, function ( $a, $b ) {
++		return array( $b['recent'], $b['last'], $a['name'] ) <=> array( $a['recent'], $a['last'], $b['name'] );
++	} );
++	return $out;
++}
++
++/* ==========================================================================
++   5. The hub (rendered by [cb_feed] in checkedbags-feed.php).
++   ========================================================================== */
++function cbv_render_feed_hub( $user_id ) {
++	$trips   = cbv_hub_member_trip_ids( $user_id );
++	$notices = array();
++	foreach ( $trips as $t ) {
++		foreach ( array_reverse( cbv_trip_updates_current( $t ) ) as $u ) {
++			$notices[] = array( 'trip' => get_the_title( $t ), 'url' => get_permalink( $t ), 'text' => $u['text'] );
++		}
++	}
++	$pod    = cbv_podcast_data();
++	$set    = cbv_podcast_settings();
++	$tips   = get_posts( array( 'post_type' => 'cb_tip', 'numberposts' => 6, 'orderby' => 'date', 'order' => 'DESC' ) );
++	$boards = cbv_hub_boards( $user_id );
++	$social = ! function_exists( 'cbv_member_social_enabled' ) || cbv_member_social_enabled();
++	$walls  = $social && function_exists( 'cb_feed_recent_topics' ) ? cb_feed_recent_topics()['wall_posts'] : array();
++	$open   = function_exists( 'cb_feed_upcoming_trips' ) ? cb_feed_upcoming_trips() : array();
++
++	ob_start();
++	?>
++	<div class="hub">
++		<p class="cb-page-hint">Your CBGV hub: trip updates, the podcast, travel tips and the latest from your boards.</p>
++
++		<?php if ( $notices ) : ?>
++			<section class="hub-section hub-notices" aria-label="Trip updates">
++				<?php foreach ( $notices as $n ) : ?>
++					<div class="hub-notice">
++						<span class="hub-notice-label">Gate notice · <a href="<?php echo esc_url( $n['url'] ); ?>"><?php echo esc_html( $n['trip'] ); ?></a></span>
++						<p class="hub-notice-text"><?php echo nl2br( esc_html( $n['text'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped first ?></p>
++					</div>
++				<?php endforeach; ?>
++			</section>
++		<?php endif; ?>
++
++		<?php if ( $pod ) :
++			$ep   = $pod['episodes'][0];
++			$art  = '' !== $ep['image'] ? $ep['image'] : $pod['image'];
++			$more = array_slice( $pod['episodes'], 1, 3 );
++			?>
++			<section class="hub-section" aria-labelledby="hub-pod-title">
++				<h3 class="feed-section-title" id="hub-pod-title">The Good Vibe Check · Podcast</h3>
++				<article class="hub-pod">
++					<?php if ( '' !== $art ) : ?><img class="hub-pod-art" src="<?php echo esc_url( $art ); ?>" alt="" width="160" height="160" loading="lazy"><?php endif; ?>
++					<div class="hub-pod-body">
++						<span class="hub-pod-label">Latest episode</span>
++						<h4 class="hub-pod-title"><?php echo esc_html( $ep['title'] ); ?></h4>
++						<span class="hub-pod-meta"><?php echo esc_html( cbv_podcast_meta_line( $ep ) ); ?></span>
++						<?php if ( '' !== $ep['desc'] ) : ?><p class="hub-pod-desc"><?php echo esc_html( wp_trim_words( $ep['desc'], 38, '…' ) ); ?></p><?php endif; ?>
++						<?php if ( '' !== $ep['audio'] ) : ?>
++							<audio class="hub-pod-audio" controls preload="none" src="<?php echo esc_url( $ep['audio'] ); ?>">Your browser can't play this episode here; use a "Listen on" link below.</audio>
++						<?php endif; ?>
++						<div class="hub-pod-links">
++							<?php foreach ( cbv_podcast_platforms() as $k => $label ) : if ( '' === $set[ $k ] ) { continue; } ?>
++								<a class="hub-pod-link" href="<?php echo esc_url( $set[ $k ] ); ?>" target="_blank" rel="noopener">Listen on <?php echo esc_html( $label ); ?></a>
++							<?php endforeach; ?>
++						</div>
++					</div>
++				</article>
++				<?php if ( $more ) : ?>
++					<ul class="hub-pod-more" aria-label="More episodes">
++						<?php foreach ( $more as $m ) : ?>
++							<li><span class="hub-pod-more-title"><?php echo esc_html( $m['title'] ); ?></span> <span class="hub-pod-more-meta"><?php echo esc_html( cbv_podcast_meta_line( $m ) ); ?></span><?php if ( '' !== $m['audio'] ) : ?><audio controls preload="none" src="<?php echo esc_url( $m['audio'] ); ?>"></audio><?php endif; ?></li>
++						<?php endforeach; ?>
++					</ul>
++				<?php endif; ?>
++			</section>
++		<?php endif; ?>
++
++		<?php if ( $tips ) : ?>
++			<section class="hub-section" aria-labelledby="hub-tips-title">
++				<h3 class="feed-section-title" id="hub-tips-title">Trip Tips</h3>
++				<div class="hub-tips">
++					<?php foreach ( $tips as $i => $tip ) : $text = get_post_meta( $tip->ID, 'cb_tip_text', true ); ?>
++						<div class="hub-tip">
++							<span class="hub-tip-hole" aria-hidden="true"></span>
++							<span class="hub-tip-label">Tip <?php echo esc_html( sprintf( '%02d', $i + 1 ) ); ?></span>
++							<h4 class="hub-tip-title"><?php echo esc_html( get_the_title( $tip ) ); ?></h4>
++							<?php if ( $text ) : ?><p class="hub-tip-text"><?php echo esc_html( $text ); ?></p><?php endif; ?>
++						</div>
++					<?php endforeach; ?>
++				</div>
++			</section>
++		<?php endif; ?>
++
++		<?php if ( $boards ) : ?>
++			<section class="hub-section" aria-labelledby="hub-boards-title">
++				<h3 class="feed-section-title" id="hub-boards-title">Your boards</h3>
++				<div class="hub-board" role="table" aria-label="Your boards, most active first">
++					<div class="hub-board-head" role="row"><span role="columnheader">Board</span><span role="columnheader">Latest</span><span role="columnheader">Last activity</span><span role="columnheader">Posts</span><span role="columnheader"><span class="screen-reader-text">Open</span></span></div>
++					<?php foreach ( $boards as $b ) : ?>
++						<div class="hub-board-row" role="row">
++							<span class="hub-board-name" role="cell"><?php echo esc_html( $b['name'] ); ?></span>
++							<span class="hub-board-latest" role="cell"><?php if ( '' !== $b['topic'] && '' !== $b['turl'] ) : ?><a href="<?php echo esc_url( $b['turl'] ); ?>"><?php echo esc_html( $b['topic'] ); ?></a><?php else : ?>Be the first to post<?php endif; ?></span>
++							<span class="hub-board-when" role="cell"><?php echo $b['last'] ? esc_html( human_time_diff( $b['last'] ) . ' ago' ) : '—'; ?></span>
++							<span class="hub-board-count" role="cell"><?php echo (int) $b['count']; ?></span>
++							<span class="hub-board-open" role="cell"><a class="hub-board-btn" href="<?php echo esc_url( $b['url'] ); ?>">Open <span aria-hidden="true">&rarr;</span></a></span>
++						</div>
++					<?php endforeach; ?>
++				</div>
++			</section>
++		<?php endif; ?>
++
++		<?php if ( $walls ) : ?>
++			<section class="hub-section" aria-labelledby="hub-walls-title">
++				<h3 class="feed-section-title" id="hub-walls-title">Members Post</h3>
++				<div class="feed-topic-list">
++					<?php foreach ( $walls as $topic ) : ?>
++						<a href="<?php echo esc_url( function_exists( 'bbp_get_topic_permalink' ) ? bbp_get_topic_permalink( $topic->ID ) : get_permalink( $topic ) ); ?>" class="feed-topic-row"><span class="feed-topic-title"><?php echo esc_html( get_the_title( $topic ) ); ?></span></a>
++					<?php endforeach; ?>
++				</div>
++			</section>
++		<?php endif; ?>
++
++		<?php if ( $open ) : ?>
++			<section class="hub-section" aria-labelledby="hub-open-title">
++				<h3 class="feed-section-title" id="hub-open-title">Upcoming open trips</h3>
++				<div class="hub-open">
++					<?php foreach ( $open as $trip ) : $spots = function_exists( 'cb_trip_spots_remaining' ) ? cb_trip_spots_remaining( $trip->ID ) : null; ?>
++						<a class="hub-open-chip" href="<?php echo esc_url( get_permalink( $trip ) ); ?>"><span class="hub-open-name"><?php echo esc_html( get_the_title( $trip ) ); ?></span><span class="hub-open-spots"><?php echo null === $spots ? 'Open' : esc_html( $spots . ' spot' . ( 1 === (int) $spots ? '' : 's' ) . ' left' ); ?></span></a>
++					<?php endforeach; ?>
++				</div>
++			</section>
++		<?php endif; ?>
++
++		<?php if ( ! $notices && ! $pod && ! $tips && ! $boards && ! $walls && ! $open ) : ?>
++			<p class="cb-empty">Nothing to show yet — check back soon.</p>
++		<?php endif; ?>
++	</div>
++	<?php
++	return ob_get_clean();
++}
+diff --git a/wp-content/mu-plugins/checkedbags-feed.php b/wp-content/mu-plugins/checkedbags-feed.php
+index ebef084..b99271b 100644
+--- a/wp-content/mu-plugins/checkedbags-feed.php
++++ b/wp-content/mu-plugins/checkedbags-feed.php
+@@ -119,13 +119,13 @@ add_action( 'init', function () {
+    3. Data helpers
+    ========================================================================== */
+ function cb_feed_upcoming_trips( $limit = 6 ) {
++	// Active trips, soonest first ("meta_key2" was never a real query argument, so they weren't sorted).
+ 	return get_posts( array(
+ 		'post_type'   => 'cb_trip',
+ 		'numberposts' => $limit,
+-		'meta_key'    => 'cb_status',
+-		'meta_value'  => 'active',
++		'meta_query'  => array( array( 'key' => 'cb_status', 'value' => 'active' ) ),
++		'meta_key'    => 'cb_start_date',
+ 		'orderby'     => 'meta_value',
+-		'meta_key2'   => 'cb_start_date',
+ 		'order'       => 'ASC',
+ 	) );
+ }
+@@ -284,116 +284,10 @@ add_shortcode( 'cb_feed', function () {
+ 		return '<p class="cb-empty">Please <a href="' . esc_url( cbv_login_url( get_permalink() ) ) . '">sign in</a> to see your feed.</p>';
+ 	}
+ 
+-	$trips      = cb_feed_upcoming_trips();
+-	$topics     = cb_feed_recent_topics();
+-	$boards     = $topics['boards'];
+-	$wall_posts = $topics['wall_posts'];
+-	$tips       = get_posts( array( 'post_type' => 'cb_tip', 'numberposts' => -1 ) );
+-	$dests      = get_posts( array( 'post_type' => 'cb_destination', 'numberposts' => -1 ) );
+-
+-	ob_start();
+-	?>
+-
+-	<?php if ( ! function_exists( 'cbv_member_social_enabled' ) || cbv_member_social_enabled() ) : ?>
+-	<p class="cb-page-hint">See what&#8217;s new across your trips — upcoming open travel, and posts your friends have shared with the group.</p>
+-	<?php else : ?>
+-	<p class="cb-page-hint">See what&#8217;s new across your trips — upcoming open travel, travel tips and the latest from your trip boards.</p>
+-	<?php endif; ?>
+-
+-	<?php if ( ! empty( $trips ) ) : ?>
+-	<section class="feed-section">
+-		<h3 class="feed-section-title">Upcoming Open Travel</h3>
+-		<div class="feed-trip-row">
+-			<?php foreach ( $trips as $trip ) :
+-				$terms      = get_the_terms( $trip->ID, 'cb_trip_type' );
+-				$type_label = ( $terms && ! is_wp_error( $terms ) ) ? $terms[0]->name : 'Trip';
+-				$spots      = cb_trip_spots_remaining( $trip->ID );
+-				?>
+-				<a href="<?php echo esc_url( get_permalink( $trip ) ); ?>" class="feed-trip-card">
+-					<span class="feed-trip-type"><?php echo esc_html( $type_label ); ?></span>
+-					<span class="feed-trip-title"><?php echo esc_html( get_the_title( $trip ) ); ?></span>
+-					<span class="feed-trip-spots"><?php echo $spots === null ? 'Open' : esc_html( $spots ) . ' spot' . ( $spots === 1 ? '' : 's' ) . ' left'; ?></span>
+-				</a>
+-			<?php endforeach; ?>
+-		</div>
+-	</section>
+-	<?php endif; ?>
+-
+-	<?php if ( ! empty( $tips ) ) : ?>
+-	<section class="feed-section">
+-		<h3 class="feed-section-title">Travel Tips</h3>
+-		<div class="feed-tip-grid">
+-			<?php foreach ( $tips as $tip ) :
+-				$icon = get_post_meta( $tip->ID, 'cb_tip_icon', true ) ?: 'ti-bulb';
+-				$text = get_post_meta( $tip->ID, 'cb_tip_text', true );
+-				?>
+-				<div class="tip-card">
+-					<i class="ti <?php echo esc_attr( $icon ); ?> tip-card-icon" aria-hidden="true"></i>
+-					<h4 class="tip-card-title"><?php echo esc_html( get_the_title( $tip ) ); ?></h4>
+-					<?php if ( $text ) : ?><p class="tip-card-text"><?php echo esc_html( $text ); ?></p><?php endif; ?>
+-				</div>
+-			<?php endforeach; ?>
+-		</div>
+-	</section>
+-	<?php endif; ?>
+-
+-	<?php if ( ! empty( $boards ) || ! empty( $wall_posts ) ) : ?>
+-	<div class="feed-columns">
+-		<?php if ( ! empty( $wall_posts ) ) : ?>
+-		<section class="feed-section">
+-			<h3 class="feed-section-title">Members Post</h3>
+-			<div class="feed-topic-list">
+-				<?php foreach ( $wall_posts as $topic ) :
+-					$forum_id    = get_post_meta( $topic->ID, '_bbp_forum_id', true );
+-					$forum_title = $forum_id ? get_the_title( $forum_id ) : '';
+-					?>
+-					<a href="<?php echo esc_url( function_exists( 'bbp_get_topic_permalink' ) ? bbp_get_topic_permalink( $topic->ID ) : get_permalink( $topic ) ); ?>" class="feed-topic-row">
+-						<span class="feed-topic-title"><?php echo esc_html( get_the_title( $topic ) ); ?></span>
+-						<?php if ( $forum_title ) : ?><span class="feed-topic-forum"><?php echo esc_html( $forum_title ); ?></span><?php endif; ?>
+-					</a>
+-				<?php endforeach; ?>
+-			</div>
+-		</section>
+-		<?php endif; ?>
+-
+-		<?php if ( ! empty( $boards ) ) : ?>
+-		<section class="feed-section">
+-			<h3 class="feed-section-title">Discussion Topics</h3>
+-			<div class="feed-topic-list">
+-				<?php foreach ( $boards as $topic ) :
+-					$forum_id    = get_post_meta( $topic->ID, '_bbp_forum_id', true );
+-					$forum_title = $forum_id ? get_the_title( $forum_id ) : '';
+-					?>
+-					<a href="<?php echo esc_url( function_exists( 'bbp_get_topic_permalink' ) ? bbp_get_topic_permalink( $topic->ID ) : get_permalink( $topic ) ); ?>" class="feed-topic-row">
+-						<span class="feed-topic-title"><?php echo esc_html( get_the_title( $topic ) ); ?></span>
+-						<?php if ( $forum_title ) : ?><span class="feed-topic-forum"><?php echo esc_html( $forum_title ); ?></span><?php endif; ?>
+-					</a>
+-				<?php endforeach; ?>
+-			</div>
+-		</section>
+-		<?php endif; ?>
+-	</div>
+-	<?php endif; ?>
+-
+-	<?php if ( ! empty( $dests ) ) : ?>
+-	<section class="feed-section">
+-		<h3 class="feed-section-title">Destination Inspiration</h3>
+-		<div class="destination-grid">
+-			<?php foreach ( $dests as $dest ) :
+-				$photo = get_the_post_thumbnail_url( $dest->ID, 'medium_large' );
+-				?>
+-				<div class="destination-card" <?php if ( $photo ) : ?>style="background-image:url('<?php echo esc_url( $photo ); ?>');"<?php endif; ?>>
+-					<span class="destination-card-name"><?php echo esc_html( get_the_title( $dest ) ); ?></span>
+-				</div>
+-			<?php endforeach; ?>
+-		</div>
+-	</section>
+-	<?php endif; ?>
+-
+-	<?php if ( empty( $trips ) && empty( $boards ) && empty( $wall_posts ) && empty( $tips ) && empty( $dests ) ) : ?>
+-		<p class="cb-empty">Nothing to show yet — check back soon.</p>
+-	<?php endif; ?>
+-
+-	<?php
+-	return ob_get_clean();
++	// The CBGV hub (owner, 2026-10-15): trip updates, podcast, Trip Tips, your boards, open trips -- see
++	// checkedbags-feed-hub.php. Destinations are no longer shown (the cb_destination data is kept).
++	if ( function_exists( 'cbv_render_feed_hub' ) ) {
++		return cbv_render_feed_hub( get_current_user_id() );
++	}
++	return '<p class="cb-empty">Nothing to show yet — check back soon.</p>';
+ } );
+diff --git a/wp-content/mu-plugins/checkedbags-member-features.php b/wp-content/mu-plugins/checkedbags-member-features.php
+index f1fad9c..75f5ab9 100644
+--- a/wp-content/mu-plugins/checkedbags-member-features.php
++++ b/wp-content/mu-plugins/checkedbags-member-features.php
+@@ -143,6 +143,7 @@ function cbv_render_member_features_page() {
+ 						<?php endif; ?>
+ 					</td>
+ 				</tr>
++				<?php do_action( 'cbv_member_features_fields' ); // more member settings (e.g. the podcast on the Feed) ?>
+ 			</table>
+ 			<?php submit_button(); ?>
+ 		</form>

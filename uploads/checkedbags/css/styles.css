@@ -4116,3 +4116,76 @@ body.admin-bar .site-header { top: 32px; }
 /* "Who's going": member photo + name (owner, 2026-10-15). */
 .trip-roster-list li.trip-roster-member { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0.75rem 0.25rem 0.3rem; }
 .trip-roster-member img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex: none; } /* Ultimate Member replaces the avatar's own class */
+
+/* ==========================================================================
+   Feed hub (owner, 2026-10-15): trip updates, the podcast, Trip Tips, your
+   boards, open trips. CBGV look: gate notices, a boarding-pass podcast card,
+   luggage-tag tips, a departures-board list of boards.
+   ========================================================================== */
+.hub { display: flex; flex-direction: column; gap: 2.25rem; }
+.hub-section { margin: 0; }
+.hub-section .feed-section-title { margin-bottom: 0.9rem; }
+
+/* Trip updates: coral "gate notice" strips */
+.hub-notices { display: flex; flex-direction: column; gap: 0.75rem; }
+.hub-notice { border-left: 4px solid var(--coral); background: var(--horizon); color: var(--sand); border-radius: 4px; padding: 0.9rem 1.1rem; }
+.hub-notice-label { display: block; font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--coral); margin-bottom: 0.35rem; }
+.hub-notice-label a { color: inherit; }
+.hub-notice-text { margin: 0; line-height: 1.55; }
+
+/* Podcast: boarding-pass card */
+.hub-pod { display: flex; gap: 1.5rem; align-items: flex-start; background: var(--ink); color: var(--sand); border: 1px solid rgba(232,169,78,0.35); border-radius: 6px; padding: 1.4rem; }
+.hub-pod-art { flex: none; width: 160px; height: 160px; border-radius: 4px; object-fit: cover; }
+.hub-pod-body { display: flex; flex-direction: column; gap: 0.45rem; min-width: 0; flex: 1 1 auto; }
+.hub-pod-label { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); }
+.hub-pod-title { margin: 0; font-family: var(--font-display); font-style: italic; font-weight: 600; font-size: 1.5rem; line-height: 1.15; color: var(--sand); }
+.hub-pod-meta { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.06em; opacity: 0.75; }
+.hub-pod-desc { margin: 0.2rem 0 0; font-size: 0.95rem; line-height: 1.55; opacity: 0.9; }
+.hub-pod-audio { width: 100%; max-width: 520px; margin-top: 0.4rem; }
+.hub-pod-links { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.4rem; }
+.hub-pod-link { display: inline-flex; align-items: center; min-height: 40px; padding: 0.45rem 0.85rem; border: 1px solid rgba(251,243,231,0.4); border-radius: 2px; font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sand); text-decoration: none; }
+.hub-pod-link:hover, .hub-pod-link:focus-visible { border-color: var(--gold); color: var(--gold); }
+.hub-pod-more { list-style: none; margin: 0.75rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.hub-pod-more li { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 1rem; padding: 0.6rem 0.9rem; background: var(--horizon); color: var(--sand); border-radius: 4px; }
+.hub-pod-more-title { font-weight: 600; }
+.hub-pod-more-meta { font-family: var(--font-mono); font-size: 0.7rem; opacity: 0.75; }
+.hub-pod-more audio { height: 36px; max-width: 100%; }
+
+/* Trip Tips: luggage tags */
+.hub-tips { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 1rem; }
+.hub-tip { position: relative; display: flex; flex-direction: column; gap: 0.5rem; padding: 1.3rem 1.2rem; background: #fff; color: var(--ink); border: 1px solid rgba(22,35,43,0.15); border-radius: 4px; }
+.hub-tip-hole { position: absolute; top: 0.9rem; right: 0.9rem; width: 12px; height: 12px; border-radius: 50%; background: var(--ink); }
+.hub-tip-label { font-family: var(--font-mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #8A3A1F; }
+.hub-tip-title { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; line-height: 1.2; color: var(--ink); }
+.hub-tip-text { margin: 0; font-size: 0.92rem; line-height: 1.55; }
+
+/* Your boards: departures board */
+.hub-board { background: var(--ink); color: var(--sand); border-radius: 6px; overflow: hidden; }
+.hub-board-head, .hub-board-row { display: grid; grid-template-columns: 1.3fr 2fr 1fr 0.5fr auto; gap: 1rem; align-items: center; padding: 0.8rem 1.1rem; }
+.hub-board-head { background: var(--coral); color: var(--ink); font-family: var(--font-mono); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }
+.hub-board-row + .hub-board-row { border-top: 1px solid rgba(251,243,231,0.1); }
+.hub-board-name { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold); }
+.hub-board-latest { font-size: 0.92rem; opacity: 0.9; min-width: 0; overflow-wrap: anywhere; }
+.hub-board-latest a { color: var(--sand); }
+.hub-board-when, .hub-board-count { font-family: var(--font-mono); font-size: 0.72rem; opacity: 0.8; }
+.hub-board-btn { display: inline-flex; align-items: center; gap: 0.35rem; min-height: 40px; padding: 0.4rem 0.8rem; border: 1px solid var(--sand); border-radius: 2px; font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sand); text-decoration: none; white-space: nowrap; }
+.hub-board-btn:hover, .hub-board-btn:focus-visible { background: var(--sand); color: var(--ink); }
+
+/* Upcoming open trips: a small strip */
+.hub-open { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.hub-open-chip { display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.55rem 0.9rem; background: var(--horizon); color: var(--sand); border: 1px solid rgba(232,169,78,0.3); border-radius: 999px; text-decoration: none; font-size: 0.85rem; }
+.hub-open-spots { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold); }
+
+@media (max-width: 640px) {
+  .hub-pod { flex-direction: column; }
+  .hub-pod-art { width: 100%; height: auto; aspect-ratio: 1 / 1; max-width: 240px; }
+  .hub-board-head { display: none; }
+  .hub-board-row { grid-template-columns: 1fr auto; grid-template-areas: "name open" "latest latest" "when count"; gap: 0.35rem 1rem; }
+  .hub-board-name { grid-area: name; }
+  .hub-board-open { grid-area: open; }
+  .hub-board-latest { grid-area: latest; }
+  .hub-board-when { grid-area: when; }
+  .hub-board-count { grid-area: count; justify-self: end; }
+  .hub-board-count::after { content: " posts"; }
+}
+.hub .screen-reader-text { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

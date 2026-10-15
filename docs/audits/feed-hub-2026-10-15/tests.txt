@@ -1,0 +1,27 @@
+feed_hub mutant (live): 26 checks, 21 failures
+my_passport: 28 checks, 0 failures
+wall_privacy (social on): 33 checks, 0 failures
+included_pack: 40 checks, 0 failures
+step4: 123 checks, 0 failures
+step5: 130 checks, 0 failures
+step6: 102 checks, 0 failures
+step7: 64 checks, 0 failures
+step8: 66 checks, 0 failures
+step8b: 76 checks, 0 failures
+step9: 88 checks, 0 failures
+step9a: 36 checks, 0 failures
+step9a_login: 24 checks, 0 failures
+adults_only: 30 checks, 0 failures
+fee_safeguard: 54 checks, 0 failures
+proposal_client_prices: 18 checks, 0 failures
+payment_wording: 10 checks, 0 failures
+travel_details_save: 13 checks, 0 failures
+test_design_followups_v2tmp.sh: 19 checks, 0 failures
+test_forum_design_v2tmp.sh: 51 checks, 0 failures
+test_keydates_docs_v2tmp.sh: 21 checks, 0 failures
+test_mta_publish_v2tmp.sh: 7 checks, 0 failures
+test_rules_merge_v2tmp.sh: 16 checks, 0 failures
+test_step12a_v2tmp.sh: 30 checks, 0 failures
+test_text_um_pages_v2tmp.sh: 67 checks, 0 failures
+test_member_social.sh: 23 checks, 0 failures
+test_feed_hub.sh: 26 checks, 0 failures

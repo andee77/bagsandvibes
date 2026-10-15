@@ -143,6 +143,7 @@ function cbv_render_member_features_page() {
 						<?php endif; ?>
 					</td>
 				</tr>
+				<?php do_action( 'cbv_member_features_fields' ); // more member settings (e.g. the podcast on the Feed) ?>
 			</table>
 			<?php submit_button(); ?>
 		</form>

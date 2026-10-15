@@ -47,7 +47,7 @@ check "off: walls readable by moderators only (not the owner, not a trip-mate)" 
 out=$(weval 'wp_set_current_user( '"$OWNER"' ); echo (int) in_array( 356, array_map( "intval", bbp_get_excluded_forum_ids() ), true );')
 check "off: the owner's own wall stays hidden from forum queries" "$out"
 h=$(render /member-feed/ 1)
-check "off: Feed has no \"Members Post\" wall section; wording without \"posts your friends\"" "$(( $(hasnt "$h" 'Members Post') * $(hasnt "$h" 'posts your friends') * $(has "$h" 'travel tips and the latest from your trip boards') ))"
+check "off: Feed has no \"Members Post\" wall section; wording without \"posts your friends\"" "$(( $(hasnt "$h" 'Members Post') * $(hasnt "$h" 'posts your friends') * $( [ "$(has "$h" 'travel tips and the latest from your trip boards')" = 1 ] || [ "$(has "$h" 'travel tips and the latest from your boards')" = 1 ] && echo 1 || echo 0) ))"
 ro=$(roster "$(render /trip/annual-family-and-friends/ 1)")
 check "off: Who's going = a photo + name for each of the $ROSTER, no profile links" "$(( $( [ "$(cnt "$ro" '<li class="trip-roster-member"><img ')" -eq "$ROSTER" ] && echo 1 || echo 0) * $( [ "$(cnt "$ro" 'trip-roster-name')" -eq "$ROSTER" ] && echo 1 || echo 0) * $(hasnt "$ro" '<a href') ))"
 out=$(weval "$NOWRITE"' do_action( "um_registration_complete", 999999, array() ); echo (int) in_array( "_cb_following", $GLOBALS["cbv_keys"] ?? array(), true );')
