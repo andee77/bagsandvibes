@@ -6,3 +6,8 @@ tip 2 -> ID 455 "Scarlet Night: Go All In on Red" (publish, 2026-10-15 20:23:27)
 tips now (newest first): Scarlet Night: Go All In on Red | Book Dining the Day It Opens | Your Day at The Beach Club at Bimini | Check your Passport
 snapshots: ~/logs/old/{trip181-before,trip181-after}-updates-20261015-202427.json, tips-{before,after}-20261015-202427.json
 Success: Dynamic Cache Successfully Purged.
+tip 1 -> ID 456 "Sail-Away Day Carry-On" (publish, 2026-10-15 20:28:20) text saved exactly
+tips now (newest first): Sail-Away Day Carry-On | Scarlet Night: Go All In on Red | Book Dining the Day It Opens | Your Day at The Beach Club at Bimini | Check your Passport
+snapshots: ~/logs/old/tips-{before,after}-tip1-20261015-202820.json
+Success: Dynamic Cache Successfully Purged.
+Feed tips as a 181 member: 
