@@ -242,6 +242,9 @@ function cbv_get_auto_follow_user_id() {
 }
 
 add_action( 'um_registration_complete', function ( $user_id ) {
+	if ( function_exists( 'cbv_member_social_enabled' ) && ! cbv_member_social_enabled() ) {
+		return; // member social features switched off (Settings > CBGV Member Features)
+	}
 	$target_user_id = cbv_get_auto_follow_user_id();
 	if ( $target_user_id ) {
 		cb_user_follow( $user_id, $target_user_id );

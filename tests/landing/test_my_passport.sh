@@ -57,6 +57,6 @@ check "SEO: my-passport (and the old dashboard) kept out of search" "$([ "$out" 
 check "no \"/dashboard/\" link left in the member code" "$(grep -l "home_url( '/dashboard/' )" /tmp/cbv_mu/*.php /tmp/cbv_mu/checkedbags-landing/*.php 2>/dev/null | wc -l | awk '{print ($1==0)?1:0}')"
 
 # 5. CSS.
-check "styles.css: passport icon styles for the menu and the page label" "$(( $(grep -c '.nav-passport {' /tmp/cbv_t/styles-new.css | awk '{print ($1>0)?1:0}') * $(grep -c '.dashboard-hero-pagelabel { display: inline-flex' /tmp/cbv_t/styles-new.css | awk '{print ($1>0)?1:0}') ))"
+check "styles.css: passport icon centred on the menu text line (same baseline as the other items) and on the page label" "$(( $(grep -c '.nav-passport-icon { display: inline-block; vertical-align: middle' /tmp/cbv_t/styles-new.css | awk '{print ($1>0)?1:0}') * $(grep -c '.dashboard-hero-pagelabel { display: inline-flex' /tmp/cbv_t/styles-new.css | awk '{print ($1>0)?1:0}') ))"
 
 echo "$n checks, $fail failures"

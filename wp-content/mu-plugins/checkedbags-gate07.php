@@ -450,7 +450,14 @@ add_filter( 'the_content', function ( $content ) {
 				<ul class="trip-roster-list">
 					<?php foreach ( $roster as $uid ) : $u = get_userdata( $uid ); if ( ! $u ) { continue; } ?>
 						<?php /* Anyone who can see this page is already on this trip's roster (cbv_user_can_view_trip() enforces that), so they share this exact trip with every other name listed here -- cb_users_share_any_trip() is always true between them, meaning every link below always resolves to a viewable profile. No conditional check needed. */ ?>
-						<li><a href="<?php echo esc_url( cb_member_profile_url( $uid ) ); ?>"><?php echo esc_html( $u->display_name ); ?></a></li>
+						<?php // Photo + name (owner, 2026-10-15); the name links to the profile only while the member social features are on. ?>
+						<li class="trip-roster-member"><?php echo get_avatar( $uid, 32, '', '', array( 'class' => 'trip-roster-avatar' ) ); // phpcs:ignore WordPress.Security.EscapeOutput -- core avatar markup ?>
+							<?php if ( function_exists( 'cbv_member_social_enabled' ) && cbv_member_social_enabled() && function_exists( 'cb_member_profile_url' ) ) : ?>
+								<a href="<?php echo esc_url( cb_member_profile_url( $uid ) ); ?>"><?php echo esc_html( $u->display_name ); ?></a>
+							<?php else : ?>
+								<span class="trip-roster-name"><?php echo esc_html( $u->display_name ); ?></span>
+							<?php endif; ?>
+						</li>
 					<?php endforeach; ?>
 				</ul>
 			<?php endif; ?>

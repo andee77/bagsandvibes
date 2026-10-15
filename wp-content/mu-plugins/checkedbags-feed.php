@@ -263,7 +263,8 @@ function cb_feed_recent_topics( $limit = 5 ) {
 		$is_wall  = function_exists( 'cb_wall_forum_owner_id' ) && cb_wall_forum_owner_id( $forum_id );
 
 		if ( $is_wall ) {
-			if ( count( $wall_posts ) < $limit && cb_feed_user_can_view_wall_post( $topic->ID, $user_id ) ) {
+			// No wall posts while the member social features are off (Settings > CBGV Member Features).
+			if ( ( ! function_exists( 'cbv_member_social_enabled' ) || cbv_member_social_enabled() ) && count( $wall_posts ) < $limit && cb_feed_user_can_view_wall_post( $topic->ID, $user_id ) ) {
 				$wall_posts[] = $topic;
 			}
 		} elseif ( count( $boards ) < $limit && cb_feed_user_can_view_forum( $forum_id, $user_id ) ) {
@@ -293,7 +294,11 @@ add_shortcode( 'cb_feed', function () {
 	ob_start();
 	?>
 
+	<?php if ( ! function_exists( 'cbv_member_social_enabled' ) || cbv_member_social_enabled() ) : ?>
 	<p class="cb-page-hint">See what&#8217;s new across your trips — upcoming open travel, and posts your friends have shared with the group.</p>
+	<?php else : ?>
+	<p class="cb-page-hint">See what&#8217;s new across your trips — upcoming open travel, travel tips and the latest from your trip boards.</p>
+	<?php endif; ?>
 
 	<?php if ( ! empty( $trips ) ) : ?>
 	<section class="feed-section">

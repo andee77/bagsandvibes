@@ -196,9 +196,11 @@ add_filter( 'map_meta_cap', function ( $caps, $cap, $user_id, $args ) {
 		return $caps; // not a wall forum -- leave bbPress's own decision alone
 	}
 
-	if ( (int) $user_id === $owner_id
-		|| user_can( $user_id, 'moderate' )
-		|| cb_users_share_any_trip( $user_id, $owner_id )
+	// With the member social features switched off (Settings > CBGV Member Features, owner 2026-10-15), walls
+	// stay private to moderators only; the posts themselves are kept.
+	$social = ! function_exists( 'cbv_member_social_enabled' ) || cbv_member_social_enabled();
+	if ( user_can( $user_id, 'moderate' )
+		|| ( $social && ( (int) $user_id === $owner_id || cb_users_share_any_trip( $user_id, $owner_id ) ) )
 	) {
 		return array( 'read' ); // universally-held cap, used purely as an "allow" signal
 	}
@@ -244,6 +246,7 @@ add_filter( 'bbp_get_excluded_forum_ids', function ( $forum_ids ) {
 	}
 
 	$user_id = get_current_user_id();
+	$social  = ! function_exists( 'cbv_member_social_enabled' ) || cbv_member_social_enabled(); // off: moderators only
 
 	foreach ( $forum_ids as $key => $forum_id ) {
 		$owner_id = cb_wall_forum_owner_id( $forum_id );
@@ -251,10 +254,12 @@ add_filter( 'bbp_get_excluded_forum_ids', function ( $forum_ids ) {
 			continue; // not a wall forum -- leave bbPress's own decision alone
 		}
 
-		if ( $user_id === $owner_id
-			|| user_can( $user_id, 'moderate' )
-			|| cb_users_share_any_trip( $user_id, $owner_id )
-			|| ( function_exists( 'cb_user_follows' ) && cb_user_follows( $user_id, $owner_id ) )
+		if ( user_can( $user_id, 'moderate' )
+			|| ( $social && (
+				$user_id === $owner_id
+				|| cb_users_share_any_trip( $user_id, $owner_id )
+				|| ( function_exists( 'cb_user_follows' ) && cb_user_follows( $user_id, $owner_id ) )
+			) )
 		) {
 			unset( $forum_ids[ $key ] );
 		}

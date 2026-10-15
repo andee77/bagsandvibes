@@ -4108,6 +4108,11 @@ body.admin-bar .site-header { top: 32px; }
    My Passport (owner, 2026-10-15): the member home, formerly "Dashboard".
    A small passport icon in the menu and on the page label.
    ========================================================================== */
-.nav-passport { display: inline-flex; align-items: center; gap: 0.4rem; }
-.nav-passport-icon { flex: none; }
+/* The link stays plain inline text like FEED / NAVIGATION / ACCOUNT (same baseline); only the icon is centred on the
+   text line (owner, 2026-10-15: inline-flex had lifted "MY PASSPORT" a few pixels). */
+.nav-passport-icon { display: inline-block; vertical-align: middle; margin: -2px 0.4rem 0 0; }
 .dashboard-hero-pagelabel { display: inline-flex; align-items: center; gap: 0.45rem; }
+
+/* "Who's going": member photo + name (owner, 2026-10-15). */
+.trip-roster-list li.trip-roster-member { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0.75rem 0.25rem 0.3rem; }
+.trip-roster-member img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex: none; } /* Ultimate Member replaces the avatar's own class */

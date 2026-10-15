@@ -822,7 +822,7 @@ Anyone who isn't signed in and opens a forum page (the forum list, the Lounge, a
 
 Every forum page (the forum list, each board, topics, replies and forum search) now uses the same CBGV header, menu, footer and fonts as the dashboard and gates, with a "GATE 10" ribbon; the forum list is titled "Discussion Boards".
 
-Personal **walls** never appear in the forum lists, topic lists or forum search, for anyone (admins included). A member's wall lives on their profile page and in the Feed; who can open it is unchanged (the owner, admins, and anyone on a trip with the owner). Opening a wall's old forum address takes you to the owner's profile.
+(Since 2026-10-15, walls and the rest of the member social features are **switched off**; see section 25.) Personal **walls** never appear in the forum lists, topic lists or forum search, for anyone (admins included). A member's wall lives on their profile page and in the Feed; who can open it is unchanged (the owner, admins, and anyone on a trip with the owner). Opening a wall's old forum address takes you to the owner's profile.
 
 ### Proposal PDFs and "Not on the price board"
 A price tagged **Not on the price board** (in the Pricing Tiers box) is left off the **Client Proposal PDF** completely. A cabin tier whose prices are all tagged that way disappears from the client PDF, add-ons included. The **Internal Data Sheet** still lists everything, marked "Not on price board". Trip 181's three Locked In tiers work this way.
@@ -987,6 +987,21 @@ Two sections on the new design, right after the price board (Fare classes), in t
 
 ### Common mistakes
 - Adding a menu item in Appearance > Menus: it won't show; the member menu is in code.
+
+---
+
+## 25. Member social features switch (Settings > CBGV Member Features)
+- **One checkbox** turns the member social features on or off: profile walls, following, the members directory (Find Members) and profile pages. It has been **off** since 2026-10-15.
+- **While off:**
+  - Following and Find Members show "This part of the site is switched off for now..." with a link to My Passport.
+  - Profile pages (/user/..., /members/..., /forums/users/...) go to My Account.
+  - Walls can be opened by moderators only.
+  - New members aren't auto-followed.
+  - The Feed shows no wall posts.
+  - "Who's going" on trip pages shows each traveler's photo and name, without profile links.
+- **Nothing is deleted.** Wall posts, follow lists, bios and cover photos are kept. Ticking the box brings everything back as it was, including the profile links in "Who's going".
+- **Never affected:** My Account (Bio and Cover Photo stay on its General tab), trip pages, trip boards, the Lounge, payments and Gate 12.
+- **Auto-follow:** Settings > Auto-Follow Account has no effect while the switch is off.
 
 ---
 

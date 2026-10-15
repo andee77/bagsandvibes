@@ -36,7 +36,9 @@ check "styles.css hides the stray dash under No Topics" "$(grep -c 'bbp-topic-fr
 
 h=$(render /forums/forum/lounge/ "$M")
 check "empty forum: one notice only (no \"This forum is empty.\"), no Tags field on the new-topic form" "$(( $(hasnt "$h" 'This forum is empty') * $(grep -c 'class="bbp-template-notice' <<< "$h" | awk '{print ($1==1)?1:0}') * $(hasnt "$h" 'bbp_topic_tags') ))"
-h=$(render /forums/topic/good-morning-travel-family/ "$M")
+# This topic is a wall post: with the member social features off (default since 2026-10-15) only moderators can
+# open it, so the reply-form check runs with them ON in memory (tests/landing/social_on.php).
+h=$(CBV_SO_BASE=$(grep -o "/tmp/cbv_t/define[a-z0-9_]*\.php" <<< "$(declare -f render)" | head -1) CBV_PATH=/forums/topic/good-morning-travel-family/ CBV_USER="$M" wp --require=/tmp/cbv_t/social_on.php eval-file /tmp/cbv_t/render_page.php 2>/dev/null)
 check "topic page: no stray | before Subscribe, no Tags field on the reply form" "$(( $(hasnt "$h" 'subscription-toggle">&nbsp;|') * $(has "$h" 'id="subscription-toggle"') * $(hasnt "$h" 'bbp_topic_tags') ))"
 check "styles.css: search post numbers hidden, coral reply links, brand toolbar buttons, inline summary avatar" "$(( $(grep -c 'bbp-search-results .bbp-meta a\[class\$="-permalink"\] { display: none; }' /tmp/cbv_t/styles.css | awk '{print ($1>0)?1:0}') * $(grep -c 'a.bbp-topic-reply-link' /tmp/cbv_t/styles.css | awk '{print ($1>0)?1:0}') * $(grep -c 'quicktags-toolbar input.ed_button' /tmp/cbv_t/styles.css | awk '{print ($1>0)?1:0}') * $(grep -c 'bbp-template-notice img.avatar' /tmp/cbv_t/styles.css | awk '{print ($1>0)?1:0}') ))"
 

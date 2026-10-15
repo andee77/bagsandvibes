@@ -7,6 +7,8 @@
  * Runs as REAL members, read only (wp_set_current_user + bbPress's own list functions; nothing is written).
  *   wp --require=/tmp/cbv_t/define.php eval-file test_wall_privacy.php
  * Set CBV_VERBOSE=1 to print every passing check.
+ * Since 2026-10-15 the member social features ship OFF; this test describes walls with them ON, so run it with
+ * tests/landing/social_on.php: CBV_SO_BASE=/tmp/cbv_t/define_v2.php wp --require=/tmp/cbv_t/social_on.php eval-file ...
  */
 $GLOBALS['n'] = 0; $GLOBALS['fail'] = 0;
 function check( $l, $c, $d = '' ) {
