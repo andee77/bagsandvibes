@@ -1,0 +1,4 @@
+  changed: cb_pricing_tiers
+only cb_pricing_tiers changed; stored = dry run
+snapshots: ~/logs/old/trip181-{before,after}-tiers-20261015-173115.json
+Success: Dynamic Cache Successfully Purged.

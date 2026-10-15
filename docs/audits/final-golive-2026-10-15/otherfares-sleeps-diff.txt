@@ -1,0 +1,11 @@
+  changed: cb_pricing_tiers
+    tier 2 (Limited View Sea Terrace) capacity_high: 2 -> 3
+    tier 4 (Central Sea Terrace) capacity_high: 2 -> 3
+  changed: cbv_lp_priceboard
+    before: {"note":"","photo1":445,"focus1":"","photo2":0,"focus2":""}
+    after:  {"note":"","photo1":445,"focus1":"","photo2":0,"focus2":"","other":["Essential","Base"]}
+only expected keys changed
+snapshots: ~/logs/old/trip181-{before,after}-otherfares-sleeps-20261015-180020.json
+board check: other fares = Essential, Base; cards = Base (on request), Essential (on request), Premium, RockStar Quarters, Mega RockStar
+DONE
+Success: Dynamic Cache Successfully Purged.
