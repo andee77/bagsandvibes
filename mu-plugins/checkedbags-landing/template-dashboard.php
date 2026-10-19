@@ -103,6 +103,22 @@ $needs_profile_nudge = function_exists( 'cbv_user_profile_is_complete' )
 </head>
 <body <?php body_class( 'checkedbags-dashboard' ); ?>>
 
+<?php
+// Split background (wide screens only): waterfall left, beach right, behind
+// the solid navy content panel. Stills show first and stay for visitors with
+// "reduce motion" or Save-Data on; the script at the end of the page loads
+// the videos only on screens 1024px and wider. Files: uploads/checkedbags/media/.
+$cbv_passport_media = content_url( 'uploads/checkedbags/media' );
+?>
+<div class="passport-bg" aria-hidden="true">
+  <div class="passport-bg-side passport-bg-side--left" style="background-image: url('<?php echo esc_url( $cbv_passport_media . '/passport-waterfall-poster.jpg' ); ?>');">
+    <video class="passport-bg-video" muted loop playsinline preload="none" disablepictureinpicture tabindex="-1" poster="<?php echo esc_url( $cbv_passport_media . '/passport-waterfall-poster.jpg' ); ?>" data-src="<?php echo esc_url( $cbv_passport_media . '/passport-waterfall.mp4' ); ?>"></video>
+  </div>
+  <div class="passport-bg-side passport-bg-side--right" style="background-image: url('<?php echo esc_url( $cbv_passport_media . '/passport-beach-poster.jpg' ); ?>');">
+    <video class="passport-bg-video" muted loop playsinline preload="none" disablepictureinpicture tabindex="-1" poster="<?php echo esc_url( $cbv_passport_media . '/passport-beach-poster.jpg' ); ?>" data-src="<?php echo esc_url( $cbv_passport_media . '/passport-beach.mp4' ); ?>"></video>
+  </div>
+</div>
+
 <header class="site-header" id="site-header">
   <div class="header-inner">
     <?php
@@ -441,6 +457,45 @@ $needs_profile_nudge = function_exists( 'cbv_user_profile_is_complete' )
 })();
 </script>
 <?php endif; ?>
+
+<script>
+/* Split background videos: load and play only on wide screens, never with
+   "reduce motion" or Save-Data on (the stills stay instead), after the page
+   has finished loading. */
+(function () {
+	var wide    = window.matchMedia( '(min-width: 1024px)' );
+	var reduced = window.matchMedia( '(prefers-reduced-motion: reduce)' );
+	var saveData = navigator.connection && navigator.connection.saveData;
+	var videos  = document.querySelectorAll( '.passport-bg-video' );
+
+	function start() {
+		if ( ! wide.matches || reduced.matches || saveData ) {
+			return;
+		}
+		videos.forEach( function ( v ) {
+			if ( ! v.getAttribute( 'src' ) ) {
+				v.src = v.getAttribute( 'data-src' );
+			}
+			v.muted = true;
+			var p = v.play();
+			if ( p && p.catch ) {
+				p.catch( function () {} ); // autoplay refused: the still stays
+			}
+		} );
+	}
+	function stop() {
+		videos.forEach( function ( v ) { v.pause(); } );
+	}
+	function check() {
+		if ( wide.matches && ! reduced.matches ) { start(); } else { stop(); }
+	}
+
+	if ( document.readyState === 'complete' ) { start(); } else { window.addEventListener( 'load', start ); }
+	[ wide, reduced ].forEach( function ( mq ) {
+		if ( mq.addEventListener ) { mq.addEventListener( 'change', check ); } else if ( mq.addListener ) { mq.addListener( check ); }
+	} );
+})();
+</script>
 
 <?php wp_footer(); ?>
 </body>

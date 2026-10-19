@@ -716,6 +716,69 @@ body.checkedbags-dashboard {
   padding-right: var(--edge);
 }
 
+/* My Passport split background (2026-10-19): waterfall left, beach right,
+   behind the solid ink content panel. Wide screens only (phones and small
+   tablets keep the plain page, full-width cards, and never load the media).
+   Same fixed z-index:-1 layer approach as the gate pages' .gate-bg-frame.
+   Markup + video loader: template-dashboard.php. */
+.passport-bg { display: none; }
+@media (min-width: 1024px) {
+  body.checkedbags-dashboard {
+    /* Full width of the panel (Kadence sets border-box, so this includes
+       its padding); each side fills exactly the strip beside it, so the
+       centre of each picture is what you see. At least 120px a side. */
+    --passport-panel: min(1100px, calc(100vw - 240px));
+  }
+  .passport-bg {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+  }
+  .passport-bg-side {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: calc((100vw - var(--passport-panel)) / 2 + 2px);
+    overflow: hidden;
+    background-color: var(--ink);
+    background-size: cover;
+    background-position: center;
+  }
+  .passport-bg-side--left { left: 0; }
+  .passport-bg-side--right { right: 0; }
+  .passport-bg-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  /* Soft dark overlay, a little deeper toward the panel, so the sides
+     stay calm. */
+  .passport-bg-side::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+  .passport-bg-side--left::after {
+    background: linear-gradient(to right, rgba(22,35,43,0.45), rgba(22,35,43,0.7));
+  }
+  .passport-bg-side--right::after {
+    background: linear-gradient(to left, rgba(22,35,43,0.45), rgba(22,35,43,0.7));
+  }
+  /* The content panel: solid ink, at least 120px of scenery each side. */
+  body.checkedbags-dashboard .dashboard-main {
+    max-width: var(--passport-panel);
+    min-height: 100vh;
+    background: var(--ink);
+    border-left: 1px solid rgba(232,169,78,0.2);
+    border-right: 1px solid rgba(232,169,78,0.2);
+    box-shadow: 0 0 60px rgba(0,0,0,0.45);
+  }
+}
+
 .dashboard-hero {
   text-align: center;
   margin-bottom: 3rem;

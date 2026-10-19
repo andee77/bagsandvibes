@@ -1,0 +1,147 @@
+diff --git a/mu-plugins/checkedbags-landing/template-dashboard.php b/mu-plugins/checkedbags-landing/template-dashboard.php
+index e0011e0..2da4b32 100644
+--- a/mu-plugins/checkedbags-landing/template-dashboard.php
++++ b/mu-plugins/checkedbags-landing/template-dashboard.php
+@@ -103,6 +103,22 @@ $needs_profile_nudge = function_exists( 'cbv_user_profile_is_complete' )
+ </head>
+ <body <?php body_class( 'checkedbags-dashboard' ); ?>>
+ 
++<?php
++// Split background (wide screens only): waterfall left, beach right, behind
++// the solid navy content panel. Stills show first and stay for visitors with
++// "reduce motion" or Save-Data on; the script at the end of the page loads
++// the videos only on screens 1024px and wider. Files: uploads/checkedbags/media/.
++$cbv_passport_media = content_url( 'uploads/checkedbags/media' );
++?>
++<div class="passport-bg" aria-hidden="true">
++  <div class="passport-bg-side passport-bg-side--left" style="background-image: url('<?php echo esc_url( $cbv_passport_media . '/passport-waterfall-poster.jpg' ); ?>');">
++    <video class="passport-bg-video" muted loop playsinline preload="none" disablepictureinpicture tabindex="-1" poster="<?php echo esc_url( $cbv_passport_media . '/passport-waterfall-poster.jpg' ); ?>" data-src="<?php echo esc_url( $cbv_passport_media . '/passport-waterfall.mp4' ); ?>"></video>
++  </div>
++  <div class="passport-bg-side passport-bg-side--right" style="background-image: url('<?php echo esc_url( $cbv_passport_media . '/passport-beach-poster.jpg' ); ?>');">
++    <video class="passport-bg-video" muted loop playsinline preload="none" disablepictureinpicture tabindex="-1" poster="<?php echo esc_url( $cbv_passport_media . '/passport-beach-poster.jpg' ); ?>" data-src="<?php echo esc_url( $cbv_passport_media . '/passport-beach.mp4' ); ?>"></video>
++  </div>
++</div>
++
+ <header class="site-header" id="site-header">
+   <div class="header-inner">
+     <?php
+@@ -442,6 +458,45 @@ $needs_profile_nudge = function_exists( 'cbv_user_profile_is_complete' )
+ </script>
+ <?php endif; ?>
+ 
++<script>
++/* Split background videos: load and play only on wide screens, never with
++   "reduce motion" or Save-Data on (the stills stay instead), after the page
++   has finished loading. */
++(function () {
++	var wide    = window.matchMedia( '(min-width: 1024px)' );
++	var reduced = window.matchMedia( '(prefers-reduced-motion: reduce)' );
++	var saveData = navigator.connection && navigator.connection.saveData;
++	var videos  = document.querySelectorAll( '.passport-bg-video' );
++
++	function start() {
++		if ( ! wide.matches || reduced.matches || saveData ) {
++			return;
++		}
++		videos.forEach( function ( v ) {
++			if ( ! v.getAttribute( 'src' ) ) {
++				v.src = v.getAttribute( 'data-src' );
++			}
++			v.muted = true;
++			var p = v.play();
++			if ( p && p.catch ) {
++				p.catch( function () {} ); // autoplay refused: the still stays
++			}
++		} );
++	}
++	function stop() {
++		videos.forEach( function ( v ) { v.pause(); } );
++	}
++	function check() {
++		if ( wide.matches && ! reduced.matches ) { start(); } else { stop(); }
++	}
++
++	if ( document.readyState === 'complete' ) { start(); } else { window.addEventListener( 'load', start ); }
++	[ wide, reduced ].forEach( function ( mq ) {
++		if ( mq.addEventListener ) { mq.addEventListener( 'change', check ); } else if ( mq.addListener ) { mq.addListener( check ); }
++	} );
++})();
++</script>
++
+ <?php wp_footer(); ?>
+ </body>
+ </html>
+diff --git a/uploads/checkedbags/css/styles.css b/uploads/checkedbags/css/styles.css
+index 06be2c6..6d4e193 100644
+--- a/uploads/checkedbags/css/styles.css
++++ b/uploads/checkedbags/css/styles.css
+@@ -716,6 +716,69 @@ body.checkedbags-dashboard {
+   padding-right: var(--edge);
+ }
+ 
++/* My Passport split background (2026-10-19): waterfall left, beach right,
++   behind the solid ink content panel. Wide screens only (phones and small
++   tablets keep the plain page, full-width cards, and never load the media).
++   Same fixed z-index:-1 layer approach as the gate pages' .gate-bg-frame.
++   Markup + video loader: template-dashboard.php. */
++.passport-bg { display: none; }
++@media (min-width: 1024px) {
++  body.checkedbags-dashboard {
++    /* Full width of the panel (Kadence sets border-box, so this includes
++       its padding); each side fills exactly the strip beside it, so the
++       centre of each picture is what you see. At least 120px a side. */
++    --passport-panel: min(1100px, calc(100vw - 240px));
++  }
++  .passport-bg {
++    display: block;
++    position: fixed;
++    inset: 0;
++    z-index: -1;
++    pointer-events: none;
++  }
++  .passport-bg-side {
++    position: absolute;
++    top: 0;
++    bottom: 0;
++    width: calc((100vw - var(--passport-panel)) / 2 + 2px);
++    overflow: hidden;
++    background-color: var(--ink);
++    background-size: cover;
++    background-position: center;
++  }
++  .passport-bg-side--left { left: 0; }
++  .passport-bg-side--right { right: 0; }
++  .passport-bg-video {
++    position: absolute;
++    inset: 0;
++    width: 100%;
++    height: 100%;
++    object-fit: cover;
++  }
++  /* Soft dark overlay, a little deeper toward the panel, so the sides
++     stay calm. */
++  .passport-bg-side::after {
++    content: "";
++    position: absolute;
++    inset: 0;
++  }
++  .passport-bg-side--left::after {
++    background: linear-gradient(to right, rgba(22,35,43,0.45), rgba(22,35,43,0.7));
++  }
++  .passport-bg-side--right::after {
++    background: linear-gradient(to left, rgba(22,35,43,0.45), rgba(22,35,43,0.7));
++  }
++  /* The content panel: solid ink, at least 120px of scenery each side. */
++  body.checkedbags-dashboard .dashboard-main {
++    max-width: var(--passport-panel);
++    min-height: 100vh;
++    background: var(--ink);
++    border-left: 1px solid rgba(232,169,78,0.2);
++    border-right: 1px solid rgba(232,169,78,0.2);
++    box-shadow: 0 0 60px rgba(0,0,0,0.45);
++  }
++}
++
+ .dashboard-hero {
+   text-align: center;
+   margin-bottom: 3rem;
