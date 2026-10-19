@@ -59,6 +59,8 @@ if ( is_user_logged_in() ) {
 		<div class="cbv-lp-footer-brand">
 			<span class="cbv-lp-footer-name">Checked Bags &amp; Good Vibes</span>
 			<span class="cbv-lp-footer-sub">A JourneyWell Global LLC brand &middot; Bookings by an independent travel advisor</span>
+			<?php echo function_exists( 'cbv_footer_sister_brands_html' ) ? cbv_footer_sister_brands_html() : ''; ?>
+			<?php echo function_exists( 'cbv_footer_social_html' ) ? cbv_footer_social_html() : ''; ?>
 		</div>
 		<nav class="cbv-lp-footer-links" aria-label="Footer">
 			<a href="<?php echo esc_url( home_url( '/privacy-policy/' ) ); ?>">Privacy</a>

@@ -606,7 +606,7 @@ add_shortcode( 'cb_gate_payments', function () {
 		<div class="cbv-schedule-appt-modal-inner">
 			<button type="button" class="cbv-schedule-appt-close" aria-label="Close">&times;</button>
 			<h4 id="cbv-schedule-appt-modal-title">Schedule an Appointment</h4>
-			<p class="cb-page-hint">Tell us when works best and we&#8217;ll reach out to arrange your Travel Payment with your travel advisor.</p>
+			<p class="cb-page-hint">Tell us what time works best, and we&#8217;ll reach out to set up your travel payment with your travel advisor.</p>
 			<label>Preferred time
 				<input type="text" id="cbv-schedule-appt-time" placeholder="e.g. Weekday afternoons">
 			</label>

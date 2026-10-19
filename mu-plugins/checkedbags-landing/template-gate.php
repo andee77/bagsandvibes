@@ -145,7 +145,8 @@ $cb_ribbon_title  = ( $cb_is_forum_page && function_exists( 'bbp_is_forum_archiv
   <div class="footer-inner">
     <div class="footer-brand">
       <p class="footer-brand-name">Checked Bags &amp; Good Vibes</p>
-      <p class="footer-tagline">A JourneyWell Global LLC brand.</p>
+      <p class="footer-tagline">A JourneyWell Global LLC brand. <?php echo function_exists( 'cbv_footer_sister_brands_html' ) ? cbv_footer_sister_brands_html() : ''; ?></p>
+      <?php echo function_exists( 'cbv_footer_social_html' ) ? cbv_footer_social_html() : ''; ?>
     </div>
     <nav class="footer-links" aria-label="Footer">
       <a href="https://bagsandvibes.com/privacy-policy/">Privacy</a>

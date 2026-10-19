@@ -131,6 +131,33 @@ body.cbv-lp .cbv-lp-footer-links a {
 	text-decoration: none !important;
 }
 
+/* Footer extras (sister brands + social icons); base styles are in
+   styles.css (.cbv-footer-*). Repeated here with this file's link
+   pattern so the trip page's own link rules can't recolour them. */
+body.cbv-lp .cbv-lp-footer-brand .cbv-footer-sisters {
+	font-size: 14px;
+	color: rgba(251, 243, 231, 0.72);
+}
+
+body.cbv-lp .cbv-lp-footer-brand .cbv-footer-sisters a {
+	color: rgba(251, 243, 231, 0.85) !important;
+	text-decoration: underline !important;
+}
+
+body.cbv-lp .cbv-lp-footer-brand .cbv-footer-social {
+	margin-top: 8px;
+}
+
+body.cbv-lp .cbv-lp-footer-brand .cbv-footer-social a {
+	color: var(--cbv-cream) !important;
+	text-decoration: none !important;
+}
+
+body.cbv-lp .cbv-lp-footer-brand .cbv-footer-social a:hover,
+body.cbv-lp .cbv-lp-footer-brand .cbv-footer-social a:focus-visible {
+	color: var(--cbv-ink) !important;
+}
+
 body.cbv-lp .cbv-lp-footer-url {
 	font-family: 'Space Mono', monospace;
 	font-size: 12px;

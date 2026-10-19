@@ -300,3 +300,48 @@ add_action( 'template_redirect', function () {
 	wp_safe_redirect( $target, 301 );
 	exit;
 }, 5 );
+
+/**
+ * 5. Footer extras shared by every footer (landing/text pages, Gate pages,
+ *    My Passport, and the new trip landing): sister-brand links next to
+ *    "A JourneyWell Global LLC brand", and the social icons. Styles:
+ *    .cbv-footer-* in styles.css and trip-landing.css.
+ */
+function cbv_footer_sister_brands_html() {
+	$brands = array(
+		'Iwosan Journeys' => 'https://iwosanjourney.com',
+		'MenoWell'        => 'https://simplymenowell.com',
+	);
+	$links = array();
+	foreach ( $brands as $name => $url ) {
+		$links[] = '<a href="' . esc_url( $url ) . '" target="_blank" rel="noopener">' . esc_html( $name ) . '</a>';
+	}
+	return '<span class="cbv-footer-sisters">Sister brands: ' . implode( ' &middot; ', $links ) . '</span>';
+}
+
+function cbv_footer_social_html() {
+	$icons = array(
+		'Facebook'  => array(
+			'https://www.facebook.com/CBandGV',
+			'<path d="M13.5 22v-8.2h2.8l.5-3.4h-3.3V8.2c0-1 .4-1.7 1.8-1.7h1.6V3.5c-.3 0-1.3-.2-2.5-.2-2.5 0-4.2 1.5-4.2 4.3v2.8H7.4v3.4h2.8V22h3.3z"/>',
+		),
+		'Instagram' => array(
+			'https://www.instagram.com/checkedbagsgoodvibes/',
+			'<rect x="3.5" y="3.5" width="17" height="17" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.2" cy="6.8" r="1.2"/>',
+		),
+		'TikTok'    => array(
+			'https://www.tiktok.com/@checked.bags.good',
+			'<path d="M16.6 2h-3.3v13.2a2.9 2.9 0 1 1-2.9-2.9c.3 0 .6 0 .9.1V9a6.3 6.3 0 1 0 5.3 6.2V8.6a8 8 0 0 0 4.4 1.3V6.6a4.5 4.5 0 0 1-4.4-4.6z"/>',
+		),
+		'YouTube'   => array(
+			'https://www.youtube.com/channel/UCbUleXhF_xFyaQ5W9hVjNLg',
+			'<path fill-rule="evenodd" d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4A2.5 2.5 0 0 0 2.4 7.2C2 8.8 2 12 2 12s0 3.2.4 4.8a2.5 2.5 0 0 0 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8C22 15.2 22 12 22 12s0-3.2-.4-4.8zM10 15V9l5.2 3z"/>',
+		),
+	);
+	$out = '<ul class="cbv-footer-social" aria-label="Checked Bags &amp; Good Vibes on social media">';
+	foreach ( $icons as $network => $icon ) {
+		$out .= '<li><a href="' . esc_url( $icon[0] ) . '" target="_blank" rel="noopener" aria-label="Checked Bags &amp; Good Vibes on ' . esc_attr( $network ) . '">'
+			. '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true" focusable="false">' . $icon[1] . '</svg></a></li>';
+	}
+	return $out . '</ul>';
+}
