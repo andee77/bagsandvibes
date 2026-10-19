@@ -502,6 +502,52 @@ select {
 }
 .btn-outline-light:hover { border-color: var(--sand); background: rgba(251,243,231,0.08); }
 
+/* Podcast band: "The Good Vibe Check", on the homepage after Join Us
+   (markup lives in the Home page content). Gold label 5.8:1, cream text
+   8.3:1+, outlined buttons 10.9:1 on navy. */
+.podcast-band {
+  background: var(--horizon);
+  border-top: 1px solid rgba(232,169,78,0.35);
+  padding: 3.5rem var(--edge);
+  text-align: center;
+}
+.podcast-band-inner { max-width: 720px; margin: 0 auto; }
+.podcast-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0 0 0.6rem;
+}
+.podcast-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(1.9rem, 4.5vw, 2.75rem);
+  line-height: 1.15;
+  margin: 0;
+  color: var(--sand);
+}
+.podcast-sub {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: rgba(251,243,231,0.85);
+  margin: 0.6rem 0 1.75rem;
+}
+.podcast-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.podcast-actions .btn { min-height: 44px; box-sizing: border-box; }
+.podcast-actions .btn-outline-light:hover,
+.podcast-actions .btn-outline-light:focus-visible { color: var(--sand); }
+@media (max-width: 540px) {
+  .podcast-actions .btn { flex: 1 1 40%; padding-left: 0.75rem; padding-right: 0.75rem; }
+}
+
 .btn-ticket {
   position: relative;
   /* Was --sand (cream) -- read fine on the dark Dashboard, but most of
