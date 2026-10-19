@@ -4213,7 +4213,7 @@ body :is(input[type="text"], input[type="email"], input[type="url"], input[type=
   font-size: 0.72rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--coral) !important;
+  color: #B8402A !important; /* deep coral: 5.0:1 on cream, 5.5:1 on white (coral was 2.6:1) */
   text-decoration: underline !important;
   text-underline-offset: 3px;
 }
@@ -4228,7 +4228,7 @@ body :is(input[type="text"], input[type="email"], input[type="url"], input[type=
 .cbv-um-page .um .um-notice.success { background: var(--teal) !important; }
 .cbv-um-page .um .um-notice.err { background: var(--coral) !important; color: var(--ink) !important; }
 .cbv-um-page .um .um-notice.err a { color: var(--ink) !important; text-decoration: underline; }
-.cbv-um-page .um .cbv-terms-field a { color: var(--coral); }
+.cbv-um-page .um .cbv-terms-field a { color: #B8402A; } /* deep coral, 5.0:1 on cream */
 
 @media (max-width: 640px) {
   .cbv-text-page .gate-page-content { font-size: 1rem; }
@@ -4277,8 +4277,8 @@ body.admin-bar .site-header { top: 32px; }
    ========================================================================== */
 .cbv-um-page .um .um-req { color: var(--coral) !important; margin-left: 0.2em; }
 .cbv-um-page .um .cbv-terms-field label { font-family: var(--font-body); color: var(--ink); line-height: 1.55; }
-.cbv-um-page .um .cbv-terms-field label a { color: var(--coral); text-decoration: underline; text-underline-offset: 2px; }
-.cbv-um-page .um .cbv-terms-field .cbv-required { color: var(--coral); }
+.cbv-um-page .um .cbv-terms-field label a { color: #B8402A; text-decoration: underline; text-underline-offset: 2px; }
+.cbv-um-page .um .cbv-terms-field .cbv-required { color: #B8402A; }
 .cbv-text-page .wpforms-container .wpforms-field-medium,
 .cbv-text-page .wpforms-container .wpforms-field-row.wpforms-field-medium,
 .cbv-text-page .wpforms-container input.wpforms-field-medium { max-width: 100% !important; width: 100% !important; }
