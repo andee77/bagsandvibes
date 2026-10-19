@@ -307,6 +307,11 @@ add_action( 'template_redirect', function () {
  *    "A JourneyWell Global LLC brand", and the social icons. Styles:
  *    .cbv-footer-* in styles.css and trip-landing.css.
  */
+function cbv_footer_jwg_link_html() {
+	// JourneyWell Global has no website of its own; its page lives on Iwosan Journeys.
+	return '<a class="cbv-footer-jwg" href="' . esc_url( 'https://iwosanjourney.com/about-jwg/' ) . '" target="_blank" rel="noopener">JourneyWell Global LLC</a>';
+}
+
 function cbv_footer_sister_brands_html() {
 	$brands = array(
 		'Iwosan Journeys' => 'https://iwosanjourney.com',
@@ -336,6 +341,10 @@ function cbv_footer_social_html() {
 		'YouTube'   => array(
 			'https://www.youtube.com/channel/UCbUleXhF_xFyaQ5W9hVjNLg',
 			'<path fill-rule="evenodd" d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4A2.5 2.5 0 0 0 2.4 7.2C2 8.8 2 12 2 12s0 3.2.4 4.8a2.5 2.5 0 0 0 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8C22 15.2 22 12 22 12s0-3.2-.4-4.8zM10 15V9l5.2 3z"/>',
+		),
+		'Threads'   => array(
+			'https://www.threads.net/@checkedbagsandgoodvibes',
+			'<path d="M12.19 24h-.01c-3.58-.02-6.33-1.2-8.18-3.51C2.35 18.44 1.5 15.59 1.47 12.01v-.02c.03-3.58.88-6.43 2.53-8.48C5.85 1.2 8.6.02 12.18 0h.01c2.75.02 5.04.73 6.83 2.1 1.68 1.29 2.86 3.13 3.51 5.47l-2.04.57c-1.1-3.96-3.9-5.98-8.3-6.02-2.91.02-5.11.94-6.54 2.72C4.31 6.5 3.62 8.91 3.59 12c.03 3.09.72 5.5 2.06 7.16 1.43 1.79 3.63 2.7 6.54 2.72 2.62-.02 4.36-.63 5.8-2.05 1.65-1.61 1.62-3.59 1.09-4.8-.31-.71-.87-1.3-1.63-1.75-.19 1.35-.62 2.45-1.28 3.27-.89 1.1-2.14 1.7-3.73 1.79-1.2.07-2.36-.22-3.26-.8-1.06-.69-1.69-1.74-1.75-2.96-.07-1.19.41-2.29 1.33-3.08.88-.76 2.12-1.21 3.58-1.29a13.85 13.85 0 0 1 3.02.14c-.13-.74-.38-1.33-.75-1.76-.51-.59-1.31-.88-2.36-.89h-.03c-.84 0-1.99.23-2.72 1.32L7.73 7.85c.98-1.45 2.57-2.26 4.48-2.26h.04c3.2.02 5.1 1.98 5.29 5.39.11.05.22.09.32.14 1.49.7 2.58 1.76 3.15 3.07.8 1.82.87 4.79-1.55 7.16-1.85 1.81-4.09 2.63-7.28 2.65zm1-11.69c-.24 0-.49.01-.74.02-1.84.1-2.98.95-2.92 2.14.07 1.26 1.45 1.84 2.78 1.77 1.22-.07 2.82-.54 3.09-3.71a10.5 10.5 0 0 0-2.21-.22z"/>',
 		),
 	);
 	$out = '<ul class="cbv-footer-social" aria-label="Checked Bags &amp; Good Vibes on social media">';

@@ -139,7 +139,8 @@ body.cbv-lp .cbv-lp-footer-brand .cbv-footer-sisters {
 	color: rgba(251, 243, 231, 0.72);
 }
 
-body.cbv-lp .cbv-lp-footer-brand .cbv-footer-sisters a {
+body.cbv-lp .cbv-lp-footer-brand .cbv-footer-sisters a,
+body.cbv-lp .cbv-lp-footer-brand a.cbv-footer-jwg {
 	color: rgba(251, 243, 231, 0.85) !important;
 	text-decoration: underline !important;
 }

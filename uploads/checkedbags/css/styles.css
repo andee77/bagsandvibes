@@ -624,13 +624,16 @@ select {
    (markup: cbv_footer_sister_brands_html() / cbv_footer_social_html() in
    mu-plugins/checkedbags-landing.php). 44px round tap targets; cream icon
    on ink 14.6:1, gold ring 7.8:1. */
-.cbv-footer-sisters a {
+.cbv-footer-sisters a,
+.footer-tagline a.cbv-footer-jwg {
   color: rgba(251,243,231,0.85);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 .cbv-footer-sisters a:hover,
-.cbv-footer-sisters a:focus-visible { color: var(--gold); }
+.cbv-footer-sisters a:focus-visible,
+.footer-tagline a.cbv-footer-jwg:hover,
+.footer-tagline a.cbv-footer-jwg:focus-visible { color: var(--gold); }
 .cbv-footer-social {
   list-style: none;
   margin: 1rem 0 0;
