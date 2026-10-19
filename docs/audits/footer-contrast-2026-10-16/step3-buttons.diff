@@ -1,0 +1,153 @@
+--- a/uploads/checkedbags/css/styles.css
++++ b/uploads/checkedbags/css/styles.css
+@@ -3203,6 +3203,98 @@
+ .trip-request-form select option {
+   color: var(--ink);
+ }
++
++/* ==========================================================================
++   Buttons: readable in every state (2026-10-19). Kadence styles every
++   <button> coral with near-white text, turns it gold with near-white text
++   on hover/focus/active (2.0:1) and fades disabled buttons to 50%, and its
++   button rules win ties with ours. These rules pin each state:
++   - Filled coral (.btn-ticket: Pay, Send Request, Save, Submit...): ink
++     text, 5.7:1 at rest, hover, focus, click and while disabled
++     ("Sending...", "Redirecting to Stripe...").
++   - Outlined (.btn-ghost): cream on navy/ink (10.9:1, gold 5.8:1 on
++     hover); ink on the cream member pages (14.6:1, inverted on hover);
++     back to cream inside the navy panels on those pages.
++   ========================================================================== */
++.btn-ticket,
++.btn-ticket:is(:hover, :focus, :active, :visited),
++button.btn-ticket,
++button.btn-ticket:is(:hover, :focus, :active, :disabled) {
++  background: var(--coral);
++  color: var(--ink);
++  box-shadow: none;
++}
++.btn-ticket .ticket-notch { background: var(--ink); }
++button.btn:disabled {
++  opacity: 1;
++  cursor: not-allowed;
++}
++button.btn-ticket:disabled { cursor: progress; }
++
++/* Outlined, on navy/ink (the default). */
++button.btn-ghost,
++button.btn-ghost:disabled {
++  background: transparent;
++  border: 1px solid rgba(251,243,231,0.7);
++  color: var(--sand);
++  box-shadow: none;
++}
++.btn-ghost:is(:hover, :focus-visible, :active),
++button.btn-ghost:is(:hover, :focus, :active) {
++  background: transparent;
++  border-color: var(--gold);
++  color: var(--gold);
++  box-shadow: none;
++}
++
++/* Outlined, on the cream member pages. */
++body.checkedbags-gate .gate-main .btn-ghost,
++body.checkedbags-gate .gate-main button.btn-ghost:disabled {
++  background: transparent;
++  border: 1px solid rgba(22,35,43,0.7);
++  color: var(--ink);
++}
++body.checkedbags-gate .gate-main .btn-ghost:is(:hover, :focus, :active):not(:disabled) {
++  background: var(--ink);
++  border-color: var(--ink);
++  color: var(--sand);
++}
++
++/* ...but cream again inside the navy panels on those pages. */
++body.checkedbags-gate .gate-main :is(.trip-card, .rules-trip-card, .rules-agreement, .cbv-payment-card, .payment-card, .cbv-payment-disclaimer-banner, .cbv-exchange-rates-section, .cbv-schedule-appt-modal-inner, .request-status-card, .trip-request-form, .trip-detail-traveler-intake, .member-directory-card, .following-list-item, .board-row, .feed-trip-card, .feed-topic-row, .hub-board, .hub-notice, .hub-pod, .tip-card, .gate-card, .destination-card, .suggestion-row) .btn-ghost,
++body.checkedbags-gate .gate-main :is(.trip-card, .rules-trip-card, .rules-agreement, .cbv-payment-card, .payment-card, .cbv-payment-disclaimer-banner, .cbv-exchange-rates-section, .cbv-schedule-appt-modal-inner, .request-status-card, .trip-request-form, .trip-detail-traveler-intake, .member-directory-card, .following-list-item, .board-row, .feed-trip-card, .feed-topic-row, .hub-board, .hub-notice, .hub-pod, .tip-card, .gate-card, .destination-card, .suggestion-row) button.btn-ghost:disabled {
++  background: transparent;
++  border-color: rgba(251,243,231,0.7);
++  color: var(--sand);
++}
++body.checkedbags-gate .gate-main :is(.trip-card, .rules-trip-card, .rules-agreement, .cbv-payment-card, .payment-card, .cbv-payment-disclaimer-banner, .cbv-exchange-rates-section, .cbv-schedule-appt-modal-inner, .request-status-card, .trip-request-form, .trip-detail-traveler-intake, .member-directory-card, .following-list-item, .board-row, .feed-trip-card, .feed-topic-row, .hub-board, .hub-notice, .hub-pod, .tip-card, .gate-card, .destination-card, .suggestion-row) .btn-ghost:is(:hover, :focus, :active):not(:disabled) {
++  background: transparent;
++  border-color: var(--gold);
++  color: var(--gold);
++}
++
++/* Small icon/text buttons that Kadence turned into a white-on-gold box
++   after a click: keep their own look in every state. */
++.cbv-payment-card-toggle,
++.cbv-payment-card-toggle:is(:hover, :focus, :active) {
++  background: none;
++  box-shadow: none;
++  color: var(--gold); /* was coral, 4.25:1 on navy; gold 5.8:1 */
++}
++.cbv-schedule-appt-close:is(:hover, :focus, :active) {
++  background: none;
++  box-shadow: none;
++  color: var(--gold);
++}
++.nav-toggle:is(:hover, :focus, :active) {
++  background: none;
++  box-shadow: none;
++}
++.photo-like-btn:is(:focus, :active) { background: rgba(22,35,43,0.85); }
++.photo-delete-btn:is(:focus, :active) { background: rgba(22,35,43,0.85); color: var(--sand); }
++.photo-delete-btn:hover { color: var(--ink); } /* on its coral hover: 5.7:1 */
++.dashboard-cover-preset-btn:is(:hover, :focus, :active) { background-color: transparent; box-shadow: none; }
++
+ .cbv-schedule-appt-close {
+   position: absolute;
+   top: 0.5rem;
+@@ -3843,7 +3935,7 @@
+   color: var(--ink);
+   text-decoration: none;
+ }
+-.cbv-forums #bbpress-forums .bbp-pagination-links span.current { background: var(--coral); border-color: var(--coral); color: var(--sand); }
++.cbv-forums #bbpress-forums .bbp-pagination-links span.current { background: var(--coral); border-color: var(--coral); color: var(--ink); }
+ 
+ .cbv-forums #bbpress-forums #subscription-toggle a,
+ .cbv-forums #bbpress-forums #favorite-toggle a { margin-right: 0.9rem; }
+@@ -3935,7 +4027,7 @@
+   letter-spacing: 0.06em;
+   text-transform: uppercase;
+   background: var(--coral);
+-  color: var(--sand);
++  color: var(--ink); /* ink on coral 5.7:1 (cream was 2.6:1) */
+   border: 0;
+   border-radius: 2px;
+   padding: 0.85rem 1.6rem;
+@@ -4029,7 +4121,7 @@
+   --wpforms-label-error-color: #FF6B4A !important;
+   --wpforms-button-border-radius: 2px !important;
+   --wpforms-button-background-color: #FF6B4A !important;
+-  --wpforms-button-text-color: #FBF3E7 !important;
++  --wpforms-button-text-color: #16232B !important;
+   --wpforms-button-border-color: #FF6B4A !important;
+   margin: 1.5rem 0 0;
+ }
+@@ -4084,7 +4176,7 @@
+   letter-spacing: 0.06em !important;
+   text-transform: uppercase !important;
+   background: var(--coral) !important;
+-  color: var(--sand) !important;
++  color: var(--ink) !important; /* ink on coral 5.7:1 (cream was 2.6:1) */
+   border-radius: 2px !important;
+   padding: 0.95rem 1.2rem !important;
+   box-shadow: none !important;
+@@ -4114,12 +4206,13 @@
+ .cbv-um-page .um .um-field-checkbox-state i { color: rgba(22,35,43,0.45); }
+ .cbv-um-page .um .um-field-checkbox.active i { color: var(--coral) !important; }
+ .cbv-um-page .um .um-toggle-password i { color: rgba(22,35,43,0.5); }
+-.cbv-um-page .um .um-field-error { background: var(--coral) !important; font-family: var(--font-body); border-radius: 3px; }
++.cbv-um-page .um .um-field-error { background: var(--coral) !important; color: var(--ink) !important; font-family: var(--font-body); border-radius: 3px; }
+ .cbv-um-page .um .um-field-error .um-arrow { color: var(--coral) !important; }
+ .cbv-um-page .um p, .cbv-um-page .um .um-form > p { color: rgba(22,35,43,0.8); }
+ .cbv-um-page .um .um-notice { font-family: var(--font-body); border-radius: 4px; }
+ .cbv-um-page .um .um-notice.success { background: var(--teal) !important; }
+-.cbv-um-page .um .um-notice.err { background: var(--coral) !important; }
++.cbv-um-page .um .um-notice.err { background: var(--coral) !important; color: var(--ink) !important; }
++.cbv-um-page .um .um-notice.err a { color: var(--ink) !important; text-decoration: underline; }
+ .cbv-um-page .um .cbv-terms-field a { color: var(--coral); }
+ 
+ @media (max-width: 640px) {

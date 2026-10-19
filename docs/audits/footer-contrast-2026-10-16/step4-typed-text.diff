@@ -1,0 +1,24 @@
+--- a/uploads/checkedbags/css/styles.css
++++ b/uploads/checkedbags/css/styles.css
+@@ -3295,6 +3295,21 @@
+ .photo-delete-btn:hover { color: var(--ink); } /* on its coral hover: 5.7:1 */
+ .dashboard-cover-preset-btn:is(:hover, :focus, :active) { background-color: transparent; box-shadow: none; }
+ 
++/* ==========================================================================
++   Typed text in the theme's white form boxes (2026-10-19). Kadence shows
++   typed text in palette5 grey #8C9BA4 (2.8:1 on its white #FEFDFA box)
++   and placeholders in palette6 #D0D7DB (1.4:1). Ink text is 15.8:1,
++   placeholders 5.5:1 (5.3:1 on cream boxes). `body :is(...)` (0,1,2) outranks Kadence's
++   input[type=...] (0,1,1) but stays below every custom field rule in this
++   file (0,2,1 and up), so the dark navy fields keep their cream text.
++   ========================================================================== */
++body :is(input[type="text"], input[type="email"], input[type="url"], input[type="password"], input[type="search"], input[type="number"], input[type="tel"], input[type="date"], input[type="month"], input[type="week"], input[type="time"], input[type="datetime"], input[type="datetime-local"], textarea) {
++  color: var(--ink);
++}
++body :is(input[type="text"], input[type="email"], input[type="url"], input[type="password"], input[type="search"], input[type="number"], input[type="tel"], input[type="date"], input[type="month"], input[type="week"], input[type="time"], input[type="datetime"], input[type="datetime-local"], textarea)::placeholder {
++  color: rgba(22,35,43,0.68);
++  opacity: 1;
++}
+ .cbv-schedule-appt-close {
+   position: absolute;
+   top: 0.5rem;
