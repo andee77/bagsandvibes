@@ -1,0 +1,153 @@
+<?php
+/**
+ * Plugin Name: Checked Bags & Good Vibes — Contact Log
+ * Description: Staff-only copy of each Contact Form (WPForms Lite, form 169)
+ *              message under Tools > CBGV contact log, so the notification
+ *              email isn't the only copy. Kept 90 days (last 100 messages),
+ *              then deleted automatically -- same rules as the MenoWell
+ *              contact log. WPForms' own spam checks run first, so rejected
+ *              spam is never stored.
+ * Author:      Built with Claude for JourneyWell Global LLC
+ *
+ * WHERE THIS FILE GOES:
+ *   wp-content/mu-plugins/checkedbags-contact-log.php
+ */
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+const CBV_CONTACT_FORM_ID   = 169;
+const CBV_CONTACT_LOG_OPTION = 'cbv_contact_log';
+const CBV_CONTACT_KEEP_DAYS  = 90;
+const CBV_CONTACT_KEEP_MAX   = 100;
+
+function cbv_contact_log_read() {
+	$log = get_option( CBV_CONTACT_LOG_OPTION, array() );
+	return is_array( $log ) ? $log : array();
+}
+
+function cbv_contact_log_prune( $log ) {
+	$cutoff = time() - CBV_CONTACT_KEEP_DAYS * DAY_IN_SECONDS;
+	$log    = array_values( array_filter( $log, function ( $e ) use ( $cutoff ) {
+		return isset( $e['time'] ) && $e['time'] >= $cutoff;
+	} ) );
+	return array_slice( $log, -CBV_CONTACT_KEEP_MAX );
+}
+
+// Not autoloaded, so messages never load on public pages.
+function cbv_contact_log_save( $log ) {
+	update_option( CBV_CONTACT_LOG_OPTION, cbv_contact_log_prune( $log ), false );
+}
+
+// Daily cleanup so old messages are deleted even when nobody writes in.
+add_action( 'init', function () {
+	if ( ! wp_next_scheduled( 'cbv_contact_prune_event' ) ) {
+		wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', 'cbv_contact_prune_event' );
+	}
+} );
+add_action( 'cbv_contact_prune_event', function () {
+	$log = cbv_contact_log_read();
+	if ( $log ) {
+		cbv_contact_log_save( $log );
+	}
+} );
+
+/*
+ * Store the message once WPForms has accepted it (after its spam checks) and
+ * before it sends the notification email, marked "pending"; then record
+ * whether that email went out. A failed email still leaves the copy here.
+ */
+$GLOBALS['cbv_contact_pending'] = null;
+
+add_action( 'wpforms_process_entry_saved', function ( $fields, $entry, $form_data ) {
+	if ( (int) ( $form_data['id'] ?? 0 ) !== CBV_CONTACT_FORM_ID ) {
+		return;
+	}
+
+	$value = function ( $type ) use ( $fields ) {
+		foreach ( (array) $fields as $field ) {
+			if ( ( $field['type'] ?? '' ) === $type ) {
+				return (string) ( $field['value'] ?? '' );
+			}
+		}
+		return '';
+	};
+
+	$entry_id = wp_generate_uuid4();
+	$log      = cbv_contact_log_read();
+	$log[]    = array(
+		'id'      => $entry_id,
+		'time'    => time(),
+		'name'    => sanitize_text_field( $value( 'name' ) ),
+		'email'   => sanitize_email( $value( 'email' ) ),
+		'message' => sanitize_textarea_field( $value( 'textarea' ) ),
+		'status'  => 'pending',
+		'error'   => '',
+	);
+	cbv_contact_log_save( $log );
+
+	$GLOBALS['cbv_contact_pending'] = array( 'id' => $entry_id, 'error' => '' );
+	add_action( 'wp_mail_failed', 'cbv_contact_note_mail_error' );
+}, 10, 3 );
+
+function cbv_contact_note_mail_error( $error ) {
+	if ( is_array( $GLOBALS['cbv_contact_pending'] ) ) {
+		$GLOBALS['cbv_contact_pending']['error'] = $error->get_error_message();
+	}
+}
+
+add_action( 'wpforms_process_complete', function ( $fields, $entry, $form_data ) {
+	$pending = $GLOBALS['cbv_contact_pending'];
+	if ( (int) ( $form_data['id'] ?? 0 ) !== CBV_CONTACT_FORM_ID || ! is_array( $pending ) ) {
+		return;
+	}
+	remove_action( 'wp_mail_failed', 'cbv_contact_note_mail_error' );
+	$GLOBALS['cbv_contact_pending'] = null;
+
+	$log = cbv_contact_log_read();
+	foreach ( $log as $i => $e ) {
+		if ( isset( $e['id'] ) && $e['id'] === $pending['id'] ) {
+			$log[ $i ]['status'] = '' === $pending['error'] ? 'emailed' : 'email failed';
+			$log[ $i ]['error']  = $pending['error'];
+		}
+	}
+	cbv_contact_log_save( $log );
+}, 10, 3 );
+
+/* ---------------- admin-only viewer: Tools > CBGV contact log ---------------- */
+add_action( 'admin_menu', function () {
+	add_management_page( 'CBGV contact log', 'CBGV contact log', 'manage_options', 'cbv-contact-log', 'cbv_render_contact_log_page' );
+} );
+
+function cbv_render_contact_log_page() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	?>
+	<div class="wrap">
+		<h1>CBGV contact log</h1>
+		<p>Messages sent through the <a href="<?php echo esc_url( home_url( '/contact/' ) ); ?>">Contact form</a>: the last <?php echo (int) CBV_CONTACT_KEEP_MAX; ?>, kept <?php echo (int) CBV_CONTACT_KEEP_DAYS; ?> days and then deleted automatically. Visible to administrators only. Each message is also emailed as "New Entry: Contact Form".</p>
+		<?php
+		$log = array_reverse( cbv_contact_log_prune( cbv_contact_log_read() ) );
+		if ( ! $log ) :
+			?>
+			<p>No messages yet.</p>
+		<?php else : ?>
+			<table class="widefat striped">
+				<thead><tr><th>Received</th><th>Email status</th><th>Name</th><th>Email</th><th>Message</th></tr></thead>
+				<tbody>
+					<?php foreach ( $log as $e ) : ?>
+						<tr>
+							<td><?php echo esc_html( wp_date( 'M j, Y g:i a', $e['time'] ) ); ?></td>
+							<td><?php echo esc_html( $e['status'] . ( $e['error'] ? ': ' . $e['error'] : '' ) ); ?></td>
+							<td><?php echo esc_html( $e['name'] ); ?></td>
+							<td><a href="mailto:<?php echo esc_attr( $e['email'] ); ?>"><?php echo esc_html( $e['email'] ); ?></a></td>
+							<td style="white-space:pre-wrap;max-width:480px"><?php echo esc_html( $e['message'] ); ?></td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+		<?php endif; ?>
+	</div>
+	<?php
+}
