@@ -121,8 +121,16 @@ Staff can see the agreement version and date, who invited the member, trip inter
 ### Trip link and QR code
 - **Public join QR:** in the trip's **Trip Code & Visibility** box (Public trips only). It points to `https://bagsandvibes.com/join/?trip=CODE`. Right-click the image to save it for flyers. Private trips have none.
 - **Personal invite link and QR:** a roster member, or an admin, clicks **Generate invite link** on the trip card in My Passport.
-  - The link is reusable and never expires.
-  - There is no screen to list or revoke these links.
+  - The link is reusable and never expires until staff turn it off.
+  - **Users > Invite Links** (https://bagsandvibes.com/wp-admin/users.php?page=cbv-invite-links, added 28 Oct 2026) lists every link with:
+    - the trip;
+    - who made it;
+    - the date created ("Not recorded" for links made before 28 Oct 2026);
+    - **times used** (people who registered through it);
+    - Active / Turned off, and the link to copy.
+  - **Turn off:** the link stops working, and anyone opening it sees "This invite link isn't valid or has expired." The member gets a new link the next time they click Generate invite link.
+  - **Make a new link:** turns off the old link and makes a new one for the same member and trip, for example when a link was shared too widely. The new link is shown on the screen and on the member's My Passport.
+  - Turned-off links stay listed for the record.
 
 ### How members get onto a trip (the roster)
 - Registering through a personal invite link (automatic).
@@ -408,7 +416,7 @@ Each one already sits on its page. **Don't remove them.**
 4. ~~Contact-form messages aren't stored; email is the only copy.~~ **Done 28 Oct 2026:** Tools > CBGV contact log, 90 days.
 5. ~~There's no admin view of who accepted the Payment Disclaimer.~~ **Done 28 Oct 2026:** Users > Disclaimer Acceptance, with CSV.
 6. ~~There's no admin "add member to trip" control.~~ **Done 28 Oct 2026:** Trip Details > Add traveler, with an optional email.
-7. Invite links can't be listed or revoked.
+7. ~~Invite links can't be listed or revoked.~~ **Done 28 Oct 2026:** Users > Invite Links (Turn off, Make a new link). On 28 Oct 2026 the 8 old links to deleted trips or deleted members were turned off, and the test trip's link was replaced. Active: Trip 320 (made by Andee P) and CBGV TEST TRIP (made by #109).
 8. ~~Trip Suggestions and Destination Inspiration are leftover screens with no member-facing use.~~ **Done 28 Oct 2026:** both are hidden from the admin menu, and their data is kept.
 9. The existing `docs/admin-manual-notes.md` is out of date in places:
    - The new-design master switch is ON.
