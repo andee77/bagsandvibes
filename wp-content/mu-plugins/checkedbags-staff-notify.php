@@ -178,6 +178,30 @@ add_action( 'cbv_full_membership_requested', function ( $user_id ) {
 	) );
 } );
 
+// A refund made in Stripe reached the site (checkedbags-gate09.php, charge.refunded).
+add_action( 'cb_trip_payment_refunded', function ( $trip_id, $user_id, $refunded, $status, $paid ) {
+	cbv_notify_send( cbv_notify_staff_email(), 'Refund recorded: ' . cbv_notify_member_name( $user_id ) . ' - ' . cbv_notify_trip_title( $trip_id ), array(
+		'A refund made in Stripe was recorded on the site.',
+		'',
+		'Member: ' . cbv_notify_member_name( $user_id ),
+		'Trip: ' . cbv_notify_trip_title( $trip_id ),
+		'Payment: $' . number_format( $paid, 2 ),
+		'Refunded so far on this payment: $' . number_format( $refunded, 2 ) . ' (' . $status . ')',
+		'',
+		'The member is not asked to pay again: their CBGV fee still shows as paid.',
+		'Open the trip: ' . cbv_notify_trip_admin_url( $trip_id ),
+	) );
+}, 10, 5 );
+
+add_action( 'cb_trip_refund_unmatched', function ( $payment_intent, $refunded ) {
+	cbv_notify_send( cbv_notify_staff_email(), 'Refund not matched to a site payment', array(
+		'Stripe reported a refund of $' . number_format( $refunded, 2 ) . ' on a payment the site has no record of',
+		'(for example, one not made through the Payment page). Nothing was changed on the site.',
+		'',
+		'Stripe payment: ' . $payment_intent,
+	) );
+}, 10, 2 );
+
 // Trip Registration saved for the first time, or changed (checkedbags-trip-invites.php).
 // Only fires when the saved answers actually differ from what was there before.
 add_action( 'cbv_traveler_intake_saved', function ( $trip_id, $user_id, $old, $new ) {

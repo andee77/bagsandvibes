@@ -157,6 +157,29 @@ function cb_trip_amount_paid( $trip_id, $user_id ) {
 }
 
 /**
+ * Refunds made in Stripe on a member's payments for a trip (recorded by the
+ * charge.refunded webhook): array( 'amount' => total refunded, 'status' =>
+ * '' | 'Refunded' | 'Partially refunded' ). Owner's rule (2026-10-28): a
+ * refund never re-opens a balance -- cb_trip_amount_paid() ignores refunds,
+ * so a refunded member stays "Paid in full" and is never asked to pay again.
+ */
+function cb_trip_refunds_for_user( $trip_id, $user_id ) {
+	$refunded = 0.0;
+	$paid     = 0.0;
+	foreach ( cb_trip_payments_for_user( $trip_id, $user_id ) as $p ) {
+		$paid     += (float) $p['amount'];
+		$refunded += (float) ( $p['refunded'] ?? 0 );
+	}
+	if ( $refunded <= 0 ) {
+		return array( 'amount' => 0.0, 'status' => '' );
+	}
+	return array(
+		'amount' => round( $refunded, 2 ),
+		'status' => $refunded >= $paid - 0.005 ? 'Refunded' : 'Partially refunded',
+	);
+}
+
+/**
  * PAYMENT SAFEGUARD (owner's rules, 2026-10-08): CBGV never collects travel
  * funds. The only amount billed through Stripe on this site is the CBGV Group
  * Experience Fee for the member's travelers plus the trip's approved extras.
@@ -428,6 +451,8 @@ function cb_handle_stripe_webhook( $request ) {
 				'amount'     => $amount,
 				'date'       => current_time( 'mysql' ),
 				'session_id' => isset( $session['id'] ) ? $session['id'] : '',
+				// What Stripe's charge.refunded event identifies the payment by.
+				'payment_intent' => isset( $session['payment_intent'] ) && is_string( $session['payment_intent'] ) ? $session['payment_intent'] : '',
 			);
 			update_post_meta( $trip_id, 'cb_payments', $payments );
 
@@ -435,7 +460,58 @@ function cb_handle_stripe_webhook( $request ) {
 		}
 	}
 
+	if ( isset( $event['type'] ) && $event['type'] === 'charge.refunded' ) {
+		cb_record_stripe_refund( $event['data']['object'] );
+	}
+
 	return array( 'received' => true );
+}
+
+/**
+ * charge.refunded (full or partial refund made in the Stripe Dashboard):
+ * store the charge's running refunded total on the matching payment record.
+ * Stripe resends events, so an unchanged total is ignored (no second email).
+ */
+function cb_record_stripe_refund( $charge ) {
+	$intent   = isset( $charge['payment_intent'] ) && is_string( $charge['payment_intent'] ) ? $charge['payment_intent'] : '';
+	$refunded = isset( $charge['amount_refunded'] ) ? round( $charge['amount_refunded'] / 100, 2 ) : 0;
+	if ( '' === $intent || $refunded <= 0 ) {
+		return;
+	}
+
+	$trip_ids = get_posts( array(
+		'post_type'      => 'cb_trip',
+		'post_status'    => 'any',
+		'posts_per_page' => -1,
+		'fields'         => 'ids',
+		'meta_key'       => 'cb_payments',
+	) );
+	foreach ( $trip_ids as $trip_id ) {
+		$payments = get_post_meta( $trip_id, 'cb_payments', true );
+		if ( ! is_array( $payments ) ) {
+			continue;
+		}
+		foreach ( $payments as $i => $p ) {
+			if ( ( $p['payment_intent'] ?? '' ) !== $intent ) {
+				continue;
+			}
+			if ( abs( (float) ( $p['refunded'] ?? 0 ) - $refunded ) < 0.005 ) {
+				return; // already recorded
+			}
+			$status = ! empty( $charge['refunded'] ) || $refunded >= (float) $p['amount'] - 0.005 ? 'Refunded' : 'Partially refunded';
+
+			$payments[ $i ]['refunded']      = $refunded;
+			$payments[ $i ]['refund_status'] = $status;
+			$payments[ $i ]['refund_date']   = current_time( 'mysql' );
+			update_post_meta( $trip_id, 'cb_payments', $payments );
+
+			do_action( 'cb_trip_payment_refunded', $trip_id, (int) $p['user_id'], $refunded, $status, (float) $p['amount'] );
+			return;
+		}
+	}
+
+	// Not a payment this site recorded (e.g. charged outside the Payment page).
+	do_action( 'cb_trip_refund_unmatched', $intent, $refunded );
 }
 
 /**
@@ -534,6 +610,14 @@ add_shortcode( 'cb_gate_payments', function () {
 					</span>
 				</div>
 
+				<?php $refund = cb_trip_refunds_for_user( $trip->ID, $user_id ); ?>
+				<?php if ( $refund['status'] ) : ?>
+				<div class="cbv-payment-card-row">
+					<span class="cbv-payment-card-label">Refund</span>
+					<span class="cbv-payment-card-value"><?php echo esc_html( $refund['status'] . ': $' . number_format( $refund['amount'], 2 ) ); ?></span>
+				</div>
+				<?php endif; ?>
+
 				<div class="cbv-payment-card-row">
 					<span class="cbv-payment-card-label">Travel Payment</span>
 					<span class="cbv-payment-card-value"><?php echo esc_html( $appt ? cbv_appointment_status_label( $appt['status'] ) : 'Not yet scheduled' ); ?></span>
@@ -582,7 +666,11 @@ add_shortcode( 'cb_gate_payments', function () {
 						<h4>Payment history</h4>
 						<ul>
 							<?php foreach ( $history as $p ) : ?>
-								<li>$<?php echo esc_html( number_format( (float) $p['amount'], 2 ) ); ?> — <?php echo esc_html( date_i18n( 'M j, Y', strtotime( $p['date'] ) ) ); ?></li>
+								<li>$<?php echo esc_html( number_format( (float) $p['amount'], 2 ) ); ?> — <?php echo esc_html( date_i18n( 'M j, Y', strtotime( $p['date'] ) ) ); ?><?php
+								if ( ! empty( $p['refunded'] ) ) {
+									echo esc_html( sprintf( ' — %s: $%s on %s', $p['refund_status'], number_format( (float) $p['refunded'], 2 ), date_i18n( 'M j, Y', strtotime( $p['refund_date'] ) ) ) );
+								}
+								?></li>
 							<?php endforeach; ?>
 						</ul>
 					<?php else : ?>

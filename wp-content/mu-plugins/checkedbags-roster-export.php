@@ -204,7 +204,7 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 		'Role', 'Invited By', 'Master Traveler Agreement Version', 'Master Traveler Agreement Accepted Date',
 		'Trip Agreement Version', 'Trip Agreement Accepted Date',
 		// Financial
-		'Budget Tier Requested', 'Travel Price (reference only)', 'Payment Status', 'Amount Paid', 'Paid in Full',
+		'Budget Tier Requested', 'Travel Price (reference only)', 'Payment Status', 'Amount Paid', 'Refund Status', 'Amount Refunded', 'Paid in Full',
 		'Insurance Decision', 'Allianz Waiver Returned', 'Insurance Waiver Received',
 		'CC Auth Completed', 'CC Auth Received',
 		// Travel Logistics
@@ -267,6 +267,7 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 			$amount_paid    = 0;
 			$payment_status = '';
 		}
+		$refund = function_exists( 'cb_trip_refunds_for_user' ) ? cb_trip_refunds_for_user( $trip_id, $user_id ) : array( 'amount' => 0, 'status' => '' );
 
 		$seat_preference = $intake['seat_preference'] ?? '';
 		$seat_preference_marked = $seat_preference !== '' ? $seat_preference : ( $trip_wide_seat_preference !== '' ? $trip_wide_seat_preference . ' *' : '' );
@@ -361,6 +362,8 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 			$price > 0 ? number_format( $price, 2 ) : '',
 			$payment_status,
 			$amount_paid > 0 ? number_format( $amount_paid, 2 ) : '',
+			$refund['status'],
+			$refund['amount'] > 0 ? number_format( $refund['amount'], 2 ) : '',
 			'yes' === $paid_in_full ? 'Yes' : 'No',
 			$intake['insurance_decision'] ?? '',
 			! empty( $intake['allianz_waiver_returned'] ) ? 'Yes' : 'No',
