@@ -178,6 +178,26 @@ add_action( 'cbv_full_membership_requested', function ( $user_id ) {
 	) );
 } );
 
+// A Group Experience Fee payment was recorded (checkedbags-gate09.php, checkout.session.completed).
+// Fires after the payment is saved, so the balance already includes it.
+add_action( 'cb_trip_payment_recorded', function ( $trip_id, $user_id, $amount ) {
+	$balance = function_exists( 'cb_trip_balance_due' ) ? cb_trip_balance_due( $trip_id, $user_id ) : 0;
+	$paid    = function_exists( 'cb_trip_amount_paid' ) ? cb_trip_amount_paid( $trip_id, $user_id ) : $amount;
+	cbv_notify_send( cbv_notify_staff_email(), 'Payment received: ' . cbv_notify_member_name( $user_id ) . ' - ' . cbv_notify_trip_title( $trip_id ), array(
+		'A CBGV Group Experience Fee payment was made on the Payment page.',
+		'',
+		'Member: ' . cbv_notify_member_name( $user_id ),
+		'Trip: ' . cbv_notify_trip_title( $trip_id ),
+		'Amount: $' . number_format( (float) $amount, 2 ),
+		$balance <= 0
+			? 'Status: Paid in full ($' . number_format( $paid, 2 ) . ' paid in total)'
+			: 'Status: Installment ($' . number_format( $paid, 2 ) . ' paid so far, $' . number_format( $balance, 2 ) . ' still due)',
+		'',
+		'Open the trip: ' . cbv_notify_trip_admin_url( $trip_id ),
+		'Open the member: ' . cbv_notify_user_admin_url( $user_id ),
+	) );
+}, 10, 3 );
+
 // A refund made in Stripe reached the site (checkedbags-gate09.php, charge.refunded).
 add_action( 'cb_trip_payment_refunded', function ( $trip_id, $user_id, $refunded, $status, $paid ) {
 	cbv_notify_send( cbv_notify_staff_email(), 'Refund recorded: ' . cbv_notify_member_name( $user_id ) . ' - ' . cbv_notify_trip_title( $trip_id ), array(
