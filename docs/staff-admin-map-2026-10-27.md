@@ -18,7 +18,7 @@
 
    Contact-form messages and Schedule Appointment requests still go to the site **Administration Email Address** (Settings > General).
 4. **Refunds made in Stripe do not show on the site.** The site keeps showing the payment as paid.
-5. **Contact-form messages are not stored on the site.** The email is the only copy.
+5. **Contact-form messages are kept for 90 days only** in Tools > CBGV contact log (https://bagsandvibes.com/wp-admin/tools.php?page=cbv-contact-log) (since 28 Oct 2026). Save anything you need longer from the email.
 
 ---
 
@@ -250,7 +250,7 @@ These appear on Gate 09 for reference only. They update automatically every 24 h
 
 | Form | Where | Goes to | Email |
 |---|---|---|---|
-| Contact form | https://bagsandvibes.com/contact/ | **Not stored** | To the site Administration Email Address (section 9) |
+| Contact form | https://bagsandvibes.com/contact/ | Tools > CBGV contact log (90 days) | To the site Administration Email Address (section 9) |
 | Schedule Appointment | Gate 09 | Appointment Requests | To the site Administration Email Address |
 | Vacation Request | Gate 11 | A new Trip (Requested) | None |
 | Trip Registration | Trip page | The member's account, read through Export Roster | None |
@@ -320,7 +320,7 @@ No emails are sent when agreements change or are accepted.
 
 - **The form:** one form, "Contact Form" (Name, Email, Message), on https://bagsandvibes.com/contact/
 - **Where messages go:** one email, "New Entry: Contact Form", to the site **Administration Email Address**. Hitting Reply goes to the sender.
-- ⚠ **Messages are not stored on the site.** WPForms Lite keeps no entries, so if an email fails the message is lost.
+- **Stored copy (added 28 Oct 2026):** Tools > CBGV contact log (https://bagsandvibes.com/wp-admin/tools.php?page=cbv-contact-log). Admins only. Each message is saved before the email is sent, and the **Email status** column shows **emailed** or **email failed** with the reason, so a failed email doesn't lose the message. Kept 90 days (last 100 messages), then deleted automatically by a daily clean-up. WPForms' spam check runs first, so rejected spam isn't stored. Messages sent before 28 Oct 2026 aren't there.
 - **Changing who receives them:** WPForms > All Forms (https://bagsandvibes.com/wp-admin/admin.php?page=wpforms-overview), open Contact Form, then Settings > Notifications.
 - **Email delivery:** all site email goes out through WP Mail SMTP using Gmail. If email seems broken, send a test from https://bagsandvibes.com/wp-admin/admin.php?page=wp-mail-smtp-tools. Don't change the settings.
 
@@ -405,7 +405,7 @@ Each one already sits on its page. **Don't remove them.**
 1. ~~No staff emails for new vacation requests, quote acceptances, full-membership requests or Trip Registration answers.~~ **Done 28 Oct 2026** (Settings > CBGV Notifications).
 2. ~~Trip Registration's flight, hotel and car requests reach the advisor only through the roster spreadsheet, and the opt-in checkboxes themselves aren't in it.~~ **Done 28 Oct 2026:** travel advisor email and Requested columns in the export.
 3. Stripe refunds don't update the site's paid amount.
-4. Contact-form messages aren't stored; email is the only copy.
+4. ~~Contact-form messages aren't stored; email is the only copy.~~ **Done 28 Oct 2026:** Tools > CBGV contact log, 90 days.
 5. ~~There's no admin view of who accepted the Payment Disclaimer.~~ **Done 28 Oct 2026:** Users > Disclaimer Acceptance, with CSV.
 6. There's no admin "add member to trip" control.
 7. Invite links can't be listed or revoked.
