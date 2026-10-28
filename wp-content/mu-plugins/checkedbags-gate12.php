@@ -26,7 +26,7 @@ add_action( 'init', function () {
 		'label'        => 'Trip Suggestions',
 		'public'       => false,
 		'show_ui'      => true,
-		'show_in_menu' => true,
+		'show_in_menu' => false, // hidden from the admin menu (no longer used on the site); data kept, screen still opens by direct URL
 		'menu_icon'    => 'dashicons-lightbulb',
 		'supports'     => array( 'title', 'editor', 'author' ),
 		'show_in_rest' => true,

@@ -108,7 +108,7 @@ add_action( 'init', function () {
 		'label'        => 'Destination Inspiration',
 		'public'       => false,
 		'show_ui'      => true,
-		'show_in_menu' => true,
+		'show_in_menu' => false, // hidden from the admin menu (no longer used on the site); data kept, screen still opens by direct URL
 		'menu_icon'    => 'dashicons-camera',
 		'supports'     => array( 'title', 'thumbnail' ),
 		'show_in_rest' => false,
