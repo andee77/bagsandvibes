@@ -349,8 +349,8 @@ function cbv_get_or_create_invite_token( $user_id, $trip_id ) {
 	}
 
 	$existing = get_user_meta( $user_id, 'cbv_invite_token_' . $trip_id, true );
-	if ( $existing ) {
-		return $existing;
+	if ( $existing && cbv_resolve_invite_token( $existing ) ) {
+		return $existing; // a link staff turned off (Users > Invite Links) gets replaced below
 	}
 
 	$token  = bin2hex( random_bytes( 20 ) ); // opaque — not a readable trip/user concatenation
@@ -359,6 +359,7 @@ function cbv_get_or_create_invite_token( $user_id, $trip_id ) {
 	$lookup[ $token ] = array(
 		'trip_id'         => (int) $trip_id,
 		'inviter_user_id' => (int) $user_id,
+		'created'         => current_time( 'mysql' ),
 	);
 	update_option( 'cbv_invite_tokens', $lookup, false );
 
@@ -368,12 +369,16 @@ function cbv_get_or_create_invite_token( $user_id, $trip_id ) {
 }
 
 /**
- * Resolve an invite token to its trip/inviter, or false if unknown.
+ * Resolve an invite token to its trip/inviter, or false if unknown or
+ * turned off by staff (Users > Invite Links).
  */
 function cbv_resolve_invite_token( $token ) {
 	$token  = sanitize_text_field( $token );
 	$lookup = get_option( 'cbv_invite_tokens', array() );
-	return isset( $lookup[ $token ] ) ? $lookup[ $token ] : false;
+	if ( ! isset( $lookup[ $token ] ) || ! empty( $lookup[ $token ]['disabled'] ) ) {
+		return false;
+	}
+	return $lookup[ $token ];
 }
 
 /**
@@ -468,6 +473,7 @@ add_action( 'um_registration_complete', function ( $user_id, $args ) {
 
 			update_user_meta( $user_id, '_invited_by_user_id', $resolved['inviter_user_id'] );
 			update_user_meta( $user_id, '_invited_by_trip_id', $resolved['trip_id'] );
+			update_user_meta( $user_id, '_invited_by_token', $invite_token ); // "Times used" on Users > Invite Links
 
 			if ( function_exists( 'UM' ) ) {
 				// $force = true: at this point in the request the new user is
