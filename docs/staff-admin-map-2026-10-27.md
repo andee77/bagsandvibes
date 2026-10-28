@@ -17,7 +17,7 @@
    - a traveler first saving, or later changing, their Trip Registration.
 
    Contact-form messages and Schedule Appointment requests still go to the site **Administration Email Address** (Settings > General).
-4. **Refunds made in Stripe do not show on the site.** The site keeps showing the payment as paid.
+4. **Refunds are made in the Stripe Dashboard only.** Since 28 Oct 2026 the site records them (Refunded / Partially refunded) and emails staff, but the member still counts as paid, so no new balance appears (owner's rule). The Stripe webhook must include the `charge.refunded` event (see section 5, Refunds).
 5. **Contact-form messages are kept for 90 days only** in Tools > CBGV contact log (https://bagsandvibes.com/wp-admin/tools.php?page=cbv-contact-log) (since 28 Oct 2026). Save anything you need longer from the email.
 
 ---
@@ -225,7 +225,15 @@ Passports expiring within 6 months of the trip are highlighted. It's a sensitive
 
 ### Refunds
 - **Done in the Stripe dashboard only**, back to the original card.
-- ⚠ **A refund in Stripe does not change what the site shows**: the member still shows as paid. This needs a developer fix. Until then, keep a refund log and reconcile it monthly.
+- **What the site does (since 28 Oct 2026):** when Stripe sends its `charge.refunded` event, the site records the refund on the matching payment:
+  - **Gate 09:** the member's card shows a **Refund** line ("Refunded: $X" or "Partially refunded: $X"), and the payment history line shows the refund and its date.
+  - **Export Roster to Excel:** **Refund Status** and **Amount Refunded** columns.
+  - **Staff email:** "[CBGV] Refund recorded: {member} - {trip}" goes to the Staff notifications email.
+  - **No new balance:** the member stays "Paid in full" and is not asked to pay again (owner's rule, 28 Oct 2026).
+  - Stripe sometimes resends an event; a repeat with the same amount is ignored.
+- **Refund for a payment the site has no record of** (for example, one not made through the Payment page): staff get "[CBGV] Refund not matched to a site payment", and nothing changes on the site.
+- **Stripe setting this relies on:** in the Stripe Dashboard, under Developers > Webhooks, the endpoint `https://bagsandvibes.com/wp-json/cb/v1/stripe-webhook` must send **`checkout.session.completed`** and **`charge.refunded`**.
+- Payments made before 28 Oct 2026 can't be matched, but there were none.
 
 ### Schedule Appointment (Travel Payment)
 - **What members do:** on Gate 09, members click **Schedule Appointment** (page-level, or per trip), then enter a preferred time and notes.
@@ -408,11 +416,11 @@ Each one already sits on its page. **Don't remove them.**
 
 ---
 
-## Gaps worth fixing later (none changed)
+## Gaps worth fixing later
 
 1. ~~No staff emails for new vacation requests, quote acceptances, full-membership requests or Trip Registration answers.~~ **Done 28 Oct 2026** (Settings > CBGV Notifications).
 2. ~~Trip Registration's flight, hotel and car requests reach the advisor only through the roster spreadsheet, and the opt-in checkboxes themselves aren't in it.~~ **Done 28 Oct 2026:** travel advisor email and Requested columns in the export.
-3. Stripe refunds don't update the site's paid amount.
+3. ~~Stripe refunds don't update the site's paid amount.~~ **Done 28 Oct 2026:** refunds recorded via `charge.refunded` (Gate 09, export, staff email); option 2, no new balance.
 4. ~~Contact-form messages aren't stored; email is the only copy.~~ **Done 28 Oct 2026:** Tools > CBGV contact log, 90 days.
 5. ~~There's no admin view of who accepted the Payment Disclaimer.~~ **Done 28 Oct 2026:** Users > Disclaimer Acceptance, with CSV.
 6. ~~There's no admin "add member to trip" control.~~ **Done 28 Oct 2026:** Trip Details > Add traveler, with an optional email.
