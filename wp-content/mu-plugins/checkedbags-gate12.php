@@ -478,6 +478,9 @@ function cb_create_trip_request( $request ) {
 
 	cb_trip_add_member( $trip_id, $user_id );
 
+	// Staff notification email (checkedbags-staff-notify.php).
+	do_action( 'cbv_vacation_request_submitted', $trip_id, $user_id );
+
 	return array( 'trip_id' => $trip_id, 'status' => 'requested' );
 }
 
@@ -506,6 +509,9 @@ function cb_accept_trip_quote( $request ) {
 	}
 
 	cb_trip_set_status( $trip_id, 'accepted' );
+
+	// Staff notification email (checkedbags-staff-notify.php).
+	do_action( 'cbv_quote_accepted', $trip_id, $user_id );
 
 	return array( 'accepted' => true );
 }

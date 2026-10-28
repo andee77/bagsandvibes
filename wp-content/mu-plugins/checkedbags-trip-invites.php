@@ -1499,7 +1499,13 @@ add_action( 'rest_api_init', function () {
 			return is_user_logged_in();
 		},
 		'callback'            => function () {
-			update_user_meta( get_current_user_id(), '_requested_full_membership_date', current_time( 'mysql' ) );
+			$user_id   = get_current_user_id();
+			$requested = get_user_meta( $user_id, '_requested_full_membership_date', true );
+			update_user_meta( $user_id, '_requested_full_membership_date', current_time( 'mysql' ) );
+			// Staff notification email, first request only (checkedbags-staff-notify.php).
+			if ( ! $requested ) {
+				do_action( 'cbv_full_membership_requested', $user_id );
+			}
 			return array( 'requested' => true );
 		},
 	) );
@@ -2741,7 +2747,14 @@ add_action( 'rest_api_init', function () {
 				) ),
 			);
 
+			$previous = cbv_get_traveler_intake( $user_id, $trip_id );
 			update_user_meta( $user_id, '_traveler_intake_' . $trip_id, wp_json_encode( $data ) );
+
+			// Staff + travel advisor emails, only when the answers actually
+			// changed (first save, or an edit) -- see checkedbags-staff-notify.php.
+			if ( wp_json_encode( $previous ) !== wp_json_encode( $data ) ) {
+				do_action( 'cbv_traveler_intake_saved', $trip_id, $user_id, $previous, $data );
+			}
 
 			return array( 'saved' => true );
 		},

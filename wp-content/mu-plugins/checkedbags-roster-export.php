@@ -212,6 +212,9 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 		'Seat Preference', 'Flight Cabin Class',
 		'Destinations of Interest', 'Travel Dates', 'Date Flexibility',
 		'Additional Adults', 'Additional Children', "Children's Ages", 'Traveling Companions',
+		// Requested extras: "Yes" = the traveler ticked it on Trip Registration,
+		// "Trip type" = the section comes with the trip itself, blank = neither.
+		'Requested: Air', 'Requested: Cruise', 'Requested: Hotel', 'Requested: Car', 'Requested: Package Tour',
 		// Accommodation & Trip-Type Preferences
 		'Hotel Preferences', 'Hotel Room Type', 'Hotel Features',
 		'Hotel Nights', 'Hotel Rooms/Arrangement', 'Hotel Concierge Notes',
@@ -376,7 +379,13 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 			$intake['additional_children'] ?? '',
 			$intake['children_ages'] ?? '',
 			$intake['traveling_companions'] ?? '',
-
+		);
+		$sections = function_exists( 'cbv_intake_sections' ) ? cbv_intake_sections( $trip_id, $intake ) : array();
+		foreach ( array( 'Air', 'Cruise', 'Hotel', 'Car', 'Package Tour' ) as $section ) {
+			$why   = $sections[ $section ] ?? '';
+			$row[] = 'ticked' === $why ? 'Yes' : ( 'trip type' === $why ? 'Trip type' : '' );
+		}
+		$row = array_merge( $row, array(
 			$hotel_preferences,
 			$hotel_room_type,
 			$hotel_features,
@@ -406,7 +415,7 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 			$req( 'pace' ),
 			get_user_meta( $user_id, '_travel_history', true ),
 			implode( ', ', (array) get_user_meta( $user_id, '_activity_interests', true ) ),
-		);
+		) );
 
 		$rows[] = $row;
 
