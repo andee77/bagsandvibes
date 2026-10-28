@@ -646,7 +646,206 @@ function cb_render_trip_meta_box( $post ) {
 			</script>
 		<?php endif; ?>
 	</div>
+	<?php cb_render_roster_add_traveler( $post->ID ); ?>
 	<?php
+}
+
+/*
+ * "Add traveler" under the roster: search members by name or email, pick
+ * one, optionally email them, add. Same detached-form submit as Remove
+ * (see the comment above), going through cb_trip_add_member() so the
+ * capacity check still applies.
+ */
+function cb_render_roster_add_traveler( $trip_id ) {
+	?>
+	<div class="cb-field cb-roster-add">
+		<label for="cb-roster-add-search">Add traveler</label>
+		<?php if ( isset( $_GET['cb_roster_added'] ) ) : ?>
+			<p style="color:#2a7a2a;"><em>Traveler added<?php echo '2' === $_GET['cb_roster_added'] ? ' and emailed' : ''; ?>.</em></p>
+		<?php elseif ( isset( $_GET['cb_roster_add_error'] ) ) : ?>
+			<p style="color:#b32d2e;"><em><?php echo esc_html( 'full' === $_GET['cb_roster_add_error'] ? 'Not added: this trip has no spots remaining (raise Capacity first).' : 'Not added: that member could not be found.' ); ?></em></p>
+		<?php endif; ?>
+		<input type="search" id="cb-roster-add-search" placeholder="Search members by name or email" autocomplete="off" style="width:100%;max-width:360px;">
+		<ul id="cb-roster-add-results" style="margin:4px 0;"></ul>
+		<p id="cb-roster-add-picked" style="display:none;">
+			<strong id="cb-roster-add-picked-name"></strong>
+			<label style="display:inline;margin-left:12px;font-weight:normal;">
+				<input type="checkbox" id="cb-roster-add-email" checked> Email them that they've been added
+			</label>
+			<button type="button" class="button" id="cb-roster-add-btn" style="margin-left:12px;">Add to trip</button>
+		</p>
+	</div>
+	<script>
+	( function () {
+		var search  = document.getElementById( 'cb-roster-add-search' );
+		var results = document.getElementById( 'cb-roster-add-results' );
+		var picked  = document.getElementById( 'cb-roster-add-picked' );
+		var name    = document.getElementById( 'cb-roster-add-picked-name' );
+		var userId  = 0;
+		var timer   = null;
+
+		function choose( user ) {
+			userId = user.id;
+			name.textContent = user.label;
+			picked.style.display = '';
+			results.innerHTML = '';
+		}
+
+		search.addEventListener( 'keydown', function ( e ) {
+			if ( 'Enter' === e.key ) { e.preventDefault(); } // don't submit the post form
+		} );
+
+		search.addEventListener( 'input', function () {
+			clearTimeout( timer );
+			userId = 0;
+			picked.style.display = 'none';
+			var term = search.value.trim();
+			if ( term.length < 2 ) { results.innerHTML = ''; return; }
+			timer = setTimeout( function () {
+				var url = ajaxurl + '?action=cb_roster_search_members'
+					+ '&trip_id=' + <?php echo (int) $trip_id; ?>
+					+ '&_wpnonce=' + <?php echo wp_json_encode( wp_create_nonce( 'cb_roster_search_' . $trip_id ) ); ?>
+					+ '&term=' + encodeURIComponent( term );
+				fetch( url, { credentials: 'same-origin' } ).then( function ( r ) { return r.json(); } ).then( function ( res ) {
+					results.innerHTML = '';
+					var users = ( res && res.success ) ? res.data : [];
+					if ( ! users.length ) {
+						var none = document.createElement( 'li' );
+						none.textContent = 'No members found who aren\'t already on this trip.';
+						results.appendChild( none );
+						return;
+					}
+					users.forEach( function ( user ) {
+						var li = document.createElement( 'li' );
+						var btn = document.createElement( 'button' );
+						btn.type = 'button';
+						btn.className = 'button-link';
+						btn.textContent = user.label;
+						btn.addEventListener( 'click', function () { choose( user ); } );
+						li.appendChild( btn );
+						results.appendChild( li );
+					} );
+				} );
+			}, 300 );
+		} );
+
+		document.getElementById( 'cb-roster-add-btn' ).addEventListener( 'click', function () {
+			if ( ! userId ) { return; }
+			var form = document.createElement( 'form' );
+			form.method = 'post';
+			form.action = <?php echo wp_json_encode( admin_url( 'admin-post.php' ) ); ?>;
+			form.style.display = 'none';
+			var fields = {
+				action: 'cb_add_roster_member',
+				trip_id: <?php echo (int) $trip_id; ?>,
+				user_id: userId,
+				send_email: document.getElementById( 'cb-roster-add-email' ).checked ? '1' : '',
+				cb_add_roster_nonce: <?php echo wp_json_encode( wp_create_nonce( 'cb_add_roster_member_' . $trip_id ) ); ?>
+			};
+			Object.keys( fields ).forEach( function ( key ) {
+				var input = document.createElement( 'input' );
+				input.type = 'hidden';
+				input.name = key;
+				input.value = fields[ key ];
+				form.appendChild( input );
+			} );
+			document.body.appendChild( form );
+			form.submit();
+		} );
+	} )();
+	</script>
+	<?php
+}
+
+add_action( 'wp_ajax_cb_roster_search_members', function () {
+	$trip_id = isset( $_GET['trip_id'] ) ? (int) $_GET['trip_id'] : 0;
+	if ( ! $trip_id || ! current_user_can( 'edit_post', $trip_id ) || ! wp_verify_nonce( $_GET['_wpnonce'] ?? '', 'cb_roster_search_' . $trip_id ) ) {
+		wp_send_json_error( 'Not allowed.', 403 );
+	}
+
+	$term = sanitize_text_field( wp_unslash( $_GET['term'] ?? '' ) );
+	if ( strlen( $term ) < 2 ) {
+		wp_send_json_success( array() );
+	}
+
+	$users = get_users( array(
+		'search'         => '*' . $term . '*',
+		'search_columns' => array( 'user_login', 'user_email', 'display_name' ),
+		'exclude'        => cb_trip_get_roster( $trip_id ),
+		'number'         => 10,
+		'orderby'        => 'display_name',
+	) );
+
+	$out = array();
+	foreach ( $users as $user ) {
+		$type  = function_exists( 'cbv_user_is_full_member' ) && ! cbv_user_is_full_member( $user->ID ) ? 'Trip Guest' : 'Full Member';
+		$out[] = array(
+			'id'    => $user->ID,
+			'label' => sprintf( '%s (%s), %s', $user->display_name, $user->user_email, $type ),
+		);
+	}
+	wp_send_json_success( $out );
+} );
+
+add_action( 'admin_post_cb_add_roster_member', function () {
+	$trip_id = isset( $_POST['trip_id'] ) ? (int) $_POST['trip_id'] : 0;
+	$user_id = isset( $_POST['user_id'] ) ? (int) $_POST['user_id'] : 0;
+
+	if ( ! $trip_id
+		|| ! isset( $_POST['cb_add_roster_nonce'] )
+		|| ! wp_verify_nonce( $_POST['cb_add_roster_nonce'], 'cb_add_roster_member_' . $trip_id )
+	) {
+		wp_die( 'Invalid request.' );
+	}
+	if ( ! current_user_can( 'edit_post', $trip_id ) || 'cb_trip' !== get_post_type( $trip_id ) ) {
+		wp_die( 'Insufficient permissions for this trip.' );
+	}
+
+	$back = array( 'post' => $trip_id, 'action' => 'edit' );
+	$user = $user_id ? get_userdata( $user_id ) : false;
+
+	if ( ! $user ) {
+		$back['cb_roster_add_error'] = 'user';
+	} else {
+		$result = cb_trip_add_member( $trip_id, $user_id );
+		if ( is_wp_error( $result ) ) {
+			$back['cb_roster_add_error'] = 'full';
+		} else {
+			$back['cb_roster_added'] = '1';
+			if ( ! empty( $_POST['send_email'] ) && cb_email_member_added_to_trip( $trip_id, $user ) ) {
+				$back['cb_roster_added'] = '2';
+			}
+		}
+	}
+
+	wp_safe_redirect( add_query_arg( $back, admin_url( 'post.php' ) ) );
+	exit;
+} );
+
+// The optional "you've been added" email. Replies go to the staff
+// notifications address (Settings > CBGV Notifications) when it's set.
+function cb_email_member_added_to_trip( $trip_id, $user ) {
+	$trip    = wp_specialchars_decode( get_the_title( $trip_id ), ENT_QUOTES );
+	$name    = $user->first_name ? $user->first_name : $user->display_name;
+	$headers = array();
+	if ( function_exists( 'cbv_notify_staff_email' ) && is_email( cbv_notify_staff_email() ) ) {
+		$headers[] = 'Reply-To: ' . cbv_notify_staff_email();
+	}
+
+	$body = implode( "\n", array(
+		'Hi ' . $name . ',',
+		'',
+		"You've been added to " . $trip . ' on Checked Bags & Good Vibes.',
+		'',
+		'You can see the trip on your My Passport page:',
+		home_url( '/my-passport/' ),
+		'',
+		'Questions? Just reply to this email.',
+		'',
+		'Checked Bags & Good Vibes',
+	) );
+
+	return wp_mail( $user->user_email, "You've been added to " . $trip, $body, $headers );
 }
 
 /* ==========================================================================
