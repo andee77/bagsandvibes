@@ -204,7 +204,7 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 		'Role', 'Invited By', 'Master Traveler Agreement Version', 'Master Traveler Agreement Accepted Date',
 		'Trip Agreement Version', 'Trip Agreement Accepted Date',
 		// Financial
-		'Budget Tier Requested', 'Trip Price', 'Payment Status', 'Amount Paid', 'Paid in Full',
+		'Budget Tier Requested', 'Travel Price (reference only)', 'Payment Status', 'Amount Paid', 'Paid in Full',
 		'Insurance Decision', 'Allianz Waiver Returned', 'Insurance Waiver Received',
 		'CC Auth Completed', 'CC Auth Received',
 		// Travel Logistics
@@ -256,6 +256,9 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 
 		// The CBGV fee only (never the travel price, see cb_trip_cbgv_fee_total()).
 		$fee_total = function_exists( 'cb_trip_cbgv_fee_total' ) ? cb_trip_cbgv_fee_total( $trip_id, $user_id ) : 0;
+
+		// Travel price (cb_price) for the "Travel Price (reference only)" column; never billed.
+		$price = (float) get_post_meta( $trip_id, 'cb_price', true );
 		if ( function_exists( 'cb_trip_amount_paid' ) ) {
 			$amount_paid  = cb_trip_amount_paid( $trip_id, $user_id );
 			$balance_due  = cb_trip_balance_due( $trip_id, $user_id );
