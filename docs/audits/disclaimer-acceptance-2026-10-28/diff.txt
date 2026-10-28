@@ -1,0 +1,175 @@
+diff --git a/wp-content/mu-plugins/checkedbags-payment-disclaimer.php b/wp-content/mu-plugins/checkedbags-payment-disclaimer.php
+index 9f89753..bd12ac9 100644
+--- a/wp-content/mu-plugins/checkedbags-payment-disclaimer.php
++++ b/wp-content/mu-plugins/checkedbags-payment-disclaimer.php
+@@ -251,3 +251,170 @@ function cbv_render_payment_disclaimer_banner( $user_id ) {
+ 	<?php
+ 	return ob_get_clean();
+ }
++
++/**
++ * Staff screen: Users -> Disclaimer Acceptance. One row per member with the
++ * Payment Disclaimer version and date they accepted, flagging anyone not on
++ * the current version, plus a CSV download of the same rows. Read-only: it
++ * never changes acceptance data.
++ */
++add_action( 'admin_menu', function () {
++	add_users_page( 'Payment Disclaimer Acceptance', 'Disclaimer Acceptance', 'manage_options', 'cbv-disclaimer-acceptance', 'cbv_render_disclaimer_acceptance_page' );
++} );
++
++/**
++ * Rows for the screen and the CSV, members needing to accept first, then by
++ * name. Administrators are left out unless they're on a trip roster.
++ */
++function cbv_disclaimer_acceptance_rows() {
++	$current = cbv_get_current_payment_disclaimer_version();
++
++	// user ID => trip titles, from every trip's roster.
++	$trips_by_user = array();
++	$trip_ids      = get_posts( array(
++		'post_type'      => 'cb_trip',
++		'post_status'    => array( 'publish', 'private', 'draft', 'pending', 'future' ),
++		'posts_per_page' => -1,
++		'fields'         => 'ids',
++	) );
++	foreach ( $trip_ids as $trip_id ) {
++		foreach ( cb_trip_get_roster( $trip_id ) as $user_id ) {
++			$trips_by_user[ (int) $user_id ][] = get_the_title( $trip_id );
++		}
++	}
++
++	$rows = array();
++	foreach ( get_users( array( 'orderby' => 'display_name' ) ) as $user ) {
++		$is_admin = in_array( 'administrator', (array) $user->roles, true );
++		if ( $is_admin && empty( $trips_by_user[ $user->ID ] ) ) {
++			continue;
++		}
++
++		$version = (int) get_user_meta( $user->ID, '_accepted_payment_disclaimer_version', true );
++		$date    = get_user_meta( $user->ID, '_accepted_payment_disclaimer_date', true );
++
++		if ( ! $version ) {
++			$status = 'Never accepted';
++		} elseif ( $version < $current ) {
++			$status = 'Older version';
++		} else {
++			$status = 'Current';
++		}
++
++		if ( $is_admin ) {
++			$type = 'Staff';
++		} elseif ( function_exists( 'cbv_user_is_full_member' ) && cbv_user_is_full_member( $user->ID ) ) {
++			$type = 'Full Member';
++		} else {
++			$type = 'Trip Guest';
++		}
++
++		$rows[] = array(
++			'user_id' => $user->ID,
++			'name'    => $user->display_name,
++			'email'   => $user->user_email,
++			'type'    => $type,
++			'trips'   => implode( '; ', $trips_by_user[ $user->ID ] ?? array() ),
++			'version' => $version ? $version : '',
++			'date'    => $date ? $date : '',
++			'status'  => $status,
++		);
++	}
++
++	usort( $rows, function ( $a, $b ) {
++		$a_ok = 'Current' === $a['status'];
++		$b_ok = 'Current' === $b['status'];
++		if ( $a_ok !== $b_ok ) {
++			return $a_ok ? 1 : -1;
++		}
++		return strcasecmp( $a['name'], $b['name'] );
++	} );
++
++	return $rows;
++}
++
++add_action( 'admin_post_cbv_disclaimer_acceptance_csv', function () {
++	if ( ! current_user_can( 'manage_options' ) ) {
++		wp_die( 'Not allowed.' );
++	}
++	check_admin_referer( 'cbv_disclaimer_acceptance_csv' );
++
++	$filename = 'payment-disclaimer-acceptance-' . current_time( 'Y-m-d' ) . '.csv';
++	nocache_headers();
++	header( 'Content-Type: text/csv; charset=utf-8' );
++	header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
++
++	$out = fopen( 'php://output', 'w' );
++	fwrite( $out, "\xEF\xBB\xBF" ); // So Excel reads accented names correctly.
++	fputcsv( $out, array( 'Member', 'Email', 'Type', 'Trips', 'Accepted Version', 'Accepted Date', 'Status (current version ' . cbv_get_current_payment_disclaimer_version() . ')' ) );
++	foreach ( cbv_disclaimer_acceptance_rows() as $row ) {
++		$cells = array( $row['name'], $row['email'], $row['type'], $row['trips'], $row['version'], $row['date'], $row['status'] );
++		// Stop Excel treating a cell that starts with =, +, - or @ as a formula.
++		$cells = array_map( function ( $cell ) {
++			return preg_match( '/^[=+\-@]/', (string) $cell ) ? "'" . $cell : $cell;
++		}, $cells );
++		fputcsv( $out, $cells );
++	}
++	fclose( $out );
++	exit;
++} );
++
++function cbv_render_disclaimer_acceptance_page() {
++	if ( ! current_user_can( 'manage_options' ) ) {
++		return;
++	}
++
++	$current  = cbv_get_current_payment_disclaimer_version();
++	$rows     = cbv_disclaimer_acceptance_rows();
++	$show_all = ! empty( $_GET['show'] ) && 'all' === $_GET['show'];
++	$pending  = count( array_filter( $rows, function ( $row ) {
++		return 'Current' !== $row['status'];
++	} ) );
++	$shown    = $show_all ? $rows : array_filter( $rows, function ( $row ) {
++		return 'Current' !== $row['status'];
++	} );
++
++	$page_url = admin_url( 'users.php?page=cbv-disclaimer-acceptance' );
++	$csv_url  = wp_nonce_url( admin_url( 'admin-post.php?action=cbv_disclaimer_acceptance_csv' ), 'cbv_disclaimer_acceptance_csv' );
++	?>
++	<div class="wrap">
++		<h1>Payment Disclaimer Acceptance</h1>
++		<p>
++			Current version: <strong><?php echo (int) $current; ?></strong>
++			(<a href="<?php echo esc_url( admin_url( 'options-general.php?page=cbv-payment-disclaimer' ) ); ?>">edit the disclaimer</a>).
++			<strong><?php echo (int) $pending; ?></strong> of <?php echo count( $rows ); ?> members have not accepted the current version.
++		</p>
++		<p class="description">Members accept the disclaimer the first time they open the Payment page. Staff accounts are only listed when they're on a trip roster.</p>
++		<p>
++			<?php if ( $show_all ) : ?>
++				<a href="<?php echo esc_url( $page_url ); ?>">Show only members who need to accept</a>
++			<?php else : ?>
++				<a href="<?php echo esc_url( add_query_arg( 'show', 'all', $page_url ) ); ?>">Show all members</a>
++			<?php endif; ?>
++			&nbsp;|&nbsp;
++			<a class="button" href="<?php echo esc_url( $csv_url ); ?>">Download CSV (all members)</a>
++		</p>
++		<table class="widefat striped">
++			<thead>
++				<tr><th>Member</th><th>Email</th><th>Type</th><th>Trips</th><th>Accepted version</th><th>Accepted date</th><th>Status</th></tr>
++			</thead>
++			<tbody>
++				<?php if ( ! $shown ) : ?>
++					<tr><td colspan="7">Everyone has accepted version <?php echo (int) $current; ?>.</td></tr>
++				<?php endif; ?>
++				<?php foreach ( $shown as $row ) : ?>
++					<tr>
++						<td><a href="<?php echo esc_url( get_edit_user_link( $row['user_id'] ) ); ?>"><?php echo esc_html( $row['name'] ); ?></a></td>
++						<td><?php echo esc_html( $row['email'] ); ?></td>
++						<td><?php echo esc_html( $row['type'] ); ?></td>
++						<td><?php echo esc_html( $row['trips'] ); ?></td>
++						<td><?php echo esc_html( $row['version'] ); ?></td>
++						<td><?php echo esc_html( $row['date'] ? date_i18n( 'M j, Y g:i a', strtotime( $row['date'] ) ) : '' ); ?></td>
++						<td><?php echo 'Current' === $row['status'] ? esc_html( $row['status'] ) : '<strong>' . esc_html( $row['status'] ) . '</strong>'; ?></td>
++					</tr>
++				<?php endforeach; ?>
++			</tbody>
++		</table>
++	</div>
++	<?php
++}
