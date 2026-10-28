@@ -143,7 +143,7 @@ Cover photo presets are managed at Settings > Cover Photo Presets: https://bagsa
 Open the trip, go to the **Export Roster** box and click **Export Roster to Excel**. This downloads a spreadsheet with one row per traveler:
 - contact details, emergency contact and passport details
 - role, who invited them, and agreement versions
-- payment status
+- the travel price ("Travel Price (reference only)", from the trip's Travel price field; never billed) and payment status
 - insurance waiver and credit-card authorization flags
 - all Trip Registration answers
 
@@ -171,7 +171,7 @@ Passports expiring within 6 months of the trip are highlighted. It's a sensitive
   - **Staff** get a short "Trip Registration submitted/updated" email.
   - Saving with no changes sends nothing.
 - **Export Roster to Excel** now has **Requested: Air / Cruise / Hotel / Car / Package Tour** columns: **Yes** = the traveler ticked it, **Trip type** = it comes with the trip, blank = neither. Package Tour can't be ticked; it only comes from the trip type.
-- **Known issue:** the export's "Trip Price" column has always been blank, because of an old bug unrelated to these changes.
+- **Fixed 28 Oct 2026:** the export's old blank "Trip Price" column is now **"Travel Price (reference only)"** and shows the trip's Travel price field (blank while that field is 0).
 
 ---
 
@@ -237,7 +237,7 @@ Passports expiring within 6 months of the trip are highlighted. It's a sensitive
 - **Edit it at:** Settings > Payment Disclaimer, https://bagsandvibes.com/wp-admin/options-general.php?page=cbv-payment-disclaimer
 - **Versioning:** saving changed text with **Save & publish new version** makes **every member accept again** on their next Gate 09 visit.
 - **Public copy:** https://bagsandvibes.com/payment-disclaimer/
-- **Gap:** no admin screen shows who has accepted it.
+- **Who has accepted it:** Users > Disclaimer Acceptance, https://bagsandvibes.com/wp-admin/users.php?page=cbv-disclaimer-acceptance (added 28 Oct 2026). It shows each member's accepted version and date, lists those not on the current version first ("Never accepted" or "Older version"), and has a **Download CSV** button. Read-only. Admin accounts appear only if they're on a trip roster.
 
 ### Exchange rates
 These appear on Gate 09 for reference only. They update automatically every 24 hours, and staff have no settings for them.
@@ -339,6 +339,7 @@ No emails are sent when agreements change or are accepted.
 | Cover Photo Presets | https://bagsandvibes.com/wp-admin/options-general.php?page=cbv-cover-presets | Trip cover photo choices |
 | Auto-Follow Account | https://bagsandvibes.com/wp-admin/options-general.php?page=cbv-auto-follow | No effect while social features are off |
 | Trip Guests | https://bagsandvibes.com/wp-admin/users.php?page=cbv-trip-guests | Guest list, Promote to Full Member |
+| Disclaimer Acceptance | https://bagsandvibes.com/wp-admin/users.php?page=cbv-disclaimer-acceptance | Who accepted which Payment Disclaimer version; CSV download |
 | Proposal boilerplate | https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_proposal&page=cb-proposal-boilerplate | Standard proposal text |
 | CBGV Notifications | https://bagsandvibes.com/wp-admin/options-general.php?page=cbv-notifications | Staff notifications email and Travel advisor email (blank = site Administration Email) |
 
@@ -405,7 +406,7 @@ Each one already sits on its page. **Don't remove them.**
 2. ~~Trip Registration's flight, hotel and car requests reach the advisor only through the roster spreadsheet, and the opt-in checkboxes themselves aren't in it.~~ **Done 28 Oct 2026:** travel advisor email and Requested columns in the export.
 3. Stripe refunds don't update the site's paid amount.
 4. Contact-form messages aren't stored; email is the only copy.
-5. There's no admin view of who accepted the Payment Disclaimer.
+5. ~~There's no admin view of who accepted the Payment Disclaimer.~~ **Done 28 Oct 2026:** Users > Disclaimer Acceptance, with CSV.
 6. There's no admin "add member to trip" control.
 7. Invite links can't be listed or revoked.
 8. ~~Trip Suggestions and Destination Inspiration are leftover screens with no member-facing use.~~ **Done 28 Oct 2026:** both are hidden from the admin menu, and their data is kept.
