@@ -10,11 +10,13 @@
 2. **Gate numbers vs. file names are swapped.** Use the page names and URLs, never the code file numbers:
    - **Gate 11 = Vacation Requests**: https://bagsandvibes.com/gate-11-vacation-requests/
    - **Gate 12 = Travel Rules**: https://bagsandvibes.com/gate-12-travel-rules/
-3. **Almost nothing sends an email to staff.** Only two things do:
-   - Contact-form messages.
-   - Schedule Appointment requests.
+3. **Staff emails (since 28 Oct 2026).** These go to the **Staff notifications email** set in Settings > CBGV Notifications (blank = the site Administration Email):
+   - a new Gate 11 Vacation Request;
+   - a Lead Client accepting a quote;
+   - a Trip Guest's first Full Membership request;
+   - a traveler first saving, or later changing, their Trip Registration.
 
-   Both go to the site's **Administration Email Address** (Settings > General). Everything else must be checked by hand: new vacation requests, quote acceptances, full-membership requests and Trip Registration answers.
+   Contact-form messages and Schedule Appointment requests still go to the site **Administration Email Address** (Settings > General).
 4. **Refunds made in Stripe do not show on the site.** The site keeps showing the payment as paid.
 5. **Contact-form messages are not stored on the site.** The email is the only copy.
 
@@ -52,7 +54,7 @@
 - **Agreement re-acceptance:** members behind the current Master Traveler Agreement version are sent to https://bagsandvibes.com/reaccept-terms/ until they accept.
 
 ### Turning a Trip Guest into a Full Member
-1. The guest clicks **Request Full Membership** on My Passport. **No email reaches staff**; the request is only recorded on their account.
+1. The guest clicks **Request Full Membership** on My Passport. Staff get a **"Full Membership request"** email (first request only) with a link to Trip Guests.
 2. Go to Users > Trip Guests: https://bagsandvibes.com/wp-admin/users.php?page=cbv-trip-guests. Guests who asked are highlighted at the top.
 3. Click **Promote to Full Member**. Their trips and history stay the same. **No email is sent**, so tell them yourself.
 
@@ -164,8 +166,12 @@ Passports expiring within 6 months of the trip are highlighted. It's a sensitive
   - **Companions:** additional adults and children, names and ages. The children fields are hidden on adults-only trips.
 - **Where it's stored:** on each traveler's account, one record per trip (`_traveler_intake_{trip}`).
 - **Who can see it:** the member, and staff **only through Export Roster to Excel**. No admin screen shows it.
-- **How the flight / hotel / car requests reach the travel advisor: they don't, automatically.** Saving Trip Registration sends **no email** and creates no admin notice. Staff must export the roster and send the spreadsheet to the advisor.
-- **Note:** the export has no column for the opt-in checkboxes themselves. Whether a traveler asked for an extra flight, hotel or car has to be read from the answers they filled in.
+- **How requests reach the travel advisor (since 28 Oct 2026):** each time a traveler first saves, or later changes, their Trip Registration:
+  - **The travel advisor** (Settings > CBGV Notifications) gets a **"Travel requests"** email: the traveler's name and email address, the extras they ticked, their answers for each section (ticked, or part of the trip type), loyalty numbers, and companions' names and ages. **No passport, card, insurance or medical details**, and no phone number.
+  - **Staff** get a short "Trip Registration submitted/updated" email.
+  - Saving with no changes sends nothing.
+- **Export Roster to Excel** now has **Requested: Air / Cruise / Hotel / Car / Package Tour** columns: **Yes** = the traveler ticked it, **Trip type** = it comes with the trip, blank = neither. Package Tour can't be ticked; it only comes from the trip type.
+- **Known issue:** the export's "Trip Price" column has always been blank, because of an old bug unrelated to these changes.
 
 ---
 
@@ -173,7 +179,7 @@ Passports expiring within 6 months of the trip are highlighted. It's a sensitive
 
 1. **Request arrives.** A Full Member, the Lead Client, completes the form at https://bagsandvibes.com/gate-11-vacation-requests/. A minimum of 4 travelers applies.
    - The site creates a **Trip** with Status **Requested**, saves every answer, and puts the requester on the roster.
-   - **No email is sent to staff.**
+   - Staff get a **"New Vacation Request"** email with a link to the trip.
 2. **Find it.** Check Trips (https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_trip) for Status "Requested". There is no separate requests list or filter.
    - Open it: **Trip Details** shows Source "Member-built", and the **"Gate 12 — Member Request Details"** box shows every answer. (The box name uses the old gate number.)
 3. **Send the quote.** In Trip Details, fill in:
@@ -186,7 +192,7 @@ Passports expiring within 6 months of the trip are highlighted. It's a sensitive
    - Pick the trip and click **Download Client Proposal PDF**, then email it yourself.
    - Never share the **Internal Data Sheet**; it is for staff only.
    - Standard proposal text is set at https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_proposal&page=cb-proposal-boilerplate
-5. **Lead Client approves.** They click **Accept this quote** and the Status becomes **Accepted**. **No email to staff**, so check the trip.
+5. **Lead Client approves.** They click **Accept this quote** and the Status becomes **Accepted**. Staff get a **"Quote accepted"** email with a link to the trip.
 6. **Make it live.** Finish building the trip and set **Status = Active** (see section 2).
 7. **Link and QR for the Lead Client.**
    - They're already on the roster, so the trip appears on their My Passport, where they click **Generate invite link** to get the link and QR code to share.
@@ -334,6 +340,7 @@ No emails are sent when agreements change or are accepted.
 | Auto-Follow Account | https://bagsandvibes.com/wp-admin/options-general.php?page=cbv-auto-follow | No effect while social features are off |
 | Trip Guests | https://bagsandvibes.com/wp-admin/users.php?page=cbv-trip-guests | Guest list, Promote to Full Member |
 | Proposal boilerplate | https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_proposal&page=cb-proposal-boilerplate | Standard proposal text |
+| CBGV Notifications | https://bagsandvibes.com/wp-admin/options-general.php?page=cbv-notifications | Staff notifications email and Travel advisor email (blank = site Administration Email) |
 
 ### Custom content lists
 - Trips: https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_trip
@@ -394,8 +401,8 @@ Each one already sits on its page. **Don't remove them.**
 
 ## Gaps worth fixing later (none changed)
 
-1. No staff emails for new vacation requests, quote acceptances, full-membership requests or Trip Registration answers.
-2. Trip Registration's flight, hotel and car requests reach the advisor only through the roster spreadsheet, and the opt-in checkboxes themselves aren't in it.
+1. ~~No staff emails for new vacation requests, quote acceptances, full-membership requests or Trip Registration answers.~~ **Done 28 Oct 2026** (Settings > CBGV Notifications).
+2. ~~Trip Registration's flight, hotel and car requests reach the advisor only through the roster spreadsheet, and the opt-in checkboxes themselves aren't in it.~~ **Done 28 Oct 2026:** travel advisor email and Requested columns in the export.
 3. Stripe refunds don't update the site's paid amount.
 4. Contact-form messages aren't stored; email is the only copy.
 5. There's no admin view of who accepted the Payment Disclaimer.
@@ -406,3 +413,8 @@ Each one already sits on its page. **Don't remove them.**
    - The new-design master switch is ON.
    - The roster box is called "Export Roster".
    - Travel Tips uses "Add Post".
+
+---
+
+## Test data (staff testing, Oct 2026)
+- **CBGV TEST TRIP** (#458): https://bagsandvibes.com/wp-admin/post.php?post=458&action=edit. Private, Cruise, Status Accepted (not on Gate 07, no discussion board). Its roster is the staff test account #109 only. Delete it when testing is finished.
