@@ -128,7 +128,7 @@ Staff can see the agreement version and date, who invited the member, trip inter
 - Registering through a personal invite link (automatic).
 - Clicking "join" on Gate 07 (refused when the trip is full).
 - Accepting a Gate 11 quote.
-- **Admins cannot add someone by hand**; they can only **Remove**.
+- **Staff adding someone by hand** (added 28 Oct 2026): open the trip, go to **Trip Details > Add traveler** under the roster, and type 2+ letters of a name or email. Pick the person, leave **Email them that they've been added** ticked (or untick it), then click **Add to trip**. The Capacity limit still applies. The email ("You've been added to {trip}") points to My Passport, and replies go to the Staff notifications email. Adding someone doesn't change their role. **Remove** next to each name takes them off.
 - Registering through a *public* code only records interest. It does not add the person to the roster.
 
 ### My Passport trip cards
@@ -407,7 +407,7 @@ Each one already sits on its page. **Don't remove them.**
 3. Stripe refunds don't update the site's paid amount.
 4. ~~Contact-form messages aren't stored; email is the only copy.~~ **Done 28 Oct 2026:** Tools > CBGV contact log, 90 days.
 5. ~~There's no admin view of who accepted the Payment Disclaimer.~~ **Done 28 Oct 2026:** Users > Disclaimer Acceptance, with CSV.
-6. There's no admin "add member to trip" control.
+6. ~~There's no admin "add member to trip" control.~~ **Done 28 Oct 2026:** Trip Details > Add traveler, with an optional email.
 7. Invite links can't be listed or revoked.
 8. ~~Trip Suggestions and Destination Inspiration are leftover screens with no member-facing use.~~ **Done 28 Oct 2026:** both are hidden from the admin menu, and their data is kept.
 9. The existing `docs/admin-manual-notes.md` is out of date in places:
@@ -418,4 +418,4 @@ Each one already sits on its page. **Don't remove them.**
 ---
 
 ## Test data (staff testing, Oct 2026)
-- **CBGV TEST TRIP** (#458): https://bagsandvibes.com/wp-admin/post.php?post=458&action=edit. Private, Cruise, Status Accepted (not on Gate 07, no discussion board). Its roster is the staff test account #109 only. Delete it when testing is finished.
+- **CBGV TEST TRIP** (#458): https://bagsandvibes.com/wp-admin/post.php?post=458&action=edit. Private, Cruise, Status Accepted (not on Gate 07, no discussion board). Its roster is the staff test accounts only: #109 (Full Member), and #110 and #111 (Trip Guests who joined through #109's invite link). Delete it when testing is finished.
