@@ -222,6 +222,7 @@ Passports expiring within 6 months of the trip are highlighted. It's a sensitive
 ### Payment history
 - **In Stripe:** https://dashboard.stripe.com/payments. This is the master record.
 - **In WordPress:** the trip's **Export Roster to Excel** (columns Payment Status, Amount Paid, Paid in Full). There is no payments list screen.
+- **Email (since 28 Oct 2026):** each Group Experience Fee payment the site records sends **"[CBGV] Payment received: {member} - {trip}"** to the Staff notifications email. It shows the amount and whether the member is **Paid in full** or paying by **Installment** (with the amount still due), with links to the trip and the member. There are no card details. If Stripe shows a payment but no email arrived, the webhook didn't reach the site: check the endpoint's delivery attempts in the Stripe Dashboard.
 
 ### Refunds
 - **Done in the Stripe dashboard only**, back to the original card.
