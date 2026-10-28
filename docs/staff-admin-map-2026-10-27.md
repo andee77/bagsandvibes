@@ -40,7 +40,7 @@
 1. A member on a trip clicks **Generate invite link** on their trip card in https://bagsandvibes.com/my-passport/ and shares the link or QR code.
 2. The guest opens the link (https://bagsandvibes.com/join/), then registers at https://bagsandvibes.com/register/. They must tick the Terms of Service / Master Traveler Agreement checkbox.
 3. The site makes them a **Trip Guest**, adds them to that trip's roster and **approves them automatically**.
-4. **There is no email-confirmation step**, despite the "confirm email" step people may expect.
+4. **There is no email-confirmation step.** The homepage "How booking works" step 1 says so (updated 28 Oct 2026): invitees are in right away, and everyone else is reviewed and emailed once approved.
 
 **B. Public trip QR or code, or plain registration → Full Member, after admin approval.**
 1. The person registers. Their account is **Pending Review**, and the trip they came from is saved as a "trip interest".
