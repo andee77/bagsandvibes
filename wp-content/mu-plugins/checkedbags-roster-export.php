@@ -211,7 +211,8 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 		'Departure Airport', 'Airline Preference', 'Preferred Airline', 'Frequent Flyer Number', 'TSA PreCheck',
 		'Seat Preference', 'Flight Cabin Class',
 		'Destinations of Interest', 'Travel Dates', 'Date Flexibility',
-		'Additional Adults', 'Additional Children', "Children's Ages", 'Traveling Companions',
+		'Additional Adults (old form)', 'Additional Children', "Children's Ages (old form)", 'Traveling Companions (old form)',
+		'Children: Names', 'Children: Dates of Birth', 'Children: Ages at Sailing', 'Children: Relationships',
 		// Requested extras: "Yes" = the traveler ticked it on Trip Registration,
 		// "Trip type" = the section comes with the trip itself, blank = neither.
 		'Requested: Air', 'Requested: Cruise', 'Requested: Hotel', 'Requested: Car', 'Requested: Package Tour',
@@ -253,6 +254,7 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 		$agreement = is_array( $agreement ) ? $agreement : array();
 
 		$intake = function_exists( 'cbv_get_traveler_intake' ) ? cbv_get_traveler_intake( $user_id, $trip_id ) : array();
+		$children = function_exists( 'cbv_intake_children' ) ? cbv_intake_children( $intake ) : array();
 
 		// The CBGV fee only (never the travel price, see cb_trip_cbgv_fee_total()).
 		$fee_total = function_exists( 'cb_trip_cbgv_fee_total' ) ? cb_trip_cbgv_fee_total( $trip_id, $user_id ) : 0;
@@ -383,8 +385,13 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
 			$req( 'date_flexibility' ),
 			$intake['additional_adults'] ?? '',
 			$intake['additional_children'] ?? '',
-			$intake['children_ages'] ?? '',
+			$children ? '' : ( $intake['children_ages'] ?? '' ),
 			$intake['traveling_companions'] ?? '',
+			// Children's names and dates of birth: staff-only, never emailed (owner, 2026-10-29).
+			implode( '; ', array_map( function ( $c ) { return trim( $c['first_name'] . ' ' . $c['last_name'] ); }, $children ) ),
+			implode( '; ', wp_list_pluck( $children, 'dob' ) ),
+			implode( '; ', array_map( function ( $c ) use ( $trip_id ) { $age = cbv_child_age_at_sailing( $c['dob'], $trip_id ); return null === $age ? '?' : (string) $age; }, $children ) ),
+			implode( '; ', wp_list_pluck( $children, 'relationship' ) ),
 		);
 		$sections = function_exists( 'cbv_intake_sections' ) ? cbv_intake_sections( $trip_id, $intake ) : array();
 		foreach ( array( 'Air', 'Cruise', 'Hotel', 'Car', 'Package Tour' ) as $section ) {

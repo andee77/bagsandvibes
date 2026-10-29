@@ -1,0 +1,863 @@
+diff --git a/uploads/checkedbags/css/styles.css b/uploads/checkedbags/css/styles.css
+index 050e893..ed7dd43 100644
+--- a/uploads/checkedbags/css/styles.css
++++ b/uploads/checkedbags/css/styles.css
+@@ -4650,3 +4650,126 @@ body.admin-bar .site-header { top: 32px; }
+   .hub-board-count::after { content: " posts"; }
+ }
+ .hub .screen-reader-text { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
++
++/* ==========================================================================
++   Trip Registration: saved summary card, invite link, children rows
++   (owner, 2026-10-29). On the intake's navy (--horizon) panel: cream text
++   13:1, gold legends 5.3:1, white check on teal 5.1:1.
++   ========================================================================== */
++.cbv-intake-summary {
++  display: flex;
++  flex-wrap: wrap;
++  align-items: center;
++  justify-content: space-between;
++  gap: 0.75rem 1rem;
++  background: rgba(251,243,231,0.06);
++  border: 1px solid rgba(232,169,78,0.35);
++  border-radius: 6px;
++  padding: 1rem 1.25rem;
++}
++.trip-detail-traveler-intake .cbv-intake-summary-text {
++  margin: 0;
++  color: var(--sand);
++  font-size: 0.95rem;
++}
++.cbv-intake-summary-check {
++  display: inline-flex;
++  align-items: center;
++  justify-content: center;
++  width: 1.6rem;
++  height: 1.6rem;
++  margin-right: 0.5rem;
++  border-radius: 50%;
++  background: var(--teal);
++  color: #fff;
++  font-weight: 700;
++}
++.cbv-intake-form-body {
++  display: flex;
++  flex-direction: column;
++  gap: 1rem;
++}
++.trip-detail-traveler-intake .cbv-intake-invite p {
++  margin: 0;
++  color: rgba(251,243,231,0.85);
++}
++.cbv-intake-invite-row {
++  display: flex;
++  flex-wrap: wrap;
++  align-items: center;
++  gap: 0.5rem 0.75rem;
++}
++#cbv-intake-invite-result {
++  color: var(--sand);
++  font-size: 0.85rem;
++}
++.cbv-intake-children .cbv-intake-field-row {
++  margin-top: 0.5rem;
++}
++.cbv-intake-child {
++  margin: 0.75rem 0 0;
++  padding: 0.5rem 1rem 1rem;
++  border: 1px solid rgba(251,243,231,0.2);
++  border-radius: 6px;
++}
++.cbv-intake-child legend {
++  padding: 0 0.4rem;
++  color: var(--gold);
++  font-family: var(--font-mono);
++  font-size: 0.75rem;
++  letter-spacing: 0.08em;
++  text-transform: uppercase;
++}
++.cbv-child-age {
++  display: block;
++  margin-top: 0.35rem;
++  color: var(--sand);
++  font-size: 0.8rem;
++}
++/* "Why Travel Insurance Matters": collapsed; the insurance choice unlocks
++   once it has been opened (owner, 2026-10-29). */
++details.cbv-intake-insurance-overview {
++  display: block;
++  padding: 0.75rem 1rem;
++  border: 1px solid rgba(232,169,78,0.35);
++  border-radius: 6px;
++  background: rgba(251,243,231,0.04);
++}
++.cbv-intake-insurance-overview summary {
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  gap: 1rem;
++  cursor: pointer;
++  list-style: none;
++}
++.cbv-intake-insurance-overview summary::-webkit-details-marker { display: none; }
++.cbv-intake-insurance-overview summary::after {
++  content: "Read \25BE";
++  flex: none;
++  color: var(--gold);
++  font-family: var(--font-mono);
++  font-size: 0.75rem;
++  letter-spacing: 0.08em;
++  text-transform: uppercase;
++}
++.cbv-intake-insurance-overview[open] summary::after { content: "Close \25B4"; }
++.cbv-intake-insurance-overview summary:focus-visible {
++  outline: 2px solid var(--gold);
++  outline-offset: 4px;
++}
++.trip-detail-traveler-intake .cbv-intake-insurance-overview summary h4 {
++  display: inline;
++  margin: 0;
++}
++.cbv-intake-insurance-overview[open] summary { margin-bottom: 0.5rem; }
++.cbv-intake-field select:disabled {
++  cursor: not-allowed;
++  opacity: 0.6;
++}
++/* Cruise details the trip already knows: shown, not editable. */
++.cbv-intake-field input.cbv-intake-from-trip {
++  background-color: rgba(251,243,231,0.14);
++  border-style: dashed;
++  cursor: default;
++}
+diff --git a/wp-content/mu-plugins/checkedbags-gate09.php b/wp-content/mu-plugins/checkedbags-gate09.php
+index 197ff48..91ba76f 100644
+--- a/wp-content/mu-plugins/checkedbags-gate09.php
++++ b/wp-content/mu-plugins/checkedbags-gate09.php
+@@ -189,15 +189,15 @@ function cb_trip_refunds_for_user( $trip_id, $user_id ) {
+  */
+ 
+ /**
+- * Who a member pays the fee for on a trip, from their traveler intake:
+- * adults = the member + additional adults, children = additional children
+- * (the member alone when the intake is not filled in; at most 20 of each
+- * extra). Children pay half a per-traveler fee.
++ * Who a member pays the fee for on a trip: the member (every adult has their
++ * own account and pays their own fee, owner 2026-10-29 -- the old form's
++ * "additional adults" are no longer billed) plus the children listed on
++ * their Trip Registration (at most 20). Children pay half a per-traveler fee.
+  */
+ function cb_trip_member_party( $trip_id, $user_id ) {
+ 	$intake = ( $user_id && function_exists( 'cbv_get_traveler_intake' ) ) ? cbv_get_traveler_intake( (int) $user_id, (int) $trip_id ) : array();
+ 	return array(
+-		'adults'   => 1 + min( 20, max( 0, (int) ( $intake['additional_adults'] ?? 0 ) ) ),
++		'adults'   => 1,
+ 		'children' => min( 20, max( 0, (int) ( $intake['additional_children'] ?? 0 ) ) ),
+ 	);
+ }
+diff --git a/wp-content/mu-plugins/checkedbags-roster-export.php b/wp-content/mu-plugins/checkedbags-roster-export.php
+index 9334ef3..97b0b9e 100644
+--- a/wp-content/mu-plugins/checkedbags-roster-export.php
++++ b/wp-content/mu-plugins/checkedbags-roster-export.php
+@@ -211,7 +211,8 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
+ 		'Departure Airport', 'Airline Preference', 'Preferred Airline', 'Frequent Flyer Number', 'TSA PreCheck',
+ 		'Seat Preference', 'Flight Cabin Class',
+ 		'Destinations of Interest', 'Travel Dates', 'Date Flexibility',
+-		'Additional Adults', 'Additional Children', "Children's Ages", 'Traveling Companions',
++		'Additional Adults (old form)', 'Additional Children', "Children's Ages (old form)", 'Traveling Companions (old form)',
++		'Children: Names', 'Children: Dates of Birth', 'Children: Ages at Sailing', 'Children: Relationships',
+ 		// Requested extras: "Yes" = the traveler ticked it on Trip Registration,
+ 		// "Trip type" = the section comes with the trip itself, blank = neither.
+ 		'Requested: Air', 'Requested: Cruise', 'Requested: Hotel', 'Requested: Car', 'Requested: Package Tour',
+@@ -253,6 +254,7 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
+ 		$agreement = is_array( $agreement ) ? $agreement : array();
+ 
+ 		$intake = function_exists( 'cbv_get_traveler_intake' ) ? cbv_get_traveler_intake( $user_id, $trip_id ) : array();
++		$children = function_exists( 'cbv_intake_children' ) ? cbv_intake_children( $intake ) : array();
+ 
+ 		// The CBGV fee only (never the travel price, see cb_trip_cbgv_fee_total()).
+ 		$fee_total = function_exists( 'cb_trip_cbgv_fee_total' ) ? cb_trip_cbgv_fee_total( $trip_id, $user_id ) : 0;
+@@ -383,8 +385,13 @@ function cbv_build_trip_roster_export_data( $trip_id ) {
+ 			$req( 'date_flexibility' ),
+ 			$intake['additional_adults'] ?? '',
+ 			$intake['additional_children'] ?? '',
+-			$intake['children_ages'] ?? '',
++			$children ? '' : ( $intake['children_ages'] ?? '' ),
+ 			$intake['traveling_companions'] ?? '',
++			// Children's names and dates of birth: staff-only, never emailed (owner, 2026-10-29).
++			implode( '; ', array_map( function ( $c ) { return trim( $c['first_name'] . ' ' . $c['last_name'] ); }, $children ) ),
++			implode( '; ', wp_list_pluck( $children, 'dob' ) ),
++			implode( '; ', array_map( function ( $c ) use ( $trip_id ) { $age = cbv_child_age_at_sailing( $c['dob'], $trip_id ); return null === $age ? '?' : (string) $age; }, $children ) ),
++			implode( '; ', wp_list_pluck( $children, 'relationship' ) ),
+ 		);
+ 		$sections = function_exists( 'cbv_intake_sections' ) ? cbv_intake_sections( $trip_id, $intake ) : array();
+ 		foreach ( array( 'Air', 'Cruise', 'Hotel', 'Car', 'Package Tour' ) as $section ) {
+diff --git a/wp-content/mu-plugins/checkedbags-staff-notify.php b/wp-content/mu-plugins/checkedbags-staff-notify.php
+index 20a690a..53fd2c5 100644
+--- a/wp-content/mu-plugins/checkedbags-staff-notify.php
++++ b/wp-content/mu-plugins/checkedbags-staff-notify.php
+@@ -69,7 +69,7 @@ function cbv_notify_settings_page() {
+ 		),
+ 		'cbv_travel_advisor_email' => array(
+ 			'label' => 'Travel advisor email',
+-			'help'  => 'Gets a summary of a traveler\'s travel requests (the extras they ticked and their answers, plus companions) each time they save a change to their Trip Registration. Never includes passport, card, insurance or medical details.',
++			'help'  => 'Gets a summary of a traveler\'s travel requests (the extras they ticked and their answers, plus the number of children and their ages at sailing) each time they save a change to their Trip Registration. Never includes passport, card, insurance or medical details, or children\'s names and dates of birth.',
+ 		),
+ 	);
+ 	?>
+@@ -115,6 +115,16 @@ function cbv_notify_member_email( $user_id ) {
+ 	return ( $user && is_email( $user->user_email ) ) ? $user->user_email : 'not on file';
+ }
+ 
++// "None", or "2 (ages at sailing: 5, 8)". Never names or dates of birth.
++function cbv_notify_children_line( $trip_id, $intake ) {
++	$count = (int) ( $intake['additional_children'] ?? 0 );
++	if ( $count <= 0 ) {
++		return 'None';
++	}
++	$ages = function_exists( 'cbv_intake_children_ages_label' ) ? cbv_intake_children_ages_label( $intake, $trip_id ) : '';
++	return $count . ( '' !== $ages ? ' (ages at sailing: ' . $ages . ')' : '' );
++}
++
+ function cbv_notify_trip_title( $trip_id ) {
+ 	$title = get_the_title( $trip_id );
+ 	return '' !== $title ? html_entity_decode( $title, ENT_QUOTES, 'UTF-8' ) : 'Trip #' . (int) $trip_id;
+@@ -232,6 +242,7 @@ add_action( 'cbv_traveler_intake_saved', function ( $trip_id, $user_id, $old, $n
+ 		'Member: ' . cbv_notify_member_name( $user_id ),
+ 		'Trip: ' . cbv_notify_trip_title( $trip_id ),
+ 		'Extras ticked: ' . cbv_intake_ticked_label( $new ),
++		'Children: ' . cbv_notify_children_line( $trip_id, $new ),
+ 		'',
+ 		'The travel advisor has been sent a summary of their travel requests.',
+ 		'Full answers: open the trip and use Export Roster to Excel.',
+@@ -298,7 +309,7 @@ function cbv_intake_advisor_summary( $trip_id, $user_id, array $d, $first ) {
+ 	$sections = cbv_intake_sections( $trip_id, $d );
+ 	$fields   = array(
+ 		'Air'          => array( 'Departure airport' => 'departure_airport', 'Seat preference' => 'seat_preference', 'Cabin class' => 'flight_cabin_class', 'Preferred airline' => 'preferred_airline', 'Frequent flyer / loyalty number' => 'frequent_flyer_number', 'TSA PreCheck' => 'tsa_precheck' ),
+-		'Cruise'       => array( 'Cruise company' => 'cruise_company', 'Cruise program number' => 'cruise_program_number', 'Start date' => 'cruise_start_date', 'End date' => 'cruise_end_date', 'Duration' => 'cruise_duration', 'Region' => 'cruise_region', 'Departure port' => 'cruise_departure_port', 'Pre/post cruise nights' => 'pre_post_cruise_nights', 'Cabin class' => 'cruise_cabin_class', 'Beverage plan' => 'beverage_plan' ),
++		'Cruise'       => array( 'Cruise company' => 'cruise_company', 'Cruise program number' => 'cruise_program_number', 'Start date' => 'cruise_start_date', 'End date' => 'cruise_end_date', 'Pre/post cruise nights' => 'pre_post_cruise_nights', 'Cabin class' => 'cruise_cabin_class', 'Beverage plan' => 'beverage_plan' ),
+ 		'Hotel'        => array( 'Nights' => 'hotel_nights', 'Preferences / frequent guest programs' => 'hotel_preferences', 'Rooms / arrangement' => 'hotel_rooms_arrangement', 'Room type' => 'hotel_room_type' ),
+ 		'Car'          => array( 'Preferences / frequent renter programs' => 'car_preferences', 'Add-ons' => 'car_addons', 'Category' => 'car_category' ),
+ 		'Package Tour' => array( 'Countries' => 'package_countries', 'Style' => 'package_style', 'Activity level' => 'package_activity_level' ),
+@@ -329,11 +340,11 @@ function cbv_intake_advisor_summary( $trip_id, $user_id, array $d, $first ) {
+ 		$lines[] = 'No air, cruise, hotel, car or package tour requests.';
+ 	}
+ 	$lines[] = '';
+-	$lines[] = 'COMPANIONS';
+-	$lines[] = '  Additional adults: ' . (int) ( $d['additional_adults'] ?? 0 );
+-	$lines[] = '  Names: ' . $v( 'traveling_companions' );
+-	$lines[] = '  Additional children: ' . (int) ( $d['additional_children'] ?? 0 );
+-	$lines[] = "  Children's ages: " . $v( 'children_ages' );
++	// Children: how many and their ages at sailing only -- never names or
++	// dates of birth, which stay in the roster export (owner, 2026-10-29).
++	// Other adults register on their own and get their own email.
++	$lines[] = 'CHILDREN';
++	$lines[] = '  ' . cbv_notify_children_line( $trip_id, $d );
+ 	$lines[] = '';
+ 	$lines[] = 'For a phone number or other details, please ask the CBGV team.';
+ 	return $lines;
+diff --git a/wp-content/mu-plugins/checkedbags-trip-invites.php b/wp-content/mu-plugins/checkedbags-trip-invites.php
+index eeddc1a..d610828 100644
+--- a/wp-content/mu-plugins/checkedbags-trip-invites.php
++++ b/wp-content/mu-plugins/checkedbags-trip-invites.php
+@@ -2649,6 +2649,78 @@ function cbv_save_member_profile( $request ) {
+    Both are hosted as static downloads; this form only tracks whether each
+    was downloaded, completed, and returned.
+    ========================================================================== */
++/** Relationship choices for a child on the Trip Registration form (owner, 2026-10-29). */
++const CBV_CHILD_RELATIONSHIPS = array( 'Parent', 'Grandparent', 'Legal guardian', 'Other family', 'Other' );
++const CBV_MAX_CHILDREN        = 8;
++
++/**
++ * A child's age on the trip's start date (today when the trip has no start
++ * date yet), or null for a missing / invalid date of birth.
++ */
++function cbv_child_age_at_sailing( $dob, $trip_id ) {
++	$birth = DateTime::createFromFormat( '!Y-m-d', (string) $dob );
++	if ( ! $birth || $birth->format( 'Y-m-d' ) !== (string) $dob ) {
++		return null;
++	}
++	$start = get_post_meta( (int) $trip_id, 'cb_start_date', true );
++	$on    = $start ? DateTime::createFromFormat( '!Y-m-d', $start ) : false;
++	$on    = $on ? $on : new DateTime( current_time( 'Y-m-d' ) );
++	return $birth > $on ? null : (int) $birth->diff( $on )->y;
++}
++
++/** The children listed on a registration (the new per-child rows; empty for the old form). */
++function cbv_intake_children( $intake ) {
++	return ( ! empty( $intake['children'] ) && is_array( $intake['children'] ) ) ? array_values( $intake['children'] ) : array();
++}
++
++/**
++ * Children's ages at sailing as "5, 8", for staff and advisor emails: never
++ * names or dates of birth (owner, 2026-10-29). Falls back to the old form's
++ * free-text ages for registrations saved before the per-child rows.
++ */
++function cbv_intake_children_ages_label( $intake, $trip_id ) {
++	$children = cbv_intake_children( $intake );
++	if ( ! $children ) {
++		return (string) ( $intake['children_ages'] ?? '' );
++	}
++	$ages = array();
++	foreach ( $children as $child ) {
++		$age    = cbv_child_age_at_sailing( $child['dob'] ?? '', $trip_id );
++		$ages[] = null === $age ? '?' : (string) $age;
++	}
++	return implode( ', ', $ages );
++}
++
++/**
++ * Cruise details the trip already knows, for a Cruise trip (owner,
++ * 2026-10-29): the Trip Registration shows these filled in and read-only,
++ * and the save stores the trip's value. Cruise line from the trip's
++ * provider (Landing Page Settings) or the Gate 12 request; dates from Trip
++ * Details or the request; program number from the request. Missing ones
++ * stay ordinary fields for the traveler to fill in.
++ */
++function cbv_intake_trip_cruise_details( $trip_id ) {
++	if ( ! function_exists( 'cbv_trip_has_type' ) || ! cbv_trip_has_type( $trip_id, 'Cruise' ) ) {
++		return array();
++	}
++	$req = function ( $key ) use ( $trip_id ) {
++		return function_exists( 'cbv_get_trip_request_field' ) ? trim( (string) cbv_get_trip_request_field( $trip_id, $key ) ) : '';
++	};
++	$provider = (int) get_post_meta( $trip_id, 'cbv_lp_provider_id', true );
++	$details  = array(
++		'cruise_company'        => $provider && 'publish' === get_post_status( $provider ) ? html_entity_decode( get_the_title( $provider ), ENT_QUOTES, 'UTF-8' ) : $req( 'cruise_company' ),
++		'cruise_program_number' => $req( 'cruise_program_number' ),
++		'cruise_start_date'     => (string) get_post_meta( $trip_id, 'cb_start_date', true ) ?: $req( 'cruise_start_date' ),
++		'cruise_end_date'       => (string) get_post_meta( $trip_id, 'cb_end_date', true ) ?: $req( 'cruise_end_date' ),
++	);
++	return array_filter( $details, function ( $v ) { return '' !== $v; } );
++}
++
++/** When this traveler last saved their Trip Registration (MySQL time, '' for older registrations). */
++function cbv_get_traveler_intake_saved_at( $user_id, $trip_id ) {
++	return (string) get_user_meta( $user_id, '_traveler_intake_saved_' . $trip_id, true );
++}
++
+ function cbv_get_traveler_intake( $user_id, $trip_id ) {
+ 	$raw  = get_user_meta( $user_id, '_traveler_intake_' . $trip_id, true );
+ 	$data = $raw ? json_decode( $raw, true ) : array();
+@@ -2683,9 +2755,6 @@ add_action( 'rest_api_init', function () {
+ 			$cruise_cabin_class   = $str( 'cruise_cabin_class' );
+ 			$pre_post_nights      = $str( 'pre_post_cruise_nights' );
+ 			$beverage_plan        = $str( 'beverage_plan' );
+-			$cruise_duration      = $str( 'cruise_duration' );
+-			$cruise_region        = $str( 'cruise_region' );
+-			$cruise_departure_port = $str( 'cruise_departure_port' );
+ 
+ 			$data = array(
+ 				// Air Travel
+@@ -2705,9 +2774,8 @@ add_action( 'rest_api_init', function () {
+ 				'cruise_program_number'   => $str( 'cruise_program_number' ),
+ 				'cruise_start_date'       => $str( 'cruise_start_date' ),
+ 				'cruise_end_date'         => $str( 'cruise_end_date' ),
+-				'cruise_duration'         => in_array( $cruise_duration, CBV_CRUISE_DURATIONS, true ) ? $cruise_duration : '',
+-				'cruise_region'           => in_array( $cruise_region, cbv_flatten_grouped_options( CBV_CRUISE_REGIONS ), true ) ? $cruise_region : '',
+-				'cruise_departure_port'   => in_array( $cruise_departure_port, cbv_flatten_grouped_options( CBV_CRUISE_DEPARTURE_PORTS ), true ) ? $cruise_departure_port : '',
++				// Cruise duration / region / departure port are no longer asked
++				// (owner, 2026-10-29); earlier answers are carried over below.
+ 				'pre_post_cruise_nights'  => in_array( $pre_post_nights, array( 'Yes', 'No' ), true ) ? $pre_post_nights : '',
+ 				'cruise_cabin_class'      => in_array( $cruise_cabin_class, CBV_CRUISE_CABIN_CLASSES, true ) ? $cruise_cabin_class : '',
+ 				'beverage_plan'           => in_array( $beverage_plan, array( 'Yes', 'No' ), true ) ? $beverage_plan : '',
+@@ -2734,13 +2802,9 @@ add_action( 'rest_api_init', function () {
+ 				'package_style'           => $arr( 'package_style' ),
+ 				'package_activity_level'  => $str( 'package_activity_level' ),
+ 
+-				'traveling_companions'    => $txt( 'traveling_companions' ),
+ 				'insurance_decision'      => in_array( $insurance_decision, array( 'accepted', 'declined' ), true ) ? $insurance_decision : '',
+ 				'allianz_waiver_returned' => ! empty( $body['allianz_waiver_returned'] ),
+ 				'cc_auth_completed'       => ! empty( $body['cc_auth_completed'] ),
+-				'additional_adults'       => absint( $body['additional_adults'] ?? 0 ),
+-				'additional_children'     => absint( $body['additional_children'] ?? 0 ),
+-				'children_ages'           => $str( 'children_ages' ),
+ 
+ 				// Categories this traveler personally opted into beyond the
+ 				// trip's own official cb_trip_type (e.g. a personal flight on
+@@ -2754,7 +2818,53 @@ add_action( 'rest_api_init', function () {
+ 			);
+ 
+ 			$previous = cbv_get_traveler_intake( $user_id, $trip_id );
++
++			// Children (owner, 2026-10-29): one row per child, 17 or younger at
++			// sailing, never on adults-only trips. additional_children /
++			// children_ages are kept in step for the fee and older readers.
++			$children = array();
++			$adults_only = function_exists( 'cbv_trip_is_adults_only' ) && cbv_trip_is_adults_only( $trip_id );
++			if ( ! $adults_only && ! empty( $body['has_children'] ) && ! empty( $body['children'] ) && is_array( $body['children'] ) ) {
++				foreach ( array_slice( $body['children'], 0, CBV_MAX_CHILDREN ) as $row ) {
++					$row   = is_array( $row ) ? $row : array();
++					$child = array(
++						'first_name'   => mb_substr( sanitize_text_field( $row['first_name'] ?? '' ), 0, 60 ),
++						'last_name'    => mb_substr( sanitize_text_field( $row['last_name'] ?? '' ), 0, 60 ),
++						'dob'          => sanitize_text_field( $row['dob'] ?? '' ),
++						'relationship' => in_array( $row['relationship'] ?? '', CBV_CHILD_RELATIONSHIPS, true ) ? $row['relationship'] : '',
++					);
++					$age = cbv_child_age_at_sailing( $child['dob'], $trip_id );
++					if ( '' === $child['first_name'] || '' === $child['last_name'] || '' === $child['relationship'] || null === $age ) {
++						return new WP_Error( 'cbv_child_incomplete', 'Please complete each child\'s first name, last name, date of birth and relationship.', array( 'status' => 400 ) );
++					}
++					if ( $age >= 18 ) {
++						return new WP_Error( 'cbv_child_adult', 'Children must be 17 or younger at sailing. Anyone 18 and over registers on their own.', array( 'status' => 400 ) );
++					}
++					$children[] = $child;
++				}
++			}
++			$data['children']            = $children;
++			$data['additional_children'] = count( $children );
++			$data['children_ages']       = cbv_intake_children_ages_label( array( 'children' => $children ), $trip_id );
++
++			// The old form's additional adults and their names are no longer
++			// asked or billed (each adult registers on their own); whatever an
++			// earlier save stored is carried over untouched for the export's
++			// "(old form)" columns.
++			foreach ( array( 'additional_adults', 'traveling_companions', 'cruise_duration', 'cruise_region', 'cruise_departure_port' ) as $legacy_key ) {
++				if ( ! empty( $previous[ $legacy_key ] ) ) {
++					$data[ $legacy_key ] = $previous[ $legacy_key ];
++				}
++			}
++
++			// The trip's own cruise line / dates / program number win over
++			// whatever was posted (those fields are read-only on the form).
++			if ( cbv_trip_has_type( $trip_id, 'Cruise' ) ) {
++				$data = array_merge( $data, cbv_intake_trip_cruise_details( $trip_id ) );
++			}
++
+ 			update_user_meta( $user_id, '_traveler_intake_' . $trip_id, wp_json_encode( $data ) );
++			update_user_meta( $user_id, '_traveler_intake_saved_' . $trip_id, current_time( 'mysql' ) );
+ 
+ 			// Staff + travel advisor emails, only when the answers actually
+ 			// changed (first save, or an edit) -- see checkedbags-staff-notify.php.
+@@ -2762,7 +2872,10 @@ add_action( 'rest_api_init', function () {
+ 				do_action( 'cbv_traveler_intake_saved', $trip_id, $user_id, $previous, $data );
+ 			}
+ 
+-			return array( 'saved' => true );
++			return array(
++				'saved'    => true,
++				'saved_on' => date_i18n( 'M j, Y' ),
++			);
+ 		},
+ 	) );
+ } );
+@@ -2850,17 +2963,38 @@ function cbv_render_traveler_intake_form( $trip_id ) {
+ 	$cruise_cabin_class   = $intake['cruise_cabin_class'] ?? '';
+ 	$pre_post_nights      = $intake['pre_post_cruise_nights'] ?? '';
+ 	$beverage_plan        = $intake['beverage_plan'] ?? '';
+-	$cruise_duration      = $intake['cruise_duration'] ?? '';
+-	$cruise_region        = $intake['cruise_region'] ?? '';
+-	$cruise_departure_port = $intake['cruise_departure_port'] ?? '';
++	$trip_cruise          = $show_cruise ? cbv_intake_trip_cruise_details( $trip_id ) : array();
++	$cruise_value = function ( $key ) use ( $trip_cruise, $intake ) {
++		return $trip_cruise[ $key ] ?? ( $intake[ $key ] ?? '' );
++	};
++	$cruise_locked = function ( $key ) use ( $trip_cruise ) {
++		return isset( $trip_cruise[ $key ] ) ? ' readonly aria-readonly="true" class="cbv-intake-from-trip"' : '';
++	};
+ 	$hotel_room_type      = (array) ( $intake['hotel_room_type'] ?? array() );
+ 	$car_category       = (array) ( $intake['car_category'] ?? array() );
+ 	$package_style      = (array) ( $intake['package_style'] ?? array() );
+ 
++	// Collapsed into a summary card once saved; Edit reopens the form (owner, 2026-10-29).
++	$is_saved    = ! empty( $intake );
++	$saved_at    = cbv_get_traveler_intake_saved_at( $user_id, $trip_id );
++	$adults_only = function_exists( 'cbv_trip_is_adults_only' ) && cbv_trip_is_adults_only( $trip_id );
++	$children    = cbv_intake_children( $intake );
++	$trip_start  = (string) get_post_meta( $trip_id, 'cb_start_date', true );
++
+ 	ob_start();
+ 	?>
+ 	<div class="trip-detail-section trip-detail-traveler-intake" id="cbv-traveler-intake">
+ 		<h3>Trip Registration</h3>
++
++		<div class="cbv-intake-summary" id="cbv-intake-summary" <?php echo $is_saved ? '' : 'hidden'; ?>>
++			<p class="cbv-intake-summary-text">
++				<span class="cbv-intake-summary-check" aria-hidden="true">&#10003;</span>
++				Your travel details are saved<span id="cbv-intake-summary-date"><?php echo $saved_at ? esc_html( ' · Last saved ' . date_i18n( 'M j, Y', strtotime( $saved_at ) ) ) : ''; ?></span>
++			</p>
++			<button type="button" class="btn btn-ghost cbv-intake-edit-btn" id="cbv-intake-edit-btn" aria-controls="cbv-intake-form-body" aria-expanded="false">Edit</button>
++		</div>
++
++		<div class="cbv-intake-form-body" id="cbv-intake-form-body" <?php echo $is_saved ? 'hidden' : ''; ?>>
+ 		<p class="cb-page-hint">A few details we need from you individually — seat and cabin preferences, your travel insurance decision, and required paperwork — so everything&#8217;s ready well before departure.</p>
+ 
+ 		<?php
+@@ -2914,35 +3048,16 @@ function cbv_render_traveler_intake_form( $trip_id ) {
+ 		<div class="cbv-intake-optional-section" id="cbv-intake-section-cruise" <?php echo $show_cruise_visible ? '' : 'hidden'; ?>>
+ 		<h4>Cruise Vacation</h4>
+ 		<div class="cbv-intake-field">
++			<?php if ( $trip_cruise ) : ?>
++				<p class="cb-page-hint cbv-intake-from-trip-note">Shaded fields come from this trip&#8217;s details.</p>
++			<?php endif; ?>
+ 			<div class="cbv-intake-field-row">
+-				<label><span class="cbv-required" aria-hidden="true">*</span> Cruise company <input type="text" id="cbv-intake-cruise-company" required value="<?php echo esc_attr( $intake['cruise_company'] ?? '' ); ?>"></label>
+-				<label>Cruise program number <input type="text" id="cbv-intake-cruise-program-number" value="<?php echo esc_attr( $intake['cruise_program_number'] ?? '' ); ?>"></label>
+-			</div>
+-			<div class="cbv-intake-field-row">
+-				<label><span class="cbv-required" aria-hidden="true">*</span> Cruise start date <input type="date" id="cbv-intake-cruise-start-date" required value="<?php echo esc_attr( $intake['cruise_start_date'] ?? '' ); ?>"></label>
+-				<label><span class="cbv-required" aria-hidden="true">*</span> Cruise end date <input type="date" id="cbv-intake-cruise-end-date" required value="<?php echo esc_attr( $intake['cruise_end_date'] ?? '' ); ?>"></label>
++				<label><span class="cbv-required" aria-hidden="true">*</span> Cruise company <input type="text" id="cbv-intake-cruise-company" required value="<?php echo esc_attr( $cruise_value( 'cruise_company' ) ); ?>"<?php echo $cruise_locked( 'cruise_company' ); ?>></label>
++				<label>Cruise program number <input type="text" id="cbv-intake-cruise-program-number" value="<?php echo esc_attr( $cruise_value( 'cruise_program_number' ) ); ?>"<?php echo $cruise_locked( 'cruise_program_number' ); ?>></label>
+ 			</div>
+ 			<div class="cbv-intake-field-row">
+-				<label><span class="cbv-required" aria-hidden="true">*</span> Cruise duration
+-					<select id="cbv-intake-cruise-duration" required>
+-						<option value="" <?php selected( $cruise_duration, '' ); ?>>—</option>
+-						<?php foreach ( CBV_CRUISE_DURATIONS as $option ) : ?>
+-							<option value="<?php echo esc_attr( $option ); ?>" <?php selected( $cruise_duration, $option ); ?>><?php echo esc_html( $option ); ?></option>
+-						<?php endforeach; ?>
+-					</select>
+-				</label>
+-				<label><span class="cbv-required" aria-hidden="true">*</span> Cruise region
+-					<select id="cbv-intake-cruise-region" required>
+-						<option value="" <?php selected( $cruise_region, '' ); ?>>—</option>
+-						<?php cbv_render_optgroup_options( CBV_CRUISE_REGIONS, $cruise_region ); ?>
+-					</select>
+-				</label>
+-				<label><span class="cbv-required" aria-hidden="true">*</span> Cruise departure port
+-					<select id="cbv-intake-cruise-departure-port" required>
+-						<option value="" <?php selected( $cruise_departure_port, '' ); ?>>—</option>
+-						<?php cbv_render_optgroup_options( CBV_CRUISE_DEPARTURE_PORTS, $cruise_departure_port ); ?>
+-					</select>
+-				</label>
++				<label><span class="cbv-required" aria-hidden="true">*</span> Cruise start date <input type="date" id="cbv-intake-cruise-start-date" required value="<?php echo esc_attr( $cruise_value( 'cruise_start_date' ) ); ?>"<?php echo $cruise_locked( 'cruise_start_date' ); ?>></label>
++				<label><span class="cbv-required" aria-hidden="true">*</span> Cruise end date <input type="date" id="cbv-intake-cruise-end-date" required value="<?php echo esc_attr( $cruise_value( 'cruise_end_date' ) ); ?>"<?php echo $cruise_locked( 'cruise_end_date' ); ?>></label>
+ 			</div>
+ 			<div class="cbv-intake-field-row">
+ 				<label><span class="cbv-required" aria-hidden="true">*</span> Pre/post cruise nights
+@@ -3016,52 +3131,97 @@ function cbv_render_traveler_intake_form( $trip_id ) {
+ 		</div>
+ 		<?php endif; ?>
+ 
+-		<?php if ( trim( $insurance_overview ) ) : ?>
+-		<div class="cbv-intake-field cbv-intake-insurance-overview">
+-			<h4>Why Travel Insurance Matters</h4>
++		<?php
++		// Collapsed; the insurance choice unlocks only once it has been opened
++		// (owner, 2026-10-29). A decision already on file stays unlocked.
++		$insurance_locked = trim( $insurance_overview ) && '' === $insurance;
++		if ( trim( $insurance_overview ) ) :
++			?>
++		<details class="cbv-intake-field cbv-intake-insurance-overview" id="cbv-intake-insurance-overview">
++			<summary><h4>Why Travel Insurance Matters</h4></summary>
+ 			<?php echo wp_kses_post( wpautop( $insurance_overview ) ); ?>
+-		</div>
++		</details>
+ 		<?php endif; ?>
+ 
+ 		<div class="cbv-intake-field">
+ 			<label><span class="cbv-required" aria-hidden="true">*</span> Travel insurance
+-				<select id="cbv-intake-insurance-decision" required>
++				<select id="cbv-intake-insurance-decision" required<?php echo $insurance_locked ? ' disabled aria-describedby="cbv-intake-insurance-locked"' : ''; ?>>
+ 					<option value="" <?php selected( $insurance, '' ); ?>>—</option>
+ 					<option value="accepted" <?php selected( $insurance, 'accepted' ); ?>>Accepted</option>
+ 					<option value="declined" <?php selected( $insurance, 'declined' ); ?>>Declined</option>
+ 				</select>
+ 			</label>
++			<?php if ( $insurance_locked ) : ?>
++				<p class="cbv-intake-warning" id="cbv-intake-insurance-locked">Open &#8220;Why Travel Insurance Matters&#8221; above and read it to choose.</p>
++			<?php endif; ?>
+ 			<div id="cbv-intake-waiver-row" <?php echo ( 'declined' !== $insurance ) ? 'style="display:none;"' : ''; ?>>
+ 				<p class="cbv-intake-warning">Declining travel insurance means you assume financial responsibility for any trip cancellation, interruption, delay, or medical costs that may arise during this trip.</p>
+ 				<p><a href="<?php echo esc_url( $waiver_url ); ?>" target="_blank" rel="noopener">Download the Allianz Waiver of Travel Insurance form</a>.</p>
+-				<label class="check-row"><input type="checkbox" id="cbv-intake-waiver-returned" <?php checked( ! empty( $intake['allianz_waiver_returned'] ) ); ?>> I have downloaded, completed waiver. Will email to travel@journeywellglobal.com within 48 hours.</label>
++				<label class="check-row"><input type="checkbox" id="cbv-intake-waiver-returned" <?php checked( ! empty( $intake['allianz_waiver_returned'] ) ); ?>> I&#8217;ve downloaded and completed the waiver, and will email it to travel@journeywellglobal.com within 48 hours.</label>
+ 			</div>
+ 		</div>
+ 
+ 		<div class="cbv-intake-field">
+ 			<p class="cb-page-hint">Some trip vendors require a signed card authorization for incidental charges during your trip. We never collect card details on this site — download the form, sign it, and email it to us directly instead.</p>
+ 			<p><a href="<?php echo esc_url( $cc_auth_url ); ?>" target="_blank" rel="noopener">Download the Credit Card Authorization form</a>. This is required for every trip. We never collect card details on this site.</p>
+-			<label class="check-row"><input type="checkbox" id="cbv-intake-cc-auth-completed" required <?php checked( ! empty( $intake['cc_auth_completed'] ) ); ?>> <span class="cbv-required" aria-hidden="true">*</span> I have downloaded, completed form. Will email to travel@journeywellglobal.com within 48 hours.</label>
++			<label class="check-row"><input type="checkbox" id="cbv-intake-cc-auth-completed" required <?php checked( ! empty( $intake['cc_auth_completed'] ) ); ?>> <span class="cbv-required" aria-hidden="true">*</span> I&#8217;ve downloaded and completed the credit card authorization form, and will email it to travel@journeywellglobal.com within 48 hours.</label>
+ 		</div>
+ 
+-		<div class="cbv-intake-field">
+-			<h4>Trip Companions</h4>
+-			<div class="cbv-intake-companions-columns">
+-				<div>
+-					<label>Additional adults traveling with you<?php echo function_exists( 'cbv_lp_child_age_under' ) && cbv_lp_child_age_under() ? esc_html( ' (age ' . cbv_lp_child_age_under() . ' and over)' ) : ''; ?> <input type="number" id="cbv-intake-additional-adults" min="0" value="<?php echo esc_attr( $intake['additional_adults'] ?? 0 ); ?>"></label>
+-					<label>List their names <textarea id="cbv-intake-traveling-companions" rows="2"><?php echo esc_textarea( $intake['traveling_companions'] ?? '' ); ?></textarea></label>
+-				</div>
+-				<?php if ( ! ( function_exists( 'cbv_trip_is_adults_only' ) && cbv_trip_is_adults_only( $trip_id ) ) ) : // adults-only trips (e.g. Virgin, 18+) have no children fields; see checkedbags-adults-only.php ?>
+-				<div>
+-					<label>Additional children traveling with you<?php echo function_exists( 'cbv_lp_child_age_under' ) && cbv_lp_child_age_under() ? esc_html( ' (under ' . cbv_lp_child_age_under() . ')' ) : ''; ?> <input type="number" id="cbv-intake-additional-children" min="0" value="<?php echo esc_attr( $intake['additional_children'] ?? 0 ); ?>"></label>
+-					<label>Children's ages, if any <input type="text" id="cbv-intake-children-ages" placeholder="e.g. 5, 8, 12" value="<?php echo esc_attr( $intake['children_ages'] ?? '' ); ?>"></label>
+-				</div>
+-				<?php endif; ?>
++		<div class="cbv-intake-field cbv-intake-invite">
++			<h4>Traveling with family or friends?</h4>
++			<p>Everyone 18 and over registers on their own. Send them your invite link and they&#8217;ll join this trip.</p>
++			<p class="cbv-intake-invite-row">
++				<button type="button" class="btn btn-ghost" id="cbv-intake-copy-invite" data-trip-id="<?php echo (int) $trip_id; ?>">Copy my invite link</button>
++				<span id="cbv-intake-invite-result" role="status" aria-live="polite"></span>
++			</p>
++			<input type="text" id="cbv-intake-invite-url" class="cbv-intake-invite-url" readonly hidden aria-label="Your invite link">
++		</div>
++
++		<?php if ( ! $adults_only ) : // adults-only trips (e.g. Virgin, 18+) have no children fields; see checkedbags-adults-only.php ?>
++		<div class="cbv-intake-field cbv-intake-children" id="cbv-intake-children" data-trip-start="<?php echo esc_attr( $trip_start ); ?>">
++			<h4>Children</h4>
++			<label class="check-row"><input type="checkbox" id="cbv-intake-has-children" <?php checked( ! empty( $children ) ); ?>> Children traveling with you</label>
++			<div id="cbv-intake-children-details" <?php echo $children ? '' : 'hidden'; ?>>
++				<label>How many children (17 and younger)?
++					<select id="cbv-intake-children-count">
++						<?php for ( $n = 1; $n <= CBV_MAX_CHILDREN; $n++ ) : ?>
++							<option value="<?php echo (int) $n; ?>" <?php selected( max( 1, count( $children ) ), $n ); ?>><?php echo (int) $n; ?></option>
++						<?php endfor; ?>
++					</select>
++				</label>
++				<?php for ( $i = 0; $i < CBV_MAX_CHILDREN; $i++ ) :
++					$child = $children[ $i ] ?? array();
++					$age   = isset( $child['dob'] ) ? cbv_child_age_at_sailing( $child['dob'], $trip_id ) : null;
++					?>
++					<fieldset class="cbv-intake-child" data-index="<?php echo (int) $i; ?>" <?php echo $i < max( 1, count( $children ) ) ? '' : 'hidden'; ?>>
++						<legend>Child <?php echo (int) ( $i + 1 ); ?></legend>
++						<div class="cbv-intake-field-row">
++							<label>First name <input type="text" class="cbv-child-first" maxlength="60" autocomplete="off" value="<?php echo esc_attr( $child['first_name'] ?? '' ); ?>"></label>
++							<label>Last name <input type="text" class="cbv-child-last" maxlength="60" autocomplete="off" value="<?php echo esc_attr( $child['last_name'] ?? '' ); ?>"></label>
++						</div>
++						<div class="cbv-intake-field-row">
++							<label>Date of birth <input type="date" class="cbv-child-dob" max="<?php echo esc_attr( current_time( 'Y-m-d' ) ); ?>" value="<?php echo esc_attr( $child['dob'] ?? '' ); ?>">
++								<span class="cbv-child-age" aria-live="polite"><?php echo null === $age ? '' : esc_html( 'Age at sailing: ' . $age ); ?></span>
++							</label>
++							<label>Relationship to you
++								<select class="cbv-child-relationship">
++									<option value="">—</option>
++									<?php foreach ( CBV_CHILD_RELATIONSHIPS as $relationship ) : ?>
++										<option value="<?php echo esc_attr( $relationship ); ?>" <?php selected( $child['relationship'] ?? '', $relationship ); ?>><?php echo esc_html( $relationship ); ?></option>
++									<?php endforeach; ?>
++								</select>
++							</label>
++						</div>
++					</fieldset>
++				<?php endfor; ?>
+ 			</div>
++			<p class="cbv-intake-warning">Children&#8217;s details are only seen by our team and your travel advisor. If a child is traveling without both parents, your travel advisor will let you know whether a consent letter is needed.</p>
+ 		</div>
++		<?php endif; ?>
+ 
+ 		<button type="button" class="btn btn-ticket" id="cbv-intake-save-btn" data-trip-id="<?php echo (int) $trip_id; ?>">Save Travel Details</button>
+ 		<span id="cbv-intake-result" style="margin-left:10px;"></span>
++		</div>
+ 	</div>
+ 	<script>
+ 	(function () {
+@@ -3078,8 +3238,123 @@ function cbv_render_traveler_intake_form( $trip_id ) {
+ 			return Array.prototype.map.call( boxes, function ( b ) { return b.value; } );
+ 		}
+ 
++		var restBase  = <?php echo wp_json_encode( esc_url_raw( rest_url( 'cb/v1/' ) ) ); ?>;
++		var restNonce = <?php echo wp_json_encode( wp_create_nonce( 'wp_rest' ) ); ?>;
++
++		// Summary card <-> form (owner, 2026-10-29).
++		var summary  = document.getElementById( 'cbv-intake-summary' );
++		var formBody = document.getElementById( 'cbv-intake-form-body' );
++		var editBtn  = document.getElementById( 'cbv-intake-edit-btn' );
++		function showForm( open ) {
++			if ( ! summary || ! formBody ) { return; }
++			formBody.hidden = ! open;
++			summary.hidden  = open;
++			if ( editBtn ) { editBtn.setAttribute( 'aria-expanded', open ? 'true' : 'false' ); }
++		}
++		if ( editBtn ) {
++			editBtn.addEventListener( 'click', function () {
++				showForm( true );
++				var first = formBody.querySelector( 'input, select, textarea, button' );
++				if ( first ) { first.focus(); }
++			} );
++		}
++
++		// "Copy my invite link": the same personal link as My Passport's Generate invite link.
++		var copyBtn = document.getElementById( 'cbv-intake-copy-invite' );
++		if ( copyBtn ) {
++			copyBtn.addEventListener( 'click', function () {
++				var result = document.getElementById( 'cbv-intake-invite-result' );
++				var urlBox = document.getElementById( 'cbv-intake-invite-url' );
++				copyBtn.disabled = true;
++				fetch( restBase + 'trips/' + copyBtn.getAttribute( 'data-trip-id' ) + '/invite-link', {
++					method: 'POST',
++					headers: { 'X-WP-Nonce': restNonce }
++				} )
++					.then( function ( res ) { return res.json(); } )
++					.then( function ( data ) {
++						copyBtn.disabled = false;
++						if ( ! data || ! data.url ) {
++							result.textContent = ( data && data.message ) ? data.message : 'Could not get your invite link.';
++							return;
++						}
++						urlBox.value = data.url;
++						var shown = function () {
++							urlBox.hidden = false;
++							urlBox.focus();
++							urlBox.select();
++							result.textContent = 'Copy the link below.';
++						};
++						if ( navigator.clipboard && window.isSecureContext ) {
++							navigator.clipboard.writeText( data.url ).then( function () {
++								result.textContent = 'Link copied. Paste it into a text or email.';
++							}, shown );
++						} else {
++							shown();
++						}
++					} )
++					.catch( function () {
++						copyBtn.disabled = false;
++						result.textContent = 'Something went wrong. Please try again.';
++					} );
++			} );
++		}
++
++		// Children rows: count, and "Age at sailing" from the date of birth and the trip's start date.
++		var childrenBox  = document.getElementById( 'cbv-intake-children' );
++		var hasChildren  = document.getElementById( 'cbv-intake-has-children' );
++		var childDetails = document.getElementById( 'cbv-intake-children-details' );
++		var childCount   = document.getElementById( 'cbv-intake-children-count' );
++		function childRows() {
++			return childrenBox ? Array.prototype.slice.call( childrenBox.querySelectorAll( '.cbv-intake-child' ) ) : [];
++		}
++		function activeChildRows() {
++			if ( ! hasChildren || ! hasChildren.checked ) { return []; }
++			return childRows().filter( function ( row ) { return ! row.hidden; } );
++		}
++		function ageAtSailing( dob ) {
++			var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec( dob || '' );
++			if ( ! m ) { return null; }
++			var s = /^(\d{4})-(\d{2})-(\d{2})$/.exec( childrenBox.getAttribute( 'data-trip-start' ) || '' );
++			var now = new Date();
++			var on = s ? { y: +s[1], m: +s[2], d: +s[3] } : { y: now.getFullYear(), m: now.getMonth() + 1, d: now.getDate() };
++			var age = on.y - m[1];
++			if ( on.m < +m[2] || ( on.m === +m[2] && on.d < +m[3] ) ) { age--; }
++			return age < 0 ? null : age;
++		}
++		function updateChildRows() {
++			var n = childCount ? parseInt( childCount.value, 10 ) || 1 : 1;
++			childRows().forEach( function ( row, i ) { row.hidden = i >= n; } );
++		}
++		if ( childrenBox ) {
++			if ( hasChildren ) {
++				hasChildren.addEventListener( 'change', function () {
++					childDetails.hidden = ! hasChildren.checked;
++					updateChildRows();
++				} );
++			}
++			if ( childCount ) { childCount.addEventListener( 'change', updateChildRows ); }
++			childRows().forEach( function ( row ) {
++				var dob = row.querySelector( '.cbv-child-dob' );
++				var out = row.querySelector( '.cbv-child-age' );
++				dob.addEventListener( 'change', function () {
++					var age = ageAtSailing( dob.value );
++					out.textContent = null === age ? '' : 'Age at sailing: ' + age;
++				} );
++			} );
++		}
++
+ 		var insuranceSelect = document.getElementById( 'cbv-intake-insurance-decision' );
+ 		var waiverRow = document.getElementById( 'cbv-intake-waiver-row' );
++		var insuranceBox = document.getElementById( 'cbv-intake-insurance-overview' );
++		if ( insuranceBox && insuranceSelect ) {
++			insuranceBox.addEventListener( 'toggle', function () {
++				if ( insuranceBox.open && insuranceSelect.disabled ) {
++					insuranceSelect.disabled = false;
++					var lockNote = document.getElementById( 'cbv-intake-insurance-locked' );
++					if ( lockNote ) { lockNote.hidden = true; }
++				}
++			} );
++		}
+ 		if ( insuranceSelect && waiverRow ) {
+ 			insuranceSelect.addEventListener( 'change', function () {
+ 				waiverRow.style.display = ( insuranceSelect.value === 'declined' ) ? '' : 'none';
+@@ -3174,9 +3449,6 @@ function cbv_render_traveler_intake_form( $trip_id ) {
+ 			checkRequired( 'cbv-intake-cruise-company', 'Cruise company' );
+ 			checkRequired( 'cbv-intake-cruise-start-date', 'Cruise start date' );
+ 			checkRequired( 'cbv-intake-cruise-end-date', 'Cruise end date' );
+-			checkRequired( 'cbv-intake-cruise-duration', 'Cruise duration' );
+-			checkRequired( 'cbv-intake-cruise-region', 'Cruise region' );
+-			checkRequired( 'cbv-intake-cruise-departure-port', 'Cruise departure port' );
+ 			checkRequired( 'cbv-intake-pre-post-cruise-nights', 'Pre/post cruise nights' );
+ 			checkRequired( 'cbv-intake-cruise-cabin-class', 'Cabin class' );
+ 			checkRequired( 'cbv-intake-beverage-plan', 'Beverage plan' );
+@@ -3206,6 +3478,24 @@ function cbv_render_traveler_intake_form( $trip_id ) {
+ 				missing.push( { el: ccAuth, label: 'Credit Card Authorization confirmation' } );
+ 			}
+ 
++			activeChildRows().forEach( function ( row, i ) {
++				var label = 'Child ' + ( i + 1 );
++				[ [ '.cbv-child-first', 'first name' ], [ '.cbv-child-last', 'last name' ], [ '.cbv-child-dob', 'date of birth' ], [ '.cbv-child-relationship', 'relationship' ] ].forEach( function ( f ) {
++					var el = row.querySelector( f[0] );
++					el.classList.remove( 'cbv-field-invalid' );
++					if ( ! el.value.trim() ) {
++						el.classList.add( 'cbv-field-invalid' );
++						missing.push( { el: el, label: label + ' ' + f[1] } );
++					}
++				} );
++				var dob = row.querySelector( '.cbv-child-dob' );
++				var age = ageAtSailing( dob.value );
++				if ( dob.value && ( null === age || age >= 18 ) ) {
++					dob.classList.add( 'cbv-field-invalid' );
++					missing.push( { el: dob, label: label + ': children must be 17 or younger at sailing (anyone 18 and over registers on their own)' } );
++				}
++			} );
++
+ 			return missing;
+ 		}
+ 
+@@ -3239,9 +3529,6 @@ function cbv_render_traveler_intake_form( $trip_id ) {
+ 					cruise_program_number: fieldVal( 'cbv-intake-cruise-program-number' ),
+ 					cruise_start_date: fieldVal( 'cbv-intake-cruise-start-date' ),
+ 					cruise_end_date: fieldVal( 'cbv-intake-cruise-end-date' ),
+-					cruise_duration: fieldVal( 'cbv-intake-cruise-duration' ),
+-					cruise_region: fieldVal( 'cbv-intake-cruise-region' ),
+-					cruise_departure_port: fieldVal( 'cbv-intake-cruise-departure-port' ),
+ 					pre_post_cruise_nights: fieldVal( 'cbv-intake-pre-post-cruise-nights' ),
+ 					cruise_cabin_class: fieldVal( 'cbv-intake-cruise-cabin-class' ),
+ 					beverage_plan: fieldVal( 'cbv-intake-beverage-plan' ),
+@@ -3259,27 +3546,41 @@ function cbv_render_traveler_intake_form( $trip_id ) {
+ 					package_style: checkedValuesFor( 'cbv_intake_package_style' ),
+ 					package_activity_level: fieldVal( 'cbv-intake-package-activity-level' ),
+ 
+-					traveling_companions: fieldVal( 'cbv-intake-traveling-companions' ),
+ 					insurance_decision: fieldVal( 'cbv-intake-insurance-decision' ),
+ 					allianz_waiver_returned: fieldChecked( 'cbv-intake-waiver-returned' ),
+ 					cc_auth_completed: fieldChecked( 'cbv-intake-cc-auth-completed' ),
+-					additional_adults: fieldVal( 'cbv-intake-additional-adults' ),
+-					additional_children: fieldVal( 'cbv-intake-additional-children' ),
+-					children_ages: fieldVal( 'cbv-intake-children-ages' ),
++					has_children: activeChildRows().length > 0,
++					children: activeChildRows().map( function ( row ) {
++						return {
++							first_name: row.querySelector( '.cbv-child-first' ).value.trim(),
++							last_name: row.querySelector( '.cbv-child-last' ).value.trim(),
++							dob: row.querySelector( '.cbv-child-dob' ).value,
++							relationship: row.querySelector( '.cbv-child-relationship' ).value
++						};
++					} ),
+ 					optional_categories: checkedValuesFor( 'cbv_intake_optional_categories' )
+ 				};
+ 				saveBtn.disabled = true;
+ 				saveBtn.textContent = 'Saving...';
+-				fetch( <?php echo wp_json_encode( esc_url_raw( rest_url( 'cb/v1/' ) ) ); ?> + 'trips/' + tripId + '/traveler-intake', {
++				fetch( restBase + 'trips/' + tripId + '/traveler-intake', {
+ 					method: 'POST',
+-					headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': <?php echo wp_json_encode( wp_create_nonce( 'wp_rest' ) ); ?> },
++					headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': restNonce },
+ 					body: JSON.stringify( payload )
+ 				} )
+ 					.then( function ( res ) { return res.json(); } )
+ 					.then( function ( data ) {
+ 						saveBtn.disabled = false;
+ 						saveBtn.textContent = 'Save Travel Details';
+-						document.getElementById( 'cbv-intake-result' ).textContent = data.saved ? 'Saved!' : 'Could not save.';
++						if ( data && data.saved ) {
++							resultEl.textContent = '';
++							document.getElementById( 'cbv-intake-summary-date' ).textContent = data.saved_on ? ' · Last saved ' + data.saved_on : '';
++							showForm( false );
++							summary.scrollIntoView( { behavior: 'smooth', block: 'center' } );
++							if ( editBtn ) { editBtn.focus( { preventScroll: true } ); }
++						} else {
++							resultEl.style.color = 'var(--coral)';
++							resultEl.textContent = ( data && data.message ) ? data.message : 'Could not save.';
++						}
+ 					} )
+ 					.catch( function () {
+ 						saveBtn.disabled = false;

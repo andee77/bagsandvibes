@@ -189,15 +189,15 @@ function cb_trip_refunds_for_user( $trip_id, $user_id ) {
  */
 
 /**
- * Who a member pays the fee for on a trip, from their traveler intake:
- * adults = the member + additional adults, children = additional children
- * (the member alone when the intake is not filled in; at most 20 of each
- * extra). Children pay half a per-traveler fee.
+ * Who a member pays the fee for on a trip: the member (every adult has their
+ * own account and pays their own fee, owner 2026-10-29 -- the old form's
+ * "additional adults" are no longer billed) plus the children listed on
+ * their Trip Registration (at most 20). Children pay half a per-traveler fee.
  */
 function cb_trip_member_party( $trip_id, $user_id ) {
 	$intake = ( $user_id && function_exists( 'cbv_get_traveler_intake' ) ) ? cbv_get_traveler_intake( (int) $user_id, (int) $trip_id ) : array();
 	return array(
-		'adults'   => 1 + min( 20, max( 0, (int) ( $intake['additional_adults'] ?? 0 ) ) ),
+		'adults'   => 1,
 		'children' => min( 20, max( 0, (int) ( $intake['additional_children'] ?? 0 ) ) ),
 	);
 }

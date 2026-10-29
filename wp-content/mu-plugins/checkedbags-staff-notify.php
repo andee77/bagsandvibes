@@ -69,7 +69,7 @@ function cbv_notify_settings_page() {
 		),
 		'cbv_travel_advisor_email' => array(
 			'label' => 'Travel advisor email',
-			'help'  => 'Gets a summary of a traveler\'s travel requests (the extras they ticked and their answers, plus companions) each time they save a change to their Trip Registration. Never includes passport, card, insurance or medical details.',
+			'help'  => 'Gets a summary of a traveler\'s travel requests (the extras they ticked and their answers, plus the number of children and their ages at sailing) each time they save a change to their Trip Registration. Never includes passport, card, insurance or medical details, or children\'s names and dates of birth.',
 		),
 	);
 	?>
@@ -113,6 +113,16 @@ function cbv_notify_member_name( $user_id ) {
 function cbv_notify_member_email( $user_id ) {
 	$user = get_userdata( $user_id );
 	return ( $user && is_email( $user->user_email ) ) ? $user->user_email : 'not on file';
+}
+
+// "None", or "2 (ages at sailing: 5, 8)". Never names or dates of birth.
+function cbv_notify_children_line( $trip_id, $intake ) {
+	$count = (int) ( $intake['additional_children'] ?? 0 );
+	if ( $count <= 0 ) {
+		return 'None';
+	}
+	$ages = function_exists( 'cbv_intake_children_ages_label' ) ? cbv_intake_children_ages_label( $intake, $trip_id ) : '';
+	return $count . ( '' !== $ages ? ' (ages at sailing: ' . $ages . ')' : '' );
 }
 
 function cbv_notify_trip_title( $trip_id ) {
@@ -232,6 +242,7 @@ add_action( 'cbv_traveler_intake_saved', function ( $trip_id, $user_id, $old, $n
 		'Member: ' . cbv_notify_member_name( $user_id ),
 		'Trip: ' . cbv_notify_trip_title( $trip_id ),
 		'Extras ticked: ' . cbv_intake_ticked_label( $new ),
+		'Children: ' . cbv_notify_children_line( $trip_id, $new ),
 		'',
 		'The travel advisor has been sent a summary of their travel requests.',
 		'Full answers: open the trip and use Export Roster to Excel.',
@@ -298,7 +309,7 @@ function cbv_intake_advisor_summary( $trip_id, $user_id, array $d, $first ) {
 	$sections = cbv_intake_sections( $trip_id, $d );
 	$fields   = array(
 		'Air'          => array( 'Departure airport' => 'departure_airport', 'Seat preference' => 'seat_preference', 'Cabin class' => 'flight_cabin_class', 'Preferred airline' => 'preferred_airline', 'Frequent flyer / loyalty number' => 'frequent_flyer_number', 'TSA PreCheck' => 'tsa_precheck' ),
-		'Cruise'       => array( 'Cruise company' => 'cruise_company', 'Cruise program number' => 'cruise_program_number', 'Start date' => 'cruise_start_date', 'End date' => 'cruise_end_date', 'Duration' => 'cruise_duration', 'Region' => 'cruise_region', 'Departure port' => 'cruise_departure_port', 'Pre/post cruise nights' => 'pre_post_cruise_nights', 'Cabin class' => 'cruise_cabin_class', 'Beverage plan' => 'beverage_plan' ),
+		'Cruise'       => array( 'Cruise company' => 'cruise_company', 'Cruise program number' => 'cruise_program_number', 'Start date' => 'cruise_start_date', 'End date' => 'cruise_end_date', 'Pre/post cruise nights' => 'pre_post_cruise_nights', 'Cabin class' => 'cruise_cabin_class', 'Beverage plan' => 'beverage_plan' ),
 		'Hotel'        => array( 'Nights' => 'hotel_nights', 'Preferences / frequent guest programs' => 'hotel_preferences', 'Rooms / arrangement' => 'hotel_rooms_arrangement', 'Room type' => 'hotel_room_type' ),
 		'Car'          => array( 'Preferences / frequent renter programs' => 'car_preferences', 'Add-ons' => 'car_addons', 'Category' => 'car_category' ),
 		'Package Tour' => array( 'Countries' => 'package_countries', 'Style' => 'package_style', 'Activity level' => 'package_activity_level' ),
@@ -329,11 +340,11 @@ function cbv_intake_advisor_summary( $trip_id, $user_id, array $d, $first ) {
 		$lines[] = 'No air, cruise, hotel, car or package tour requests.';
 	}
 	$lines[] = '';
-	$lines[] = 'COMPANIONS';
-	$lines[] = '  Additional adults: ' . (int) ( $d['additional_adults'] ?? 0 );
-	$lines[] = '  Names: ' . $v( 'traveling_companions' );
-	$lines[] = '  Additional children: ' . (int) ( $d['additional_children'] ?? 0 );
-	$lines[] = "  Children's ages: " . $v( 'children_ages' );
+	// Children: how many and their ages at sailing only -- never names or
+	// dates of birth, which stay in the roster export (owner, 2026-10-29).
+	// Other adults register on their own and get their own email.
+	$lines[] = 'CHILDREN';
+	$lines[] = '  ' . cbv_notify_children_line( $trip_id, $d );
 	$lines[] = '';
 	$lines[] = 'For a phone number or other details, please ask the CBGV team.';
 	return $lines;
