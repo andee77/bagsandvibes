@@ -2716,6 +2716,51 @@ function cbv_intake_trip_cruise_details( $trip_id ) {
 	return array_filter( $details, function ( $v ) { return '' !== $v; } );
 }
 
+/**
+ * The required Trip Registration fields still empty, as on-screen labels
+ * (owner, 2026-10-29: the "saved" card only when this is empty). Mirrors
+ * validateTravelerIntake() in cbv_render_traveler_intake_form(): a section's
+ * fields count when the trip's own type shows it or the traveler ticked it.
+ */
+function cbv_intake_missing_fields( $trip_id, $intake ) {
+	$opted = (array) ( $intake['optional_categories'] ?? array() );
+	$shows = function ( $type, $category = null ) use ( $trip_id, $opted ) {
+		$by_type = false;
+		foreach ( (array) $type as $one ) {
+			$by_type = $by_type || ( function_exists( 'cbv_trip_has_type' ) && cbv_trip_has_type( $trip_id, $one ) );
+		}
+		return $by_type || ( $category && in_array( $category, $opted, true ) );
+	};
+	$required = array();
+	if ( $shows( 'Flight', 'Flight' ) ) {
+		$required += array( 'seat_preference' => 'Seat preference', 'departure_airport' => 'Departure airport', 'flight_cabin_class' => 'Flight cabin class', 'preferred_airline' => 'Preferred airline' );
+	}
+	if ( $shows( 'Cruise', 'Cruise' ) ) {
+		$required += array( 'cruise_company' => 'Cruise company', 'cruise_start_date' => 'Cruise start date', 'cruise_end_date' => 'Cruise end date', 'pre_post_cruise_nights' => 'Pre/post cruise nights', 'cruise_cabin_class' => 'Cabin class', 'beverage_plan' => 'Beverage plan' );
+		$intake = array_merge( $intake, cbv_intake_trip_cruise_details( $trip_id ) );
+	}
+	if ( $shows( array( 'Hotel', 'Resort' ), 'Hotel' ) ) {
+		$required += array( 'hotel_nights' => '# of nights', 'hotel_preferences' => 'Hotel preferences / frequent guest programs', 'hotel_rooms_arrangement' => '# of rooms/arrangement', 'hotel_room_type' => 'Room' );
+	}
+	if ( $shows( 'Car Rental', 'Car Rental' ) ) {
+		$required += array( 'car_preferences' => 'Car preferences / frequent renter programs', 'car_addons' => 'Add-ons', 'car_category' => 'Car category' );
+	}
+	if ( $shows( 'Package Tour' ) ) {
+		$required += array( 'package_countries' => 'Country or countries of interest', 'package_style' => 'Style', 'package_activity_level' => 'Activity level' );
+	}
+	$required += array( 'insurance_decision' => 'Travel insurance decision', 'cc_auth_completed' => 'Credit Card Authorization confirmation' );
+
+	$missing = array();
+	foreach ( $required as $key => $label ) {
+		$value = $intake[ $key ] ?? '';
+		$empty = is_array( $value ) ? ! array_filter( $value ) : ( is_bool( $value ) ? ! $value : '' === trim( (string) $value ) );
+		if ( $empty ) {
+			$missing[] = $label;
+		}
+	}
+	return $missing;
+}
+
 /** When this traveler last saved their Trip Registration (MySQL time, '' for older registrations). */
 function cbv_get_traveler_intake_saved_at( $user_id, $trip_id ) {
 	return (string) get_user_meta( $user_id, '_traveler_intake_saved_' . $trip_id, true );
@@ -2863,6 +2908,11 @@ add_action( 'rest_api_init', function () {
 				$data = array_merge( $data, cbv_intake_trip_cruise_details( $trip_id ) );
 			}
 
+			$missing = cbv_intake_missing_fields( $trip_id, $data );
+			if ( $missing ) {
+				return new WP_Error( 'cbv_intake_incomplete', 'Still needed: ' . implode( ', ', $missing ) . '.', array( 'status' => 400, 'missing' => $missing ) );
+			}
+
 			update_user_meta( $user_id, '_traveler_intake_' . $trip_id, wp_json_encode( $data ) );
 			update_user_meta( $user_id, '_traveler_intake_saved_' . $trip_id, current_time( 'mysql' ) );
 
@@ -2976,6 +3026,7 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 
 	// Collapsed into a summary card once saved; Edit reopens the form (owner, 2026-10-29).
 	$is_saved    = ! empty( $intake );
+	$missing     = $is_saved ? cbv_intake_missing_fields( $trip_id, $intake ) : array();
 	$saved_at    = cbv_get_traveler_intake_saved_at( $user_id, $trip_id );
 	$adults_only = function_exists( 'cbv_trip_is_adults_only' ) && cbv_trip_is_adults_only( $trip_id );
 	$children    = cbv_intake_children( $intake );
@@ -2986,15 +3037,26 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 	<div class="trip-detail-section trip-detail-traveler-intake" id="cbv-traveler-intake">
 		<h3>Trip Registration</h3>
 
-		<div class="cbv-intake-summary" id="cbv-intake-summary" <?php echo $is_saved ? '' : 'hidden'; ?>>
+		<div class="cbv-intake-summary<?php echo $missing ? ' cbv-intake-summary-attention' : ''; ?>" id="cbv-intake-summary" <?php echo $is_saved ? '' : 'hidden'; ?>>
+			<?php if ( $missing ) : ?>
+				<div class="cbv-intake-summary-text">
+					<p><span class="cbv-intake-summary-check" aria-hidden="true">&#9888;</span> Your travel details need attention</p>
+					<p class="cbv-intake-summary-missing">Still needed: <?php echo esc_html( implode( ', ', $missing ) ); ?></p>
+				</div>
+			<?php else : ?>
 			<p class="cbv-intake-summary-text">
 				<span class="cbv-intake-summary-check" aria-hidden="true">&#10003;</span>
 				Your travel details are saved<span id="cbv-intake-summary-date"><?php echo $saved_at ? esc_html( ' · Last saved ' . date_i18n( 'M j, Y', strtotime( $saved_at ) ) ) : ''; ?></span>
 			</p>
+			<?php endif; ?>
 			<button type="button" class="btn btn-ghost cbv-intake-edit-btn" id="cbv-intake-edit-btn" aria-controls="cbv-intake-form-body" aria-expanded="false">Edit</button>
 		</div>
 
 		<div class="cbv-intake-form-body" id="cbv-intake-form-body" <?php echo $is_saved ? 'hidden' : ''; ?>>
+		<div class="cbv-intake-errors" id="cbv-intake-errors" role="alert" tabindex="-1" hidden>
+			<p><strong>Please complete the highlighted fields.</strong></p>
+			<p id="cbv-intake-errors-list"></p>
+		</div>
 		<p class="cb-page-hint">A few details we need from you individually — seat and cabin preferences, your travel insurance decision, and required paperwork — so everything&#8217;s ready well before departure.</p>
 
 		<?php
@@ -3404,11 +3466,51 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 		// only renders a trip-type section's fields when that section is
 		// actually shown, so "required" naturally only ever applies to
 		// whatever's on screen for this trip.
+		// Visible errors (owner, 2026-10-29): a message at the top of the form,
+		// plus a short note under each missing field.
+		function clearFieldErrors() {
+			document.querySelectorAll( '#cbv-traveler-intake .cbv-field-error' ).forEach( function ( n ) { n.remove(); } );
+			var box = document.getElementById( 'cbv-intake-errors' );
+			if ( box ) { box.hidden = true; }
+		}
+		function showFieldErrors( missing, message ) {
+			missing.forEach( function ( m ) {
+				var anchor = m.el.closest( 'label' ) || m.el.closest( '.cbv-intake-field' ) || m.el;
+				if ( anchor.querySelector( ':scope > .cbv-field-error' ) ) { return; }
+				var note = document.createElement( 'span' );
+				note.className = 'cbv-field-error';
+				note.textContent = m.note || 'Required';
+				anchor.appendChild( note );
+			} );
+			var box  = document.getElementById( 'cbv-intake-errors' );
+			var list = document.getElementById( 'cbv-intake-errors-list' );
+			if ( ! box ) { return; }
+			list.textContent = message || ( 'Still needed: ' + missing.map( function ( m ) { return m.label; } ).join( ', ' ) + '.' );
+			box.hidden = false;
+			box.scrollIntoView( { behavior: 'smooth', block: 'center' } );
+			box.focus( { preventScroll: true } );
+		}
+		// A field's note and outline clear as soon as it is filled in.
+		document.querySelectorAll( '#cbv-traveler-intake input, #cbv-traveler-intake select, #cbv-traveler-intake textarea' ).forEach( function ( el ) {
+			el.addEventListener( 'change', function () {
+				var group = el.closest( '.cbv-field-invalid' ) || ( el.classList.contains( 'cbv-field-invalid' ) ? el : null );
+				el.classList.remove( 'cbv-field-invalid' );
+				var holder = el.closest( 'label' ) || el.closest( '.cbv-intake-field' );
+				if ( holder ) {
+					holder.classList.remove( 'cbv-field-invalid' );
+					var note = holder.querySelector( ':scope > .cbv-field-error' );
+					if ( note ) { note.remove(); }
+				}
+				if ( group && group !== el ) { group.classList.remove( 'cbv-field-invalid' ); }
+			} );
+		} );
+
 		function validateTravelerIntake() {
 			var missing = [];
 			document.querySelectorAll( '#cbv-traveler-intake .cbv-field-invalid' ).forEach( function ( el ) {
 				el.classList.remove( 'cbv-field-invalid' );
 			} );
+			clearFieldErrors();
 
 			// A field only counts when it is actually on screen: not inside a
 			// section that is turned off (the [hidden] attribute on an optional
@@ -3492,7 +3594,7 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 				var age = ageAtSailing( dob.value );
 				if ( dob.value && ( null === age || age >= 18 ) ) {
 					dob.classList.add( 'cbv-field-invalid' );
-					missing.push( { el: dob, label: label + ': children must be 17 or younger at sailing (anyone 18 and over registers on their own)' } );
+					missing.push( { el: dob, label: label + ': children must be 17 or younger at sailing (anyone 18 and over registers on their own)', note: 'Must be 17 or younger at sailing' } );
 				}
 			} );
 
@@ -3507,12 +3609,8 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 				var missing = validateTravelerIntake();
 				var resultEl = document.getElementById( 'cbv-intake-result' );
 				if ( missing.length ) {
-					if ( resultEl ) {
-						resultEl.textContent = 'Please complete: ' + missing.map( function ( m ) { return m.label; } ).join( ', ' ) + '.';
-						resultEl.style.color = 'var(--coral)';
-					}
-					missing[ 0 ].el.scrollIntoView( { behavior: 'smooth', block: 'center' } );
-					missing[ 0 ].el.focus();
+					if ( resultEl ) { resultEl.textContent = ''; }
+					showFieldErrors( missing );
 					return;
 				}
 				if ( resultEl ) { resultEl.style.color = ''; }
@@ -3573,13 +3671,15 @@ function cbv_render_traveler_intake_form( $trip_id ) {
 						saveBtn.textContent = 'Save Travel Details';
 						if ( data && data.saved ) {
 							resultEl.textContent = '';
+							summary.classList.remove( 'cbv-intake-summary-attention' );
+							summary.querySelector( '.cbv-intake-summary-text' ).outerHTML = '<p class="cbv-intake-summary-text"><span class="cbv-intake-summary-check" aria-hidden="true">\u2713</span> Your travel details are saved<span id="cbv-intake-summary-date"></span></p>';
 							document.getElementById( 'cbv-intake-summary-date' ).textContent = data.saved_on ? ' · Last saved ' + data.saved_on : '';
 							showForm( false );
 							summary.scrollIntoView( { behavior: 'smooth', block: 'center' } );
 							if ( editBtn ) { editBtn.focus( { preventScroll: true } ); }
 						} else {
-							resultEl.style.color = 'var(--coral)';
-							resultEl.textContent = ( data && data.message ) ? data.message : 'Could not save.';
+							resultEl.textContent = '';
+							showFieldErrors( [], ( data && data.message ) ? data.message : 'Could not save. Please try again.' );
 						}
 					} )
 					.catch( function () {

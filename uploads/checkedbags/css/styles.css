@@ -4773,3 +4773,48 @@ details.cbv-intake-insurance-overview {
   border-style: dashed;
   cursor: default;
 }
+/* Trip Registration errors (owner, 2026-10-29): a banner at the top of the
+   form (ink on coral 5.7:1), a stronger outline, and a short note under each
+   missing field (#FF9A82 on the navy panel, 5.8:1). */
+.cbv-intake-errors {
+  padding: 0.85rem 1rem;
+  border-radius: 6px;
+  background: var(--coral);
+  color: var(--ink);
+}
+.cbv-intake-errors:focus { outline: 2px solid var(--sand); outline-offset: 3px; }
+.trip-detail-traveler-intake .cbv-intake-errors p {
+  margin: 0;
+  color: var(--ink);
+}
+.trip-detail-traveler-intake .cbv-intake-errors p + p { margin-top: 0.35rem; }
+.cbv-intake-field input.cbv-field-invalid,
+.cbv-intake-field select.cbv-field-invalid,
+.cbv-intake-field textarea.cbv-field-invalid {
+  border: 2px solid #FF9A82 !important;
+  box-shadow: none;
+}
+.cbv-intake-field.cbv-field-invalid,
+.cbv-intake-field label.check-row.cbv-field-invalid {
+  border-left: 3px solid #FF9A82;
+  padding-left: 0.75rem;
+}
+.cbv-field-error {
+  display: block;
+  flex-basis: 100%;
+  margin-top: 0.3rem;
+  color: #FF9A82;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.cbv-field-error::before { content: "\26A0  "; }
+/* "Needs attention" version of the summary card: gold border and icon (ink on gold 7.8:1). */
+.cbv-intake-summary-attention { border-color: var(--gold); }
+.cbv-intake-summary-attention .cbv-intake-summary-check { background: var(--gold); color: var(--ink); }
+.trip-detail-traveler-intake .cbv-intake-summary-text p { margin: 0; color: var(--sand); }
+.trip-detail-traveler-intake .cbv-intake-summary-missing {
+  margin-top: 0.35rem !important;
+  padding-left: 2.1rem;
+  color: rgba(251,243,231,0.85) !important;
+  font-size: 0.85rem;
+}
