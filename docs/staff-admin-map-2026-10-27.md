@@ -163,6 +163,7 @@ Passports expiring within 6 months of the trip are highlighted. It's a sensitive
 
 - **Where members fill it in:** the **Trip Registration** section of the private trip page. Only roster members see it.
 - **After saving (since 29 Oct 2026):** the form collapses to "✓ Your travel details are saved · Last saved {date}" with an **Edit** button. It stays open until the first save.
+- **Required fields:** a save with anything required missing is refused. The form shows "Please complete the highlighted fields" at the top and a "Required" note under each missing field. A stored registration that is still missing something (e.g. saved before a field became required) shows "⚠ Your travel details need attention · Still needed: …" instead of the saved card. All current registrations are complete (29 Oct 2026).
 - **When it disappears:** once staff mark both **Insurance Waiver Received** and **CC Auth Received** for that traveler in the trip's roster.
 - **What's collected:**
   - **Opt-in checkboxes:** Air Travel, Cruise, Hotel, Car Rental. Package Tour sections show automatically when the trip is tagged that way.
