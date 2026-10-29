@@ -162,22 +162,28 @@ Passports expiring within 6 months of the trip are highlighted. It's a sensitive
 ## 3. Trip Registration (traveler intake)
 
 - **Where members fill it in:** the **Trip Registration** section of the private trip page. Only roster members see it.
+- **After saving (since 29 Oct 2026):** the form collapses to "✓ Your travel details are saved · Last saved {date}" with an **Edit** button. It stays open until the first save.
 - **When it disappears:** once staff mark both **Insurance Waiver Received** and **CC Auth Received** for that traveler in the trip's roster.
 - **What's collected:**
   - **Opt-in checkboxes:** Air Travel, Cruise, Hotel, Car Rental. Package Tour sections show automatically when the trip is tagged that way.
   - **Air:** seat preference, departure airport, cabin class, preferred airline, loyalty number, TSA PreCheck yes/no.
-  - **Cruise:** company, dates, duration, region, port, **pre/post cruise nights** (the only "hotel before/after" question), cabin class, beverage plan.
+  - **Cruise:** company, program number, dates, **pre/post cruise nights** (the only "hotel before/after" question), cabin class, beverage plan.
+    - On a Cruise trip, the company, dates and program number are **filled in from the trip and can't be edited**. The company comes from the trip's provider (Landing Page Settings) or the Gate 12 request; the dates come from Trip Details or the request.
+    - Duration, region and departure port are no longer asked (29 Oct 2026). Earlier answers stay in the export.
   - **Hotel:** nights, preferences, rooms, room type.
   - **Car:** preferences, add-ons, category.
-  - **Travel insurance:** accept or decline, plus the Allianz waiver download.
+  - **Travel insurance:** accept or decline, plus the Allianz waiver download. "Why Travel Insurance Matters" is collapsed, and **the choice stays locked until the member opens it** (members with a decision already on file aren't locked).
   - **Credit card authorization:** a form download and a confirmation checkbox. Card numbers are never collected on the site.
-  - **Companions:** additional adults and children, names and ages. The children fields are hidden on adults-only trips.
+  - **Other adults:** no longer listed (29 Oct 2026). Every adult 18+ registers on their own; the form shows a **Copy my invite link** button instead.
+  - **Children** (hidden on adults-only trips): for each child (17 or younger at sailing, up to 8): first and last name, date of birth, relationship. "Age at sailing" is worked out from the date of birth and the trip's start date. A child 18 or older at sailing is refused.
+  - **Fee:** each member pays for themselves, plus half the per-traveler fee for each child listed. Additional adults from the old form are not billed.
 - **Where it's stored:** on each traveler's account, one record per trip (`_traveler_intake_{trip}`).
 - **Who can see it:** the member, and staff **only through Export Roster to Excel**. No admin screen shows it.
 - **How requests reach the travel advisor (since 28 Oct 2026):** each time a traveler first saves, or later changes, their Trip Registration:
-  - **The travel advisor** (Settings > CBGV Notifications) gets a **"Travel requests"** email: the traveler's name and email address, the extras they ticked, their answers for each section (ticked, or part of the trip type), loyalty numbers, and companions' names and ages. **No passport, card, insurance or medical details**, and no phone number.
-  - **Staff** get a short "Trip Registration submitted/updated" email.
+  - **The travel advisor** (Settings > CBGV Notifications) gets a **"Travel requests"** email: the traveler's name and email address, the extras they ticked, their answers for each section (ticked, or part of the trip type), loyalty numbers, and **the number of children and their ages at sailing** (never children's names or dates of birth). **No passport, card, insurance or medical details**, and no phone number.
+  - **Staff** get a short "Trip Registration submitted/updated" email (with the same children count and ages only).
   - Saving with no changes sends nothing.
+- **Children's names and dates of birth are staff-only:** they appear only in Export Roster to Excel (**Children: Names / Dates of Birth / Ages at Sailing / Relationships**). The old form's columns are now labelled "(old form)".
 - **Export Roster to Excel** now has **Requested: Air / Cruise / Hotel / Car / Package Tour** columns: **Yes** = the traveler ticked it, **Trip type** = it comes with the trip, blank = neither. Package Tour can't be ticked; it only comes from the trip type.
 - **Fixed 28 Oct 2026:** the export's old blank "Trip Price" column is now **"Travel Price (reference only)"** and shows the trip's Travel price field (blank while that field is 0).
 
