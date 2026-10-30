@@ -454,7 +454,7 @@ Each one already sits on its page. **Don't remove them.**
 4. ~~Contact-form messages aren't stored; email is the only copy.~~ **Done 28 Oct 2026:** Tools > CBGV contact log, 90 days.
 5. ~~There's no admin view of who accepted the Payment Disclaimer.~~ **Done 28 Oct 2026:** Users > Disclaimer Acceptance, with CSV.
 6. ~~There's no admin "add member to trip" control.~~ **Done 28 Oct 2026:** Trip Details > Add traveler, with an optional email.
-7. ~~Invite links can't be listed or revoked.~~ **Done 28 Oct 2026:** Users > Invite Links (Turn off, Make a new link). On 28 Oct 2026 the 8 old links to deleted trips or deleted members were turned off, and the test trip's link was replaced. Active: Trip 320 (made by Andee P) and CBGV TEST TRIP (made by #109).
+7. ~~Invite links can't be listed or revoked.~~ **Done 28 Oct 2026:** Users > Invite Links (Turn off, Make a new link). On 28 Oct 2026 the 8 old links to deleted trips or deleted members were turned off, and the test trip's link was replaced. Active: Trip 320 (made by Andee P). The CBGV TEST TRIP links were removed with that trip on 30 Oct 2026.
 8. ~~Trip Suggestions and Destination Inspiration are leftover screens with no member-facing use.~~ **Done 28 Oct 2026:** both are hidden from the admin menu, and their data is kept.
 9. The existing `docs/admin-manual-notes.md` is out of date in places:
    - The new-design master switch is ON.
@@ -463,5 +463,10 @@ Each one already sits on its page. **Don't remove them.**
 
 ---
 
-## Test data (staff testing, Oct 2026)
-- **CBGV TEST TRIP** (#458): https://bagsandvibes.com/wp-admin/post.php?post=458&action=edit. Private, Cruise, Status Accepted (not on Gate 07, no discussion board). Its roster is the staff test accounts only: #109 (Full Member), and #110 and #111 (Trip Guests who joined through #109's invite link). Delete it when testing is finished.
+## Test data (staff testing)
+- **CBGV TEST TRIP (#458) was deleted permanently on 30 Oct 2026**, with #109's Trip Registration, rules acceptance and saved invite link for it, and its 2 invite links. Database backup taken first: `~/backups/delete-test-trip-458-20261030-161939/`.
+- **Test accounts kept (no trips now):**
+  - **#109 TestQueen:** Full Member.
+  - **#110 and #111:** Trip Guests. Their "invited by" history still points to the deleted trip, so Users > Trip Guests shows their trip as "—". #111's Full Membership request (28 Oct 2026) is still open.
+  - Add them to the next test trip with **Trip Details > Add traveler**.
+- **Planned:** a new private test trip for the $1 live payment test, before the 2 Jan 2027 dry run (owner will ask in January).
