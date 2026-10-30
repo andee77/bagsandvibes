@@ -115,7 +115,7 @@ Staff can see the agreement version and date, who invited the member, trip inter
    - **New design:** shown only when the trip's **Use new landing design** box is ticked. The site-wide new-design switch is already on, and it's developer-only.
    - **Previewing:** admins can add `?preview=new` to the trip address to see the new design before switching it on.
 5. **Who sees what at the trip address:**
-   - Roster members and admins see the private trip page. Members must accept the trip's agreement first.
+   - Roster members and admins see the members' trip page (see "Members' trip page" below). Members must accept the trip's agreement first.
    - Everyone else sees the public landing page, or a sign-in message.
 
 ### Trip link and QR code
@@ -146,6 +146,26 @@ Each trip the member is on shows:
 - **Generate invite link**
 
 Cover photo presets are managed at Settings > Cover Photo Presets: https://bagsandvibes.com/wp-admin/options-general.php?page=cbv-cover-presets
+
+### Members' trip page (redesigned 30 Oct 2026)
+What a roster member (or an admin) sees on a trip's own address, for **every trip** whatever its public landing design. Code: `checkedbags-member-trip-page.php`.
+
+**From the top:**
+- **Hero:** the trip photo (the new design's poster, else the Cover Photo), trip type / provider / trip code tags, dates, "Miami round trip · 5 nights", "Welcome aboard, {first name}".
+- **Boarding pass:** passenger, cruise line (provider), ship (Hero & boarding pass box), sails/returns dates, trip code, the FROM/TO codes from the itinerary. A coral stub counts the **days until we sail** (or "go"); it shows **Bon voyage** during the trip and disappears after it.
+- **Your next step:** the first unfinished checklist item with its button, or **"You're all set!"** with a link to the trip discussion.
+- **01 · Before you board, Your trip checklist** (real data, 6-part progress bar, "N of 6 done · N waiting for your forms"):
+  1. Trip rules accepted (version + date), or TO DO with **Read the rules**.
+  2. Travel details saved (Trip Registration complete), or TO DO with what's still needed.
+  3. Travel insurance waiver: DONE when **Insurance Waiver Received** = Yes in the roster, or "Not needed: you chose travel insurance"; otherwise WAITING + download.
+  4. Card authorization form: DONE when **CC Auth Received** = Yes; otherwise WAITING + download.
+  5. CBGV Group Experience Fee: DONE when paid in full (or Paid in Full = Yes, or no fee); otherwise TO DO with the amount due and **Pay now** (goes to Gate 09; nothing is charged on this page).
+  6. Book with your travel advisor: TO DO + **Schedule** (Gate 09), showing the appointment request status once one exists; DONE when that request is marked Complete.
+  Then the current **Trip updates** (Trip updates box).
+- **02 · Key dates** (provider key dates + Key dates box), **03 · The route** (Day-by-Day Itinerary, plus the itinerary PDF button), **04 · What's included** (all-in parts from Pricing Tiers, the CBGV group program, and the provider's fare cards folded away), **05 · What to pack** (pack tags, Leave at home, the fine print folded away; the old **Gate 07 Packing Notes** text shows here only when the trip has no pack list), **06 · Who's going** (members only: profile photo or initial, first name + last initial; Discuss this trip; Copy my invite link).
+- Then the Trip Registration card, Rules for this trip, Who does what, the member's own request details (member-built trips), and Questions? Contact us.
+
+**Rules:** until a member accepts the trip's rules they see only the hero, pass, next step, checklist, itinerary PDF, the rules prompt, their Trip Registration and Who does what. Sections with no data are left out, so a trip looks complete once its Provider, ship name, group program, pack tags and Trip Agreement are filled in.
 
 ### Roster export
 Open the trip, go to the **Export Roster** box and click **Export Roster to Excel**. This downloads a spreadsheet with one row per traveler:
