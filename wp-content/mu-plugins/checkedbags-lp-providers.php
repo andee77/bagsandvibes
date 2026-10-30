@@ -792,7 +792,7 @@ add_action( 'save_post_cb_provider', function ( $post_id ) {
       Add/Remove-row script. One nonce, no nested <form>.
    ========================================================================== */
 add_action( 'add_meta_boxes_cb_trip', function () {
-	add_meta_box( 'cbv_lp_trip_dates', 'Key dates for this trip (new landing design)', 'cbv_lp_render_trip_dates_box', 'cb_trip', 'normal', 'default' );
+	add_meta_box( 'cbv_lp_trip_dates', 'Key dates for this trip (new design + members\' page)', 'cbv_lp_render_trip_dates_box', 'cb_trip', 'normal', 'default' );
 } );
 
 function cbv_lp_trip_date_row( $i, $row ) {

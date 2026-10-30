@@ -486,8 +486,9 @@ function cb_render_trip_meta_box( $post ) {
 			<?php endif; ?>
 		</div>
 		<div class="cb-field">
-			<label for="cb_deposit_amount">Deposit per person ($)</label>
+			<label for="cb_deposit_amount">CBGV fee deposit per person ($)</label>
 			<input type="number" step="0.01" name="cb_deposit_amount" id="cb_deposit_amount" value="<?php echo esc_attr( $deposit ); ?>">
+			<p class="description">The first Gate 09 payment of the CBGV Group Experience Fee when Gate 09's payment mode is "Deposit + installments". Not a travel deposit.</p>
 		</div>
 	</div>
 

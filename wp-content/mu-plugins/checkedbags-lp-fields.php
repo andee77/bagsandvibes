@@ -57,7 +57,7 @@ add_action( 'init', function () {
 } );
 
 add_action( 'add_meta_boxes', function () {
-	add_meta_box( 'cbv_lp_settings', 'Landing Page Settings (new design)', 'cbv_lp_render_settings_box', 'cb_trip', 'normal', 'default' );
+	add_meta_box( 'cbv_lp_settings', 'Landing Page Settings (new design + members\' page)', 'cbv_lp_render_settings_box', 'cb_trip', 'normal', 'default' );
 } );
 
 function cbv_lp_render_settings_box( $post ) {

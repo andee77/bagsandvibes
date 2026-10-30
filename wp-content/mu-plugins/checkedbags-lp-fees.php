@@ -336,7 +336,7 @@ function cbv_lp_render_fees_page() {
    ========================================================================== */
 add_action( 'add_meta_boxes', function () {
 	if ( current_user_can( 'manage_options' ) ) {
-		add_meta_box( 'cbv_lp_planning_fee', 'Group Experience Fee (new design)', 'cbv_lp_render_trip_fee_box', 'cb_trip', 'normal', 'default' );
+		add_meta_box( 'cbv_lp_planning_fee', 'Group Experience Fee (charged on Gate 09, all trips)', 'cbv_lp_render_trip_fee_box', 'cb_trip', 'normal', 'default' );
 	}
 } );
 
@@ -351,7 +351,7 @@ function cbv_lp_render_trip_fee_box( $post ) {
 	$standard = $all[ $type ] ?? array( 'amount' => 0, 'basis' => 'per_traveler' );
 	$std_text = cbv_lp_fee_description( $standard, $labels );
 	?>
-	<p class="description">Checked Bags &amp; Good Vibes' own Group Experience Fee, added to the all-in price on the new landing design as "CBGV Group Experience Fee". Standard fees: <a href="<?php echo esc_url( admin_url( 'options-general.php?page=cbv-experience-fees' ) ); ?>">Settings &gt; Group Experience Fees</a>. <?php echo cbv_lp_planning_fee_is_live() ? '<strong>The fee is live.</strong>' : 'The fee is <strong>not live yet</strong>: it only shows in admin previews.'; ?></p>
+	<p class="description">Checked Bags &amp; Good Vibes' own Group Experience Fee, charged to members on Gate 09 and shown on the members' trip page and the new landing design as "CBGV Group Experience Fee". <strong>A different fee for this trip (below) is charged on Gate 09 straight away, for any trip.</strong> Standard fees: <a href="<?php echo esc_url( admin_url( 'options-general.php?page=cbv-experience-fees' ) ); ?>">Settings &gt; Group Experience Fees</a>. <?php echo cbv_lp_planning_fee_is_live() ? '<strong>The standard fee is live.</strong>' : 'The standard fee is <strong>not live yet</strong>: it is not charged and only shows in admin previews.'; ?></p>
 	<p><label><input type="radio" name="cbv_lp_planning_fee[mode]" value="standard" <?php checked( $trip['mode'], 'standard' ); ?>> Use the standard fee (<?php echo esc_html( ( $types[ $type ]['label'] ?? 'This type' ) . ': ' . $std_text ); ?>)</label></p>
 	<p>
 		<label><input type="radio" name="cbv_lp_planning_fee[mode]" value="custom" <?php checked( $trip['mode'], 'custom' ); ?>> Use a different fee for this trip:</label>

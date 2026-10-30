@@ -409,7 +409,7 @@ function cbv_lp_render_intro_box( $post ) {
 		<label for="cbv_lp_travelers_booked"><strong>Travelers booked (paid deposits)</strong></label><br>
 		<input type="number" name="cbv_lp_travelers_booked" id="cbv_lp_travelers_booked" value="<?php echo esc_attr( $booked ); ?>" min="0" max="9999" step="1" class="small-text">
 	</p>
-	<p class="description">How many travelers have paid their deposit. Below the Minimum group size the board shows "NN OF <?php echo (int) $min; ?>"; once the minimum is reached it switches to "NN OF" the trip's Capacity with the spots left; at Capacity the chip reads "Fully booked · Ask about the waitlist". Leave blank to show only the "needed" line and the status chip.</p>
+	<p class="description">How many travelers have paid their deposit (typed here; not linked to the roster). Blank, or below the Minimum group size (<?php echo (int) $min; ?>): the board shows only the status chip. At the minimum or more: "N travelers booked" and "NN OF" the trip's Capacity. At Capacity the chip reads "Fully booked · Ask about the waitlist". The board is hidden while the Minimum group size is 0 or blank.</p>
 
 	<h4 style="margin:16px 0 6px;">Intro</h4>
 	<p>

@@ -1268,7 +1268,7 @@ function cbv_render_trip_agreement_meta_box( $post ) {
 	$version = cbv_get_trip_agreement_version( $post->ID );
 	?>
 	<p>
-		<strong>This is the trip&#8217;s one rules text</strong>: members see it on the trip page and under &#8220;Rules for Your Trips&#8221; on Gate 12, with its version.
+		<strong>This is the trip&#8217;s one rules text</strong>: members see it on the trip page and under &#8220;Rules for Your Trips&#8221; on Gate 11, with its version.
 		Current version: <strong><?php echo (int) $version; ?></strong>.
 		Changing the text below and saving bumps the version automatically —
 		anyone who already accepted an older version (roster members, invited

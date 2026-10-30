@@ -1,0 +1,92 @@
+diff --git a/wp-content/mu-plugins/checkedbags-gate07.php b/wp-content/mu-plugins/checkedbags-gate07.php
+index 9835f03..88040e5 100644
+--- a/wp-content/mu-plugins/checkedbags-gate07.php
++++ b/wp-content/mu-plugins/checkedbags-gate07.php
+@@ -33,3 +33,3 @@ add_action( 'init', function () {
+ add_action( 'add_meta_boxes', function () {
+-	add_meta_box( 'cb_gate07_packing', 'Gate 07 — Packing Notes', 'cb_render_packing_meta_box', 'cb_trip', 'normal', 'default' );
++	add_meta_box( 'cb_gate07_packing', 'Packing Notes (members\' page, only when there\'s no pack list)', 'cb_render_packing_meta_box', 'cb_trip', 'normal', 'default' );
+ } );
+@@ -40,2 +40,3 @@ function cb_render_packing_meta_box( $post ) {
+ 	?>
++	<p class="description">Shown on the members' trip page (section 05) only when this trip has no pack list in the "What's included &amp; pack list" box; the pack list wins. Not shown on Gate 07.</p>
+ 	<textarea name="cb_packing_notes" rows="4" style="width:100%;" placeholder="What to pack for this trip..."><?php echo esc_textarea( $notes ); ?></textarea>
+diff --git a/wp-content/mu-plugins/checkedbags-gate09.php b/wp-content/mu-plugins/checkedbags-gate09.php
+index 91ba76f..411f387 100644
+--- a/wp-content/mu-plugins/checkedbags-gate09.php
++++ b/wp-content/mu-plugins/checkedbags-gate09.php
+@@ -114,3 +114,3 @@ function cb_render_payment_meta_box( $post ) {
+ 	</p>
+-	<p><em>Deposit amount and full price are set in the Trip Details box above.</em></p>
++	<p><em>Members pay only the CBGV Group Experience Fee (set in the trip's Group Experience Fee box) plus any approved extras. The "CBGV fee deposit" for deposit + installments is in the Trip Details box. The travel price is never charged here.</em></p>
+ 	<?php
+diff --git a/wp-content/mu-plugins/checkedbags-lp-fees.php b/wp-content/mu-plugins/checkedbags-lp-fees.php
+index fc2813c..c7a69b6 100644
+--- a/wp-content/mu-plugins/checkedbags-lp-fees.php
++++ b/wp-content/mu-plugins/checkedbags-lp-fees.php
+@@ -338,3 +338,3 @@ add_action( 'add_meta_boxes', function () {
+ 	if ( current_user_can( 'manage_options' ) ) {
+-		add_meta_box( 'cbv_lp_planning_fee', 'Group Experience Fee (new design)', 'cbv_lp_render_trip_fee_box', 'cb_trip', 'normal', 'default' );
++		add_meta_box( 'cbv_lp_planning_fee', 'Group Experience Fee (charged on Gate 09, all trips)', 'cbv_lp_render_trip_fee_box', 'cb_trip', 'normal', 'default' );
+ 	}
+@@ -353,3 +353,3 @@ function cbv_lp_render_trip_fee_box( $post ) {
+ 	?>
+-	<p class="description">Checked Bags &amp; Good Vibes' own Group Experience Fee, added to the all-in price on the new landing design as "CBGV Group Experience Fee". Standard fees: <a href="<?php echo esc_url( admin_url( 'options-general.php?page=cbv-experience-fees' ) ); ?>">Settings &gt; Group Experience Fees</a>. <?php echo cbv_lp_planning_fee_is_live() ? '<strong>The fee is live.</strong>' : 'The fee is <strong>not live yet</strong>: it only shows in admin previews.'; ?></p>
++	<p class="description">Checked Bags &amp; Good Vibes' own Group Experience Fee, charged to members on Gate 09 and shown on the members' trip page and the new landing design as "CBGV Group Experience Fee". <strong>A different fee for this trip (below) is charged on Gate 09 straight away, for any trip.</strong> Standard fees: <a href="<?php echo esc_url( admin_url( 'options-general.php?page=cbv-experience-fees' ) ); ?>">Settings &gt; Group Experience Fees</a>. <?php echo cbv_lp_planning_fee_is_live() ? '<strong>The standard fee is live.</strong>' : 'The standard fee is <strong>not live yet</strong>: it is not charged and only shows in admin previews.'; ?></p>
+ 	<p><label><input type="radio" name="cbv_lp_planning_fee[mode]" value="standard" <?php checked( $trip['mode'], 'standard' ); ?>> Use the standard fee (<?php echo esc_html( ( $types[ $type ]['label'] ?? 'This type' ) . ': ' . $std_text ); ?>)</label></p>
+diff --git a/wp-content/mu-plugins/checkedbags-lp-fields.php b/wp-content/mu-plugins/checkedbags-lp-fields.php
+index e26b5f2..22d4b74 100644
+--- a/wp-content/mu-plugins/checkedbags-lp-fields.php
++++ b/wp-content/mu-plugins/checkedbags-lp-fields.php
+@@ -59,3 +59,3 @@ add_action( 'init', function () {
+ add_action( 'add_meta_boxes', function () {
+-	add_meta_box( 'cbv_lp_settings', 'Landing Page Settings (new design)', 'cbv_lp_render_settings_box', 'cb_trip', 'normal', 'default' );
++	add_meta_box( 'cbv_lp_settings', 'Landing Page Settings (new design + members\' page)', 'cbv_lp_render_settings_box', 'cb_trip', 'normal', 'default' );
+ } );
+diff --git a/wp-content/mu-plugins/checkedbags-lp-hero.php b/wp-content/mu-plugins/checkedbags-lp-hero.php
+index b77b3af..8a4d3d0 100644
+--- a/wp-content/mu-plugins/checkedbags-lp-hero.php
++++ b/wp-content/mu-plugins/checkedbags-lp-hero.php
+@@ -465,3 +465,3 @@ add_action( 'wp_enqueue_scripts', function () {
+ add_action( 'add_meta_boxes', function () {
+-	add_meta_box( 'cbv_lp_hero', 'Hero & boarding pass (new design)', 'cbv_lp_render_hero_box', 'cb_trip', 'normal', 'default' );
++	add_meta_box( 'cbv_lp_hero', 'Hero & boarding pass (new design + members\' page)', 'cbv_lp_render_hero_box', 'cb_trip', 'normal', 'default' );
+ } );
+diff --git a/wp-content/mu-plugins/checkedbags-lp-intro.php b/wp-content/mu-plugins/checkedbags-lp-intro.php
+index 550c317..849f567 100644
+--- a/wp-content/mu-plugins/checkedbags-lp-intro.php
++++ b/wp-content/mu-plugins/checkedbags-lp-intro.php
+@@ -411,3 +411,3 @@ function cbv_lp_render_intro_box( $post ) {
+ 	</p>
+-	<p class="description">How many travelers have paid their deposit. Below the Minimum group size the board shows "NN OF <?php echo (int) $min; ?>"; once the minimum is reached it switches to "NN OF" the trip's Capacity with the spots left; at Capacity the chip reads "Fully booked · Ask about the waitlist". Leave blank to show only the "needed" line and the status chip.</p>
++	<p class="description">How many travelers have paid their deposit (typed here; not linked to the roster). Blank, or below the Minimum group size (<?php echo (int) $min; ?>): the board shows only the status chip. At the minimum or more: "N travelers booked" and "NN OF" the trip's Capacity. At Capacity the chip reads "Fully booked · Ask about the waitlist". The board is hidden while the Minimum group size is 0 or blank.</p>
+ 
+diff --git a/wp-content/mu-plugins/checkedbags-lp-providers.php b/wp-content/mu-plugins/checkedbags-lp-providers.php
+index a081004..462e5ec 100644
+--- a/wp-content/mu-plugins/checkedbags-lp-providers.php
++++ b/wp-content/mu-plugins/checkedbags-lp-providers.php
+@@ -794,3 +794,3 @@ add_action( 'save_post_cb_provider', function ( $post_id ) {
+ add_action( 'add_meta_boxes_cb_trip', function () {
+-	add_meta_box( 'cbv_lp_trip_dates', 'Key dates for this trip (new landing design)', 'cbv_lp_render_trip_dates_box', 'cb_trip', 'normal', 'default' );
++	add_meta_box( 'cbv_lp_trip_dates', 'Key dates for this trip (new design + members\' page)', 'cbv_lp_render_trip_dates_box', 'cb_trip', 'normal', 'default' );
+ } );
+diff --git a/wp-content/mu-plugins/checkedbags-trip-invites.php b/wp-content/mu-plugins/checkedbags-trip-invites.php
+index 012f1c7..3b6fc14 100644
+--- a/wp-content/mu-plugins/checkedbags-trip-invites.php
++++ b/wp-content/mu-plugins/checkedbags-trip-invites.php
+@@ -1270,3 +1270,3 @@ function cbv_render_trip_agreement_meta_box( $post ) {
+ 	<p>
+-		<strong>This is the trip&#8217;s one rules text</strong>: members see it on the trip page and under &#8220;Rules for Your Trips&#8221; on Gate 12, with its version.
++		<strong>This is the trip&#8217;s one rules text</strong>: members see it on the trip page and under &#8220;Rules for Your Trips&#8221; on Gate 11, with its version.
+ 		Current version: <strong><?php echo (int) $version; ?></strong>.
+diff --git a/wp-content/mu-plugins/checkedbags-trips.php b/wp-content/mu-plugins/checkedbags-trips.php
+index 581b62a..97879e5 100644
+--- a/wp-content/mu-plugins/checkedbags-trips.php
++++ b/wp-content/mu-plugins/checkedbags-trips.php
+@@ -488,4 +488,5 @@ function cb_render_trip_meta_box( $post ) {
+ 		<div class="cb-field">
+-			<label for="cb_deposit_amount">Deposit per person ($)</label>
++			<label for="cb_deposit_amount">CBGV fee deposit per person ($)</label>
+ 			<input type="number" step="0.01" name="cb_deposit_amount" id="cb_deposit_amount" value="<?php echo esc_attr( $deposit ); ?>">
++			<p class="description">The first Gate 09 payment of the CBGV Group Experience Fee when Gate 09's payment mode is "Deposit + installments". Not a travel deposit.</p>
+ 		</div>

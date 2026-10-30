@@ -112,7 +112,7 @@ function cb_render_payment_meta_box( $post ) {
 		<input type="date" name="cb_next_payment_due_date" value="<?php echo esc_attr( $next_due ); ?>" style="width:100%;">
 		<br><em>Shown on the member's payment card. Informational only -- the travel advisor's host agency processes the actual Travel Payment off-site.</em>
 	</p>
-	<p><em>Deposit amount and full price are set in the Trip Details box above.</em></p>
+	<p><em>Members pay only the CBGV Group Experience Fee (set in the trip's Group Experience Fee box) plus any approved extras. The "CBGV fee deposit" for deposit + installments is in the Trip Details box. The travel price is never charged here.</em></p>
 	<?php
 }
 

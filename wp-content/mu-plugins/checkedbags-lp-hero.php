@@ -463,7 +463,7 @@ add_action( 'wp_enqueue_scripts', function () {
    6. Trip edit screen: the "Hero & boarding pass" box.
    ========================================================================== */
 add_action( 'add_meta_boxes', function () {
-	add_meta_box( 'cbv_lp_hero', 'Hero & boarding pass (new design)', 'cbv_lp_render_hero_box', 'cb_trip', 'normal', 'default' );
+	add_meta_box( 'cbv_lp_hero', 'Hero & boarding pass (new design + members\' page)', 'cbv_lp_render_hero_box', 'cb_trip', 'normal', 'default' );
 } );
 
 add_action( 'admin_enqueue_scripts', function ( $hook ) {

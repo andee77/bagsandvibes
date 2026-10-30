@@ -31,13 +31,14 @@ add_action( 'init', function () {
 } );
 
 add_action( 'add_meta_boxes', function () {
-	add_meta_box( 'cb_gate07_packing', 'Gate 07 — Packing Notes', 'cb_render_packing_meta_box', 'cb_trip', 'normal', 'default' );
+	add_meta_box( 'cb_gate07_packing', 'Packing Notes (members\' page, only when there\'s no pack list)', 'cb_render_packing_meta_box', 'cb_trip', 'normal', 'default' );
 } );
 
 function cb_render_packing_meta_box( $post ) {
 	wp_nonce_field( 'cb_gate07_save', 'cb_gate07_nonce' );
 	$notes = get_post_meta( $post->ID, 'cb_packing_notes', true );
 	?>
+	<p class="description">Shown on the members' trip page (section 05) only when this trip has no pack list in the "What's included &amp; pack list" box; the pack list wins. Not shown on Gate 07.</p>
 	<textarea name="cb_packing_notes" rows="4" style="width:100%;" placeholder="What to pack for this trip..."><?php echo esc_textarea( $notes ); ?></textarea>
 	<?php
 }
