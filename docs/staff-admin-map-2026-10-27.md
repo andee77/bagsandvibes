@@ -244,7 +244,7 @@ Passports expiring within 6 months of the trip are highlighted. It's a sensitive
 - **How it's charged:** custom code using **Stripe Checkout**; no payment plugin is involved. Stripe is in **live mode**. Members pay on https://bagsandvibes.com/gate-09-payments/, and must accept the Payment Disclaimer first.
 - **What it bills:** only the trip's Group Experience Fee for the member's party (full price per adult, half per child) plus approved extras. It refuses anything above that limit. **Travel costs are never charged on the site.**
 - **Per-trip setup:**
-  - The trip's **Group Experience Fee (new design)** box.
+  - The trip's **Group Experience Fee (charged on Gate 09, all trips)** box (called "Group Experience Fee (new design)" before 30 Oct 2026).
   - The **Gate 09 — Payment Settings** box: full payment or deposit + installments, number of installments, approved extras, and the next Travel Payment due date (display only).
 - **Standard fees:** Settings > Group Experience Fees, https://bagsandvibes.com/wp-admin/options-general.php?page=cbv-experience-fees. This screen also holds the **Payment safeguard log** and the owner-only **"Group Experience Fee is live"** switch, which is currently off.
 

@@ -64,7 +64,7 @@ Screen: Trips > (any trip). The trip screen uses the block editor. The boxes sit
 - **Not** shown on the members' page or either public design.
 - Overwritten automatically when a member accepts a Gate 12 quote.
 
-**Deposit per person:** ⚠ not a travel deposit. It's the first payment of the **CBGV Group Experience Fee** on Gate 09, used only when the payment mode is "Deposit + installments".
+**CBGV fee deposit per person** (labelled "Deposit per person" before 30 Oct 2026): ⚠ not a travel deposit. It's the first payment of the **CBGV Group Experience Fee** on Gate 09, used only when the payment mode is "Deposit + installments".
 
 **Price range summary (low / high):** Gate 07 card only. Ignored once Pricing Tiers have prices.
 
@@ -103,7 +103,7 @@ Screen: Trips > (any trip). The trip screen uses the block editor. The boxes sit
 
 **Design:** public pages only (both).
 
-## 3. Landing Page Settings (new design): every trip that has a provider
+## 3. Landing Page Settings (new design + members' page): every trip that has a provider
 
 **For:** what kind of event the trip is, which provider it uses, and which sections show.
 
@@ -124,7 +124,7 @@ Screen: Trips > (any trip). The trip screen uses the block editor. The boxes sit
 
 **Design:** new public design, plus the members' page, Gate 09 (standard fee), the proposal PDF and the Trip Registration.
 
-## 4. Key dates for this trip (new landing design): sometimes
+## 4. Key dates for this trip (new design + members' page): sometimes
 
 **For:** adjusts the provider's deadlines for this trip, removes ones that don't apply, or adds trip-only dates.
 
@@ -206,7 +206,9 @@ Prices are display only; CBGV never bills travel prices.
 
 **Design:** both public designs and the members' page.
 
-## 9. Gate 07 — Packing Notes: optional, legacy
+## 9. Packing Notes (members' page, only when there's no pack list): optional, legacy
+
+(Called "Gate 07 — Packing Notes" before 30 Oct 2026.)
 
 **For:** a free-text packing note.
 
@@ -303,7 +305,7 @@ Prices are display only; CBGV never bills travel prices.
 
 **Shows:** **new public design only.** Not on the members' page.
 
-## 19. Group Experience Fee (new design; admins only): every trip, choose on purpose
+## 19. Group Experience Fee (charged on Gate 09, all trips; admins only): every trip, choose on purpose
 
 **Fields:**
 - **Use the standard fee** (default).
@@ -325,7 +327,7 @@ Prices are display only; CBGV never bills travel prices.
 
 **Today:** Trip 320 is $150 per traveler and Trip 181 is $225 per traveler. Both are billable now.
 
-## 20. Hero & boarding pass (new design): every trip with a ship or venue
+## 20. Hero & boarding pass (new design + members' page): every trip with a ship or venue
 
 **Fields:** hero video, smaller hero video, **poster picture**, picture focus, **vessel / venue name**.
 
@@ -464,11 +466,12 @@ Prices are display only; CBGV never bills travel prices.
 | **On the trip, rules accepted** | The **full members' page**: hero → pass → next step → 01 checklist and trip update → 02 key dates → 03 route → 04 what's included → 05 pack list and fine print → 06 who's going → Trip Registration, rules, who does what, request details (member-built), questions. Sections with no data are left out |
 | **Staff (admin not on the roster)** | The members' page **without personal parts**: the passenger reads "Staff view". No next step, no checklist, no Trip Registration, no invite button. Sections 02–06 show without the rules step. To see the new public design, add `?preview=new` to the address |
 
-## Wording problems found on the screens (not fixed)
+## Help text fixed on 30 Oct 2026
 
-1. **Trip Agreement:** the help text says the rules show on "Gate 12"; they show on **Gate 11** (and the members' page).
-2. **Status board & intro:** the help text describes the old "NN OF minimum" behaviour.
-3. **Gate 09 — Payment Settings:** says "full price" is set in Trip Details; the travel price is never charged.
-4. **"(new design)" labels:** Landing Page Settings, Key dates, Hero & boarding pass, Group Experience Fee and What's included & pack list now also feed the **members' page**, and the fee box controls Gate 09 billing for every trip.
-5. **Gate 07 — Packing Notes:** shows only on the members' page (and only without a pack list), not on Gate 07.
-6. **Trip Details "Deposit per person":** reads like a travel deposit, but it's the CBGV fee deposit.
+These six misleading labels and notes on the trip edit screen were corrected (commit f115ab2):
+1. **Trip Agreement:** now says the rules show on **Gate 11** (it said Gate 12).
+2. **Status board & intro:** the "Travelers booked" help now describes the current behaviour (only the chip below the minimum; hidden while the minimum is 0 or blank).
+3. **Gate 09 — Payment Settings:** now says members pay only the CBGV fee plus approved extras, and the travel price is never charged.
+4. **Box names:** Landing Page Settings, Key dates for this trip and Hero & boarding pass now say **(new design + members' page)**. The fee box is **Group Experience Fee (charged on Gate 09, all trips)**, and its description says a trip's own fee is charged on Gate 09 straight away.
+5. **Packing Notes (members' page, only when there's no pack list)**, with a note under the name.
+6. **Trip Details:** **CBGV fee deposit per person ($)**, with a note that it's not a travel deposit.
