@@ -298,6 +298,15 @@ add_filter( 'the_content', function ( $content ) {
 		return $content . '<p class="cb-empty">You don&#8217;t have access to this trip&#8217;s details yet — join it from <a href="' . esc_url( home_url( '/gate-07-pre-planned-vacations/' ) ) . '">All Planned Vacations</a> first.</p>';
 	}
 
+	// Members' trip page redesign (owner, 2026-10-29), for every trip:
+	// checkedbags-member-trip-page.php. Same access rules as below (rules
+	// acceptance gates the trip details; the Trip Registration and itinerary
+	// PDF stay available before it). The code below is the fallback if that
+	// file is ever removed.
+	if ( function_exists( 'cbv_render_member_trip_page' ) ) {
+		return cbv_render_member_trip_page( $post->ID, $viewer_id, $on_roster, $content );
+	}
+
 	// Itinerary PDF (Phase 6): deliberately available to any roster member
 	// regardless of agreement acceptance -- per spec §6.1 it's meant to help
 	// someone still deciding whether to commit, so it must be visible

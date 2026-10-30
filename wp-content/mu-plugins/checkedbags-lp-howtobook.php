@@ -190,6 +190,10 @@ add_filter( 'the_content', function ( $content ) {
 	if ( function_exists( 'cbv_lp_trip_view' ) && in_array( cbv_lp_trip_view( get_the_ID() ), array( 'new', 'new_preview' ), true ) ) {
 		return $content;
 	}
+	// The members' trip page places it itself, before "Questions?" (checkedbags-member-trip-page.php).
+	if ( function_exists( 'cbv_render_member_trip_page' ) && function_exists( 'cbv_lp_trip_view' ) && 'private' === cbv_lp_trip_view( get_the_ID() ) ) {
+		return $content;
+	}
 	return $content . cbv_render_who_does_what( 'page' );
 }, 30 );
 

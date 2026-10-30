@@ -170,6 +170,11 @@ add_filter( 'the_content', function ( $content ) {
 	if ( ! $forum_id ) {
 		return $content;
 	}
+	// The members' trip page has its own "Discuss this trip" button (Who's
+	// going, checkedbags-member-trip-page.php).
+	if ( function_exists( 'cbv_render_member_trip_page' ) && function_exists( 'cbv_lp_trip_view' ) && 'private' === cbv_lp_trip_view( $post->ID ) ) {
+		return $content;
+	}
 
 	// Same access gate Gate 07 already enforces on this page's own content
 	// (Phase 4) -- otherwise a visitor Gate 07 just told "you don't have
