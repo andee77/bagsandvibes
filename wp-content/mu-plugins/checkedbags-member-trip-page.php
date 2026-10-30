@@ -333,6 +333,8 @@ function cbv_render_member_trip_page( $trip_id, $viewer_id, $on_roster, $content
 			<?php endif; ?>
 			<?php if ( ! $needs_rules ) : ?>
 				<?php echo cbv_mt_end_cards( $trip_id, $viewer_id ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside ?>
+			<?php elseif ( function_exists( 'cbv_render_who_does_what' ) ) : // the disclosure is on every trip page, the rules screen included ?>
+				<div class="cbv-mt-who"><?php echo cbv_render_who_does_what( 'page' ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped inside ?></div>
 			<?php endif; ?>
 		</div>
 	</section>
