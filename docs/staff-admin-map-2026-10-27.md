@@ -92,6 +92,8 @@ Staff can see the agreement version and date, who invited the member, trip inter
 
 ## 2. Planned trips
 
+> **Box-by-box guide:** every box on the trip edit screen (what it's for, where it shows, what to fill in), which box feeds each part of the members' trip page, the launch checklist, and what each visitor sees at /trip/[trip-name]/ are in [docs/trip-edit-screen-guide-2026-10-30.md](trip-edit-screen-guide-2026-10-30.md).
+
 ### Where
 - Trips: https://bagsandvibes.com/wp-admin/edit.php?post_type=cb_trip
 - Add New Trip: https://bagsandvibes.com/wp-admin/post-new.php?post_type=cb_trip
